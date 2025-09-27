@@ -1,4 +1,14 @@
-# FrontendG06
+# Frontend del Proyecto Integrado 2025-26 del grupo G06
+Este es el repositorio para el desarrollo del Frontend del Proyecto Integrado 2025-2026 realizado por el grupo G06
+
+## Miembros: 
+  - Manuel Caballero Bonilla
+  - Mario Damas Sánchez
+  - Javier Alemany Abril
+  - Alejandro Muñoz González
+  - Alejandro Fernández Muñoz
+
+# Creation and usage documentation in English
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.0.
 
