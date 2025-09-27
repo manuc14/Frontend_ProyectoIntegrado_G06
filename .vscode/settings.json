@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "frontend_g06",
+        "projectKey": "2025-g06-frontend"
+    }
+}
