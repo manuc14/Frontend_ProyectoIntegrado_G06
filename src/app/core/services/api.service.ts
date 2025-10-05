@@ -12,8 +12,10 @@ export interface RegisterRequest {
   alias: string;
   fechaNacimiento: string; // ISO date
   password: string;
-  vip: boolean;
-  avatarUrl: string;
+  repetirPassword: string;
+  esVip: boolean;
+  foto: string;
+  activo: boolean;
 }
 
 export interface RegisterResponse {
@@ -26,10 +28,23 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface BackendUser {
+  apellidos: string;
+  tipo: string; // e.g., 'USUARIO_EV', 'ADMINISTRADOR', 'EDITOR_CONTENIDO'
+  foto: string;
+  fechaCreacion: string;
+  id: string;
+  nombreCompleto: string;
+  nombre: string;
+  email: string;
+  activo: boolean;
+}
+
 export interface LoginResponse {
-  ok: boolean;
-  token?: string;
-  role?: 'ADMIN' | 'CONTENT' | 'USER';
+  success: boolean;
+  message: string;
+  user: BackendUser;
+  token: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -50,7 +65,7 @@ export class ApiService {
   }
 
   registerUser(body: RegisterRequest) {
-    return this.http.post<RegisterResponse>(`${this.base}/auth/register`, body);
+    return this.http.post<RegisterResponse>(`${this.base}/auth/register`, body, { observe: 'response' });
   }
 
   login(body: LoginRequest) {

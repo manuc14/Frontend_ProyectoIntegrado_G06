@@ -45,16 +45,28 @@ export class LoginComponent {
       .pipe(finalize(() => { this.loading = false; this.form.enable(); }))
       .subscribe({
         next: (res: LoginResponse) => {
-          if (!res?.ok) { throw new Error('Auth failed'); }
-          const role = res.role ?? 'USER';
-          // Basic role-based redirects
-          if (role === 'ADMIN') {
-            this.router.navigateByUrl('/admin');
-          } else if (role === 'CONTENT') {
-            this.router.navigateByUrl('/content');
-          } else {
-            this.router.navigateByUrl('/catalog');
+          if (!res?.success) {
+            this.bannerKind = 'error';
+            this.bannerText = res?.message || 'Credenciales incorrectas';
+            return;
           }
+          // Verificar activación de cuenta
+          if (!res.user?.activo) {
+            this.bannerKind = 'error';
+            this.bannerText = 'Tu cuenta no está activada. Revisa tu correo para activarla.';
+            return;
+          }
+          // Opcional: persistir token; para demo, solo navegación
+          // sessionStorage.setItem('token', res.token);
+
+          const tipo = res.user?.tipo || '';
+          // Mapeo de tipos del backend a rutas de la app
+          // Ajusta estos valores exactos a los que el backend usa realmente
+          let target: string = '/catalog';
+          if (/admin/i.test(tipo)) target = '/admin';
+          else if (/content|editor|gest/i.test(tipo)) target = '/content';
+
+          this.router.navigateByUrl(target);
         },
         error: (err) => {
           console.error('Login error', err);

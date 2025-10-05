@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ApiService } from '../../core/services/api.service';
+import { HttpResponse } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 
 function maxLengthValidator(len: number) {
@@ -93,7 +94,7 @@ export class RegisterComponent {
     // Derive effective alias and photo
     const v = this.form.value;
     const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
-    let fotoUrl = v.fotoElegida || 'assets/placeholders/featured.jpg';
+  let fotoUrl = v.fotoElegida || 'assets/placeholders/featured.jpg';
 
     const payload = {
       nombre: v.nombre!,
@@ -102,8 +103,10 @@ export class RegisterComponent {
       alias,
       fechaNacimiento: v.fechaNacimiento!,
       password: v.password!,
-      vip: v.vip!,
-      avatarUrl: fotoUrl,
+      repetirPassword: v.repeatPassword!,
+      esVip: v.vip!,
+      foto: fotoUrl,
+      activo: false,
     };
 
     this.bannerKind = null;
@@ -116,10 +119,17 @@ export class RegisterComponent {
         this.form.enable();
       }))
       .subscribe({
-        next: (res) => {
-          console.log('Registro OK', res);
-          this.bannerKind = 'success';
-          this.bannerText = 'Cuenta creada correctamente.';
+        next: (res: HttpResponse<any>) => {
+          const status = res.status;
+          if (status === 201 || status === 200) {
+            console.log('Registro OK', res.body);
+            this.bannerKind = 'success';
+            this.bannerText = 'Cuenta creada correctamente.';
+            return;
+          }
+          // Status inesperado, tratar como error
+          this.bannerKind = 'error';
+          this.bannerText = 'No se pudo crear la cuenta.';
         },
         error: (err) => {
           const code = err?.status;
