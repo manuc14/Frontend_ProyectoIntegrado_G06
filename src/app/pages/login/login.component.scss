@@ -1,0 +1,17 @@
+.login-page{max-width:480px;margin:32px auto 56px auto;padding-top: 32px; padding-bottom: 48px;}
+.login-page h1{margin:0 0 8px 0}
+.hint{color:#7ea2ad;margin:0 0 16px 0}
+.card{background:#0c1620;border:1px solid #17303a;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+label{display:flex;flex-direction:column;gap:8px}
+input[type="email"],input[type="password"]{padding:10px 12px;border-radius:8px;border:1px solid #17303a;background:#0b1216;color:#e8f6f5}
+.row{display:flex;gap:12px;align-items:center}
+.row.end{justify-content:flex-end}
+.muted{color:#7ea2ad}
+.muted.small{font-size:12px;color:#7ea2ad}
+.actions{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.btn{padding:10px 16px;border-radius:8px;border:none}
+.btn.primary{background:#00e0a1;color:#02120b}
+.field-error{color:#ff6b6b}
+.banner{margin-bottom:4px;padding:8px 10px;border-radius:8px;border:1px solid #17303a;background:#0b1216;color:#bfecef}
+.banner.error{border-color:rgba(255,107,107,0.35);background:#241013;color:#ffb3b3}
+@media (max-width:480px){.actions{flex-direction:column;gap:8px;align-items:stretch}}

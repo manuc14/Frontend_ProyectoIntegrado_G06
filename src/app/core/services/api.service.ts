@@ -21,6 +21,17 @@ export interface RegisterResponse {
   userId?: string;
 }
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  ok: boolean;
+  token?: string;
+  role?: 'ADMIN' | 'CONTENT' | 'USER';
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
@@ -40,5 +51,9 @@ export class ApiService {
 
   registerUser(body: RegisterRequest) {
     return this.http.post<RegisterResponse>(`${this.base}/auth/register`, body);
+  }
+
+  login(body: LoginRequest) {
+    return this.http.post<LoginResponse>(`${this.base}/auth/login`, body);
   }
 }
