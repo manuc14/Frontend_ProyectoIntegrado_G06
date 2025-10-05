@@ -1,0 +1,13 @@
+<a class="link9" href="#">
+  <div class="background5">
+    <img class="thumb" [src]="item.image" [alt]="item.title" />
+    <div class="container16">
+      <div class="background8" *ngIf="item.tagLeft"><div class="tag-left">{{ item.tagLeft }}</div></div>
+      <div class="background7" *ngIf="item.tagRight"><div class="tag-right">{{ item.tagRight }}</div></div>
+    </div>
+  </div>
+  <div class="container17">
+    <div class="container14"><div class="title">{{ item.title }}</div></div>
+    <div class="container18" *ngIf="item.badgeRight"><div class="badge">{{ item.badgeRight }}</div></div>
+  </div>
+</a>

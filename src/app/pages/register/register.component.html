@@ -1,0 +1,86 @@
+<app-header />
+
+<main class="register-page">
+  <h1>Crear tu cuenta</h1>
+  <p class="hint">Los campos con * son obligatorios.</p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card">
+    <div *ngIf="bannerKind" class="banner" [class.success]="bannerKind==='success'" [class.error]="bannerKind==='error'">
+      {{ bannerText }}
+    </div>
+    <div class="grid">
+      <label>
+        <span>Nombre *</span>
+        <input type="text" formControlName="nombre" maxlength="50" />
+        <small class="field-error" *ngIf="f['nombre'].touched && f['nombre'].errors?.['required']">El nombre es obligatorio.</small>
+      </label>
+      <label>
+        <span>Apellidos *</span>
+        <input type="text" formControlName="apellidos" maxlength="80" />
+        <small class="field-error" *ngIf="f['apellidos'].touched && f['apellidos'].errors?.['required']">Los apellidos son obligatorios.</small>
+      </label>
+      <label class="span-2">
+        <span>Email *</span>
+        <input type="email" formControlName="email" maxlength="120" />
+        <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['required']">El email es obligatorio.</small>
+        <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['email']">Formato de email inválido.</small>
+        <small class="field-error" *ngIf="f['email'].errors?.['emailTaken']">Correo electrónico ya dado de alta.</small>
+      </label>
+      <label>
+        <span>Alias (opcional, máx {{maxAlias}})</span>
+        <input type="text" formControlName="alias" [attr.maxlength]="maxAlias" />
+        <small class="subhint">Es tu nombre público.</small>
+        <small class="field-error" *ngIf="f['alias'].touched && f['alias'].errors?.['maxlength']">El alias no puede superar {{maxAlias}} caracteres.</small>
+      </label>
+      <label>
+        <span>Fecha de nacimiento *</span>
+        <input type="date" formControlName="fechaNacimiento" />
+        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['required']">La fecha de nacimiento es obligatoria.</small>
+        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['futureDate']">La fecha no puede ser futura.</small>
+        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['minAge']">Debes tener al menos 4 años.</small>
+      </label>
+      <label>
+        <span>Contraseña *</span>
+        <input type="password" formControlName="password" />
+        <small class="subhint">Mínimo 6 caracteres.</small>
+        <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
+        <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">La contraseña debe tener al menos 6 caracteres.</small>
+      </label>
+      <label>
+        <span>Repetir contraseña *</span>
+        <input type="password" formControlName="repeatPassword" />
+        <small class="field-error" *ngIf="form.touched && form.errors?.['mismatch']">Las contraseñas no coinciden.</small>
+      </label>
+      <fieldset class="span-2">
+        <legend>Elige plan *</legend>
+        <div class="segmented" role="radiogroup" aria-label="Elige plan">
+          <label class="segment" [class.active]="form.value.vip === false">
+            <input type="radio" formControlName="vip" [value]="false" />
+            <span>Standard</span>
+          </label>
+          <label class="segment" [class.active]="form.value.vip === true">
+            <input type="radio" formControlName="vip" [value]="true" />
+            <span>VIP</span>
+          </label>
+        </div>
+        <div class="vip-hint">Puedes cambiarlo más tarde. VIP incluye ventajas extra.</div>
+      </fieldset>
+      <fieldset class="span-2">
+        <legend>Avatar (opcional)</legend>
+        <div class="foto-row">
+          <div class="predefinidas">
+            <button type="button" *ngFor="let p of predefinedPhotos" (click)="choosePredefinida(p)" [class.active]="p === form.value.fotoElegida" [attr.aria-pressed]="p === form.value.fotoElegida">
+              <img [src]="p" alt="predefinido" />
+            </button>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <div class="actions">
+      <a routerLink="/" class="btn ghost">Cancelar</a>
+  <button class="btn primary" type="submit" [disabled]="form.invalid || loading">{{ loading ? 'Enviando…' : 'Crear cuenta' }}</button>
+    </div>
+  </form>
+</main>
+
+<app-footer />
