@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ApiService } from '../../core/services/api.service';
@@ -67,7 +67,7 @@ export class RegisterComponent {
   showVipPromo = false;
   promptedVipOnce = false;
 
-  constructor(private fb: FormBuilder, private api: ApiService) {
+  constructor(private fb: FormBuilder, private api: ApiService, private router: Router) {
     this.form = this.fb.nonNullable.group({
       nombre: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(50)]),
       apellidos: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(80)]),
@@ -176,6 +176,8 @@ export class RegisterComponent {
             console.log('Registro OK', res.body);
             this.bannerKind = 'success';
             this.bannerText = 'Cuenta creada correctamente.';
+            // Navega a verificación de email pasando el correo
+            this.router.navigate(['/verify-email'], { queryParams: { email: v.email } });
             return;
           }
           // Status inesperado, tratar como error

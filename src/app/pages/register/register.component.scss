@@ -5,6 +5,16 @@
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .span-2{grid-column:span 2}
 label,fieldset{display:flex;flex-direction:column;gap:8px}
+label.with-help{position:relative}
+label.with-help > span{display:flex;align-items:center;gap:8px}
+label.with-help .help{margin-left:auto;align-self:flex-start;background:#11202a;color:#bfecef;border:1px solid #17303a;border-radius:999px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;cursor:help;position:relative}
+label.with-help .help .tooltip{display:none;position:absolute;top:28px;right:0;z-index:10;min-width:240px;max-width:320px;background:#0b1216;border:1px solid #17303a;color:#bfecef;border-radius:8px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
+label.with-help .help:focus .tooltip, label.with-help .help:hover .tooltip{display:block}
+label.with-help .help .tooltip strong{display:block;margin-bottom:6px;color:#9ff5d9}
+label.with-help .help .tooltip ul{padding-left:18px;margin:0}
+label.with-help .help .tooltip ul.password-requirements{list-style:none;padding-left:0;margin:0}
+label.with-help .help .tooltip ul.password-requirements li{position:relative;padding-left:14px;margin:4px 0}
+label.with-help .help .tooltip ul.password-requirements li::before{content:'\00B7';position:absolute;left:0;top:0;color:#bfecef;font-weight:700}
 input[type="text"],input[type="email"],input[type="password"],input[type="date"]{padding:10px 12px;border-radius:8px;border:1px solid #17303a;background:#0b1216;color:#e8f6f5}
 fieldset{border:1px dashed #17303a;padding:12px;border-radius:8px}
 .segmented{display:flex;gap:8px;background:#11202a;border-radius:48px;padding:4px;align-items:center;width:max-content}

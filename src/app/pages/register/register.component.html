@@ -39,10 +39,23 @@
         <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['futureDate']">La fecha no puede ser futura.</small>
         <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['minAge']">Debes tener al menos 4 años.</small>
       </label>
-      <label>
-        <span>Contraseña *</span>
+      <label class="with-help">
+        <span>
+          Contraseña *
+          <button type="button" class="help" aria-label="Requisitos de contraseña" tabindex="0">
+            ?
+            <div class="tooltip" role="tooltip">
+              <strong>Requisitos de contraseña</strong>
+              <ul class="password-requirements">
+                <li>Mínimo 8 caracteres</li>
+                <li>Al menos 1 mayúscula que no esté en primera posición</li>
+                <li>Al menos 1 carácter especial</li>
+                <li>Al menos 1 número</li>
+              </ul>
+            </div>
+          </button>
+        </span>
         <input type="password" formControlName="password" />
-        <small class="subhint">Mínimo 8 caracteres.</small>
         <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
         <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">La contraseña debe tener al menos 8 caracteres.</small>
       </label>
