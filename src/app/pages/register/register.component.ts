@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ApiService } from '../../core/services/api.service';
+import { VipPromoModalComponent } from '../../shared/vip-promo-modal/vip-promo-modal.component';
 import { HttpResponse } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 
@@ -48,24 +49,23 @@ interface RegisterForm {
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, HeaderComponent, FooterComponent, VipPromoModalComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
   readonly maxAlias = 12;
-  readonly predefinedPhotos = [
-    'assets/placeholders/vid1.jpg',
-    'assets/placeholders/vid2.jpg',
-    'assets/placeholders/aud1.jpg',
-    'assets/placeholders/hal1.jpg',
-  ];
+  // Avatares únicamente desde backend
+  predefinedPhotos: string[] = [];
 
   form: FormGroup<RegisterForm>;
 
   loading = false;
   bannerKind: 'success' | 'error' | null = null;
   bannerText = '';
+  // VIP promo modal state
+  showVipPromo = false;
+  promptedVipOnce = false;
 
   constructor(private fb: FormBuilder, private api: ApiService) {
     this.form = this.fb.nonNullable.group({
@@ -74,7 +74,7 @@ export class RegisterComponent {
       email: this.fb.nonNullable.control('', [Validators.required, Validators.email, Validators.maxLength(120)]),
       alias: this.fb.nonNullable.control('', [maxLengthValidator(this.maxAlias)]),
       fechaNacimiento: this.fb.nonNullable.control('', [Validators.required, minAgeValidator(4)]),
-      password: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6), Validators.maxLength(128)]),
+      password: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]),
       repeatPassword: this.fb.nonNullable.control('', [Validators.required]),
   vip: this.fb.nonNullable.control<boolean>(false),
       fotoElegida: this.fb.control<string | null>(null),
@@ -82,6 +82,16 @@ export class RegisterComponent {
   }
 
   get f() { return this.form.controls; }
+
+  ngOnInit() {
+    // Fetch avatars from backend (sin fallback local)
+    this.api.getAvatars().subscribe({
+      next: (list) => {
+        if (Array.isArray(list)) this.predefinedPhotos = list;
+      },
+      error: () => { /* ignore, keep defaults */ }
+    });
+  }
 
   choosePredefinida(url: string) {
     this.form.patchValue({ fotoElegida: url });
@@ -93,8 +103,35 @@ export class RegisterComponent {
 
     // Derive effective alias and photo
     const v = this.form.value;
+    // Normalize vip to boolean (radio can yield 'true'/'false' strings)
+    const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
+    // If user selected Standard and hasn't been prompted yet, show VIP promo
+    if (!isVip && !this.promptedVipOnce) {
+      this.showVipPromo = true;
+      return;
+    }
+    this.doRegister();
+  }
+
+  // VIP promo actions
+  continueAsStandard() {
+    this.promptedVipOnce = true;
+    this.showVipPromo = false;
+    this.doRegister();
+  }
+
+  upgradeToVip() {
+    this.form.patchValue({ vip: true });
+    this.promptedVipOnce = true;
+    this.showVipPromo = false;
+    this.doRegister();
+  }
+
+  private doRegister() {
+    const v = this.form.value;
+    const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
     const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
-  let fotoUrl = v.fotoElegida || 'assets/placeholders/featured.jpg';
+  let fotoUrl = v.fotoElegida || '';
 
     const payload = {
       nombre: v.nombre!,
@@ -104,7 +141,7 @@ export class RegisterComponent {
       fechaNacimiento: v.fechaNacimiento!,
       password: v.password!,
       repetirPassword: v.repeatPassword!,
-      esVip: v.vip!,
+      esVip: isVip,
       foto: fotoUrl,
       activo: false,
     };
@@ -122,6 +159,20 @@ export class RegisterComponent {
         next: (res: HttpResponse<any>) => {
           const status = res.status;
           if (status === 201 || status === 200) {
+            const body: any = res.body || {};
+            if (body && body.success === false) {
+              // Parse error messages separated by ';'
+              const raw = (body.error ?? '') as string;
+              const parts = raw.split(';').map(s => s.trim()).filter(Boolean);
+              const msgText = parts.length > 0 ? parts.join('\n') : 'No se pudo crear la cuenta.';
+              // Map known email duplicate to field error for UX
+              if (raw && /email/i.test(raw) && /(existe|registrad|taken|registered|alta)/i.test(raw)) {
+                this.form.get('email')?.setErrors({ emailTaken: true });
+              }
+              this.bannerKind = 'error';
+              this.bannerText = msgText;
+              return; // do not mark success
+            }
             console.log('Registro OK', res.body);
             this.bannerKind = 'success';
             this.bannerText = 'Cuenta creada correctamente.';
@@ -133,12 +184,13 @@ export class RegisterComponent {
         },
         error: (err) => {
           const code = err?.status;
-          const msg = err?.error?.message as string | undefined;
-          if (code === 409 || (msg && /email/i.test(msg) && /(existe|alta|taken|registered)/i.test(msg))) {
+          const rawMsg = (err?.error?.error ?? err?.error?.message) as string | undefined;
+          if (code === 409 || (rawMsg && /email/i.test(rawMsg) && /(existe|alta|taken|registered)/i.test(rawMsg))) {
             this.form.get('email')?.setErrors({ emailTaken: true });
           }
+          const parts = rawMsg ? rawMsg.split(';').map(s => s.trim()).filter(Boolean) : [];
           this.bannerKind = 'error';
-          this.bannerText = msg || 'No se pudo crear la cuenta. Inténtalo de nuevo.';
+          this.bannerText = parts.length ? parts.join('\n') : (rawMsg || 'No se pudo crear la cuenta. Inténtalo de nuevo.');
           console.error('Error de registro', err);
         },
       });

@@ -27,6 +27,8 @@ input.ng-invalid.ng-touched{border-color:#ff6b6b}
 @media (max-width:640px){.grid{grid-template-columns:1fr}}
 
 /* inline banner */
-.banner{margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid #17303a;background:#0b1216;color:#bfecef}
+.banner{margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid #17303a;background:#0b1216;color:#bfecef;white-space:pre-line}
 .banner.success{border-color:rgba(0,224,161,0.35);background:#06241f;color:#9ff5d9}
 .banner.error{border-color:rgba(255,107,107,0.35);background:#241013;color:#ffb3b3}
+
+/* VIP promo overlay styles moved to shared component */

@@ -42,9 +42,9 @@
       <label>
         <span>Contraseña *</span>
         <input type="password" formControlName="password" />
-        <small class="subhint">Mínimo 6 caracteres.</small>
+        <small class="subhint">Mínimo 8 caracteres.</small>
         <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
-        <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">La contraseña debe tener al menos 6 caracteres.</small>
+        <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">La contraseña debe tener al menos 8 caracteres.</small>
       </label>
       <label>
         <span>Repetir contraseña *</span>
@@ -54,23 +54,23 @@
       <fieldset class="span-2">
         <legend>Elige plan *</legend>
         <div class="segmented" role="radiogroup" aria-label="Elige plan">
-          <label class="segment" [class.active]="form.value.vip === false">
+          <label class="segment" [class.active]="(form.value.vip + '') === 'false'">
             <input type="radio" formControlName="vip" [value]="false" />
             <span>Standard</span>
           </label>
-          <label class="segment" [class.active]="form.value.vip === true">
+          <label class="segment" [class.active]="(form.value.vip + '') === 'true'">
             <input type="radio" formControlName="vip" [value]="true" />
             <span>VIP</span>
           </label>
         </div>
         <div class="vip-hint">Puedes cambiarlo más tarde. VIP incluye ventajas extra.</div>
       </fieldset>
-      <fieldset class="span-2">
+      <fieldset class="span-2" *ngIf="predefinedPhotos.length > 0">
         <legend>Avatar (opcional)</legend>
         <div class="foto-row">
           <div class="predefinidas">
             <button type="button" *ngFor="let p of predefinedPhotos" (click)="choosePredefinida(p)" [class.active]="p === form.value.fotoElegida" [attr.aria-pressed]="p === form.value.fotoElegida">
-              <img [src]="p" alt="predefinido" />
+              <img [src]="p" alt="avatar" />
             </button>
           </div>
         </div>
@@ -82,5 +82,12 @@
     </div>
   </form>
 </main>
+
+<!-- VIP promotional modal (shared) -->
+<app-vip-promo-modal *ngIf="showVipPromo"
+  (upgrade)="upgradeToVip()"
+  (continue)="continueAsStandard()"
+  (close)="continueAsStandard()"
+></app-vip-promo-modal>
 
 <app-footer />

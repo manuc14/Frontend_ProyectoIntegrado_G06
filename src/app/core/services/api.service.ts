@@ -71,4 +71,13 @@ export class ApiService {
   login(body: LoginRequest) {
     return this.http.post<LoginResponse>(`${this.base}/auth/login`, body);
   }
+
+  getAvatars(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.base}/auth/avatars`).pipe(
+      catchError((err) => {
+        // Fallback vacío si el endpoint falla (podemos usar predefinidas locales en el componente)
+        return of([]);
+      })
+    );
+  }
 }
