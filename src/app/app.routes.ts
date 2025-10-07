@@ -10,6 +10,7 @@ import { ContentPage } from './pages/content/content.page';
 import { CatalogPage } from './pages/catalog/catalog.page';
 import { VerifyEmailPage } from './pages/verify-email/verify-email.page';
 import { VerifyCodePage } from './pages/verify-code/verify-code.page';
+import { VerifiedEmailPage } from './pages/verified-email/verified-email.page';
 @Component({ selector: 'app-forgot', standalone: true, template: '<main class="placeholder"><h2>Recuperar contraseña</h2></main>' })
 class ForgotPlaceholder {}
 
@@ -19,6 +20,7 @@ export const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
 	{ path: 'verify-email', component: VerifyEmailPage },
 	{ path: 'verify-code', component: VerifyCodePage },
+	{ path: 'verified-email', component: VerifiedEmailPage },
 	{ path: 'admin', component: AdminPage },
 	{ path: 'content', component: ContentPage },
 	{ path: 'catalog', component: CatalogPage },

@@ -115,12 +115,12 @@ export class VerifyCodePage {
     if (el) el.focus();
   }
 
-  /* Envía el código para verificación (placeholder de backend) y navega a login. */
+  /* Envía el código para verificación (placeholder de backend) y navega a la página de confirmación. */
   onVerify() {
     if (!this.canVerify) return;
     // Aquí iría la llamada al backend para verificar el código
     console.log('Verifying code', this.code, 'for', this.email());
-    // Por ahora redirigimos a login tras éxito simbólico
-    this.router.navigate(['/login']);
+    // Redirigir a la página de confirmación tras verificación exitosa
+    this.router.navigate(['/verified-email']);
   }
 }

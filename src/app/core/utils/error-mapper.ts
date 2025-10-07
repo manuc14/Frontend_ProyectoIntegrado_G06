@@ -2,7 +2,7 @@
  * Utilidades para mapear errores de validación del backend a controles de formularios Angular de forma consistente.
  * Estructura esperada del error: { message: string; details?: Array<{ field: string; message: string }> }
  */
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 
 // Detalle de error por campo devuelto por el backend
 export interface BackendErrorDetail {
