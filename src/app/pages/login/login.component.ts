@@ -47,33 +47,51 @@ export class LoginComponent {
       .pipe(finalize(() => { this.loading = false; this.form.enable(); }))
       .subscribe({
         next: (res: LoginResponse) => {
-          if (!res?.success) {
+          // El backend devuelve 200 OK cuando el login es exitoso
+          // Verificar si hay errores de validación
+          if (res?.validationErrorCount > 0) {
             this.bannerKind = 'error';
-            this.bannerText = res?.message || 'Credenciales incorrectas';
+            this.bannerText = res?.message || 'Error de validación en los datos';
             return;
           }
+          
           // Verificar activación de cuenta
           if (!res.user?.activo) {
             this.bannerKind = 'error';
             this.bannerText = 'Tu cuenta no está activada. Revisa tu correo para activarla.';
             return;
           }
-          // Opcional: persistir token; para demo, solo navegación
-          // sessionStorage.setItem('token', res.token);
+
+          // Login exitoso - mostrar mensaje de éxito brevemente
+          this.bannerKind = 'success';
+          this.bannerText = res.message || 'Login exitoso';
+
+          // Guardar token en sessionStorage para mantener la sesión
+          if (res.token) {
+            sessionStorage.setItem('authToken', res.token);
+          }
 
           const tipo = res.user?.tipo || '';
           // Mapeo de tipos del backend a rutas de la app
-          // Ajusta estos valores exactos a los que el backend usa realmente
           let target: string = '/catalog';
           if (/admin/i.test(tipo)) target = '/admin';
           else if (/content|editor|gest/i.test(tipo)) target = '/content';
 
-          this.router.navigateByUrl(target);
+          // Agregar token a la URL como parámetro de consulta
+          const navigationExtras = {
+            queryParams: { token: res.token }
+          };
+
+          // Redirigir después de un breve delay para mostrar el mensaje de éxito
+          setTimeout(() => {
+            this.router.navigate([target], navigationExtras);
+          }, 1000);
         },
         error: (err) => {
           console.error('Login error', err);
           this.bannerKind = 'error';
-          this.bannerText = 'Credenciales incorrectas';
+          // El error interceptor ya maneja los mensajes amigables
+          this.bannerText = err || 'No se pudo completar el inicio de sesión';
         }
       });
   }

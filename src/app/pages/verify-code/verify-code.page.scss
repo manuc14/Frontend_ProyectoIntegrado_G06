@@ -7,6 +7,19 @@
 .container5 { display:flex; }
 .text8 { color:#e6eef8; font:600 20px Inter, sans-serif; }
 .text9 { color:#7b8892; font:600 14px Inter, sans-serif; }
+
+/* Error message styles */
+.error-message {
+  color: #ff6b6b;
+  font: 600 12px Inter, sans-serif;
+  padding: 8px 12px;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 8px;
+  text-align: center;
+  margin: 8px 0;
+}
+
 .container6 { display:flex; gap:8px; justify-content:center; }
 .container6 input { width:42px; height:48px; text-align:center; border-radius:12px; border:1px solid #1f2933; background:#0f1720; color:#e6eef8; font:600 20px Inter, sans-serif; }
 .container6 input:focus { outline: none; border-color:#00e0a1; box-shadow:0 0 0 2px rgba(0, 224, 161, 0.2); }
@@ -15,3 +28,39 @@
 .link4:disabled { opacity:0.6; cursor:not-allowed; }
 .svg3 { width:18px; height:18px; }
 .text11 { color:#02120b; font:600 14px Inter, sans-serif; }
+
+/* Resend section styles */
+.resend-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #1f2933;
+}
+
+.resend-text {
+  color: #7b8892;
+  font: 600 12px Inter, sans-serif;
+}
+
+.resend-button {
+  background: transparent;
+  border: none;
+  color: #00e0a1;
+  font: 600 12px Inter, sans-serif;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 8px;
+  
+  &:hover {
+    color: #00c691;
+  }
+  
+  &:disabled {
+    color: #7b8892;
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+}

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SectionDto } from '../models/media.models';
 
@@ -59,12 +59,14 @@ export interface BackendUser {
 /*
  * Interfaz para la respuesta de login exitoso
  * Incluye usuario autenticado y token de sesión
+ * Estructura actualizada para coincidir con el backend
  */
 export interface LoginResponse {
-  success: boolean;
   message: string;
-  user: BackendUser;
+  details: any;
   token: string;
+  user: BackendUser;
+  validationErrorCount: number;
 }
 
 /*
@@ -78,6 +80,55 @@ export class ApiService {
   private http = inject(HttpClient);
   // URL base configurada según el entorno (development/production)
   private base = environment.baseApiUrl;
+
+  /**
+   * Maneja errores HTTP y devuelve mensajes amigables para el usuario.
+   * Evita mostrar errores técnicos como "404 Not Found" al usuario.
+   */
+  private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
+    return (error: HttpErrorResponse): Observable<never> => {
+      let userMessage = defaultMessage;
+
+      // Si el backend envía un mensaje de error personalizado, usarlo
+      if (error.error && typeof error.error === 'object' && error.error.message) {
+        userMessage = error.error.message;
+      } else {
+        // Mensajes amigables basados en códigos de estado HTTP
+        switch (error.status) {
+          case 400:
+            userMessage = 'Los datos enviados no son válidos. Por favor, verifica la información.';
+            break;
+          case 401:
+            userMessage = 'No tienes autorización para realizar esta acción.';
+            break;
+          case 403:
+            userMessage = 'No tienes permisos para acceder a este recurso.';
+            break;
+          case 404:
+            userMessage = 'El servicio solicitado no está disponible en este momento.';
+            break;
+          case 409:
+            userMessage = 'Ya existe un registro con esta información.';
+            break;
+          case 500:
+            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
+            break;
+          case 503:
+            userMessage = 'El servicio no está disponible temporalmente.';
+            break;
+          default:
+            if (error.status === 0) {
+              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
+            } else {
+              userMessage = defaultMessage;
+            }
+        }
+      }
+
+      console.error(`Error en ${operation}:`, error);
+      return throwError(() => new Error(userMessage));
+    };
+  }
 
   /** 
    * Obtiene las secciones de contenido para la página principal.
@@ -108,7 +159,10 @@ export class ApiService {
    * Incluye información de perfil y token para requests posteriores.
    */
   login(body: LoginRequest) {
-    return this.http.post<LoginResponse>(`${this.base}/auth/login`, body);
+    return this.http.post<LoginResponse>(`${this.base}/auth/login`, body)
+      .pipe(
+        catchError(this.handleError('inicio de sesión', 'Email o contraseña incorrectos'))
+      );
   }
 
   /** 
@@ -122,5 +176,60 @@ export class ApiService {
         return of([]);
       })
     );
+  }
+
+  /** 
+   * Solicita el restablecimiento de contraseña enviando un código al email.
+   * Primer paso del flujo de recuperación de contraseña.
+   */
+  requestPasswordReset(email: string): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.base}/auth/forgot-password`, { email })
+      .pipe(
+        catchError(this.handleError('solicitud de restablecimiento', 'No se pudo enviar el código de restablecimiento'))
+      );
+  }
+
+  /** 
+   * Verifica el código de restablecimiento de contraseña.
+   * Segundo paso del flujo de recuperación de contraseña.
+   */
+  verifyResetCode(email: string, code: string): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.base}/auth/verify-reset-code`, { email, code })
+      .pipe(
+        catchError(this.handleError('verificación de código', 'El código de verificación es incorrecto o ha expirado'))
+      );
+  }
+
+  /** 
+   * Establece nueva contraseña usando el código verificado.
+   * Tercer paso del flujo de recuperación de contraseña.
+   */
+  resetPassword(email: string, code: string, newPassword: string): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.base}/auth/reset-password`, { email, code, newPassword })
+      .pipe(
+        catchError(this.handleError('restablecimiento de contraseña', 'No se pudo actualizar la contraseña'))
+      );
+  }
+
+  /** 
+   * Verifica el código de verificación de usuario usando el token de verificación.
+   * Utiliza el endpoint POST /api/auth/verify?token={token} con el código en el body.
+   */
+  verifyUserWithToken(token: string, code: string): Observable<{message: string, details?: any, validationErrorCount?: number}> {
+    return this.http.post<{message: string, details?: any, validationErrorCount?: number}>(`${this.base}/auth/verify?token=${token}`, { code })
+      .pipe(
+        catchError(this.handleError('verificación de código', 'El código de verificación es incorrecto o ha expirado'))
+      );
+  }
+
+  /** 
+   * Reenvía un nuevo código de verificación usando el token actual.
+   * Utiliza el endpoint POST /api/auth/resend-code?token={token}.
+   */
+  resendVerificationCode(token: string): Observable<{message: string, details?: any}> {
+    return this.http.post<{message: string, details?: any}>(`${this.base}/auth/resend-code?token=${token}`, {})
+      .pipe(
+        catchError(this.handleError('reenvío de código', 'No se pudo reenviar el código. Intenta más tarde'))
+      );
   }
 }

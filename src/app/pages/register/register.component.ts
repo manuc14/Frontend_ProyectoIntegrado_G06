@@ -160,11 +160,20 @@ export class RegisterComponent {
           if (status === 201 || status === 200) {
             const body: any = res.body || {};
             const successMsg = (body?.message as string) || 'Usuario registrado correctamente';
+            const verificationToken = body?.verificationToken;
             console.log('Registro OK', body);
             this.bannerKind = 'success';
             this.bannerText = successMsg;
-            // Navega a verificación de email pasando el correo
-            this.router.navigate(['/verify-email'], { queryParams: { email: v.email } });
+            
+            // Verificar que el backend envió el token
+            if (verificationToken) {
+              // Navega a verificación usando el token como query parameter estándar
+              this.router.navigate(['/verify'], { queryParams: { token: verificationToken } });
+            } else {
+              console.error('No se recibió verificationToken del backend');
+              this.bannerKind = 'error';
+              this.bannerText = 'Error en el proceso de registro. Intenta nuevamente.';
+            }
             return;
           }
           // Status inesperado, tratar como error

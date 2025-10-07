@@ -28,8 +28,9 @@ export class VerifyEmailPage {
     this.email.set(emailParam ?? '');
   }
 
-  /* Navega a la página de introducción de código. */
+  /* Navega a la página de introducción de código (necesita token válido). */
   onEnterCode() {
-    this.router.navigate(['/verify-code'], { queryParams: { email: this.email() } });
+    // Sin token, mejor redirigir al registro para reiniciar el flujo
+    this.router.navigate(['/signup']);
   }
 }

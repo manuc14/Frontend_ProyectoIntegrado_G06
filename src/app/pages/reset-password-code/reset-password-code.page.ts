@@ -1,41 +1,44 @@
+/**
+ * Página para verificar el código de verificación durante el proceso de recuperación de contraseña.
+ * Segundo paso del flujo de restablecimiento de contraseña.
+ */
+import { Component, OnInit, ElementRef, QueryList, ViewChildren } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, QueryList, ViewChildren, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ApiService } from '../../core/services/api.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
-import { ApiService } from '../../core/services/api.service';
 
 @Component({
-  selector: 'app-verify-code',
+  selector: 'app-reset-password-code',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
-  templateUrl: './verify-code.page.html',
-  styleUrl: './verify-code.page.scss'
+  imports: [CommonModule, HeaderComponent, FooterComponent],
+  templateUrl: './reset-password-code.page.html',
+  styleUrls: ['./reset-password-code.page.scss']
 })
-export class VerifyCodePage {
-  /*
- * VerifyCodePage
- * Formulario interactivo para introducción de código de verificación de 6 dígitos.
- * Incluye navegación automática entre campos, soporte para pegado y validación.
- * Maneja el flujo completo de verificación de cuenta de usuario usando token de verificación.
- */
-  readonly token = signal<string>('');
-  codeDigits: string[] = ['', '', '', '', '', ''];
+export class ResetPasswordCodePage implements OnInit {
   isLoading = false;
   errorMessage = '';
+  email = '';
+  codeDigits: string[] = ['', '', '', '', '', ''];
 
   @ViewChildren('codeInput') inputs!: QueryList<ElementRef<HTMLInputElement>>;
 
-  constructor(private route: ActivatedRoute, private router: Router, private api: ApiService) {
-    // Obtener token desde el query parameter estándar ?token=valor
-    const tokenParam = this.route.snapshot.queryParamMap.get('token');
-    this.token.set(tokenParam ?? '');
-    
-    // Si no hay token, redirigir al registro
-    if (!this.token()) {
-      this.router.navigate(['/signup']);
-    }
+  constructor(
+    private api: ApiService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit() {
+    // Obtener email de los query params
+    this.route.queryParams.subscribe(params => {
+      this.email = params['email'] || '';
+      if (!this.email) {
+        // Si no hay email, redirigir al primer paso
+        this.router.navigate(['/forgot-password']);
+      }
+    });
   }
 
   /* Código completo concatenado. */
@@ -124,22 +127,23 @@ export class VerifyCodePage {
     if (el) el.focus();
   }
 
-  /* Envía el código para verificación usando el token y navega a la página de confirmación. */
-  onVerify() {
-    if (!this.canVerify || this.isLoading) return;
+  /**
+   * Verifica el código de verificación introducido por el usuario
+   */
+  onSubmit() {
+    if (!this.canVerify) return;
     
     this.isLoading = true;
     this.errorMessage = '';
-    
-    // Llamada al nuevo endpoint con token
-    this.api.verifyUserWithToken(this.token(), this.code).subscribe({
-      next: (response: any) => {
-        console.log('Verificación exitosa:', response);
-        // Redirigir a la página de confirmación tras verificación exitosa
-        this.router.navigate(['/verified-email']);
+
+    this.api.verifyResetCode(this.email, this.code).subscribe({
+      next: () => {
+        // Navegar al tercer paso con email y código
+        this.router.navigate(['/new-password'], {
+          queryParams: { email: this.email, code: this.code }
+        });
       },
       error: (error: any) => {
-        console.error('Error en verificación:', error);
         this.errorMessage = error.message || 'Código de verificación incorrecto';
         this.isLoading = false;
         // Limpiar inputs en caso de error
@@ -155,18 +159,17 @@ export class VerifyCodePage {
     });
   }
 
-  /* Reenvía un nuevo código de verificación usando el token actual. */
-  onResendCode() {
-    if (this.isLoading) return;
-    
+  /**
+   * Reenvía el código de verificación al email
+   */
+  resendCode() {
     this.isLoading = true;
     this.errorMessage = '';
-    
-    this.api.resendVerificationCode(this.token()).subscribe({
-      next: (response: any) => {
-        console.log('Código reenviado:', response);
-        this.errorMessage = 'Nuevo código enviado a tu email';
-        // Limpiar inputs para el nuevo código
+
+    this.api.requestPasswordReset(this.email).subscribe({
+      next: () => {
+        this.errorMessage = 'Código reenviado correctamente';
+        // Limpiar inputs después de reenviar
         this.codeDigits = ['', '', '', '', '', ''];
         this.inputs.forEach(input => {
           if (input.nativeElement) input.nativeElement.value = '';
@@ -174,12 +177,25 @@ export class VerifyCodePage {
         this.focusIndex(0);
       },
       error: (error: any) => {
-        console.error('Error al reenviar código:', error);
         this.errorMessage = error.message || 'Error al reenviar el código';
       },
       complete: () => {
         this.isLoading = false;
       }
     });
+  }
+
+  /**
+   * Vuelve al paso anterior
+   */
+  goBack() {
+    this.router.navigate(['/forgot-password']);
+  }
+
+  /**
+   * Navega al login
+   */
+  goToLogin() {
+    this.router.navigate(['/login']);
   }
 }

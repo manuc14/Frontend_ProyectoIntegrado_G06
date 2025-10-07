@@ -6,7 +6,7 @@ import { FooterComponent } from '../../shared/footer/footer.component';
 /*
  * CatalogPage
  * Página de catálogo completo de contenido multimedia. Permite a los
- * usuarios navegar, buscar y filtrar todo el contenido disponible
+ * usuarios navegar, buscar y filtrar el contenido disponible
  * en la plataforma (videos, audios, series, películas).
  */
 @Component({
