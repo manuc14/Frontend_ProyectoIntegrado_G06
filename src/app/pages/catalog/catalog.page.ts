@@ -3,6 +3,12 @@ import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 
+/*
+ * CatalogPage
+ * Página de catálogo completo de contenido multimedia. Permite a los
+ * usuarios navegar, buscar y filtrar todo el contenido disponible
+ * en la plataforma (videos, audios, series, películas).
+ */
 @Component({
   selector: 'app-catalog-page',
   standalone: true,

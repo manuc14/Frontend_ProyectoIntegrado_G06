@@ -3,7 +3,7 @@
   border-style: solid;
   border-color: #17303a;
   border-width: 1px 0 0 0;
-  padding: 33px 80px 32px 80px;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -19,3 +19,19 @@
 .text61 { color: #7ea2ad; font-family: "Inter-SemiBold", sans-serif; font-size: 13px; font-weight: 600; }
 .text62, .text63, .text64, .text65, .text66, .text67 { color: #98c2cc; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
 a { text-decoration: none; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .container26 { padding: 0 8px; }
+}
+
+@media (max-width: 768px) {
+  .container26 { flex-direction: column; gap: 16px; align-items: center; text-align: center; }
+  .container27 { align-items: center; }
+}
+
+@media (max-width: 480px) {
+  .text { font-size: 16px; }
+  .text61 { font-size: 12px; }
+  .text62, .text63, .text64, .text65, .text66, .text67 { font-size: 13px; }
+}

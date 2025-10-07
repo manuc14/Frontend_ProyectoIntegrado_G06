@@ -9,14 +9,18 @@
 
     <label>
       <span>Email *</span>
-      <input type="email" formControlName="email" />
+      <input type="email" formControlName="email"
+             [class.invalid]="(f['email'].touched && f['email'].invalid) || bannerKind==='error'"
+             [attr.aria-invalid]="((f['email'].touched && f['email'].invalid) || bannerKind==='error') ? true : null" />
       <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['required']">El email es obligatorio.</small>
       <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['email']">Formato de email inválido.</small>
     </label>
 
     <label>
       <span>Contraseña *</span>
-      <input type="password" formControlName="password" />
+      <input type="password" formControlName="password"
+             [class.invalid]="(f['password'].touched && f['password'].invalid) || bannerKind==='error'"
+             [attr.aria-invalid]="((f['password'].touched && f['password'].invalid) || bannerKind==='error') ? true : null" />
       <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
     </label>
 

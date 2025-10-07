@@ -4,6 +4,8 @@
 .card{background:#0c1620;border:1px solid #17303a;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
 label{display:flex;flex-direction:column;gap:8px}
 input[type="email"],input[type="password"]{padding:10px 12px;border-radius:8px;border:1px solid #17303a;background:#0b1216;color:#e8f6f5}
+.invalid{border-color:#ff6b6b !important; box-shadow:0 0 0 2px rgba(255,107,107,0.15)}
+.invalid:focus{outline:none; box-shadow:0 0 0 3px rgba(255,107,107,0.25)}
 .row{display:flex;gap:12px;align-items:center}
 .row.end{justify-content:flex-end}
 .muted{color:#7ea2ad}

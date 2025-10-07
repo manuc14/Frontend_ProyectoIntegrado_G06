@@ -6,14 +6,23 @@
     <div class="text">ESIMedia</div>
   </div>
 
-  <nav class="container2">
+  <!-- Toggle para menú en móvil (checkbox hack) -->
+  <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-label="Abrir menú" />
+  <label for="nav-toggle" class="menu-btn" aria-controls="primary-nav">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav id="primary-nav" class="container2" role="navigation" aria-label="Navegación principal">
     <a class="link" routerLink="/"> <div class="text2">Home</div> </a>
     <a class="link2" routerLink="/videos"> <div class="text3">Videos</div> </a>
     <a class="link2" routerLink="/audios"> <div class="text4">Audios</div> </a>
     <a class="link2" routerLink="/popular"> <div class="text5">Nuevo &amp; Popular</div> </a>
+    <!-- Acciones visibles solo en móvil dentro del menú -->
+    <a class="link3 only-mobile" routerLink="/login"> <div class="text6">Iniciar Sesión</div> </a>
+    <a class="link4 only-mobile" routerLink="/signup"> <div class="text6">Registrarse</div> </a>
   </nav>
 
-  <div class="container actions">
+  <div class="container actions only-desktop">
     <a class="link3" routerLink="/login"> <div class="text6">Iniciar Sesión</div> </a>
     <a class="link4" routerLink="/signup">
       <div class="iconify-icon">

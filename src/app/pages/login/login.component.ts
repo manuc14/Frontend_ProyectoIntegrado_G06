@@ -20,6 +20,7 @@ interface LoginForm {
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
+  /* LoginComponent: formulario de acceso que autentica contra el backend y redirige según tipo de usuario. */
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private router = inject(Router);
@@ -35,6 +36,7 @@ export class LoginComponent {
 
   get f() { return this.form.controls; }
 
+  /* Envía credenciales y procesa la respuesta del backend. */
   submit() {
     if (this.form.invalid || this.loading) return;
     this.bannerKind = null; this.bannerText = '';

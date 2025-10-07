@@ -6,6 +6,12 @@ import { HeroComponent } from '../../shared/hero/hero.component';
 import { SectionListComponent } from '../../shared/section-list/section-list.component';
 import { ApiService } from '../../core/services/api.service';
 
+/*
+ * HomeComponent
+ * Página principal de ESIMedia que muestra el contenido destacado y secciones
+ * de videos y audios. Incluye hero destacado, secciones categorizadas y
+ * preparación para integración con backend cuando esté disponible.
+ */
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -15,7 +21,8 @@ import { ApiService } from '../../core/services/api.service';
 })
 export class HomeComponent implements OnInit {
   private api = inject(ApiService);
-  // Mock data for sections
+  
+  // Datos simulados para las secciones de contenido
   topVideos = [
     { title: 'Velocity X', tagLeft: 'VIP', tagRight: '18+', badgeRight: '4K', image: 'assets/placeholders/vid1.jpg' },
     { title: "Hallow's Gate", tagLeft: 'New', tagRight: '16+', badgeRight: '4.7', image: 'assets/placeholders/vid2.jpg' },
@@ -37,7 +44,9 @@ export class HomeComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Mantener mock data: no llamamos al backend hasta que el endpoint esté listo.
+    // Mantener datos simulados mientras el backend no esté completamente integrado
+    // El código comentado abajo está preparado para cuando se active la conexión real
+    
     // Dejo el esqueleto preparado para reactivarlo cuando proceda:
     // this.api.getHomeSections().subscribe({
     //   next: (sections) => {

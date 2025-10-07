@@ -11,17 +11,17 @@
     <div class="grid">
       <label>
         <span>Nombre *</span>
-        <input type="text" formControlName="nombre" maxlength="50" />
+  <input type="text" formControlName="nombre" [attr.maxlength]="maxNombre" />
         <small class="field-error" *ngIf="f['nombre'].touched && f['nombre'].errors?.['required']">El nombre es obligatorio.</small>
       </label>
       <label>
         <span>Apellidos *</span>
-        <input type="text" formControlName="apellidos" maxlength="80" />
+  <input type="text" formControlName="apellidos" [attr.maxlength]="maxApellidos" />
         <small class="field-error" *ngIf="f['apellidos'].touched && f['apellidos'].errors?.['required']">Los apellidos son obligatorios.</small>
       </label>
       <label class="span-2">
         <span>Email *</span>
-        <input type="email" formControlName="email" maxlength="120" />
+  <input type="email" formControlName="email" [attr.maxlength]="maxEmail" />
         <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['required']">El email es obligatorio.</small>
         <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['email']">Formato de email inválido.</small>
         <small class="field-error" *ngIf="f['email'].errors?.['emailTaken']">Correo electrónico ya dado de alta.</small>
@@ -56,8 +56,19 @@
           </button>
         </span>
         <input type="password" formControlName="password" />
-        <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
-        <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">La contraseña debe tener al menos 8 caracteres.</small>
+        <ng-container *ngIf="f['password'].touched as touched">
+          <small class="field-error" *ngIf="touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
+          <ng-container *ngIf="touched && (f['password'].errors?.['minlength'] || f['password'].errors?.['passwordPolicy']?.['minLengthPolicy']); else otherPolicy">
+            <small class="field-error">La contraseña debe tener al menos 8 caracteres.</small>
+          </ng-container>
+          <ng-template #otherPolicy>
+            <ng-container *ngIf="f['password'].errors?.['passwordPolicy'] as pol">
+              <small class="field-error" *ngIf="pol['uppercasePolicy']">Incluye al menos 1 mayúscula que no sea la primera.</small>
+              <small class="field-error" *ngIf="pol['specialPolicy']">Incluye al menos 1 carácter especial.</small>
+              <small class="field-error" *ngIf="pol['numberPolicy']">Incluye al menos 1 número.</small>
+            </ng-container>
+          </ng-template>
+        </ng-container>
       </label>
       <label>
         <span>Repetir contraseña *</span>

@@ -3,6 +3,12 @@ import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 
+/*
+ * ContentPage
+ * Página para gestión de contenidos multimedia. Destinada a editores
+ * y gestores de contenido para añadir, modificar y organizar videos,
+ * audios y otros materiales de la plataforma.
+ */
 @Component({
   selector: 'app-content-page',
   standalone: true,

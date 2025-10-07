@@ -3,6 +3,12 @@ import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 
+/*
+ * AdminPage
+ * Página de administración del sistema. Placeholder para futuras
+ * funcionalidades de gestión de usuarios, contenido y configuración
+ * del sistema. Acceso restringido a usuarios administradores.
+ */
 @Component({
   selector: 'app-admin-page',
   standalone: true,
