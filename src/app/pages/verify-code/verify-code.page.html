@@ -1,0 +1,28 @@
+<app-header />
+
+<main class="background">
+  <section class="container3">
+    <div class="container4">
+      <div class="background-border">
+        <div class="container5"><div class="text8">Introduce el código de verificación</div></div>
+        <div class="container5"><div class="text9">Escribe el código de 6 dígitos que enviamos a {{ email() || 'tu email' }}</div></div>
+        <div class="container6">
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(0, $event)" (keydown)="onKeyDown(0, $event)" (paste)="onPaste(0, $event)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(1, $event)" (keydown)="onKeyDown(1, $event)" (paste)="onPaste(1, $event)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(2, $event)" (keydown)="onKeyDown(2, $event)" (paste)="onPaste(2, $event)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(3, $event)" (keydown)="onKeyDown(3, $event)" (paste)="onPaste(3, $event)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(4, $event)" (keydown)="onKeyDown(4, $event)" (paste)="onPaste(4, $event)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(5, $event)" (keydown)="onKeyDown(5, $event)" (paste)="onPaste(5, $event)" />
+        </div>
+        <div class="container7">
+          <button class="link4" [disabled]="!canVerify" (click)="onVerify()">
+            <img class="svg3" src="assets/icons/shield.svg" alt="verify" />
+            <div class="text11">Verifica tu cuenta</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<app-footer />

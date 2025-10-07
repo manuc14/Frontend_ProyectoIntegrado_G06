@@ -1,0 +1,21 @@
+<app-header></app-header>
+
+<main class="home">
+  <div class="page-container">
+    <app-hero></app-hero>
+
+    <section class="section">
+      <app-section-list title="Top Videos" subtitle="Videos" [items]="topVideos"></app-section-list>
+    </section>
+
+    <section class="section">
+      <app-section-list title="Trending Audios" subtitle="Audios" [items]="trendingAudios"></app-section-list>
+    </section>
+
+    <section class="section">
+      <app-section-list title="Halloween Films" subtitle="Seasonal" [items]="halloweenFilms"></app-section-list>
+    </section>
+  </div>
+</main>
+
+<app-footer></app-footer>

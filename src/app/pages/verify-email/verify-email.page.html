@@ -1,0 +1,31 @@
+<app-header />
+
+<main class="background">
+
+  <section class="container4">
+    <div class="container5">
+      <div class="background-border">
+        <div class="container6"><div class="text8">Check your inbox</div></div>
+        <div class="container6">
+          <div class="text9">Hemos enviado un código de 6 dígitos a {{ email() || 'tu email' }}.<br />Caduca en 10 minutos.</div>
+        </div>
+        <div class="background2">
+          <div class="iconify-icon"><div class="svg3"><img class="group2" src="assets/icons/sparkles.svg" alt="sent" /></div></div>
+          <div class="container7">
+            <div class="container6"><div class="text10">Email enviado</div></div>
+            <div class="container6"><div class="text11">¿No te llegó? Revisa Spam o solicita uno nuevo abajo.</div></div>
+          </div>
+        </div>
+        <div class="container8">
+          <button class="link4" (click)="onEnterCode()">
+            <img class="svg4" src="assets/icons/shield.svg" alt="code" />
+            <div class="text12">Introducir código de verificación</div>
+          </button>
+          
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<app-footer />
