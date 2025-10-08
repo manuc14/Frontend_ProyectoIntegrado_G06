@@ -11,6 +11,7 @@ import { finalize } from 'rxjs/operators';
 import { matchPasswordsValidator, minAgeValidator, passwordPolicyValidator } from '../../core/validators/password.validators';
 import { applyBackendDetails, clearBackendErrors } from '../../core/utils/error-mapper';
 import { FORM_LIMITS } from '../../core/constants/form-limits';
+import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
 /*
  * Interfaz tipada para el formulario de registro
@@ -40,7 +41,8 @@ interface RegisterForm {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, HeaderComponent, FooterComponent, VipPromoModalComponent],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.scss'
+  styleUrl: './register.component.scss',
+  animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class RegisterComponent {
   /* RegisterComponent: pantalla de registro de usuario. Gestiona formulario, avatar, promoción VIP y envío al backend; maneja 201/400/409 y navega a verificación de email tras éxito. */
@@ -48,8 +50,13 @@ export class RegisterComponent {
   readonly maxNombre = FORM_LIMITS.nombreMax; // usado en template
   readonly maxApellidos = FORM_LIMITS.apellidosMax; // usado en template
   readonly maxEmail = FORM_LIMITS.emailMax; // usado en template
-  // Avatares únicamente desde backend
-  predefinedPhotos: string[] = [];
+  
+  // Avatares del backend
+  avatars: string[] = [];
+  defaultAvatar = '';
+  selectedAvatar = '';
+  loadingAvatars = false;
+  avatarLoadError = false;
 
   form: FormGroup<RegisterForm>;
 
@@ -59,6 +66,10 @@ export class RegisterComponent {
   // VIP promo modal state
   showVipPromo = false;
   promptedVipOnce = false;
+  // Animation states
+  shakeForm = false;
+  buttonState = 'normal';
+  focusedFields: {[key: string]: boolean} = {};
 
   constructor(private fb: FormBuilder, private api: ApiService, private router: Router) {
     this.form = this.fb.nonNullable.group({
@@ -78,25 +89,58 @@ export class RegisterComponent {
 
   /* Inicializa el componente cargando avatares del backend. */
   ngOnInit() {
-    // Obtener avatares disponibles del servidor
+    this.loadAvatars();
+  }
+
+  /* Carga la lista de avatares disponibles del backend. */
+  loadAvatars() {
+    this.loadingAvatars = true;
+    this.avatarLoadError = false;
     this.api.getAvatars().subscribe({
-      next: (list) => {
-        if (Array.isArray(list)) this.predefinedPhotos = list;
+      next: (response) => {
+        this.avatars = response.avatars || [];
+        this.defaultAvatar = response.defaultAvatar || '';
+        this.selectedAvatar = this.defaultAvatar;
+        // Actualizar formulario con avatar por defecto
+        this.form.patchValue({ fotoElegida: this.defaultAvatar });
       },
-      error: () => { /* Mantener lista vacía por defecto */ }
+      error: (error) => {
+        console.error('Error al cargar avatares:', error);
+        // Mostrar mensaje de error y configurar avatar por defecto vacío
+        this.avatarLoadError = true;
+        this.avatars = [];
+        this.defaultAvatar = '';
+        this.selectedAvatar = '';
+        // El formulario mantendrá fotoElegida como null para usar el avatar por defecto del backend
+        this.form.patchValue({ fotoElegida: null });
+      },
+      complete: () => {
+        this.loadingAvatars = false;
+      }
     });
   }
 
-  /* Marca un avatar predefinido como seleccionado. */
-  choosePredefinida(url: string) {
-    this.form.patchValue({ fotoElegida: url });
+  /* Marca un avatar como seleccionado y actualiza el formulario. */
+  selectAvatar(avatarPath: string) {
+    this.selectedAvatar = avatarPath;
+    this.form.patchValue({ fotoElegida: avatarPath });
+  }
+
+  /* Obtiene la URL completa del avatar para mostrar la imagen. */
+  getAvatarUrl(relativePath: string): string {
+    return this.api.getFullAvatarUrl(relativePath);
   }
 
   /* Valida y decide si mostrar la promo VIP o continuar con el alta. */
   submit() {
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.triggerShakeError();
+      return;
+    }
 
+    this.buttonState = 'pressed';
+    
     // Derive effective alias and photo
     const v = this.form.value;
     // Normalize vip to boolean (radio can yield 'true'/'false' strings)
@@ -104,6 +148,7 @@ export class RegisterComponent {
     // If user selected Standard and hasn't been prompted yet, show VIP promo
     if (!isVip && !this.promptedVipOnce) {
       this.showVipPromo = true;
+      this.buttonState = 'normal';
       return;
     }
     this.doRegister();
@@ -130,6 +175,7 @@ export class RegisterComponent {
     const v = this.form.value;
     const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
     const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
+    // Si no hay avatar seleccionado (error de carga), enviar cadena vacía para usar el avatar por defecto del backend
     const fotoUrl = v.fotoElegida || '';
 
     const payload = {
@@ -153,6 +199,7 @@ export class RegisterComponent {
       .pipe(finalize(() => {
         this.loading = false;
         this.form.enable();
+        this.buttonState = 'normal';
       }))
       .subscribe({
         next: (res: HttpResponse<any>) => {
@@ -168,7 +215,7 @@ export class RegisterComponent {
             // Verificar que el backend envió el token
             if (verificationToken) {
               // Navega a verificación usando el token como query parameter estándar
-              this.router.navigate(['/verify'], { queryParams: { token: verificationToken } });
+              this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
             } else {
               console.error('No se recibió verificationToken del backend');
               this.bannerKind = 'error';
@@ -194,6 +241,7 @@ export class RegisterComponent {
             this.form.get('email')?.setErrors({ ...(this.form.get('email')?.errors||{}), emailTaken: true });
             this.bannerKind = 'error';
             this.bannerText = message || 'El email ya está registrado.';
+            this.triggerShakeError();
             return;
           }
 
@@ -210,14 +258,37 @@ export class RegisterComponent {
             const msgJoin = applyBackendDetails(this.form, details, fieldMap);
             this.bannerKind = 'error';
             this.bannerText = (message ? message + '\n' : '') + msgJoin;
+            this.triggerShakeError();
             return;
           }
 
           // Otros errores
           this.bannerKind = 'error';
           this.bannerText = message || 'No se pudo crear la cuenta. Inténtalo de nuevo.';
+          this.triggerShakeError();
           console.error('Error de registro', err);
         },
       });
+  }
+
+  /**
+   * Dispara la animación de shake para errores
+   */
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
+  }
+
+  /**
+   * Maneja el estado de focus de los inputs
+   */
+  onFieldFocus(field: string, focused: boolean): void {
+    this.focusedFields[field] = focused;
+  }
+
+  /**
+   * Estado de animación para inputs
+   */
+  getInputFocusState(field: string): string {
+    return this.focusedFields[field] ? 'focused' : 'normal';
   }
 }

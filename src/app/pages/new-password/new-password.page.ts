@@ -10,13 +10,15 @@ import { ApiService } from '../../core/services/api.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { PasswordValidators } from '../../core/validators/password.validators';
+import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
 @Component({
   selector: 'app-new-password',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, HeaderComponent, FooterComponent],
   templateUrl: './new-password.page.html',
-  styleUrls: ['./new-password.page.scss']
+  styleUrls: ['./new-password.page.scss'],
+  animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class NewPasswordPage implements OnInit {
   passwordForm: FormGroup;
@@ -25,6 +27,10 @@ export class NewPasswordPage implements OnInit {
   successMessage = '';
   email = '';
   code = '';
+  // Animation states
+  shakeForm = false;
+  buttonState = 'normal';
+  focusedFields: {[key: string]: boolean} = {};
 
   constructor(
     private fb: FormBuilder,
@@ -68,6 +74,7 @@ export class NewPasswordPage implements OnInit {
       this.isLoading = true;
       this.errorMessage = '';
       this.successMessage = '';
+      this.buttonState = 'pressed';
 
       const { password } = this.passwordForm.value;
 
@@ -84,11 +91,16 @@ export class NewPasswordPage implements OnInit {
         error: (error: any) => {
           this.errorMessage = error.message || 'Error al actualizar la contraseña';
           this.isLoading = false;
+          this.buttonState = 'normal';
+          this.triggerShakeError();
         },
         complete: () => {
           this.isLoading = false;
+          this.buttonState = 'normal';
         }
       });
+    } else {
+      this.triggerShakeError();
     }
   }
 
@@ -142,5 +154,26 @@ export class NewPasswordPage implements OnInit {
    */
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  /**
+   * Dispara la animación de shake para errores
+   */
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
+  }
+
+  /**
+   * Maneja el estado de focus de los inputs
+   */
+  onFieldFocus(field: string, focused: boolean): void {
+    this.focusedFields[field] = focused;
+  }
+
+  /**
+   * Estado de animación para inputs
+   */
+  getInputFocusState(field: string): string {
+    return this.focusedFields[field] ? 'focused' : 'normal';
   }
 }

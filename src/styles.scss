@@ -1,15 +1,41 @@
-/* Global reset & base */
+/* ==========================================================================
+   ESTILOS GLOBALES - FRONTEND PROYECTO INTEGRADO G06
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   RESET Y ESTILOS BASE
+   -------------------------------------------------------------------------- */
+
+/* Reset global para modelo de caja consistente y base limpia */
 a, button, input, select, h1, h2, h3, h4, h5, * {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
-	border: none;
-	text-decoration: none;
-	background: none;
-	-webkit-font-smoothing: antialiased;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: none;
+    text-decoration: none;
+    background: none;
+    -webkit-font-smoothing: antialiased;
     color-scheme: light dark;
 }
-menu, ol, ul { list-style-type: none; margin: 0; padding: 0; }
 
-html, body { height: 100%; }
-body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #071017; }
+/* Reset de elementos de lista */
+menu, ol, ul { 
+    list-style-type: none; 
+    margin: 0; 
+    padding: 0; 
+}
+
+/* --------------------------------------------------------------------------
+   CONFIGURACIÓN BASE DE HTML Y BODY
+   -------------------------------------------------------------------------- */
+
+/* Configuración de diseño de altura completa */
+html, body { 
+    height: 100%; 
+}
+
+/* Tipografía base y fondo */
+body { 
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
+    background: #071017; 
+}

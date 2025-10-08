@@ -1,6 +1,6 @@
 <app-header />
 
-<main class="background">
+<main class="background" [@fadeIn]>
 
   <section class="container4">
     <div class="container5">
@@ -17,7 +17,7 @@
           </div>
         </div>
         <div class="container8">
-          <button class="link4" (click)="onEnterCode()">
+          <button class="link4" (click)="onEnterCode()" [@buttonHover]>
             <img class="svg4" src="assets/icons/shield.svg" alt="code" />
             <div class="text12">Introducir código de verificación</div>
           </button>

@@ -19,7 +19,7 @@ export const routes: Routes = [
 	{ path: 'signup', component: RegisterComponent },
 	{ path: 'login', component: LoginComponent },
 	{ path: 'verify-email', component: VerifyEmailPage },
-	{ path: 'verify', component: VerifyCodePage },
+	{ path: 'verify-code', component: VerifyCodePage },
 	{ path: 'verified-email', component: VerifiedEmailPage },
 	{ path: 'admin', component: AdminPage },
 	{ path: 'content', component: ContentPage },

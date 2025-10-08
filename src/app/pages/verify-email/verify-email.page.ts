@@ -3,6 +3,7 @@ import { Component, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { HeaderComponent } from '../../shared/header/header.component';
+import { buttonHover, fadeIn } from '../../core/animations/animations';
 
 /*
  * VerifyEmailPage
@@ -15,7 +16,8 @@ import { HeaderComponent } from '../../shared/header/header.component';
   standalone: true,
   imports: [CommonModule, HeaderComponent, FooterComponent],
   templateUrl: './verify-email.page.html',
-  styleUrl: './verify-email.page.scss'
+  styleUrl: './verify-email.page.scss',
+  animations: [buttonHover, fadeIn]
 })
 export class VerifyEmailPage {
   // Email del usuario para mostrar en la interfaz
@@ -30,7 +32,15 @@ export class VerifyEmailPage {
 
   /* Navega a la página de introducción de código (necesita token válido). */
   onEnterCode() {
-    // Sin token, mejor redirigir al registro para reiniciar el flujo
-    this.router.navigate(['/signup']);
+    // Verificar si hay token en los parámetros de consulta
+    const token = this.route.snapshot.queryParamMap.get('token');
+    
+    if (token) {
+      // Con token: Ir a verify-code manteniendo el token
+      this.router.navigate(['/verify-code'], { queryParams: { token } });
+    } else {
+      // Sin token: Ir a signup para reiniciar el flujo
+      this.router.navigate(['/signup']);
+    }
   }
 }

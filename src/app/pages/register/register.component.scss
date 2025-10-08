@@ -1,44 +1,441 @@
-.register-page{max-width:960px;margin:32px auto;padding:0 16px}
-.register-page h1{margin:0 0 8px 0}
-.hint{color:#7ea2ad;margin:0 0 16px 0}
-.card{background:#0c1620;border:1px solid #17303a;border-radius:16px;padding:16px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.span-2{grid-column:span 2}
-label,fieldset{display:flex;flex-direction:column;gap:8px}
-label.with-help{position:relative}
-label.with-help > span{display:flex;align-items:center;gap:8px}
-label.with-help .help{margin-left:auto;align-self:flex-start;background:#11202a;color:#bfecef;border:1px solid #17303a;border-radius:999px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;cursor:help;position:relative}
-label.with-help .help .tooltip{display:none;position:absolute;top:28px;right:0;z-index:10;min-width:240px;max-width:320px;background:#0b1216;border:1px solid #17303a;color:#bfecef;border-radius:8px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
-label.with-help .help:focus .tooltip, label.with-help .help:hover .tooltip{display:block}
-label.with-help .help .tooltip strong{display:block;margin-bottom:6px;color:#9ff5d9}
-label.with-help .help .tooltip ul{padding-left:18px;margin:0}
-label.with-help .help .tooltip ul.password-requirements{list-style:none;padding-left:0;margin:0}
-label.with-help .help .tooltip ul.password-requirements li{position:relative;padding-left:14px;margin:4px 0}
-label.with-help .help .tooltip ul.password-requirements li::before{content:'\00B7';position:absolute;left:0;top:0;color:#bfecef;font-weight:700}
-input[type="text"],input[type="email"],input[type="password"],input[type="date"]{padding:10px 12px;border-radius:8px;border:1px solid #17303a;background:#0b1216;color:#e8f6f5}
-fieldset{border:1px dashed #17303a;padding:12px;border-radius:8px}
-.segmented{display:flex;gap:8px;background:#11202a;border-radius:48px;padding:4px;align-items:center;width:max-content}
-.segment{position:relative;border-radius:48px;padding:8px 14px;color:#bfecef;cursor:pointer;display:flex;align-items:center;gap:8px}
-.segment input{position:absolute;opacity:0;pointer-events:none}
-.segment.active{background:#052226;color:#00e0a1;box-shadow:inset 0 0 0 1px rgba(0,224,161,0.15)}
-.vip-hint{color:#7ea2ad;margin-top:6px}
-.subhint{color:#7ea2ad}
-.foto-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.predefinidas button{background:#11202a;border:1px solid #17303a;border-radius:8px;padding:4px;cursor:pointer}
-.predefinidas button.active{border-color:#00e0a1; box-shadow:0 0 0 2px rgba(0,224,161,0.25) inset}
-.predefinidas img{width:48px;height:48px;object-fit:cover;border-radius:6px}
-.errors{margin-top:12px;color:#ff6b6b;display:flex;flex-direction:column;gap:4px}
-.field-error{color:#ff6b6b}
-.actions{display:flex;justify-content:flex-end;gap:12px;margin-top:16px}
-.btn{padding:10px 16px;border-radius:8px;border:none}
-.btn.primary{background:#00e0a1;color:#02120b}
-.btn.ghost{background:transparent;color:#bfecef;border:1px solid #17303a;text-decoration:none;display:inline-flex;align-items:center}
-input.ng-invalid.ng-touched{border-color:#ff6b6b}
-@media (max-width:640px){.grid{grid-template-columns:1fr}}
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE REGISTRO
+   ========================================================================== */
 
-/* inline banner */
-.banner{margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid #17303a;background:#0b1216;color:#bfecef;white-space:pre-line}
-.banner.success{border-color:rgba(0,224,161,0.35);background:#06241f;color:#9ff5d9}
-.banner.error{border-color:rgba(255,107,107,0.35);background:#241013;color:#ffb3b3}
+/* --------------------------------------------------------------------------
+   DISEÑO DE PÁGINA
+   -------------------------------------------------------------------------- */
 
-/* VIP promo overlay styles moved to shared component */
+.register-page {
+    max-width: 960px;
+    margin: 32px auto;
+    padding: 0 16px;
+}
+
+.register-page h1 {
+    margin: 0 0 8px 0;
+}
+
+.hint {
+    color: #7ea2ad;
+    margin: 0 0 16px 0;
+}
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR DE TARJETA
+   -------------------------------------------------------------------------- */
+
+.card {
+    background: #0c1620;
+    border: 1px solid #17303a;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   SISTEMA DE DISEÑO DE CUADRÍCULA
+   -------------------------------------------------------------------------- */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.span-2 {
+    grid-column: span 2;
+}
+
+/* --------------------------------------------------------------------------
+   ELEMENTOS DE FORMULARIO
+   -------------------------------------------------------------------------- */
+
+/* Etiquetas y conjuntos de campos básicos */
+label,
+fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Campos de entrada */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"] {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #17303a;
+    background: #0b1216;
+    color: #e8f6f5;
+}
+
+/* Estilo de conjuntos de campos */
+fieldset {
+    border: 1px dashed #17303a;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+/* Validación de formularios */
+input.ng-invalid.ng-touched {
+    border-color: #ff6b6b;
+}
+
+/* --------------------------------------------------------------------------
+   TOOLTIPS DE AYUDA
+   -------------------------------------------------------------------------- */
+
+label.with-help {
+    position: relative;
+}
+
+label.with-help > span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+label.with-help .help {
+    margin-left: auto;
+    align-self: flex-start;
+    background: #11202a;
+    color: #bfecef;
+    border: 1px solid #17303a;
+    border-radius: 999px;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    position: relative;
+}
+
+label.with-help .help .tooltip {
+    display: none;
+    position: absolute;
+    top: 28px;
+    right: 0;
+    z-index: 10;
+    min-width: 240px;
+    max-width: 320px;
+    background: #0b1216;
+    border: 1px solid #17303a;
+    color: #bfecef;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+label.with-help .help:focus .tooltip, 
+label.with-help .help:hover .tooltip {
+    display: block;
+}
+
+label.with-help .help .tooltip strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #9ff5d9;
+}
+
+label.with-help .help .tooltip ul {
+    padding-left: 18px;
+    margin: 0;
+}
+
+label.with-help .help .tooltip ul.password-requirements {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+label.with-help .help .tooltip ul.password-requirements li {
+    position: relative;
+    padding-left: 14px;
+    margin: 4px 0;
+}
+
+label.with-help .help .tooltip ul.password-requirements li::before {
+    content: '\00B7';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #bfecef;
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   CONTROLES SEGMENTADOS (Toggle VIP)
+   -------------------------------------------------------------------------- */
+
+.segmented {
+    display: flex;
+    gap: 8px;
+    background: #11202a;
+    border-radius: 48px;
+    padding: 4px;
+    align-items: center;
+    width: max-content;
+}
+
+.segment {
+    position: relative;
+    border-radius: 48px;
+    padding: 8px 14px;
+    color: #bfecef;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.segment input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.segment.active {
+    background: #052226;
+    color: #00e0a1;
+    box-shadow: inset 0 0 0 1px rgba(0, 224, 161, 0.15);
+}
+
+.vip-hint {
+    color: #7ea2ad;
+    margin-top: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   SELECCIÓN DE AVATAR
+   -------------------------------------------------------------------------- */
+
+.avatar-section {
+    margin-top: 8px;
+}
+
+.loading-avatars {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    color: #7ea2ad;
+    justify-content: center;
+}
+
+.avatar-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 171, 76, 0.1);
+    border: 1px solid rgba(255, 171, 76, 0.3);
+    border-radius: 8px;
+    color: #ffab4c;
+}
+
+.error-icon {
+    font-size: 20px;
+    margin-top: 2px;
+}
+
+.error-message {
+    flex: 1;
+    
+    strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #ffab4c;
+    }
+    
+    p {
+        margin: 0;
+        color: #d4a574;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #17303a;
+    border-top: 2px solid #00e0a1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 12px;
+    max-width: 100%;
+}
+
+.avatar-option {
+    position: relative;
+    background: #11202a;
+    border: 2px solid #17303a;
+    border-radius: 12px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+        border-color: #2a5564;
+        background: #162530;
+        transform: translateY(-2px);
+    }
+    
+    &.selected {
+        border-color: #00e0a1;
+        background: rgba(0, 224, 161, 0.1);
+        box-shadow: 0 0 0 2px rgba(0, 224, 161, 0.25);
+    }
+    
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+        max-width: 64px;
+        max-height: 64px;
+    }
+}
+
+.check-mark {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #00e0a1;
+    color: #02120b;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid #0c1620;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsivo para avatares */
+@media (max-width: 640px) {
+    .avatar-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    
+    .avatar-option {
+        padding: 6px;
+        
+        img {
+            max-width: 48px;
+            max-height: 48px;
+        }
+    }
+}
+
+/* --------------------------------------------------------------------------
+   UTILIDADES DE TEXTO
+   -------------------------------------------------------------------------- */
+
+.subhint {
+    color: #7ea2ad;
+}
+
+.field-error {
+    color: #ff6b6b;
+}
+
+.errors {
+    margin-top: 12px;
+    color: #ff6b6b;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   ACCIONES Y BOTONES
+   -------------------------------------------------------------------------- */
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+}
+
+.btn.primary {
+    background: #00e0a1;
+    color: #02120b;
+}
+
+.btn.ghost {
+    background: transparent;
+    color: #bfecef;
+    border: 1px solid #17303a;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   BANNERS Y NOTIFICACIONES
+   -------------------------------------------------------------------------- */
+
+.banner {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #17303a;
+    background: #0b1216;
+    color: #bfecef;
+    white-space: pre-line;
+}
+
+.banner.success {
+    border-color: rgba(0, 224, 161, 0.35);
+    background: #06241f;
+    color: #9ff5d9;
+}
+
+.banner.error {
+    border-color: rgba(255, 107, 107, 0.35);
+    background: #241013;
+    color: #ffb3b3;
+}
+
+/* --------------------------------------------------------------------------
+   DISEÑO RESPONSIVO
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   NOTAS
+   -------------------------------------------------------------------------- */
+
+/* Los estilos del modal de promoción VIP se movieron al componente compartido */

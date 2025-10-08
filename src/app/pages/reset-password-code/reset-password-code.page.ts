@@ -8,19 +8,25 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
+import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
 @Component({
   selector: 'app-reset-password-code',
   standalone: true,
   imports: [CommonModule, HeaderComponent, FooterComponent],
   templateUrl: './reset-password-code.page.html',
-  styleUrls: ['./reset-password-code.page.scss']
+  styleUrls: ['./reset-password-code.page.scss'],
+  animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class ResetPasswordCodePage implements OnInit {
   isLoading = false;
   errorMessage = '';
   email = '';
   codeDigits: string[] = ['', '', '', '', '', ''];
+  // Animation states
+  shakeForm = false;
+  buttonState = 'normal';
+  focusedInput = -1;
 
   @ViewChildren('codeInput') inputs!: QueryList<ElementRef<HTMLInputElement>>;
 
@@ -131,10 +137,14 @@ export class ResetPasswordCodePage implements OnInit {
    * Verifica el código de verificación introducido por el usuario
    */
   onSubmit() {
-    if (!this.canVerify) return;
+    if (!this.canVerify) {
+      this.triggerShakeError();
+      return;
+    }
     
     this.isLoading = true;
     this.errorMessage = '';
+    this.buttonState = 'pressed';
 
     this.api.verifyResetCode(this.email, this.code).subscribe({
       next: () => {
@@ -146,6 +156,8 @@ export class ResetPasswordCodePage implements OnInit {
       error: (error: any) => {
         this.errorMessage = error.message || 'Código de verificación incorrecto';
         this.isLoading = false;
+        this.buttonState = 'normal';
+        this.triggerShakeError();
         // Limpiar inputs en caso de error
         this.codeDigits = ['', '', '', '', '', ''];
         this.inputs.forEach(input => {
@@ -197,5 +209,30 @@ export class ResetPasswordCodePage implements OnInit {
    */
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  /**
+   * Dispara la animación de shake para errores
+   */
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
+  }
+
+  /**
+   * Maneja el estado de focus de los inputs
+   */
+  onInputFocus(index: number): void {
+    this.focusedInput = index;
+  }
+
+  onInputBlur(): void {
+    this.focusedInput = -1;
+  }
+
+  /**
+   * Estado de animación para cada input
+   */
+  getInputFocusState(index: number): string {
+    return this.focusedInput === index ? 'focused' : 'normal';
   }
 }

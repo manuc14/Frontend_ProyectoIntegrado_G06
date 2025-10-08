@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { SectionDto } from '../models/media.models';
+import { SectionDto, AvatarsResponseDto } from '../models/media.models';
 
 /*
  * Interfaz para la petición de registro de usuario
@@ -18,7 +18,7 @@ export interface RegisterRequest {
   password: string;
   repetirPassword: string;
   esVip: boolean;
-  foto: string;
+  foto: string; // Ruta del avatar seleccionado (ej: "/avatars/avatar1.png")
   activo: boolean;
 }
 
@@ -45,15 +45,15 @@ export interface LoginRequest {
  * Contiene toda la información de perfil y estado
  */
 export interface BackendUser {
-  apellidos: string;
-  tipo: string; // e.g., 'USUARIO_EV', 'ADMINISTRADOR', 'EDITOR_CONTENIDO'
-  foto: string;
-  fechaCreacion: string;
   id: string;
-  nombreCompleto: string;
-  nombre: string;
   email: string;
+  nombre: string;
+  apellidos: string;
+  nombreCompleto: string;
+  foto: string;
+  tipo: string; // e.g., 'USUARIO_EV', 'ADMINISTRADOR', 'EDITOR_CONTENIDO'
   activo: boolean;
+  fechaCreacion: string;
 }
 
 /*
@@ -167,15 +167,21 @@ export class ApiService {
 
   /** 
    * Obtiene la lista de avatares predefinidos disponibles.
-   * Fallback vacío si el endpoint no está disponible.
+   * Devuelve la respuesta completa con avatares y avatar por defecto.
+   * Si falla, propaga el error para que el componente pueda manejarlo.
    */
-  getAvatars(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.base}/auth/avatars`).pipe(
-      catchError((err) => {
-        // Fallback vacío si el endpoint falla (componente puede usar imágenes locales)
-        return of([]);
-      })
+  getAvatars(): Observable<AvatarsResponseDto> {
+    return this.http.get<AvatarsResponseDto>(`${this.base}/auth/avatars`).pipe(
+      catchError(this.handleError('carga de avatares', 'No se pudieron cargar los avatares disponibles'))
     );
+  }
+
+  /** 
+   * Construye la URL completa para un avatar dado su ruta relativa.
+   * Combina la URL base del API con la ruta del avatar.
+   */
+  getFullAvatarUrl(relativePath: string): string {
+    return `${this.base}${relativePath}`;
   }
 
   /** 

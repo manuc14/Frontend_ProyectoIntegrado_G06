@@ -5,13 +5,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ApiService } from '../../core/services/api.service';
+import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
 @Component({
   selector: 'app-verify-code',
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './verify-code.page.html',
-  styleUrl: './verify-code.page.scss'
+  styleUrl: './verify-code.page.scss',
+  animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class VerifyCodePage {
   /*
@@ -24,6 +26,10 @@ export class VerifyCodePage {
   codeDigits: string[] = ['', '', '', '', '', ''];
   isLoading = false;
   errorMessage = '';
+  // Animation states
+  shakeForm = false;
+  buttonState = 'normal';
+  focusedInput = -1;
 
   @ViewChildren('codeInput') inputs!: QueryList<ElementRef<HTMLInputElement>>;
 
@@ -126,22 +132,30 @@ export class VerifyCodePage {
 
   /* Envía el código para verificación usando el token y navega a la página de confirmación. */
   onVerify() {
-    if (!this.canVerify || this.isLoading) return;
+    if (!this.canVerify || this.isLoading) {
+      if (!this.canVerify) {
+        this.triggerShakeError();
+      }
+      return;
+    }
     
     this.isLoading = true;
     this.errorMessage = '';
+    this.buttonState = 'pressed';
     
     // Llamada al nuevo endpoint con token
     this.api.verifyUserWithToken(this.token(), this.code).subscribe({
       next: (response: any) => {
         console.log('Verificación exitosa:', response);
         // Redirigir a la página de confirmación tras verificación exitosa
-        this.router.navigate(['/verified-email']);
+        this.router.navigate(['/verified-email'], { queryParams: { token: response.token } });
       },
       error: (error: any) => {
         console.error('Error en verificación:', error);
         this.errorMessage = error.message || 'Código de verificación incorrecto';
         this.isLoading = false;
+        this.buttonState = 'normal';
+        this.triggerShakeError();
         // Limpiar inputs en caso de error
         this.codeDigits = ['', '', '', '', '', ''];
         this.inputs.forEach(input => {
@@ -151,6 +165,7 @@ export class VerifyCodePage {
       },
       complete: () => {
         this.isLoading = false;
+        this.buttonState = 'normal';
       }
     });
   }
@@ -181,5 +196,30 @@ export class VerifyCodePage {
         this.isLoading = false;
       }
     });
+  }
+
+  /**
+   * Dispara la animación de shake para errores
+   */
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
+  }
+
+  /**
+   * Maneja el estado de focus de los inputs
+   */
+  onInputFocus(index: number): void {
+    this.focusedInput = index;
+  }
+
+  onInputBlur(): void {
+    this.focusedInput = -1;
+  }
+
+  /**
+   * Estado de animación para cada input
+   */
+  getInputFocusState(index: number): string {
+    return this.focusedInput === index ? 'focused' : 'normal';
   }
 }

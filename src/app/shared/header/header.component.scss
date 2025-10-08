@@ -1,77 +1,234 @@
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE HEADER
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR PRINCIPAL DEL HEADER
+   -------------------------------------------------------------------------- */
+
 .background-horizontal-border {
-  background: #061017;
-  border-style: solid;
-  border-color: #17303a;
-  border-width: 0 0 1px 0;
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
+    background: #061017;
+    border-style: solid;
+    border-color: #17303a;
+    border-width: 0 0 1px 0;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
 }
 
+/* --------------------------------------------------------------------------
+   SECCIÓN DE MARCA
+   -------------------------------------------------------------------------- */
+
 .container {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
 }
 
 .iconify-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.svg { width: 24px; height: 24px; }
+.svg { 
+    width: 24px; 
+    height: 24px; 
+}
 
-.text { color: #98c2cc; font-family: "Inter-SemiBold", sans-serif; font-size: 18px; font-weight: 600; }
+.text { 
+    color: #98c2cc; 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 18px; 
+    font-weight: 600; 
+}
+
+/* --------------------------------------------------------------------------
+   SECCIÓN DE NAVEGACIÓN
+   -------------------------------------------------------------------------- */
 
 .container2 {
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: center;
 }
 
-.link { background: #052226; border-radius: 6px; padding: 8px 12px; }
-.link2 { border-radius: 6px; padding: 8px 12px; }
-.text2 { color: #00e0a1; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
-.text3, .text4, .text5 { color: #98c2cc; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
+/* Enlaces de navegación */
+.link { 
+    background: #052226; 
+    border-radius: 6px; 
+    padding: 8px 12px; 
+}
 
-.link3 { background: #11202a; border-radius: 12px; padding: 10px 14px; }
-.link4 { background: #00e0a1; border-radius: 12px; padding: 10px 14px; display: flex; gap: 8px; align-items: center; }
-.text6 { color: #bfecef; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
-.text7 { color: #02120b; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
+.link2 { 
+    border-radius: 6px; 
+    padding: 8px 12px; 
+}
 
-a { text-decoration: none; }
+/* Estilos de texto de navegación */
+.text2 { 
+    color: #00e0a1; 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 14px; 
+    font-weight: 600; 
+}
+
+.text3 { 
+    color: #98c2cc; 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 14px; 
+    font-weight: 600; 
+}
+
+/* --------------------------------------------------------------------------
+   BOTONES DE ACCIÓN
+   -------------------------------------------------------------------------- */
+
+.link3 { 
+    background: #11202a; 
+    border-radius: 12px; 
+    padding: 10px 14px; 
+}
+
+.link4 { 
+    background: #00e0a1; 
+    border-radius: 12px; 
+    padding: 10px 14px; 
+    display: flex; 
+    gap: 8px; 
+    align-items: center; 
+}
+
+.text6 { 
+    color: #bfecef; 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 14px; 
+    font-weight: 600; 
+}
+
+.text7 { 
+    color: #02120b; 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 14px; 
+    font-weight: 600; 
+}
+
+/* --------------------------------------------------------------------------
+   RESET DE ENLACES
+   -------------------------------------------------------------------------- */
+
+a { 
+    text-decoration: none; 
+}
+
+/* --------------------------------------------------------------------------
+   MENÚ TOGGLE MÓVIL
+   -------------------------------------------------------------------------- */
 
 /* Utilidades de visibilidad */
-.only-mobile { display: none; }
-.only-desktop { display: flex; }
-
-/* Toggle (hamburger) para móvil */
-.nav-toggle { display: none; }
-.menu-btn { display: none; cursor: pointer; width: 36px; height: 28px; gap: 6px; flex-direction: column; align-items: center; justify-content: center; }
-.menu-btn span { display: block; width: 100%; height: 3px; background: #98c2cc; border-radius: 2px; }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .background-horizontal-border { flex-wrap: wrap; gap: 12px; padding: 10px 12px; }
-  .container.brand { order: 1; }
-  .menu-btn { display: flex; order: 2; }
-  .container.actions { order: 3; margin-left: auto; }
-  .container2 { order: 4; width: 100%; flex-direction: column; align-items: stretch; gap: 8px; display: none; }
-  .container2 a { display: block; width: 100%; }
-  /* Mostrar menú cuando está activo el toggle */
-  .nav-toggle:checked ~ .container2 { display: flex; }
-  .only-mobile { display: block; }
-  .only-desktop { display: none !important; }
+.only-mobile { 
+    display: none; 
 }
 
+.only-desktop { 
+    display: flex; 
+}
+
+/* Toggle del menú móvil */
+.nav-toggle { 
+    display: none; 
+}
+
+.menu-btn { 
+    display: none; 
+    cursor: pointer; 
+    width: 36px; 
+    height: 28px; 
+    gap: 6px; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.menu-btn span { 
+    display: block; 
+    width: 100%; 
+    height: 3px; 
+    background: #98c2cc; 
+    border-radius: 2px; 
+}
+
+/* --------------------------------------------------------------------------
+   DISEÑO RESPONSIVO
+   -------------------------------------------------------------------------- */
+
+/* Diseño para tablet y móvil */
+@media (max-width: 768px) {
+    .background-horizontal-border { 
+        flex-wrap: wrap; 
+        gap: 12px; 
+        padding: 10px 12px; 
+    }
+    
+    .container.brand { 
+        order: 1; 
+    }
+    
+    .menu-btn { 
+        display: flex; 
+        order: 2; 
+    }
+    
+    .container.actions { 
+        order: 3; 
+        margin-left: auto; 
+    }
+    
+    .container2 { 
+        order: 4; 
+        width: 100%; 
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 8px; 
+        display: none; 
+    }
+    
+    .container2 a { 
+        display: block; 
+        width: 100%; 
+    }
+    
+    /* Mostrar menú cuando el toggle está activo */
+    .nav-toggle:checked ~ .container2 { 
+        display: flex; 
+    }
+    
+    .only-mobile { 
+        display: block; 
+    }
+    
+    .only-desktop { 
+        display: none !important; 
+    }
+}
+
+/* Ajustes para móvil pequeño */
 @media (max-width: 480px) {
-  .text { font-size: 16px; }
-  .text2, .text3, .text4, .text5, .text6, .text7 { font-size: 13px; }
-  .link, .link2 { padding: 10px 12px; }
+    .text { 
+        font-size: 16px; 
+    }
+    
+    .text2, .text3, .text4, .text5, .text6, .text7 { 
+        font-size: 13px; 
+    }
+    
+    .link, .link2 { 
+        padding: 10px 12px; 
+    }
 }

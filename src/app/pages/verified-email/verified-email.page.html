@@ -1,8 +1,8 @@
 <app-header />
 
-<main class="background">
+<main class="background" [@fadeIn]>
   <section class="container">
-    <div class="container2">
+    <div class="container2" [@slideInFromTop]>
       <div class="background-border">
         <div class="background-shadow">
           <img class="svg" src="assets/icons/shield.svg" alt="Verified" />
@@ -18,7 +18,7 @@
           </div>
         </div>
         <div class="container5">
-          <button class="link" (click)="goToLogin()">
+          <button class="link" (click)="goToLogin()" [@buttonHover]>
             <img class="svg2" src="assets/icons/play.svg" alt="Home" />
             <div class="text3">Iniciar Sesión</div>
           </button>

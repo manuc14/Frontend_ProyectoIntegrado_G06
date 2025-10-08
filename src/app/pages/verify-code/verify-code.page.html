@@ -1,9 +1,9 @@
 <app-header />
 
-<main class="background">
+<main class="background" [@fadeIn]>
   <section class="container3">
     <div class="container4">
-      <div class="background-border">
+      <div class="background-border" [@shakeError]="shakeForm ? 'shake' : ''">
         <div class="container5"><div class="text8">Introduce el código de verificación</div></div>
         <div class="container5"><div class="text9">Escribe el código de 6 dígitos que enviamos a tu email</div></div>
         
@@ -13,16 +13,30 @@
         </div>
         
         <div class="container6">
-          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(0, $event)" (keydown)="onKeyDown(0, $event)" (paste)="onPaste(0, $event)" />
-          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(1, $event)" (keydown)="onKeyDown(1, $event)" (paste)="onPaste(1, $event)" />
-          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(2, $event)" (keydown)="onKeyDown(2, $event)" (paste)="onPaste(2, $event)" />
-          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(3, $event)" (keydown)="onKeyDown(3, $event)" (paste)="onPaste(3, $event)" />
-          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(4, $event)" (keydown)="onKeyDown(4, $event)" (paste)="onPaste(4, $event)" />
-          <input #codeInput type="text" inputmode="numeric" maxlength="1" (input)="onInput(5, $event)" (keydown)="onKeyDown(5, $event)" (paste)="onPaste(5, $event)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" 
+                 (input)="onInput(0, $event)" (keydown)="onKeyDown(0, $event)" (paste)="onPaste(0, $event)"
+                 [@inputFocus]="getInputFocusState(0)" (focus)="onInputFocus(0)" (blur)="onInputBlur()" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" 
+                 (input)="onInput(1, $event)" (keydown)="onKeyDown(1, $event)" (paste)="onPaste(1, $event)"
+                 [@inputFocus]="getInputFocusState(1)" (focus)="onInputFocus(1)" (blur)="onInputBlur()" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" 
+                 (input)="onInput(2, $event)" (keydown)="onKeyDown(2, $event)" (paste)="onPaste(2, $event)"
+                 [@inputFocus]="getInputFocusState(2)" (focus)="onInputFocus(2)" (blur)="onInputBlur()" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" 
+                 (input)="onInput(3, $event)" (keydown)="onKeyDown(3, $event)" (paste)="onPaste(3, $event)"
+                 [@inputFocus]="getInputFocusState(3)" (focus)="onInputFocus(3)" (blur)="onInputBlur()" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" 
+                 (input)="onInput(4, $event)" (keydown)="onKeyDown(4, $event)" (paste)="onPaste(4, $event)"
+                 [@inputFocus]="getInputFocusState(4)" (focus)="onInputFocus(4)" (blur)="onInputBlur()" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1" 
+                 (input)="onInput(5, $event)" (keydown)="onKeyDown(5, $event)" (paste)="onPaste(5, $event)"
+                 [@inputFocus]="getInputFocusState(5)" (focus)="onInputFocus(5)" (blur)="onInputBlur()" />
         </div>
         
         <div class="container7">
-          <button class="link4" [disabled]="!canVerify || isLoading" (click)="onVerify()">
+          <button class="link4" [disabled]="!canVerify || isLoading" (click)="onVerify()"
+                  [@buttonHover]
+                  [@buttonPress]="buttonState">
             <img class="svg3" src="assets/icons/shield.svg" alt="verify" />
             <div class="text11">{{ isLoading ? 'Verificando...' : 'Verifica tu cuenta' }}</div>
           </button>
@@ -31,7 +45,7 @@
         <!-- Botón de reenvío -->
         <div class="resend-section">
           <div class="resend-text">¿No recibiste el código?</div>
-          <button class="resend-button" [disabled]="isLoading" (click)="onResendCode()">
+          <button class="resend-button" [disabled]="isLoading" (click)="onResendCode()" [@buttonHover]>
             Reenviar código
           </button>
         </div>

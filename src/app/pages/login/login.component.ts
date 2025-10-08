@@ -6,6 +6,7 @@ import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ApiService, LoginRequest, LoginResponse } from '../../core/services/api.service';
 import { finalize } from 'rxjs/operators';
+import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
 interface LoginForm {
   email: FormControl<string>;
@@ -17,7 +18,8 @@ interface LoginForm {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, HeaderComponent, FooterComponent],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
+  animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class LoginComponent {
   /* LoginComponent: formulario de acceso que autentica contra el backend y redirige según tipo de usuario. */
@@ -33,18 +35,37 @@ export class LoginComponent {
   loading = false;
   bannerKind: 'success' | 'error' | null = null;
   bannerText = '';
+  shakeForm = false;
+  buttonState = 'normal';
+  emailFocused = false;
+  passwordFocused = false;
 
   get f() { return this.form.controls; }
 
   /* Envía credenciales y procesa la respuesta del backend. */
   submit() {
-    if (this.form.invalid || this.loading) return;
-    this.bannerKind = null; this.bannerText = '';
-  const raw = this.form.getRawValue();
-  const payload: LoginRequest = { email: raw.email, password: raw.password };
-    this.loading = true; this.form.disable();
+    if (this.form.invalid || this.loading) {
+      if (this.form.invalid) {
+        this.triggerShakeError();
+      }
+      return;
+    }
+    
+    this.bannerKind = null; 
+    this.bannerText = '';
+    this.buttonState = 'pressed';
+    
+    const raw = this.form.getRawValue();
+    const payload: LoginRequest = { email: raw.email, password: raw.password };
+    this.loading = true; 
+    this.form.disable();
+    
     this.api.login(payload)
-      .pipe(finalize(() => { this.loading = false; this.form.enable(); }))
+      .pipe(finalize(() => { 
+        this.loading = false; 
+        this.form.enable(); 
+        this.buttonState = 'normal';
+      }))
       .subscribe({
         next: (res: LoginResponse) => {
           // El backend devuelve 200 OK cuando el login es exitoso
@@ -52,6 +73,7 @@ export class LoginComponent {
           if (res?.validationErrorCount > 0) {
             this.bannerKind = 'error';
             this.bannerText = res?.message || 'Error de validación en los datos';
+            this.triggerShakeError();
             return;
           }
           
@@ -59,6 +81,7 @@ export class LoginComponent {
           if (!res.user?.activo) {
             this.bannerKind = 'error';
             this.bannerText = 'Tu cuenta no está activada. Revisa tu correo para activarla.';
+            this.triggerShakeError();
             return;
           }
 
@@ -92,7 +115,35 @@ export class LoginComponent {
           this.bannerKind = 'error';
           // El error interceptor ya maneja los mensajes amigables
           this.bannerText = err || 'No se pudo completar el inicio de sesión';
+          this.triggerShakeError();
         }
       });
+  }
+
+  /**
+   * Dispara la animación de shake para errores
+   */
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
+  }
+
+  /**
+   * Maneja el estado de focus de los inputs
+   */
+  onEmailFocus(focused: boolean): void {
+    this.emailFocused = focused;
+  }
+
+  onPasswordFocus(focused: boolean): void {
+    this.passwordFocused = focused;
+  }
+
+  /**
+   * Estado de animación para inputs
+   */
+  getInputFocusState(field: 'email' | 'password'): string {
+    return field === 'email' ? 
+      (this.emailFocused ? 'focused' : 'normal') :
+      (this.passwordFocused ? 'focused' : 'normal');
   }
 }
