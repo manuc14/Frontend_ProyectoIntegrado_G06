@@ -10,14 +10,18 @@
     max-width: 960px;
     margin: 32px auto;
     padding: 0 16px;
+    background: var(--background);
+    color: var(--foreground);
+    min-height: 100vh;
 }
 
 .register-page h1 {
     margin: 0 0 8px 0;
+    color: var(--foreground);
 }
 
 .hint {
-    color: #7ea2ad;
+    color: var(--muted-foreground);
     margin: 0 0 16px 0;
 }
 
@@ -26,10 +30,11 @@
    -------------------------------------------------------------------------- */
 
 .card {
-    background: #0c1620;
-    border: 1px solid #17303a;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* --------------------------------------------------------------------------
@@ -63,23 +68,82 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"] {
-    padding: 10px 12px;
+    padding: 12px 14px;
     border-radius: 8px;
-    border: 1px solid #17303a;
-    background: #0b1216;
-    color: #e8f6f5;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--input);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: var(--card);
+}
+
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover,
+input[type="date"]:hover {
+    border-color: var(--primary);
+}
+
+input[type="text"]:not(:focus):not(:hover),
+input[type="email"]:not(:focus):not(:hover),
+input[type="password"]:not(:focus):not(:hover),
+input[type="date"]:not(:focus):not(:hover) {
+    border-color: var(--border);
+    box-shadow: none;
+    background: var(--card);
 }
 
 /* Estilo de conjuntos de campos */
 fieldset {
-    border: 1px dashed #17303a;
-    padding: 12px;
+    border: 1px dashed var(--border);
+    padding: 16px;
     border-radius: 8px;
+    background: var(--muted);
+}
+
+fieldset legend {
+    color: var(--foreground);
+    font-weight: 600;
+    padding: 0 12px;
+    background: var(--card);
+    border-radius: 4px;
+}
+
+/* Estilo específico para el fieldset del plan */
+fieldset:has(.segmented) {
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+fieldset:has(.segmented) legend {
+    color: var(--foreground);
+    font-weight: 600;
+    padding: 0 8px;
+    background: var(--card);
+    font-size: 14px;
 }
 
 /* Validación de formularios */
 input.ng-invalid.ng-touched {
-    border-color: #ff6b6b;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+input.ng-invalid.ng-touched:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.35);
 }
 
 /* --------------------------------------------------------------------------
@@ -99,17 +163,26 @@ label.with-help > span {
 label.with-help .help {
     margin-left: auto;
     align-self: flex-start;
-    background: #11202a;
-    color: #bfecef;
-    border: 1px solid #17303a;
+    background: var(--muted);
+    color: var(--muted-foreground);
+    border: 1px solid var(--border);
     border-radius: 999px;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: help;
     position: relative;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+label.with-help .help:hover {
+    background: var(--secondary);
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 label.with-help .help .tooltip {
@@ -120,12 +193,12 @@ label.with-help .help .tooltip {
     z-index: 10;
     min-width: 240px;
     max-width: 320px;
-    background: #0b1216;
-    border: 1px solid #17303a;
-    color: #bfecef;
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 label.with-help .help:focus .tooltip, 
@@ -136,7 +209,7 @@ label.with-help .help:hover .tooltip {
 label.with-help .help .tooltip strong {
     display: block;
     margin-bottom: 6px;
-    color: #9ff5d9;
+    color: var(--primary);
 }
 
 label.with-help .help .tooltip ul {
@@ -161,7 +234,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     position: absolute;
     left: 0;
     top: 0;
-    color: #bfecef;
+    color: var(--muted-foreground);
     font-weight: 700;
 }
 
@@ -171,23 +244,31 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 
 .segmented {
     display: flex;
-    gap: 8px;
-    background: #11202a;
-    border-radius: 48px;
-    padding: 4px;
+    gap: 2px;
+    background: var(--muted);
+    border-radius: 8px;
+    padding: 3px;
     align-items: center;
-    width: max-content;
+    width: 100%;
+    max-width: 220px;
+    border: 1px solid var(--border);
 }
 
 .segment {
     position: relative;
-    border-radius: 48px;
-    padding: 8px 14px;
-    color: #bfecef;
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: var(--muted-foreground);
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 1;
+    font-weight: 500;
+    font-size: 13px;
+    min-height: 36px;
 }
 
 .segment input {
@@ -197,14 +278,22 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 }
 
 .segment.active {
-    background: #052226;
-    color: #00e0a1;
-    box-shadow: inset 0 0 0 1px rgba(0, 224, 161, 0.15);
+    background: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    transform: translateY(0);
+}
+
+.segment:not(.active):hover {
+    background: var(--secondary);
+    color: var(--foreground);
 }
 
 .vip-hint {
-    color: #7ea2ad;
-    margin-top: 6px;
+    color: var(--muted-foreground);
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.4;
 }
 
 /* --------------------------------------------------------------------------
@@ -275,8 +364,8 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 
 .avatar-option {
     position: relative;
-    background: #11202a;
-    border: 2px solid #17303a;
+    background: var(--card);
+    border: 2px solid var(--border);
     border-radius: 12px;
     padding: 8px;
     cursor: pointer;
@@ -287,15 +376,15 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     justify-content: center;
     
     &:hover {
-        border-color: #2a5564;
-        background: #162530;
+        border-color: var(--primary);
+        background: var(--secondary);
         transform: translateY(-2px);
     }
     
     &.selected {
-        border-color: #00e0a1;
-        background: rgba(0, 224, 161, 0.1);
-        box-shadow: 0 0 0 2px rgba(0, 224, 161, 0.25);
+        border-color: var(--primary);
+        background: var(--secondary);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent);
     }
     
     img {
@@ -312,8 +401,8 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     position: absolute;
     top: -4px;
     right: -4px;
-    background: #00e0a1;
-    color: #02120b;
+    background: var(--primary);
+    color: var(--primary-foreground);
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -322,7 +411,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     justify-content: center;
     font-size: 12px;
     font-weight: bold;
-    border: 2px solid #0c1620;
+    border: 2px solid var(--card);
 }
 
 @keyframes spin {
@@ -352,16 +441,27 @@ label.with-help .help .tooltip ul.password-requirements li::before {
    -------------------------------------------------------------------------- */
 
 .subhint {
-    color: #7ea2ad;
+    color: var(--muted-foreground);
+    font-size: 14px;
 }
 
 .field-error {
-    color: #ff6b6b;
+    color: #ef4444;
+    font-size: 14px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.field-error::before {
+    content: '⚠';
+    font-size: 12px;
 }
 
 .errors {
     margin-top: 12px;
-    color: #ff6b6b;
+    color: #ef4444;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -379,23 +479,40 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 }
 
 .btn {
-    padding: 10px 16px;
+    padding: 12px 20px;
     border-radius: 8px;
     border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .btn.primary {
-    background: #00e0a1;
-    color: #02120b;
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.btn.primary:hover {
+    background: color-mix(in srgb, var(--primary) 90%, black);
+}
+
+.btn.primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .btn.ghost {
     background: transparent;
-    color: #bfecef;
-    border: 1px solid #17303a;
+    color: var(--muted-foreground);
+    border: 1px solid var(--border);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+}
+
+.btn.ghost:hover {
+    background: var(--muted);
+    color: var(--foreground);
 }
 
 /* --------------------------------------------------------------------------
@@ -403,25 +520,25 @@ label.with-help .help .tooltip ul.password-requirements li::before {
    -------------------------------------------------------------------------- */
 
 .banner {
-    margin-bottom: 12px;
-    padding: 10px 12px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
     border-radius: 8px;
-    border: 1px solid #17303a;
-    background: #0b1216;
-    color: #bfecef;
+    border: 1px solid var(--border);
+    background: var(--muted);
+    color: var(--foreground);
     white-space: pre-line;
 }
 
 .banner.success {
-    border-color: rgba(0, 224, 161, 0.35);
-    background: #06241f;
-    color: #9ff5d9;
+    border-color: color-mix(in srgb, var(--success) 60%, transparent);
+    background: var(--success);
+    color: var(--success-foreground);
 }
 
 .banner.error {
-    border-color: rgba(255, 107, 107, 0.35);
-    background: #241013;
-    color: #ffb3b3;
+    border-color: color-mix(in srgb, var(--destructive) 60%, transparent);
+    background: var(--destructive);
+    color: var(--destructive-foreground);
 }
 
 /* --------------------------------------------------------------------------

@@ -3,6 +3,41 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
+   VARIABLES DE COLOR - NUEVA PALETA
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Colores principales */
+  --background: #eef1f6;
+  --foreground: #0f172a;
+  --border: #dbe0ea;
+  --input: #0f172a;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #e6eeff;
+  --secondary-foreground: #1e293b;
+  --muted: #e9edf5;
+  --muted-foreground: #637189;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  
+  /* Colores de estado */
+  --success: #d5f3e5;
+  --success-foreground: #14532d;
+  --accent: #ffe7b0;
+  --accent-foreground: #5b3b00;
+  --destructive: #ffe4e2;
+  --destructive-foreground: #7a1d16;
+  --warning: #fff2c2;
+  
+  /* Sidebar */
+  --sidebar: #f7f8fc;
+  --sidebar-foreground: #1e293b;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
    RESET Y ESTILOS BASE
    -------------------------------------------------------------------------- */
 
@@ -15,7 +50,7 @@ a, button, input, select, h1, h2, h3, h4, h5, * {
     text-decoration: none;
     background: none;
     -webkit-font-smoothing: antialiased;
-    color-scheme: light dark;
+    color-scheme: light;
 }
 
 /* Reset de elementos de lista */
@@ -37,5 +72,91 @@ html, body {
 /* Tipografía base y fondo */
 body { 
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
-    background: #071017; 
+    background: var(--background);
+    color: var(--foreground);
+}
+
+/* --------------------------------------------------------------------------
+   CONTROL GLOBAL DE ICONOS SVG
+   -------------------------------------------------------------------------- */
+
+/* SVGs que usan currentColor herederán automáticamente el color del texto padre */
+svg[fill="currentColor"],
+img.svg-icon {
+    color: inherit;
+}
+
+/* Control específico de iconos en botones */
+button svg,
+.btn svg,
+.link svg,
+.link2 svg,
+.link3 svg,
+.link4 svg,
+.link5 svg,
+.link6 svg,
+.link7 svg,
+.link8 svg {
+    color: inherit;
+}
+
+/* Iconos en botones primarios - forzar blanco */
+.link4 img,
+.link7 img,
+button.primary img,
+.btn-primary img {
+    filter: brightness(0) invert(1);
+}
+
+/* Iconos en botones secundarios - adaptar al texto */
+.link3 img,
+.link6 img,
+.link8 img,
+button.secondary img,
+.btn-secondary img {
+    filter: none;
+    opacity: 0.8;
+}
+
+/* --------------------------------------------------------------------------
+   ESTADOS DE FOCUS GLOBALES PARA INPUTS
+   -------------------------------------------------------------------------- */
+
+/* Asegurar que todos los inputs usen el color primario en focus */
+input:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* --------------------------------------------------------------------------
+   AJUSTES PARA HEADER FIJO (Solo en home)
+   -------------------------------------------------------------------------- */
+
+/* Compensar el espacio del header fijo + logo grande arriba SOLO en home */
+body.home-page {
+    padding-top: 160px; /* Ajustado para logo a -30px */
+}
+
+/* En otras páginas, sin padding extra */
+body.other-page {
+    padding-top: 0;
+}
+
+/* En móvil, ajustar según la página */
+@media (max-width: 768px) {
+    body.home-page {
+        padding-top: 72px;
+    }
+    
+    body.other-page {
+        padding-top: 0;
+    }
 }

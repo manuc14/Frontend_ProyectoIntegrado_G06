@@ -148,7 +148,8 @@ export class VerifyCodePage {
       next: (response: any) => {
         console.log('Verificación exitosa:', response);
         // Redirigir a la página de confirmación tras verificación exitosa
-        this.router.navigate(['/verified-email'], { queryParams: { token: response.token } });
+        // Usamos el token original que sigue siendo válido
+        this.router.navigate(['/verified-email'], { queryParams: { token: this.token() } });
       },
       error: (error: any) => {
         console.error('Error en verificación:', error);

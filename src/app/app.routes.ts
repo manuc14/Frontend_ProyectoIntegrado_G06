@@ -21,7 +21,7 @@ export const routes: Routes = [
 	{ path: 'verify-email', component: VerifyEmailPage },
 	{ path: 'verify-code', component: VerifyCodePage },
 	{ path: 'verified-email', component: VerifiedEmailPage },
-	{ path: 'admin', component: AdminPage },
+	{ path: 'admin-home', component: AdminPage },
 	{ path: 'content', component: ContentPage },
 	{ path: 'catalog', component: CatalogPage },
 	{ path: 'forgot-password', component: ForgotPasswordPage },

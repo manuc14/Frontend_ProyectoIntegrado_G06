@@ -142,8 +142,12 @@ export class LoginComponent {
    * Estado de animación para inputs
    */
   getInputFocusState(field: 'email' | 'password'): string {
-    return field === 'email' ? 
-      (this.emailFocused ? 'focused' : 'normal') :
-      (this.passwordFocused ? 'focused' : 'normal');
+    let state: string;
+    if (field === 'email') {
+      state = this.emailFocused ? 'focused' : 'normal';
+    } else {
+      state = this.passwordFocused ? 'focused' : 'normal';
+    }
+    return state;
   }
 }

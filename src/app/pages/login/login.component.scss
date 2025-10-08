@@ -11,14 +11,17 @@
     margin: 32px auto 56px auto;
     padding-top: 32px; 
     padding-bottom: 48px;
+    background: var(--background);
+    color: var(--foreground);
 }
 
 .login-page h1 {
     margin: 0 0 8px 0;
+    color: var(--foreground);
 }
 
 .hint {
-    color: #7ea2ad;
+    color: var(--muted-foreground);
     margin: 0 0 16px 0;
 }
 
@@ -27,13 +30,14 @@
    -------------------------------------------------------------------------- */
 
 .card {
-    background: #0c1620;
-    border: 1px solid #17303a;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 16px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* --------------------------------------------------------------------------
@@ -50,22 +54,43 @@ label {
 /* Campos de entrada */
 input[type="email"],
 input[type="password"] {
-    padding: 10px 12px;
+    padding: 12px 14px;
     border-radius: 8px;
-    border: 1px solid #17303a;
-    background: #0b1216;
-    color: #e8f6f5;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--input);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: var(--card);
+}
+
+input[type="email"]:hover,
+input[type="password"]:hover {
+    border-color: var(--primary);
+}
+
+input[type="email"]:not(:focus):not(:hover),
+input[type="password"]:not(:focus):not(:hover) {
+    border-color: var(--border);
+    box-shadow: none;
+    background: var(--card);
 }
 
 /* Estados de validación de entrada */
 .invalid {
-    border-color: #ff6b6b !important; 
-    box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+    border-color: var(--destructive-foreground) !important; 
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive) 50%, transparent);
 }
 
 .invalid:focus {
     outline: none; 
-    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.25);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 25%, transparent);
 }
 
 /* --------------------------------------------------------------------------
@@ -87,16 +112,17 @@ input[type="password"] {
    -------------------------------------------------------------------------- */
 
 .muted {
-    color: #7ea2ad;
+    color: var(--muted-foreground);
 }
 
 .muted.small {
     font-size: 12px;
-    color: #7ea2ad;
+    color: var(--muted-foreground);
 }
 
 .field-error {
-    color: #ff6b6b;
+    color: var(--destructive-foreground);
+    font-size: 14px;
 }
 
 /* --------------------------------------------------------------------------
@@ -107,18 +133,30 @@ input[type="password"] {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 8px;
+    margin-top: 12px;
 }
 
 .btn {
-    padding: 10px 16px;
+    padding: 12px 20px;
     border-radius: 8px;
     border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .btn.primary {
-    background: #00e0a1;
-    color: #02120b;
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.btn.primary:hover {
+    background: color-mix(in srgb, var(--primary) 90%, black);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* --------------------------------------------------------------------------
@@ -126,18 +164,18 @@ input[type="password"] {
    -------------------------------------------------------------------------- */
 
 .banner {
-    margin-bottom: 4px;
-    padding: 8px 10px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
     border-radius: 8px;
-    border: 1px solid #17303a;
-    background: #0b1216;
-    color: #bfecef;
+    border: 1px solid var(--border);
+    background: var(--muted);
+    color: var(--foreground);
 }
 
 .banner.error {
-    border-color: rgba(255, 107, 107, 0.35);
-    background: #241013;
-    color: #ffb3b3;
+    border-color: color-mix(in srgb, var(--destructive) 50%, transparent);
+    background: var(--destructive);
+    color: var(--destructive-foreground);
 }
 
 /* --------------------------------------------------------------------------

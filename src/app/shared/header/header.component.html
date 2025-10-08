@@ -1,9 +1,34 @@
-<header class="background-horizontal-border" [@fadeIn]>
-  <div class="container brand">
-    <div class="iconify-icon">
-      <img class="svg" src="assets/brand/logo.svg" alt="logo" />
-    </div>
-    <div class="text">ESIMedia</div>
+<header class="background-horizontal-border" 
+        [class.fixed-header]="isHomePage" 
+        [class.normal-header]="!isHomePage" 
+        [@fadeIn]>
+  <!-- Logo grande arriba que desaparece con scroll (solo en home) -->
+  <div class="container brand desktop-logo" [class.force-hidden]="!isHomePage">
+    <a routerLink="/" class="logo-link">
+      <div class="iconify-icon logo-container">
+        <img class="svg logo-large" src="assets/icons/logo_v1.png" alt="ESIMedia" />
+      </div>
+    </a>
+  </div>
+
+  <!-- Logo pequeño a la izquierda que aparece después del scroll -->
+  <div class="container brand desktop-logo-small" [class.force-visible]="!isHomePage">
+    <a routerLink="/" class="logo-link">
+      <div class="iconify-icon">
+        <img class="svg logo-small" src="assets/icons/logo_v1.png" alt="ESIMedia" />
+      </div>
+      <div class="text">ESIMedia</div>
+    </a>
+  </div>
+
+  <!-- Logo a la izquierda en móvil (siempre visible) -->
+  <div class="container brand mobile-logo">
+    <a routerLink="/" class="logo-link">
+      <div class="iconify-icon">
+        <img class="svg" src="assets/icons/logo_v1.png" alt="ESIMedia" />
+      </div>
+      <div class="text">ESIMedia</div>
+    </a>
   </div>
 
   <!-- Toggle para menú en móvil (checkbox hack) -->
@@ -12,32 +37,8 @@
     <span></span><span></span><span></span>
   </label>
 
+  <!-- Acciones visibles solo en móvil dentro del menú -->
   <nav id="primary-nav" class="container2" role="navigation" aria-label="Navegación principal">
-    <a [class]="getLinkClass('/')" 
-       routerLink="/" 
-       [@navActiveState]="getNavActiveState('/')"
-       [@navHover]> 
-      <div [class]="getTextClass('/')">Home</div> 
-    </a>
-    <a [class]="getLinkClass('/videos')" 
-       routerLink="/videos" 
-       [@navActiveState]="getNavActiveState('/videos')"
-       [@navHover]> 
-      <div [class]="getTextClass('/videos')">Videos</div> 
-    </a>
-    <a [class]="getLinkClass('/audios')" 
-       routerLink="/audios" 
-       [@navActiveState]="getNavActiveState('/audios')"
-       [@navHover]> 
-      <div [class]="getTextClass('/audios')">Audios</div> 
-    </a>
-    <a [class]="getLinkClass('/popular')" 
-       routerLink="/popular" 
-       [@navActiveState]="getNavActiveState('/popular')"
-       [@navHover]> 
-      <div [class]="getTextClass('/popular')">Nuevo &amp; Popular</div> 
-    </a>
-    <!-- Acciones visibles solo en móvil dentro del menú -->
     <a class="link3 only-mobile" routerLink="/login" [@navHover]> 
       <div class="text6">Iniciar Sesión</div> 
     </a>
