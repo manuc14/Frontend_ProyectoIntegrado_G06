@@ -1,0 +1,198 @@
+<app-header />
+
+<main class="upload-page">
+  <div class="container">
+    <h1>Subir contenido</h1>
+    <p class="hint">Comparte tu contenido multimedia con la comunidad.</p>
+
+    <form class="upload-form card" novalidate>
+      <!-- LEFT COLUMN -->
+      <div class="left-column">
+        <section class="form-section">
+          <h2>Detalles</h2>
+          
+          <label>
+            <span>Título <span class="required">*</span></span>
+            <input type="text" [value]="title" (input)="onTitleInput($event)" 
+                   placeholder="Introduce el título" maxlength="50" 
+                   [class.invalid]="!title" />
+            <div class="char-count">{{ titleCount }} / {{ titleLimit }}</div>
+          </label>
+
+          <label>
+            <span>Descripción</span>
+            <textarea [value]="description" (input)="onDescriptionInput($event)" 
+                      placeholder="Cuenta de qué va a ir lo que subes" 
+                      maxlength="500" rows="4"></textarea>
+            <div class="char-count">{{ descCount }} / {{ descLimit }}</div>
+          </label>
+
+          <div class="form-field">
+            <span class="field-label">Miniatura</span>
+            <div class="thumbnails-section">
+              <div class="thumbnails-grid">
+                <label class="thumbnail-slot upload">
+                  <input type="file" accept="image/*" (change)="onThumbnailSelected($event)" />
+                  <div class="upload-content">
+                    <div class="plus">+</div>
+                    <div class="upload-text">Subir</div>
+                  </div>
+                </label>
+                <div class="thumbnail-slot preview" *ngIf="thumbnailPreview">
+                  <img [src]="thumbnailPreview" alt="Vista previa" />
+                </div>
+                <div class="thumbnail-slot empty" *ngIf="!thumbnailPreview">Preview</div>
+                <div class="thumbnail-slot empty">Preview</div>
+              </div>
+            </div>
+            <small class="field-info">Selecciona o sube la imagen que refleje el contenido del archivo</small>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-column">
+        <section class="form-section">
+          <div class="form-field">
+            <span class="field-label">Tipo de archivo</span>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="type" (change)="onTypeChange('video')" 
+                       [checked]="type==='video'" />
+                <span>Video</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="type" (change)="onTypeChange('audio')" 
+                       [checked]="type==='audio'" />
+                <span>Audio</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <span class="field-label">Contenido VIP</span>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="vip" [(ngModel)]="vip" value="si" />
+                <span>Sí</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="vip" [(ngModel)]="vip" value="no" />
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+
+          <label>
+            <span>URL (solo video)</span>
+            <input type="url" [value]="url" (input)="onUrlInput($event)" placeholder="https://..." 
+                   [disabled]="type === 'audio'" 
+                   [class.disabled-field]="type === 'audio'"
+                   [readonly]="type === 'audio'"
+                   (keydown)="type === 'audio' && $event.preventDefault()"
+                   (paste)="type === 'audio' && $event.preventDefault()"
+                   title="Este campo está disponible solo cuando se selecciona 'Video'" />
+          </label>
+
+          <label>
+            <span>Archivo (solo audio)</span>
+            <input type="text" [value]="audioFilename" (input)="onAudioFilenameInput($event)"
+                   placeholder="Ruta o filename" 
+                   [disabled]="type === 'video'"
+                   [class.disabled-field]="type === 'video'"
+                   [readonly]="type === 'video'"
+                   (keydown)="type === 'video' && $event.preventDefault()"
+                   (paste)="type === 'video' && $event.preventDefault()"
+                   title="Este campo está disponible solo cuando se selecciona 'Audio'" />
+          </label>
+
+          <div class="form-field">
+            <span class="field-label">Subir archivo desde dispositivo</span>
+            <div class="file-upload-area" [class.disabled-field]="type !== 'audio'">
+              <input type="file" (change)="onFileSelected($event)" 
+                     [disabled]="type !== 'audio'"
+                     [accept]="type === 'audio' ? 'audio/*' : '*'"
+                     title="Este campo está disponible solo cuando se selecciona 'Audio'" />
+              <div class="upload-placeholder">
+                <p *ngIf="type === ''">Selecciona primero el tipo de archivo (Video o Audio)</p>
+                <p *ngIf="type === 'video'">Para videos, utiliza el campo URL de arriba</p>
+                <p *ngIf="type === 'audio'">Arrastra y suelta un archivo de audio aquí o haz click para seleccionar</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <span class="field-label">Tags <span class="required">*</span></span>
+            <div class="tags-container">
+              <div class="tags-display" *ngIf="tags.length > 0">
+                <span class="tag" *ngFor="let tag of tags; let i = index">
+                  {{ tag }}
+                  <button type="button" class="remove-tag" (click)="removeTag(i)">×</button>
+                </span>
+              </div>
+              <div class="tag-input-row">
+                <input type="text" [(ngModel)]="newTag" placeholder="Añadir tag" 
+                       (keyup.enter)="addTag()" />
+                <button type="button" class="btn secondary small" (click)="addTag()">
+                  + Añadir
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>
+              <span>Duración (minutos) <span class="required">*</span></span>
+              <input type="number" [(ngModel)]="duration" placeholder="Minutos" min="1" />
+            </label>
+
+            <label>
+              <span>Estado <span class="required">*</span></span>
+              <input type="text" [(ngModel)]="estado" placeholder="Estado" />
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label>
+              <span>Resolución <span class="required">*</span></span>
+              <select [(ngModel)]="resolution" 
+                      [disabled]="type === 'audio'"
+                      [class.disabled-field]="type === 'audio'"
+                      title="Este campo está disponible solo cuando se selecciona 'Video'">
+                <option value="">Seleccionar</option>
+                <option value="1080p">1080p</option>
+                <option value="720p">720p</option>
+                <option value="480p">480p</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Restricción de edad <span class="required">*</span></span>
+              <select [(ngModel)]="ageRestriction">
+                <option value="">Seleccionar</option>
+                <option value="+7">+7</option>
+                <option value="+13">+13</option>
+                <option value="+18">+18</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            <span>Disponibilidad</span>
+            <input type="text" [(ngModel)]="disponibilidad" placeholder="Disponibilidad" />
+          </label>
+        </section>
+      </div>
+
+      <!-- BUTTONS -->
+      <div class="form-actions">
+        <button type="button" class="btn secondary">Cancelar</button>
+        <button type="button" class="btn primary" (click)="upload()">
+          Guardar contenido
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<app-footer />

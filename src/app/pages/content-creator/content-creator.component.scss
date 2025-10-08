@@ -1,0 +1,1059 @@
+@use 'sass:color';
+
+// === SISTEMA DE DISEÑO MODERNO PROFESIONAL ===
+// Basado en Notion, Figma, YouTube Studio
+
+// Tipografía moderna
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+// Colores de marca - EsiMedia modernizados
+$brand-primary: #00d4aa; // Verde menta moderno
+$brand-secondary: #0d1117; // Fondo muy oscuro
+$brand-accent: #58a6ff; // Azul brillante
+
+// Paleta de grises profesional
+$gray-900: #0d1117; // Más oscuro
+$gray-850: #161b22; // Sidebar oscuro
+$gray-800: #21262d; // Fondo principal
+$gray-700: #30363d; // Superficies elevadas
+$gray-600: #484f58; // Bordes sutiles
+$gray-500: #6e7681; // Texto secundario
+$gray-400: #8b949e; // Texto muted
+$gray-300: #b1bac4; // Texto sobre hover
+$gray-100: #f0f6fc; // Texto principal
+
+// Colores de acento para acciones
+$success: #238636;
+$warning: #d29922;
+$danger: #da3633;
+$info: #0969da;
+
+// Espaciado consistente basado en 8px
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-8: 32px;
+$space-10: 40px;
+$space-12: 48px;
+$space-16: 64px;
+
+// Tipografía moderna
+$font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-base: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 32px;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Border radius moderno
+$radius-sm: 6px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-full: 50%;
+
+// Sombras sutiles y modernas
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.2), 0 6px 10px rgba(0, 0, 0, 0.15);
+
+// Transiciones profesionales
+$transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// === COMPONENTE PRINCIPAL ===
+.background {
+  min-height: 100vh;
+  background-color: $gray-800;
+  color: $gray-100;
+  font-family: $font-family;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  // === HEADER MODERNO ===
+  .background-border {
+    background-color: $gray-900;
+    border-bottom: 1px solid $gray-600;
+    padding: $space-3 $space-6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    // Branding EsiMedia moderno
+    .container {
+      display: flex;
+      align-items: center;
+      gap: $space-3;
+
+      .iconify-icon {
+        display: flex;
+        align-items: center;
+        
+        .svg {
+          width: 32px;
+          height: 32px;
+          filter: brightness(0) saturate(100%) invert(77%) sepia(87%) saturate(3517%) hue-rotate(130deg) brightness(94%) contrast(101%);
+          transition: transform $transition-normal;
+          
+          &:hover {
+            transform: scale(1.05);
+          }
+        }
+      }
+
+      .text {
+        font-size: $font-size-2xl;
+        font-weight: $font-weight-semibold;
+        color: $gray-100;
+        margin-left: $space-2;
+        letter-spacing: -0.02em;
+      }
+    }
+
+    // Barra de búsqueda moderna
+    .textbox-buscar {
+      display: flex;
+      align-items: center;
+      background-color: $gray-700;
+      border: 1px solid $gray-600;
+      border-radius: $radius-lg;
+      padding: $space-3 $space-4;
+      width: 480px;
+      max-width: 480px;
+      transition: all $transition-normal;
+      
+      &:focus-within {
+        border-color: $brand-primary;
+        background-color: $gray-600;
+        box-shadow: 0 0 0 3px rgba($brand-primary, 0.15);
+      }
+
+      .iconify-icon {
+        margin-right: $space-3;
+        
+        svg {
+          width: 18px;
+          height: 18px;
+          color: $gray-400;
+          transition: color $transition-normal;
+        }
+      }
+
+      &:focus-within .iconify-icon svg {
+        color: $brand-primary;
+      }
+
+      .container2 {
+        flex: 1;
+        
+        .text2 {
+          color: $gray-400;
+          font-size: $font-size-sm;
+          cursor: text;
+          user-select: none;
+        }
+      }
+    }
+
+    // Botones del header modernos
+    .container3 {
+      display: flex;
+      align-items: center;
+      gap: $space-3;
+
+      .background-border2 {
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, $brand-primary 0%, color.adjust($brand-primary, $lightness: 10%) 100%);
+        color: $gray-900;
+        padding: $space-3 $space-5;
+        border-radius: $radius-lg;
+        cursor: pointer;
+        font-weight: $font-weight-medium;
+        gap: $space-2;
+        transition: all $transition-normal;
+        border: none;
+        box-shadow: $shadow-sm;
+        font-size: $font-size-sm;
+
+        &:hover {
+          background: linear-gradient(135deg, color.adjust($brand-primary, $lightness: 5%) 0%, color.adjust($brand-primary, $lightness: 15%) 100%);
+          transform: translateY(-1px);
+          box-shadow: $shadow-md;
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+
+        .iconify-icon {
+          svg {
+            width: 16px;
+            height: 16px;
+            color: $gray-900;
+          }
+        }
+
+        .text3 {
+          font-size: $font-size-sm;
+          font-weight: $font-weight-medium;
+        }
+      }
+
+      .background-border3 {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all $transition-normal;
+        position: relative;
+
+        &:hover {
+          background-color: $gray-700;
+        }
+
+        &:focus {
+          outline: 2px solid $brand-primary;
+          outline-offset: 2px;
+        }
+
+        .iconify-icon {
+          svg {
+            width: 20px;
+            height: 20px;
+            color: $gray-100;
+          }
+        }
+
+        .avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 2px solid $brand-primary;
+        }
+      }
+    }
+  }
+
+  // === LAYOUT PRINCIPAL ===
+  .margin {
+    display: flex;
+    height: calc(100vh - 60px);
+
+    .container4 {
+      display: flex;
+      width: 100%;
+
+      // === SIDEBAR IZQUIERDO MODERNO ===
+      .background-border4:first-child {
+        width: 280px;
+        background-color: $gray-850;
+        border-right: 1px solid $gray-600;
+        padding: 0;
+        flex-shrink: 0;
+        overflow-y: auto;
+
+        // Información del canal moderna
+        .container5 {
+          padding: $space-6;
+          border-bottom: 1px solid $gray-600;
+
+          .text5 {
+            font-size: $font-size-lg;
+            font-weight: $font-weight-semibold;
+            color: $gray-100;
+            line-height: 1.3;
+            text-align: left;
+          }
+
+          .container7 {
+            margin-top: $space-6;
+
+            // Navegación moderna con iconos blancos
+            .background-border5,
+            .container8 {
+              display: flex;
+              align-items: center;
+              padding: $space-3 $space-6;
+              cursor: pointer;
+              transition: all $transition-normal;
+              border-radius: 0;
+              margin: 0;
+              position: relative;
+              font-weight: $font-weight-medium;
+
+              &:hover {
+                background-color: $gray-700;
+                
+                .iconify-icon svg,
+                .text6, .text7, .text8, .text9 {
+                  color: $brand-primary;
+                }
+              }
+
+              &:focus {
+                outline: 2px solid $brand-primary;
+                outline-offset: -2px;
+              }
+
+              .iconify-icon {
+                margin-right: $space-5;
+                width: 24px;
+                display: flex;
+                justify-content: center;
+
+                svg {
+                  width: 20px;
+                  height: 20px;
+                  color: $gray-100; // Iconos blancos por defecto
+                  transition: color $transition-normal;
+                }
+              }
+
+              .text6, .text7, .text8, .text9 {
+                font-size: $font-size-sm;
+                color: $gray-100; // Texto blanco por defecto
+                font-weight: $font-weight-medium;
+                transition: color $transition-normal;
+              }
+            }
+
+            // Item activo moderno
+            .background-border5 {
+              background-color: rgba($brand-primary, 0.15);
+              
+              &::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 3px;
+                background-color: $brand-primary;
+              }
+
+              .iconify-icon svg,
+              .text6 {
+                color: $brand-primary;
+              }
+            }
+
+            // Hover específico con acento
+            .nav-upload:hover .iconify-icon svg {
+              color: $brand-primary;
+            }
+
+            .nav-lists:hover .iconify-icon svg {
+              color: $brand-accent;
+            }
+
+            .nav-stats:hover .iconify-icon svg {
+              color: $danger;
+            }
+
+            .nav-delete:hover .iconify-icon svg {
+              color: $warning;
+            }
+
+            .nav-create:hover .iconify-icon svg {
+              color: $info;
+            }
+          }
+        }
+      }
+
+      // === CONTENIDO CENTRAL MODERNO ===
+      .background-border4:nth-child(2) {
+        flex: 1;
+        padding: $space-8 $space-6;
+        overflow-y: auto;
+        background-color: $gray-800;
+
+        .container9 {
+          margin-bottom: $space-10;
+
+          // Títulos de sección limpios y modernos
+          .section-title {
+            font-size: $font-size-2xl;
+            font-weight: $font-weight-semibold;
+            color: $gray-100;
+            margin: 0 0 $space-6 0;
+            letter-spacing: -0.02em;
+            line-height: 1.3;
+          }
+
+          // Header de sección moderno
+          .container10 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: $space-8;
+
+            .background-border6 {
+              display: flex;
+              align-items: center;
+              background: linear-gradient(135deg, $brand-accent 0%, color.adjust($brand-accent, $lightness: 10%) 100%);
+              color: white;
+              padding: $space-3 $space-5;
+              border-radius: $radius-lg;
+              cursor: pointer;
+              font-weight: $font-weight-medium;
+              gap: $space-2;
+              border: none;
+              transition: all $transition-normal;
+              box-shadow: $shadow-sm;
+              font-size: $font-size-sm;
+
+              &:hover {
+                background: linear-gradient(135deg, color.adjust($brand-accent, $lightness: 5%) 0%, color.adjust($brand-accent, $lightness: 15%) 100%);
+                transform: translateY(-2px);
+                box-shadow: $shadow-md;
+              }
+
+              &:focus {
+                outline: 2px solid $brand-primary;
+                outline-offset: 2px;
+              }
+
+              .iconify-icon {
+                svg {
+                  width: 16px;
+                  height: 16px;
+                  color: white;
+                }
+              }
+
+              .text11 {
+                font-size: $font-size-sm;
+                font-weight: $font-weight-medium;
+              }
+            }
+          }
+
+          // Grid de contenido moderno sin bordes dashed
+          .container11 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: $space-5;
+            margin-bottom: $space-8;
+
+            .create-card {
+              background-color: $gray-700;
+              border: 1px solid $gray-600;
+              border-radius: $radius-lg;
+              padding: $space-6 $space-4;
+              text-align: center;
+              cursor: pointer;
+              transition: all $transition-normal;
+              min-height: 180px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+
+              &:hover {
+                border-color: $brand-primary;
+                background-color: rgba($brand-primary, 0.05);
+                transform: translateY(-2px);
+                box-shadow: $shadow-md;
+              }
+
+              &:focus {
+                outline: 2px solid $brand-primary;
+                outline-offset: 2px;
+              }
+
+              svg {
+                width: 32px;
+                height: 32px;
+                color: $brand-primary;
+                margin-bottom: $space-4;
+                transition: transform $transition-normal;
+              }
+
+              &:hover svg {
+                transform: scale(1.1);
+              }
+
+              .text14, .text15 {
+                font-size: $font-size-sm;
+                color: $gray-100;
+                line-height: 1.3;
+                font-weight: $font-weight-medium;
+              }
+
+              .text14 {
+                margin-bottom: $space-1;
+              }
+            }
+
+            .background-border7 {
+              cursor: pointer;
+              border-radius: $radius-lg;
+              overflow: hidden;
+              transition: all $transition-normal;
+              border: 1px solid $gray-600;
+              background-color: $gray-700;
+
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: $shadow-md;
+                border-color: $brand-primary;
+              }
+
+              .background-horizontal-border {
+                .cover {
+                  width: 100%;
+                  height: 120px;
+                  object-fit: cover;
+                  transition: transform $transition-normal;
+                }
+              }
+
+              &:hover .cover {
+                transform: scale(1.05);
+              }
+
+              .container12 {
+                padding: $space-4;
+
+                .text12, .text13 {
+                  font-size: $font-size-sm;
+                  color: $gray-100;
+                  font-weight: $font-weight-medium;
+                  line-height: 1.3;
+                }
+              }
+            }
+          }
+
+          // Texto de ayuda sutil
+          .container6 {
+            .help-text {
+              font-size: $font-size-sm;
+              color: $gray-400;
+              margin: $space-6 0;
+              font-style: normal;
+              text-align: center;
+              padding: $space-4;
+              background: rgba($gray-700, 0.3);
+              border-radius: $radius-md;
+              border: 1px solid $gray-600;
+            }
+          }
+
+          // Sección de edición de contenido moderna
+          .container13 {
+            margin-bottom: $space-8;
+
+            .background-border8 {
+              display: flex;
+              align-items: center;
+              padding: $space-3 $space-5;
+              background-color: $gray-700;
+              border-radius: $radius-lg;
+              cursor: pointer;
+              gap: $space-2;
+              width: fit-content;
+              border: 1px solid $gray-600;
+              transition: all $transition-normal;
+
+              &:hover {
+                background-color: $gray-600;
+                border-color: $brand-primary;
+                transform: translateY(-1px);
+              }
+
+              &:focus {
+                outline: 2px solid $brand-primary;
+                outline-offset: 2px;
+              }
+
+              .iconify-icon {
+                svg {
+                  width: 16px;
+                  height: 16px;
+                  color: $brand-primary;
+                }
+              }
+
+              .text18 {
+                font-size: $font-size-sm;
+                color: $gray-100;
+                font-weight: $font-weight-medium;
+              }
+            }
+          }
+
+          // Grid de ediciones recientes moderno
+          .container14 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: $space-4;
+
+            .create-card {
+              background-color: $gray-700;
+              border: 1px solid $gray-600;
+              border-radius: $radius-lg;
+              padding: $space-5 $space-3;
+              text-align: center;
+              cursor: pointer;
+              transition: all $transition-normal;
+              min-height: 140px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+
+              &:hover {
+                border-color: $brand-primary;
+                background-color: rgba($brand-primary, 0.05);
+                transform: translateY(-2px);
+              }
+
+              svg {
+                width: 24px;
+                height: 24px;
+                color: $brand-primary;
+                margin-bottom: $space-3;
+                transition: transform $transition-normal;
+              }
+
+              &:hover svg {
+                transform: scale(1.1);
+              }
+
+              .text20, .text21 {
+                font-size: $font-size-xs;
+                color: $gray-100;
+                line-height: 1.2;
+                font-weight: $font-weight-medium;
+              }
+            }
+
+            .background-border9 {
+              border-radius: $radius-lg;
+              overflow: hidden;
+              cursor: pointer;
+              transition: all $transition-normal;
+              border: 1px solid $gray-600;
+
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: $shadow-md;
+                border-color: $brand-primary;
+              }
+
+              .thumb {
+                width: 100%;
+                height: 80px;
+                object-fit: cover;
+                transition: transform $transition-normal;
+              }
+
+              &:hover .thumb {
+                transform: scale(1.05);
+              }
+            }
+          }
+        }
+      }
+
+      // === SIDEBAR DERECHO MODERNO ===
+      .background-border10 {
+        width: 320px;
+        background-color: $gray-850;
+        border-left: 1px solid $gray-600;
+        padding: $space-8 $space-6;
+        flex-shrink: 0;
+        overflow-y: auto;
+
+        .container13 {
+          margin-bottom: $space-6;
+
+          .section-title {
+            font-size: $font-size-xl;
+            font-weight: $font-weight-semibold;
+            color: $gray-100;
+            margin: 0;
+            letter-spacing: -0.02em;
+          }
+        }
+
+        .container15 {
+          .background-border11 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: $space-4;
+            margin-bottom: $space-3;
+            border-radius: $radius-lg;
+            cursor: pointer;
+            transition: all $transition-normal;
+            background-color: $gray-700;
+            border: 1px solid $gray-600;
+            position: relative;
+            overflow: hidden;
+
+            &:hover {
+              background-color: $gray-600;
+              border-color: $brand-primary;
+              transform: translateX(2px);
+              box-shadow: $shadow-sm;
+            }
+
+            &:focus {
+              outline: 2px solid $brand-primary;
+              outline-offset: 2px;
+            }
+
+            .container {
+              display: flex;
+              align-items: center;
+              gap: $space-3;
+              flex: 1;
+              min-width: 0;
+
+              .iconify-icon {
+                svg {
+                  width: 20px;
+                  height: 20px;
+                  color: $gray-100; // Iconos blancos uniformes
+                  transition: all $transition-normal;
+                }
+              }
+
+              .text25, .text10, .text26, .text27, .text28, .text29 {
+                font-size: $font-size-sm;
+                color: $gray-100; // Texto blanco uniforme
+                font-weight: $font-weight-medium;
+                word-wrap: break-word;
+                margin: 0;
+              }
+            }
+
+            &:hover .container .iconify-icon svg {
+              color: $brand-primary;
+              transform: scale(1.1);
+            }
+
+            .iconify-icon:last-child {
+              svg {
+                width: 16px;
+                height: 16px;
+                color: $gray-400;
+                transition: all $transition-normal;
+              }
+            }
+
+            &:hover .iconify-icon:last-child svg {
+              color: $brand-primary;
+              transform: translateX(2px);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// === MEJORAS DE ACCESIBILIDAD Y UX MODERNAS ===
+
+// Estados de foco globales mejorados
+*:focus {
+  outline: 2px solid $brand-primary !important;
+  outline-offset: 2px !important;
+  border-radius: $radius-sm !important;
+}
+
+// Animaciones modernas
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Clase para elementos con animación de entrada
+.animate-entry {
+  animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Estados de loading/cargando modernos
+.loading-skeleton {
+  background: linear-gradient(90deg, 
+    rgba($gray-400, 0.2) 25%, 
+    rgba($gray-400, 0.4) 50%, 
+    rgba($gray-400, 0.2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: $radius-md;
+}
+
+// Estados de hover mejorados para tarjetas
+.interactive-card {
+  transition: all $transition-normal;
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+  }
+  
+  &:active {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+}
+
+// Tooltips modernos
+.tooltip {
+  position: relative;
+  
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: $gray-900;
+    color: $gray-100;
+    padding: $space-2 $space-3;
+    border-radius: $radius-md;
+    font-size: $font-size-xs;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all $transition-normal;
+    z-index: 1000;
+    border: 1px solid $gray-600;
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: $gray-900;
+    opacity: 0;
+    visibility: hidden;
+    transition: all $transition-normal;
+    z-index: 1000;
+  }
+  
+  &:hover::after,
+  &:hover::before {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// Badges/etiquetas modernas
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-1 $space-2;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  
+  &.badge-success {
+    background-color: rgba($success, 0.15);
+    color: $success;
+    border: 1px solid rgba($success, 0.3);
+  }
+  
+  &.badge-warning {
+    background-color: rgba($warning, 0.15);
+    color: $warning;
+    border: 1px solid rgba($warning, 0.3);
+  }
+  
+  &.badge-error {
+    background-color: rgba($danger, 0.15);
+    color: $danger;
+    border: 1px solid rgba($danger, 0.3);
+  }
+  
+  &.badge-info {
+    background-color: rgba($info, 0.15);
+    color: $info;
+    border: 1px solid rgba($info, 0.3);
+  }
+}
+
+// Progress bars/barras de progreso modernas
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: $gray-600;
+  border-radius: $radius-full;
+  overflow: hidden;
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $brand-primary 0%, $brand-accent 100%);
+    transition: width $transition-slow;
+    border-radius: $radius-full;
+  }
+}
+
+// Mejoras responsive modernas
+@media (max-width: 1400px) {
+  .background {
+    .margin {
+      .container4 {
+        .background-border4:nth-child(2) {
+          padding: $space-6 $space-4;
+        }
+        
+        .background-border10 {
+          width: 280px;
+          padding: $space-6 $space-4;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .background {
+    .margin {
+      .container4 {
+        .background-border10 {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .background {
+    .background-border {
+      padding: $space-2 $space-4;
+
+      .textbox-buscar {
+        display: none;
+      }
+    }
+
+    .margin {
+      .container4 {
+        flex-direction: column;
+        height: auto;
+        
+        .background-border4:first-child {
+          width: 100%;
+          height: auto;
+          order: 1;
+        }
+
+        .background-border4:nth-child(2) {
+          width: 100%;
+          order: 2;
+          padding: $space-4 $space-3;
+
+          .container9 {
+            
+            .container11 {
+              grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+              gap: $space-3;
+            }
+            
+            .container14 {
+              grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+              gap: $space-3;
+            }
+          }
+        }
+
+        .background-border10 {
+          width: 100%;
+          order: 3;
+          border-left: none;
+          border-top: 1px solid $gray-600;
+        }
+      }
+    }
+  }
+}
+
+// === MEJORAS DE ACCESIBILIDAD ===
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Soporte para modo de alto contraste
+@media (prefers-contrast: high) {
+  .background {
+    .background-border4,
+    .background-border10 {
+      border-width: 2px;
+      border-color: $gray-100;
+    }
+    
+    .background-border5,
+    .background-border6,
+    .background-border11 {
+      border: 2px solid $gray-100;
+      
+      &:hover {
+        background-color: $gray-100;
+        color: $gray-900;
+      }
+    }
+  }
+}

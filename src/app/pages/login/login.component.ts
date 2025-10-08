@@ -70,7 +70,7 @@ export class LoginComponent {
 
           this.router.navigateByUrl(target);
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Login error', err);
           this.bannerKind = 'error';
           this.bannerText = 'Credenciales incorrectas';

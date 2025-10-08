@@ -80,7 +80,7 @@ export class RegisterComponent {
   ngOnInit() {
     // Obtener avatares disponibles del servidor
     this.api.getAvatars().subscribe({
-      next: (list) => {
+      next: (list: any) => {
         if (Array.isArray(list)) this.predefinedPhotos = list;
       },
       error: () => { /* Mantener lista vacía por defecto */ }
@@ -171,7 +171,7 @@ export class RegisterComponent {
           this.bannerKind = 'error';
           this.bannerText = 'No se pudo crear la cuenta.';
         },
-        error: (err) => {
+        error: (err: any) => {
           // Limpia errores previos de backend en controles relevantes
           clearBackendErrors(this.form, ['email','password','repeatPassword','nombre','apellidos','alias','fechaNacimiento']);
 

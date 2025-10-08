@@ -85,7 +85,7 @@ export class ApiService {
    */
   getHomeSections(): Observable<SectionDto[]> {
     return this.http.get<SectionDto[]>(`${this.base}/home/sections`).pipe(
-      catchError((err) => {
+      catchError((err: any) => {
         if (environment.useMocks) {
           const fallback: SectionDto[] = [];
           return of(fallback);
@@ -117,7 +117,7 @@ export class ApiService {
    */
   getAvatars(): Observable<string[]> {
     return this.http.get<string[]>(`${this.base}/auth/avatars`).pipe(
-      catchError((err) => {
+      catchError((err: any) => {
         // Fallback vacío si el endpoint falla (componente puede usar imágenes locales)
         return of([]);
       })
