@@ -30,3 +30,14 @@ export interface SectionDto {
   subtitle?: string;
   items: MediaItemDto[];
 }
+
+/*
+ * Respuesta del endpoint de avatares predefinidos
+ * Contiene lista de rutas de avatares disponibles y avatar por defecto
+ */
+export interface AvatarsResponseDto {
+  success: boolean;
+  message: string;
+  avatars: string[];
+  defaultAvatar: string;
+}

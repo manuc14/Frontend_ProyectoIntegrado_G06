@@ -1,4 +1,16 @@
 :host { display: block; }
-.home { background: #071017; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 80px; }
-.section { padding: 0 24px; }
-.page-container { width: 100%; max-width: 1040px; margin: 0 auto; }
+.home { 
+    background: var(--background); 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+    padding-bottom: 80px; 
+}
+.section { 
+    padding: 0 24px; 
+}
+.page-container { 
+    width: 100%; 
+    max-width: 1040px; 
+    margin: 0 auto; 
+}

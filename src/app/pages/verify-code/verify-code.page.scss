@@ -1,17 +1,213 @@
+/* ==========================================================================
+   ESTILOS DE PÁGINA VERIFICAR CÓDIGO - SOLO COLORES MODERNOS
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DISEÑO BASE Y CONTENEDORES
+   -------------------------------------------------------------------------- */
+
 .background,
-.background * { box-sizing: border-box; }
-.background { background: #0b0f14; display:flex; flex-direction:column; gap:0; align-items:flex-start; justify-content:flex-start; min-height: 540px; width:100%; }
-.container3 { display:flex; align-items:center; justify-content:center; width:100%; padding: 32px 0 16px; height:auto; }
-.container4 { padding:16px; display:flex; padding-top: 56px; max-width:520px; width:100%; }
-.background-border { background:#0f1722; border-radius:24px; border:1px solid #1f2933; padding:20px; display:flex; flex-direction:column; gap:12px; width:100%; }
-.container5 { display:flex; }
-.text8 { color:#e6eef8; font:600 20px Inter, sans-serif; }
-.text9 { color:#7b8892; font:600 14px Inter, sans-serif; }
-.container6 { display:flex; gap:8px; justify-content:center; }
-.container6 input { width:42px; height:48px; text-align:center; border-radius:12px; border:1px solid #1f2933; background:#0f1720; color:#e6eef8; font:600 20px Inter, sans-serif; }
-.container6 input:focus { outline: none; border-color:#00e0a1; box-shadow:0 0 0 2px rgba(0, 224, 161, 0.2); }
-.container7 { display:flex; }
-.link4 { background:#00e0a1; border-radius:12px; padding:10px 14px; display:flex; gap:8px; justify-content:center; align-items:center; width:100%; border:none; cursor:pointer; }
-.link4:disabled { opacity:0.6; cursor:not-allowed; }
-.svg3 { width:18px; height:18px; }
-.text11 { color:#02120b; font:600 14px Inter, sans-serif; }
+.background * { 
+    box-sizing: border-box; 
+}
+
+.background { 
+    background: var(--background); 
+    display: flex; 
+    flex-direction: column; 
+    gap: 0; 
+    align-items: flex-start; 
+    justify-content: flex-start; 
+    min-height: 540px; 
+    width: 100%; 
+}
+
+.container3 { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    width: 100%; 
+    padding: 32px 0 16px; 
+    height: auto; 
+}
+
+.container4 { 
+    padding: 16px; 
+    display: flex; 
+    padding-top: 56px; 
+    max-width: 520px; 
+    width: 100%; 
+}
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR PRINCIPAL DE TARJETA
+   -------------------------------------------------------------------------- */
+
+.background-border { 
+    background: var(--card); 
+    border-radius: 24px; 
+    border: 1px solid var(--border); 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    width: 100%; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   TIPOGRAFÍA
+   -------------------------------------------------------------------------- */
+
+.container5 { 
+    display: flex; 
+}
+
+.text8 { 
+    color: var(--foreground); 
+    font: 600 20px Inter, sans-serif; 
+}
+
+.text9 { 
+    color: var(--muted-foreground); 
+    font: 600 14px Inter, sans-serif; 
+}
+
+.resend-text {
+    color: var(--muted-foreground);
+    font: 600 12px Inter, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   CAMPOS DE ENTRADA DE CÓDIGO
+   -------------------------------------------------------------------------- */
+
+.container6 { 
+    display: flex; 
+    gap: 8px; 
+    justify-content: center; 
+}
+
+.container6 input { 
+    width: 42px; 
+    height: 48px; 
+    text-align: center; 
+    border-radius: 12px; 
+    border: 1px solid var(--border); 
+    background: var(--card); 
+    color: var(--foreground); 
+    font: 600 20px Inter, sans-serif; 
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.container6 input:focus { 
+    outline: none; 
+    border-color: var(--primary); 
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
+    background: var(--card);
+}
+
+.container6 input:hover {
+    border-color: var(--primary);
+}
+
+.container6 input:not(:focus):not(:hover) {
+    border-color: var(--border);
+    box-shadow: none;
+    background: var(--card);
+}
+
+/* --------------------------------------------------------------------------
+   BOTONES DE ACCIÓN
+   -------------------------------------------------------------------------- */
+
+.container7 { 
+    display: flex; 
+}
+
+.link4 { 
+    background: var(--primary); 
+    border-radius: 12px; 
+    padding: 10px 14px; 
+    display: flex; 
+    gap: 8px; 
+    justify-content: center; 
+    align-items: center; 
+    width: 100%; 
+    border: none; 
+    cursor: pointer; 
+    transition: all 0.2s ease;
+}
+
+.link4:hover {
+    background: color-mix(in srgb, var(--primary) 90%, black);
+}
+
+.link4:disabled { 
+    opacity: 0.6; 
+    cursor: not-allowed; 
+}
+
+.svg3 { 
+    width: 18px; 
+    height: 18px; 
+}
+
+.svg3 img {
+    filter: brightness(0) saturate(100%) invert(100%);
+}
+
+.text11 { 
+    color: var(--primary-foreground); 
+    font: 600 14px Inter, sans-serif; 
+}
+
+/* --------------------------------------------------------------------------
+   SECCIÓN REENVIAR CÓDIGO
+   -------------------------------------------------------------------------- */
+
+.resend-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.resend-button {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font: 600 12px Inter, sans-serif;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 4px 8px;
+    transition: color 0.2s ease;
+}
+
+.resend-button:hover {
+    color: color-mix(in srgb, var(--primary) 80%, black);
+}
+
+.resend-button:disabled {
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   MENSAJES DE ERROR
+   -------------------------------------------------------------------------- */
+
+.error-message {
+    color: #ef4444;
+    font: 600 12px Inter, sans-serif;
+    padding: 8px 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    text-align: center;
+    margin: 8px 0;
+}

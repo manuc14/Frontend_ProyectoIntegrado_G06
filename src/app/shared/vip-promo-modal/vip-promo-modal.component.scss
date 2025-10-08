@@ -1,65 +1,612 @@
-.vip-overlay{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center}
-.overlay-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.78);border:none}
-.vip-modal{position:relative;z-index:1;width:min(720px,94vw);background:#0c1620;border:1px solid #17303a;border-radius:24px;padding:0;box-shadow:0 12px 32px rgba(0,0,0,0.25)}
-.background-border-shadow{position:relative;width:100%;border-radius:24px;display:flex;flex-direction:column;gap:16px;padding:20px}
-.topbar{display:flex;align-items:center;justify-content:space-between}
-.container2{display:flex;gap:12px;align-items:center}
-.iconify-icon img{width:26px;height:26px}
-.container3{display:flex;flex-direction:column}
-.container4{display:flex;flex-direction:column}
-.text{color:#e8f6f5;font:600 22px/26px Inter, system-ui}
-.text2{color:#7ea2ad;font:600 13px/16px Inter, system-ui}
-.link{border:1px solid #17303a;border-radius:12px;padding:11px 15px;color:#e8f6f5;cursor:pointer}
-.container5{display:flex;gap:12px}
-.background{background:#11202a;border-radius:12px;padding:8px;display:flex;flex:1;align-items:stretch}
-.compare{flex:1}
-.background-border{background:#0c1620;border:1px solid #17303a;border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:10px;width:100%;flex:1;margin:0 auto}
-.container6{display:flex;gap:8px;align-items:center}
-.i{width:18px;height:18px}
-.text4,.text10{color:#e8f6f5;font:600 15px/19px Inter, system-ui}
-.text5,.text6,.text7,.text8,.text9,.text11,.text12,.text13,.text14,.text15{font:600 13px/16px Inter, system-ui}
-.text5,.text6,.text7,.text8,.text9{color:#e8f6f5}
-.text11,.text12,.text13,.text14,.text15{color:#7ea2ad}
-.container7{display:flex;gap:10px}
-.background-border2{background:#0c1620;border:1px solid #17303a;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;margin-top:8px}
-.text20{color:#e8f6f5;font:600 16px/20px Inter, system-ui;white-space:pre-line}
-.text21{color:#7ea2ad;font:600 12px/15px Inter, system-ui;white-space:pre-line}
-.link3{background:#00e0a1;border-radius:12px;padding:10px 14px;color:#02120b}
-.container9{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
-.link4{background:#11202a;border-radius:12px;padding:10px 14px;color:#bfecef}
-.background4{background:#11202a;border-radius:12px;height:160px;overflow:hidden;position:relative}
-.hero{width:100%;height:100%;object-fit:cover}
-.container10{position:absolute;left:8px;top:8px;bottom:auto;display:flex;gap:8px}
-.badge{border-radius:48px;padding:6px 10px;font:600 12px/15px Inter, system-ui}
-.badge.purple{background:#7c5cff;color:#fff}
-.badge.green{background:#06d6a0;color:#02120b}
+/* ==========================================================================
+   MODAL VIP - ESTILO MODERNO CLARO
+   ========================================================================== */
 
-/* Responsive breakpoints */
-@media (max-width: 900px){
-	.vip-modal{width:min(640px,96vw)}
-	.background4{height:140px}
+.vip-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
 }
 
-@media (max-width: 720px){
-	.vip-modal{width:min(560px,96vw)}
-	.background-border-shadow{padding:16px}
-	.container5{flex-direction:column}
-	.pill-text{font-size:14px;line-height:18px}
+.overlay-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    backdrop-filter: blur(4px);
 }
 
-@media (max-width: 560px){
-	.vip-modal{width:min(480px,98vw);border-radius:16px}
-	.topbar{flex-direction:column;align-items:flex-start;gap:8px}
-	.background4{height:120px}
-	.container7{flex-wrap:wrap}
-	.background-border2{flex-direction:column;gap:8px;align-items:stretch}
-	.container9{justify-content:stretch}
-	.link3,.link4{flex:1;text-align:center}
+.vip-modal {
+    position: relative;
+    z-index: 1;
+    width: min(720px, 94vw);
+    max-height: calc(100vh - 32px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    margin: auto;
+    overflow-y: auto;
 }
 
-@media (max-width: 380px){
-	.vip-modal{width:96vw}
-	.badge{font-size:11px}
-	.text{font-size:18px;line-height:22px}
-	.text2{font-size:12px}
+.background-border-shadow {
+    position: relative;
+    width: 100%;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+}
+
+/* --------------------------------------------------------------------------
+   CABECERA
+   -------------------------------------------------------------------------- */
+
+.topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.container2 {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.iconify-icon img {
+    width: 32px;
+    height: 32px;
+    filter: var(--primary) brightness(0) saturate(100%) invert(27%) sepia(99%) saturate(2893%) hue-rotate(217deg) brightness(93%) contrast(91%);
+}
+
+.container3 {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.text {
+    color: var(--foreground);
+    font: 700 24px/30px Inter, system-ui;
+    margin: 0;
+}
+
+.text2 {
+    color: var(--muted-foreground);
+    font: 500 15px/20px Inter, system-ui;
+    margin: 0;
+}
+
+.link {
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: var(--secondary-foreground);
+    cursor: pointer;
+    font: 600 14px/18px Inter, system-ui;
+    transition: all 0.2s ease;
+}
+
+.link:hover {
+    background: var(--muted);
+    border-color: var(--primary);
+    color: var(--foreground);
+}
+
+/* --------------------------------------------------------------------------
+   IMAGEN HERO
+   -------------------------------------------------------------------------- */
+
+.background4 {
+    background: var(--muted);
+    border-radius: 16px;
+    height: 180px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+}
+
+.hero {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.container10 {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.badge {
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: 600 12px/16px Inter, system-ui;
+    backdrop-filter: blur(8px);
+}
+
+.badge.purple {
+    background: rgba(124, 92, 255, 0.9);
+    color: white;
+    border: 1px solid rgba(124, 92, 255, 0.2);
+}
+
+.badge.green {
+    background: rgba(37, 99, 235, 0.9);
+    color: white;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   COMPARACIÓN DE CARACTERÍSTICAS
+   -------------------------------------------------------------------------- */
+
+.container5 {
+    display: flex;
+    gap: 16px;
+}
+
+.background {
+    background: var(--secondary);
+    border-radius: 16px;
+    padding: 4px;
+    display: flex;
+    flex: 1;
+    align-items: stretch;
+}
+
+.compare {
+    flex: 1;
+}
+
+.background-border {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    flex: 1;
+    margin: 0 auto;
+}
+
+.container6 {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.i {
+    width: 20px;
+    height: 20px;
+    filter: currentColor;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.text4, .text10 {
+    color: var(--foreground);
+    font: 700 16px/20px Inter, system-ui;
+    margin: 0;
+}
+
+.text5, .text6, .text7, .text8, .text9 {
+    font: 500 14px/18px Inter, system-ui;
+    color: var(--foreground);
+    margin: 0;
+}
+
+.text11, .text12, .text13, .text14, .text15 {
+    font: 500 14px/18px Inter, system-ui;
+    color: var(--muted-foreground);
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   ACCIONES FINALES
+   -------------------------------------------------------------------------- */
+
+.container9 {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.link3 {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font: 600 16px/20px Inter, system-ui;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.link3:hover {
+    background: color-mix(in srgb, var(--primary) 90%, black);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.link4 {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 24px;
+    font: 600 16px/20px Inter, system-ui;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.link4:hover {
+    background: var(--muted);
+    border-color: var(--primary);
+    color: var(--foreground);
+}
+
+.text24, .text25 {
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+    .vip-modal {
+        width: min(600px, 90vw);
+    }
+    
+    .background4 {
+        height: 160px;
+    }
+    
+    .text {
+        font-size: 22px;
+        line-height: 28px;
+    }
+}
+
+@media (max-width: 768px) {
+    .vip-modal {
+        width: min(520px, 92vw);
+    }
+    
+    .background-border-shadow {
+        padding: 20px;
+        gap: 20px;
+    }
+    
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .container2 {
+        gap: 12px;
+    }
+    
+    .iconify-icon img {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .text {
+        font-size: 20px;
+        line-height: 26px;
+    }
+    
+    .text2 {
+        font-size: 14px;
+        line-height: 18px;
+    }
+    
+    .link {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .background4 {
+        height: 140px;
+    }
+    
+    .container5 {
+        gap: 12px;
+    }
+    
+    .background-border {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .text4, .text10 {
+        font-size: 15px;
+        line-height: 19px;
+    }
+    
+    .text5, .text6, .text7, .text8, .text9,
+    .text11, .text12, .text13, .text14, .text15 {
+        font-size: 13px;
+        line-height: 17px;
+    }
+}
+
+@media (max-width: 640px) {
+    .vip-overlay {
+        padding: 8px;
+        align-items: flex-start;
+        padding-top: 20px;
+    }
+    
+    .vip-modal {
+        width: min(440px, 94vw);
+        border-radius: 16px;
+        max-height: calc(100vh - 40px);
+    }
+    
+    .background-border-shadow {
+        border-radius: 16px;
+        padding: 16px;
+        gap: 16px;
+    }
+    
+    .topbar {
+        gap: 10px;
+    }
+    
+    .container2 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .iconify-icon {
+        align-self: flex-start;
+    }
+    
+    .container3 {
+        width: 100%;
+    }
+    
+    .text {
+        font-size: 18px;
+        line-height: 24px;
+    }
+    
+    .text2 {
+        font-size: 13px;
+        line-height: 17px;
+    }
+    
+    .link {
+        align-self: flex-start;
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    
+    .background4 {
+        height: 120px;
+    }
+    
+    .container5 {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .background {
+        padding: 3px;
+    }
+    
+    .background-border {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .container6 {
+        gap: 8px;
+    }
+    
+    .i {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .text4, .text10 {
+        font-size: 14px;
+        line-height: 18px;
+    }
+    
+    .text5, .text6, .text7, .text8, .text9,
+    .text11, .text12, .text13, .text14, .text15 {
+        font-size: 12px;
+        line-height: 16px;
+    }
+    
+    .container9 {
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 4px;
+    }
+    
+    .link3, .link4 {
+        width: 100%;
+        text-align: center;
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .vip-overlay {
+        padding: 4px;
+        align-items: flex-start;
+        padding-top: 10px;
+    }
+    
+    .vip-modal {
+        width: 96vw;
+        border-radius: 12px;
+        max-height: calc(100vh - 20px);
+    }
+    
+    .background-border-shadow {
+        border-radius: 12px;
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    .topbar {
+        gap: 8px;
+    }
+    
+    .container2 {
+        gap: 6px;
+    }
+    
+    .iconify-icon img {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .text {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    
+    .text2 {
+        font-size: 12px;
+        line-height: 16px;
+    }
+    
+    .link {
+        font-size: 11px;
+        padding: 5px 8px;
+    }
+    
+    .background4 {
+        height: 100px;
+        border-radius: 8px;
+    }
+    
+    .container10 {
+        left: 8px;
+        top: 8px;
+        gap: 4px;
+    }
+    
+    .badge {
+        font-size: 10px;
+        padding: 4px 8px;
+        border-radius: 12px;
+    }
+    
+    .background {
+        border-radius: 8px;
+        padding: 2px;
+    }
+    
+    .background-border {
+        border-radius: 6px;
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    .container6 {
+        gap: 6px;
+        align-items: flex-start;
+    }
+    
+    .i {
+        width: 16px;
+        height: 16px;
+        margin-top: 1px;
+    }
+    
+    .text4, .text10 {
+        font-size: 13px;
+        line-height: 17px;
+    }
+    
+    .text5, .text6, .text7, .text8, .text9,
+    .text11, .text12, .text13, .text14, .text15 {
+        font-size: 11px;
+        line-height: 15px;
+    }
+    
+    .link3, .link4 {
+        padding: 10px 12px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    .vip-overlay {
+        padding: 2px;
+        padding-top: 5px;
+    }
+    
+    .vip-modal {
+        width: 98vw;
+        max-height: calc(100vh - 10px);
+    }
+    
+    .background-border-shadow {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .text {
+        font-size: 15px;
+        line-height: 20px;
+    }
+    
+    .text2 {
+        font-size: 11px;
+        line-height: 15px;
+    }
+    
+    .background4 {
+        height: 90px;
+    }
+    
+    .badge {
+        font-size: 9px;
+        padding: 3px 6px;
+    }
+    
+    .text4, .text10 {
+        font-size: 12px;
+        line-height: 16px;
+    }
+    
+    .text5, .text6, .text7, .text8, .text9,
+    .text11, .text12, .text13, .text14, .text15 {
+        font-size: 10px;
+        line-height: 14px;
+    }
+    
+    .link3, .link4 {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
 }

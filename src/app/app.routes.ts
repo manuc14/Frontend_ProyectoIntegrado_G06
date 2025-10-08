@@ -4,7 +4,6 @@ import { RegisterComponent } from './pages/register/register.component';
 import { LoginComponent } from './pages/login/login.component';
 
 // Lightweight placeholders for routes we redirect to; replace with real pages later.
-import { Component } from '@angular/core';
 import { AdminPage } from './pages/admin/admin.page';
 import { ContentPage } from './pages/content/content.page';
 import { CatalogPage } from './pages/catalog/catalog.page';
@@ -13,8 +12,9 @@ import { VerifyCodePage } from './pages/verify-code/verify-code.page';
 import { VerifiedEmailPage } from './pages/verified-email/verified-email.page';
 import { UploadContentComponent } from './pages/upload-content/upload-content.component';
 import { ContentCreatorComponent } from './pages/content-creator/content-creator.component';
-@Component({ selector: 'app-forgot', standalone: true, template: '<main class="placeholder"><h2>Recuperar contraseña</h2></main>' })
-class ForgotPlaceholder {}
+import { ForgotPasswordPage } from './pages/forgot-password/forgot-password.page';
+import { ResetPasswordCodePage } from './pages/reset-password-code/reset-password-code.page';
+import { NewPasswordPage } from './pages/new-password/new-password.page';
 
 export const routes: Routes = [
 	{ path: '', component: HomeComponent },
@@ -23,10 +23,12 @@ export const routes: Routes = [
 	{ path: 'verify-email', component: VerifyEmailPage },
 	{ path: 'verify-code', component: VerifyCodePage },
 	{ path: 'verified-email', component: VerifiedEmailPage },
-	{ path: 'admin', component: AdminPage },
+	{ path: 'admin-home', component: AdminPage },
 	{ path: 'content', component: ContentPage },
 	{ path: 'catalog', component: CatalogPage },
 	{ path: 'upload-content', component: UploadContentComponent },
 	{ path: 'content-creator', component: ContentCreatorComponent },
-	{ path: 'forgot-password', component: ForgotPlaceholder }, //sin asignar todavía
+	{ path: 'forgot-password', component: ForgotPasswordPage },
+	{ path: 'reset-password-code', component: ResetPasswordCodePage },
+	{ path: 'new-password', component: NewPasswordPage },
 ];

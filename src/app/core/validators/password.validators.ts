@@ -3,6 +3,7 @@
  * - matchPasswordsValidator: asegura que dos controles de un FormGroup coincidan (p. ej., password/repeatPassword)
  * - minAgeValidator: valida una edad mínima a partir de una fecha de nacimiento
  * - passwordPolicyValidator (opcional): política de ejemplo que exige longitud, mayúscula (no en primera posición), carácter especial y número
+ * - PasswordValidators: clase con validadores específicos para contraseñas
  */
 import { AbstractControl, ValidationErrors, ValidatorFn, FormGroup } from '@angular/forms';
 
@@ -57,4 +58,47 @@ export function passwordPolicyValidator(): ValidatorFn {
     }
     return Object.keys(errors).length ? { passwordPolicy: errors } : null;
   };
+}
+
+/**
+ * Clase con validadores específicos para contraseñas en el sistema de restablecimiento
+ */
+export class PasswordValidators {
+  /** Valida que tenga al menos una mayúscula */
+  static hasUpperCase(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) return null;
+    return /[A-Z]/.test(value) ? null : { missingUpperCase: true };
+  }
+
+  /** Valida que tenga al menos una minúscula */
+  static hasLowerCase(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) return null;
+    return /[a-z]/.test(value) ? null : { missingLowerCase: true };
+  }
+
+  /** Valida que tenga al menos un número */
+  static hasNumber(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) return null;
+    return /\d/.test(value) ? null : { missingNumber: true };
+  }
+
+  /** Valida que tenga al menos un carácter especial */
+  static hasSpecialChar(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) return null;
+    return /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value) ? null : { missingSpecialChar: true };
+  }
+
+  /** Valida que las contraseñas coincidan */
+  static passwordsMatch(control: AbstractControl): ValidationErrors | null {
+    const group = control as FormGroup;
+    const password = group.get('password')?.value;
+    const confirmPassword = group.get('confirmPassword')?.value;
+    
+    if (!password || !confirmPassword) return null;
+    return password === confirmPassword ? null : { passwordsMismatch: true };
+  }
 }

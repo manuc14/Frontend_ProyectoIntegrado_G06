@@ -1,77 +1,508 @@
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE HEADER
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR PRINCIPAL DEL HEADER FIJO
+   -------------------------------------------------------------------------- */
+
 .background-horizontal-border {
-  background: #061017;
-  border-style: solid;
-  border-color: #17303a;
-  border-width: 0 0 1px 0;
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
+    background: var(--card);
+    border-style: solid;
+    border-color: var(--border);
+    border-width: 0 0 1px 0;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    /* Position será controlado por clase condicional */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 72px; /* Altura fija del header */
+    /* Desvanecido en la parte inferior */
+    background: linear-gradient(to bottom, var(--card) 0%, var(--card) 85%, rgba(255, 255, 255, 0.95) 100%);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
 }
 
+/* Header fijo solo en home */
+.background-horizontal-border.fixed-header {
+    position: fixed;
+}
+
+/* Header normal (no fijo) en otras páginas */
+.background-horizontal-border.normal-header {
+    position: static;
+    /* Estilos más simples para header normal */
+    background: var(--card);
+    backdrop-filter: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Cuando hay logo pequeño visible, ajustar el layout */
+.background-horizontal-border:has(.desktop-logo-small.visible) {
+    justify-content: flex-end; /* Los botones van a la derecha */
+}
+
+/* --------------------------------------------------------------------------
+   SECCIÓN DE MARCA - DISEÑO DINÁMICO
+   -------------------------------------------------------------------------- */
+
 .container {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Logo para desktop - grande arriba, desaparece con scroll */
+.desktop-logo {
+    position: absolute;
+    left: 50%;
+    top: -30px; /* Un poco más abajo */
+    transform: translateX(-50%);
+    z-index: 15;
+    opacity: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease; /* Transición más suave */
+}
+
+/* Cuando se hace scroll, ocultar el logo grande con transición */
+.desktop-logo.hidden,
+.desktop-logo.force-hidden {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8); /* Efecto de escala al desaparecer */
+    pointer-events: none;
+}
+
+/* Logo pequeño a la izquierda que aparece después del scroll */
+.desktop-logo-small {
+    display: flex; /* Siempre flex para que esté preparado */
+    order: 1;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transform: translateX(-20px); /* Inicia desde la izquierda */
+    transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s; /* Delay para secuencia */
+    margin-right: auto; /* Empuja a la izquierda */
+}
+
+/* Mostrar logo pequeño cuando se hace scroll */
+.desktop-logo-small.visible,
+.desktop-logo-small.force-visible {
+    opacity: 1;
+    transform: translateX(0); /* Se mueve a su posición final */
+}
+
+/* Para páginas que no son home, mostrar inmediatamente sin animación */
+.desktop-logo-small.force-visible {
+    transition: none; /* Sin transición para aparecer inmediatamente */
+}
+
+.desktop-logo-small.force-visible .text {
+    transition: none; /* Sin transición para el texto también */
+}
+
+/* Contenedor del logo grande */
+.logo-container {
+    position: relative;
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Logo gigante inicial en desktop arriba del header */
+.svg.logo-large { 
+    width: 250px; 
+    height: 250px;
+    filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.2));
+    transition: all 0.5s ease; /* Transición suave para el logo */
+}
+
+/* Efecto cuando se oculta el logo grande */
+.desktop-logo.hidden .svg.logo-large {
+    filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.1));
+    transform: scale(0.9); /* Pequeño efecto de escala */
+}
+
+/* Logo pequeño para la izquierda */
+.svg.logo-small {
+    width: 32px;
+    height: 32px;
+    transition: all 0.3s ease;
+}
+
+/* Logo normal para móvil */
+.svg { 
+    width: 32px; 
+    height: 32px; 
+}
+
+/* Texto del logo */
+.text { 
+    color: var(--foreground); 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 18px; 
+    font-weight: 600;
+    transition: all 0.3s ease; /* Transición para el texto */
+}
+
+/* Texto específico del logo pequeño con efecto de entrada */
+.desktop-logo-small .text {
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.4s ease 0.5s, transform 0.4s ease 0.5s; /* Delay adicional */
+}
+
+.desktop-logo-small.visible .text,
+.desktop-logo-small.force-visible .text {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   ESTILOS PARA ENLACES DEL LOGO
+   -------------------------------------------------------------------------- */
+
+/* Enlace del logo - resetear estilos de enlace y mantener diseño */
+.logo-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.2s ease;
+    
+    &:hover {
+        opacity: 0.8;
+    }
+    
+    /* Asegurar que el enlace tome todo el espacio disponible */
+    .iconify-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .text {
+        color: var(--foreground);
+        font-family: "Inter-SemiBold", sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+    }
+}
+
+/* Logo para móvil - siempre a la izquierda */
+.mobile-logo {
+    display: none;
 }
 
 .iconify-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.svg { width: 24px; height: 24px; }
+.text { 
+    color: var(--foreground); 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 18px; 
+    font-weight: 600; 
+}
 
-.text { color: #98c2cc; font-family: "Inter-SemiBold", sans-serif; font-size: 18px; font-weight: 600; }
+/* --------------------------------------------------------------------------
+   SECCIÓN DE NAVEGACIÓN (Solo para menú móvil)
+   -------------------------------------------------------------------------- */
 
 .container2 {
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: center;
 }
 
-.link { background: #052226; border-radius: 6px; padding: 8px 12px; }
-.link2 { border-radius: 6px; padding: 8px 12px; }
-.text2 { color: #00e0a1; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
-.text3, .text4, .text5 { color: #98c2cc; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
+/* --------------------------------------------------------------------------
+   BOTONES DE ACCIÓN
+   -------------------------------------------------------------------------- */
 
-.link3 { background: #11202a; border-radius: 12px; padding: 10px 14px; }
-.link4 { background: #00e0a1; border-radius: 12px; padding: 10px 14px; display: flex; gap: 8px; align-items: center; }
-.text6 { color: #bfecef; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
-.text7 { color: #02120b; font-family: "Inter-SemiBold", sans-serif; font-size: 14px; font-weight: 600; }
+.container.actions {
+    order: 3;
+}
 
-a { text-decoration: none; }
+.link3 { 
+    background: var(--secondary); 
+    border-radius: 12px; 
+    padding: 12px 16px; 
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.link3:hover {
+    background: var(--muted);
+    transform: translateY(-1px);
+}
+
+.link4 { 
+    background: var(--primary); 
+    border-radius: 12px; 
+    padding: 12px 16px; 
+    display: flex; 
+    gap: 8px; 
+    align-items: center; 
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.link4:hover {
+    background: var(--primary-hover, color-mix(in srgb, var(--primary) 90%, black));
+    transform: translateY(-1px);
+}
+
+.text6 { 
+    color: var(--secondary-foreground); 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 14px; 
+    font-weight: 600; 
+}
+
+.text7 { 
+    color: var(--primary-foreground); 
+    font-family: "Inter-SemiBold", sans-serif; 
+    font-size: 14px; 
+    font-weight: 600; 
+}
+
+/* --------------------------------------------------------------------------
+   ICONOS EN BOTONES
+   -------------------------------------------------------------------------- */
+
+.link4 img,
+.link4 svg {
+    color: var(--primary-foreground);
+    filter: brightness(0) invert(1);
+}
+
+.link3 img,
+.link3 svg {
+    color: var(--secondary-foreground);
+}
+
+/* Los SVGs que usan currentColor heredarán automáticamente el color del texto */
+.group {
+    color: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   RESET DE ENLACES
+   -------------------------------------------------------------------------- */
+
+a { 
+    text-decoration: none; 
+}
+
+/* --------------------------------------------------------------------------
+   MENÚ TOGGLE MÓVIL
+   -------------------------------------------------------------------------- */
 
 /* Utilidades de visibilidad */
-.only-mobile { display: none; }
-.only-desktop { display: flex; }
-
-/* Toggle (hamburger) para móvil */
-.nav-toggle { display: none; }
-.menu-btn { display: none; cursor: pointer; width: 36px; height: 28px; gap: 6px; flex-direction: column; align-items: center; justify-content: center; }
-.menu-btn span { display: block; width: 100%; height: 3px; background: #98c2cc; border-radius: 2px; }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .background-horizontal-border { flex-wrap: wrap; gap: 12px; padding: 10px 12px; }
-  .container.brand { order: 1; }
-  .menu-btn { display: flex; order: 2; }
-  .container.actions { order: 3; margin-left: auto; }
-  .container2 { order: 4; width: 100%; flex-direction: column; align-items: stretch; gap: 8px; display: none; }
-  .container2 a { display: block; width: 100%; }
-  /* Mostrar menú cuando está activo el toggle */
-  .nav-toggle:checked ~ .container2 { display: flex; }
-  .only-mobile { display: block; }
-  .only-desktop { display: none !important; }
+.only-mobile { 
+    display: none; 
 }
 
+.only-desktop { 
+    display: flex; 
+}
+
+/* Toggle del menú móvil */
+.nav-toggle { 
+    display: none; 
+}
+
+.menu-btn { 
+    display: none; 
+    cursor: pointer; 
+    width: 36px; 
+    height: 28px; 
+    gap: 6px; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    order: 2;
+}
+
+.menu-btn span { 
+    display: block; 
+    width: 100%; 
+    height: 3px; 
+    background: var(--muted-foreground); 
+    border-radius: 2px; 
+    transition: all 0.3s ease;
+}
+
+/* Animación del menú hamburger */
+.nav-toggle:checked ~ .menu-btn span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.nav-toggle:checked ~ .menu-btn span:nth-child(2) {
+    opacity: 0;
+}
+
+.nav-toggle:checked ~ .menu-btn span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* --------------------------------------------------------------------------
+   DISEÑO RESPONSIVO
+   -------------------------------------------------------------------------- */
+
+/* Diseño para tablet y móvil */
+@media (max-width: 768px) {
+    .background-horizontal-border { 
+        flex-wrap: wrap; 
+        gap: 12px; 
+        padding: 12px 16px; 
+        /* Mantener desvanecido en móvil */
+        background: linear-gradient(to bottom, var(--card) 0%, var(--card) 85%, rgba(255, 255, 255, 0.95) 100%);
+    }
+    
+    /* Ocultar logo de desktop y mostrar logo de móvil */
+    .desktop-logo {
+        display: none !important;
+    }
+    
+    .mobile-logo { 
+        display: flex;
+        order: 1; 
+    }
+    
+    .menu-btn { 
+        display: flex; 
+        order: 2; 
+    }
+    
+    .container.actions { 
+        order: 3; 
+        margin-left: auto; 
+    }
+    
+    .container2 { 
+        order: 4; 
+        width: 100%; 
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 12px; 
+        display: none; 
+        background: var(--card);
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .container2 a { 
+        display: block; 
+        width: 100%; 
+        text-align: center;
+    }
+    
+    /* Mostrar menú cuando el toggle está activo */
+    .nav-toggle:checked ~ .container2 { 
+        display: flex; 
+    }
+    
+    .only-mobile { 
+        display: block; 
+    }
+    
+    .only-desktop { 
+        display: none !important; 
+    }
+}
+
+/* Ajustes para móvil pequeño */
 @media (max-width: 480px) {
-  .text { font-size: 16px; }
-  .text2, .text3, .text4, .text5, .text6, .text7 { font-size: 13px; }
-  .link, .link2 { padding: 10px 12px; }
+    .text { 
+        font-size: 16px; 
+    }
+    
+    .text6, .text7 { 
+        font-size: 13px; 
+    }
+    
+    .link3, .link4 { 
+        padding: 10px 14px; 
+    }
+}
+
+/* --------------------------------------------------------------------------
+   DISEÑO RESPONSIVO
+   -------------------------------------------------------------------------- */
+
+/* Diseño para tablet y móvil */
+@media (max-width: 768px) {
+    .background-horizontal-border { 
+        flex-wrap: wrap; 
+        gap: 12px; 
+        padding: 10px 12px; 
+    }
+    
+    .container.brand { 
+        order: 1; 
+    }
+    
+    .menu-btn { 
+        display: flex; 
+        order: 2; 
+    }
+    
+    .container.actions { 
+        order: 3; 
+        margin-left: auto; 
+    }
+    
+    .container2 { 
+        order: 4; 
+        width: 100%; 
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 8px; 
+        display: none; 
+    }
+    
+    .container2 a { 
+        display: block; 
+        width: 100%; 
+    }
+    
+    /* Mostrar menú cuando el toggle está activo */
+    .nav-toggle:checked ~ .container2 { 
+        display: flex; 
+    }
+    
+    .only-mobile { 
+        display: block; 
+    }
+    
+    .only-desktop { 
+        display: none !important; 
+    }
+}
+
+/* Ajustes para móvil pequeño */
+@media (max-width: 480px) {
+    .text { 
+        font-size: 16px; 
+    }
+    
+    .text2, .text3, .text4, .text5, .text6, .text7 { 
+        font-size: 13px; 
+    }
+    
+    .link, .link2 { 
+        padding: 10px 12px; 
+    }
 }

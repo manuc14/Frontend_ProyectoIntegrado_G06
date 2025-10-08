@@ -5,6 +5,7 @@ import { FooterComponent } from '../../shared/footer/footer.component';
 import { HeroComponent } from '../../shared/hero/hero.component';
 import { SectionListComponent } from '../../shared/section-list/section-list.component';
 import { ApiService } from '../../core/services/api.service';
+import { fadeIn, slideInFromTop } from '../../core/animations/animations';
 
 /*
  * HomeComponent
@@ -17,7 +18,8 @@ import { ApiService } from '../../core/services/api.service';
   standalone: true,
   imports: [CommonModule, HeaderComponent, FooterComponent, HeroComponent, SectionListComponent],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrl: './home.component.scss',
+  animations: [fadeIn, slideInFromTop]
 })
 export class HomeComponent implements OnInit {
   private api = inject(ApiService);
