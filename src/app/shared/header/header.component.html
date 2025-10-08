@@ -1,0 +1,62 @@
+<header class="background-horizontal-border" [@fadeIn]>
+  <div class="container brand">
+    <div class="iconify-icon">
+      <img class="svg" src="assets/brand/logo.svg" alt="logo" />
+    </div>
+    <div class="text">ESIMedia</div>
+  </div>
+
+  <!-- Toggle para menú en móvil (checkbox hack) -->
+  <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-label="Abrir menú" />
+  <label for="nav-toggle" class="menu-btn" aria-controls="primary-nav">
+    <span></span><span></span><span></span>
+  </label>
+
+  <nav id="primary-nav" class="container2" role="navigation" aria-label="Navegación principal">
+    <a [class]="getLinkClass('/')" 
+       routerLink="/" 
+       [@navActiveState]="getNavActiveState('/')"
+       [@navHover]> 
+      <div [class]="getTextClass('/')">Home</div> 
+    </a>
+    <a [class]="getLinkClass('/videos')" 
+       routerLink="/videos" 
+       [@navActiveState]="getNavActiveState('/videos')"
+       [@navHover]> 
+      <div [class]="getTextClass('/videos')">Videos</div> 
+    </a>
+    <a [class]="getLinkClass('/audios')" 
+       routerLink="/audios" 
+       [@navActiveState]="getNavActiveState('/audios')"
+       [@navHover]> 
+      <div [class]="getTextClass('/audios')">Audios</div> 
+    </a>
+    <a [class]="getLinkClass('/popular')" 
+       routerLink="/popular" 
+       [@navActiveState]="getNavActiveState('/popular')"
+       [@navHover]> 
+      <div [class]="getTextClass('/popular')">Nuevo &amp; Popular</div> 
+    </a>
+    <!-- Acciones visibles solo en móvil dentro del menú -->
+    <a class="link3 only-mobile" routerLink="/login" [@navHover]> 
+      <div class="text6">Iniciar Sesión</div> 
+    </a>
+    <a class="link4 only-mobile" routerLink="/signup" [@navHover]> 
+      <div class="text6">Registrarse</div> 
+    </a>
+  </nav>
+
+  <div class="container actions only-desktop">
+    <a class="link3" routerLink="/login" [@navHover]> 
+      <div class="text6">Iniciar Sesión</div> 
+    </a>
+    <a class="link4" routerLink="/signup" [@navHover]>
+      <div class="iconify-icon">
+        <div class="svg2">
+          <img class="group" src="assets/icons/user-plus.svg" alt="signup" />
+        </div>
+      </div>
+      <div class="text7">Registrarse</div>
+    </a>
+  </div>
+</header>

@@ -1,0 +1,307 @@
+/* ==========================================================================
+   ESTILOS DE PÁGINA VERIFICAR EMAIL
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DISEÑO BASE Y CONTENEDORES
+   -------------------------------------------------------------------------- */
+
+.background,
+.background * { 
+    box-sizing: border-box; 
+}
+
+.background { 
+    background: #0b0f14; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 0; 
+    align-items: flex-start; 
+    justify-content: flex-start; 
+    min-height: 540px; 
+}
+
+/* --------------------------------------------------------------------------
+   SECCIÓN DE ENCABEZADO
+   -------------------------------------------------------------------------- */
+
+.background-horizontal-border { 
+    background: #071019; 
+    border-bottom: 1px solid #1f2933; 
+    padding: 16px 24px 17px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    width: 100%; 
+}
+
+.container { 
+    display: flex; 
+    flex-direction: row; 
+    gap: 15px; 
+    align-items: center; 
+}
+
+.iconify-icon { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.svg { 
+    width: 24px; 
+    height: 24px; 
+}
+
+.text { 
+    color: #9fb7c9; 
+    font: 600 18px Inter, sans-serif; 
+    display: flex; 
+    align-items: center; 
+}
+
+/* --------------------------------------------------------------------------
+   ELEMENTOS DE NAVEGACIÓN
+   -------------------------------------------------------------------------- */
+
+.container2 { 
+    display: flex; 
+    gap: 16px; 
+    align-items: center; 
+}
+
+.link { 
+    border-radius: 6px; 
+    padding: 8px 12px; 
+    display: flex; 
+}
+
+.text2, .text3, .text4, .text5 { 
+    color: #9fb7c9; 
+    font: 600 14px Inter, sans-serif; 
+    display: flex; 
+    align-items: center; 
+}
+
+.container3 { 
+    display: flex; 
+    gap: 12px; 
+    align-items: center; 
+}
+
+.link2 { 
+    background: #1a2230; 
+    border-radius: 12px; 
+    padding: 10px 14px; 
+    display: flex; 
+}
+
+.text6 { 
+    color: #cfeef0; 
+    font: 600 14px Inter, sans-serif; 
+}
+
+.link3 { 
+    background: #00e0a1; 
+    border-radius: 12px; 
+    padding: 10px 14px; 
+    display: flex; 
+    gap: 8px; 
+    align-items: center; 
+}
+
+.svg2 { 
+    width: 18px; 
+    height: 18px; 
+}
+
+.text7 { 
+    color: #02120b; 
+    font: 600 14px Inter, sans-serif; 
+}
+
+/* --------------------------------------------------------------------------
+   ÁREA DE CONTENIDO PRINCIPAL
+   -------------------------------------------------------------------------- */
+
+.container4 { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    width: 100%; 
+    padding: 32px 0 16px; 
+    height: auto; 
+}
+
+.container5 { 
+    padding: 16px; 
+    display: flex; 
+    padding-top: 56px; 
+    max-width: 520px; 
+    width: 100%; 
+}
+
+.background-border { 
+    background: #0f1722; 
+    border-radius: 24px; 
+    border: 1px solid #1f2933; 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    width: 100%; 
+}
+
+/* --------------------------------------------------------------------------
+   TIPOGRAFÍA
+   -------------------------------------------------------------------------- */
+
+.container6 { 
+    display: flex; 
+}
+
+.text8 { 
+    color: #e6eef8; 
+    font: 600 20px Inter, sans-serif; 
+}
+
+.text9 { 
+    color: #7b8892; 
+    font: 600 14px Inter, sans-serif; 
+}
+
+/* --------------------------------------------------------------------------
+   SECCIÓN DE INFORMACIÓN
+   -------------------------------------------------------------------------- */
+
+.background2 { 
+    background: #1a2230; 
+    border-radius: 12px; 
+    padding: 12px; 
+    display: flex; 
+    gap: 12px; 
+}
+
+.svg3 { 
+    width: 20px; 
+    height: 20px; 
+}
+
+.container7 { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+}
+
+.text10 { 
+    color: #cfeef0; 
+    font: 600 14px Inter, sans-serif; 
+}
+
+.text11 { 
+    color: #7b8892; 
+    font: 600 13px Inter, sans-serif; 
+}
+
+/* --------------------------------------------------------------------------
+   BOTONES DE ACCIÓN
+   -------------------------------------------------------------------------- */
+
+.container8 { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+}
+
+.link4 { 
+    background: #00e0a1; 
+    border-radius: 12px; 
+    padding: 10px 14px; 
+    display: flex; 
+    gap: 8px; 
+    justify-content: center; 
+    align-items: center; 
+}
+
+.svg4 { 
+    width: 18px; 
+    height: 18px; 
+}
+
+.text12 { 
+    color: #02120b; 
+    font: 600 14px Inter, sans-serif; 
+}
+
+/* --------------------------------------------------------------------------
+   ELEMENTOS OCULTOS
+   -------------------------------------------------------------------------- */
+
+.container9, .link5, .text13, .container10, .text14, .link6, .text15 { 
+    display: none; 
+}
+
+/* --------------------------------------------------------------------------
+   SECCIÓN DE PIE DE PÁGINA
+   -------------------------------------------------------------------------- */
+
+.margin { 
+    padding: 24px 0 0; 
+    width: 100%; 
+}
+
+.background-horizontal-border2 { 
+    background: #071019; 
+    border-top: 1px solid #1f2933; 
+    padding: 33px 80px 32px; 
+}
+
+.container11 { 
+    display: flex; 
+    justify-content: space-between; 
+    max-width: 1040px; 
+    width: 100%; 
+}
+
+.container12 { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+}
+
+.container13 { 
+    display: flex; 
+    gap: 12px; 
+    align-items: center; 
+}
+
+.svg5 { 
+    width: 20px; 
+    height: 20px; 
+}
+
+.text16 { 
+    color: #7b8892; 
+    font: 600 13px Inter, sans-serif; 
+}
+
+.link7 { 
+    display: flex; 
+}
+
+.text17, .text18, .text19, .text20, .text21, .text22 { 
+    color: #9fb7c9; 
+    font: 600 14px Inter, sans-serif; 
+}
+
+/* --------------------------------------------------------------------------
+   DISEÑO RESPONSIVO
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    .container9 { 
+        flex-direction: column; 
+        gap: 8px; 
+        align-items: flex-start; 
+    }
+}
