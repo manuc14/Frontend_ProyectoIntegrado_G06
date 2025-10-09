@@ -107,6 +107,7 @@ export class RegisterComponent {
       error: (error) => {
         console.error('Error al cargar avatares:', error);
         // Mostrar mensaje de error y configurar avatar por defecto vacío
+        this.loadingAvatars = false;
         this.avatarLoadError = true;
         this.avatars = [];
         this.defaultAvatar = '';

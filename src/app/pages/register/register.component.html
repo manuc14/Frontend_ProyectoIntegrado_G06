@@ -1,7 +1,7 @@
 <app-header />
 
 <main class="register-page" [@fadeIn]>
-  <h1>Crear tu cuenta</h1>
+  <h1 class="page-title">Crear tu cuenta</h1>
   <p class="hint">Los campos con * son obligatorios.</p>
 
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card" [@shakeError]="shakeForm ? 'shake' : ''">

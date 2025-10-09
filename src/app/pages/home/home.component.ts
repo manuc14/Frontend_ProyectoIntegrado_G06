@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
@@ -23,6 +23,9 @@ import { fadeIn, slideInFromTop } from '../../core/animations/animations';
 })
 export class HomeComponent implements OnInit {
   private api = inject(ApiService);
+  
+  // Control de la pantalla de bienvenida
+  hasScrolled = false;
   
   // Datos simulados para las secciones de contenido
   topVideos = [
@@ -70,5 +73,18 @@ export class HomeComponent implements OnInit {
     //     console.warn('API error; keeping mock data', err);
     //   },
     // });
+  }
+
+  /**
+   * Detecta el scroll para ocultar la pantalla de bienvenida
+   */
+  @HostListener('window:scroll', ['$event'])
+  onWindowScroll() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    
+    // Ocultar pantalla de bienvenida cuando se hace scroll
+    if (scrollTop > 100 && !this.hasScrolled) {
+      this.hasScrolled = true;
+    }
   }
 }

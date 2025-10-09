@@ -37,6 +37,16 @@
   --sidebar-primary-foreground: #ffffff;
 }
 
+.page-title { 
+    color: var(--foreground); 
+    font-family: "Inter-SemiBold", sans-serif;  
+    margin: 0;
+    background: linear-gradient(135deg, var(--foreground) 0%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 /* --------------------------------------------------------------------------
    RESET Y ESTILOS BASE
    -------------------------------------------------------------------------- */
