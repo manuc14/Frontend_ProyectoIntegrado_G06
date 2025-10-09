@@ -62,7 +62,7 @@
 .desktop-logo {
     position: absolute;
     left: 50%;
-    top: -30px; /* Un poco más abajo */
+    top: -40px; /* Se solape con el main de la página */
     transform: translateX(-50%);
     z-index: 15;
     opacity: 1;
@@ -116,8 +116,8 @@
 
 /* Logo gigante inicial en desktop arriba del header */
 .svg.logo-large { 
-    width: 250px; 
-    height: 250px;
+    width: 350px; 
+    height: 350px;
     filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.2));
     transition: all 0.5s ease; /* Transición suave para el logo */
 }

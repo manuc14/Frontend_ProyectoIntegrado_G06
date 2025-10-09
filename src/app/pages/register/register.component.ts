@@ -131,6 +131,13 @@ export class RegisterComponent {
     return this.api.getFullAvatarUrl(relativePath);
   }
 
+  /* Extrae el nombre del archivo de una ruta de avatar */
+  private extractAvatarFileName(avatarPath: string): string {
+    if (!avatarPath) return '';
+    // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
+    return avatarPath.split('/').pop() || '';
+  }
+
   /* Valida y decide si mostrar la promo VIP o continuar con el alta. */
   submit() {
     this.form.markAllAsTouched();
@@ -175,8 +182,13 @@ export class RegisterComponent {
     const v = this.form.value;
     const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
     const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
-    // Si no hay avatar seleccionado (error de carga), enviar cadena vacía para usar el avatar por defecto del backend
-    const fotoUrl = v.fotoElegida || '';
+    
+    // Extraer solo el nombre del archivo del avatar seleccionado
+    let fotoNombre = '';
+    if (v.fotoElegida) {
+      // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
+      fotoNombre = v.fotoElegida.split('/').pop() || '';
+    }
 
     const payload = {
       nombre: v.nombre!,
@@ -187,9 +199,13 @@ export class RegisterComponent {
       password: v.password!,
       repetirPassword: v.repeatPassword!,
       esVip: isVip,
-      foto: fotoUrl,
+      foto: fotoNombre, // Solo el nombre del archivo (ej: "avatar1.png")
       activo: false,
     };
+
+    console.log('📸 Avatar seleccionado:', v.fotoElegida);
+    console.log('📁 Nombre de archivo extraído:', fotoNombre);
+    console.log('📤 Payload enviado al backend:', payload);
 
     this.bannerKind = null;
     this.bannerText = '';
