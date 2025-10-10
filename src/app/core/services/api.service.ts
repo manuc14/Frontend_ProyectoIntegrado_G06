@@ -102,7 +102,6 @@ export class ApiService {
   private http = inject(HttpClient);
   // URL base configurada según el entorno (development/production)
   private base = environment.baseApiUrl;
-  private resourceBase = environment.baseResourceUrl;
 
   /**
    * Maneja errores HTTP y devuelve mensajes amigables para el usuario.
@@ -201,7 +200,7 @@ export class ApiService {
 
   /** 
    * Construye la URL completa para un avatar dado su ruta relativa.
-   * Usa la URL base de recursos gestionados (/resources) en lugar de APIs (/api).
+   * El backend ya devuelve URLs completas como '/resources/avatars/avatar1.png'.
    */
   getFullAvatarUrl(relativePath: string): string {
     return `${relativePath}`;
