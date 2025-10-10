@@ -63,16 +63,30 @@ export class ForgotPasswordPage {
 
     const email = this.form.value.email!;
     
-    // Aquí iría la llamada al backend para enviar el código
-    // Por ahora simulamos el envío y navegamos al siguiente paso
-    setTimeout(() => {
-      this.loading = false;
-      this.form.enable();
-      this.buttonState = 'normal';
-      
-      // Navegar a la página de verificación del código
-      this.router.navigate(['/reset-password-code'], { queryParams: { email } });
-    }, 1500);
+    // Llamada real al backend para enviar el código de restablecimiento
+    this.api.requestPasswordReset(email).subscribe({
+      next: (response) => {
+        this.loading = false;
+        this.form.enable();
+        this.buttonState = 'normal';
+        
+        // Mostrar mensaje de éxito
+        this.bannerKind = 'success';
+        this.bannerText = response.message;
+        
+        // Navegar a reset-password-code con el token recibido
+        this.router.navigate(['/reset-password-code'], { 
+          queryParams: { token: response.resetToken } 
+        });
+      },
+      error: (error: any) => {
+        this.loading = false;
+        this.form.enable();
+        this.buttonState = 'normal';
+        this.bannerKind = 'error';
+        this.bannerText = error.message || 'Error al enviar el código. Verifica tu email.';
+      }
+    });
   }
 
   /* Navega de vuelta al login */

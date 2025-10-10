@@ -7,9 +7,12 @@
         <div class="container5"><div class="text8">Introduce el código de verificación</div></div>
         <div class="container5"><div class="text9">Escribe el código de 6 dígitos que enviamos a tu email</div></div>
         
-        <!-- Mensaje de error -->
-        <div *ngIf="errorMessage" class="error-message">
+        <!-- Mensajes de error y éxito -->
+        <div *ngIf="errorMessage && hasError" class="error-message">
           {{ errorMessage }}
+        </div>
+        <div *ngIf="successMessage && !hasError" class="success-message">
+          {{ successMessage }}
         </div>
         
         <div class="container6">
@@ -34,19 +37,25 @@
         </div>
         
         <div class="container7">
-          <button class="link4" [disabled]="!canVerify || isLoading" (click)="onVerify()"
+          <button class="link4" [disabled]="!canVerify || isVerifying" (click)="onVerify()"
                   [@buttonHover]
                   [@buttonPress]="buttonState">
             <img class="svg3" src="assets/icons/shield.svg" alt="verify" />
-            <div class="text11">{{ isLoading ? 'Verificando...' : 'Verifica tu cuenta' }}</div>
+            <div class="text11">{{ isVerifying ? 'Verificando...' : 'Verifica tu cuenta' }}</div>
           </button>
         </div>
         
         <!-- Botón de reenvío -->
         <div class="resend-section">
           <div class="resend-text">¿No recibiste el código?</div>
-          <button class="resend-button" [disabled]="isLoading" (click)="onResendCode()" [@buttonHover]>
-            Reenviar código
+          <button class="resend-button" 
+                  [disabled]="isResending || resendDisabled" 
+                  [class.disabled]="resendDisabled"
+                  (click)="onResendCode()" 
+                  [@buttonHover]>
+            <span *ngIf="!resendDisabled && !isResending">Reenviar código</span>
+            <span *ngIf="isResending">Enviando...</span>
+            <span *ngIf="resendDisabled && !isResending">Reenviar en {{ resendCountdown }}s</span>
           </button>
         </div>
       </div>

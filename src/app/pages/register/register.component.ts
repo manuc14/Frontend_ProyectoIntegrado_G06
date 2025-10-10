@@ -248,9 +248,10 @@ export class RegisterComponent {
           // Limpia errores previos de backend en controles relevantes
           clearBackendErrors(this.form, ['email','password','repeatPassword','nombre','apellidos','alias','fechaNacimiento']);
 
-          const status = err?.status as number | undefined;
-          const payload = err?.error || {};
-          const message: string | undefined = payload?.message;
+          const status = err?.originalError?.status || err?.status;
+          const payload = err?.originalError?.error || err?.error || {};
+          // Usar el mensaje procesado por el interceptor primero
+          const message: string | undefined = err?.message || payload?.message;
           const details: Array<{ field: string; message: string }>|undefined = payload?.details;
 
           if (status === 409) {

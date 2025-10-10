@@ -2,7 +2,7 @@
  * Página para verificar el código de verificación durante el proceso de recuperación de contraseña.
  * Segundo paso del flujo de restablecimiento de contraseña.
  */
-import { Component, OnInit, ElementRef, QueryList, ViewChildren } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
@@ -18,15 +18,24 @@ import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../
   styleUrls: ['./reset-password-code.page.scss'],
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
-export class ResetPasswordCodePage implements OnInit {
+export class ResetPasswordCodePage implements OnInit, OnDestroy {
   isLoading = false;
   errorMessage = '';
-  email = '';
+  token = '';
   codeDigits: string[] = ['', '', '', '', '', ''];
   // Animation states
   shakeForm = false;
   buttonState = 'normal';
   focusedInput = -1;
+  // Reenvío de código
+  resendDisabled = false;
+  resendCountdown = 0;
+  private resendTimer: any;
+  // Estados separados para cada operación
+  isVerifying = false;
+  isResending = false;
+  successMessage = '';
+  hasError = false;
 
   @ViewChildren('codeInput') inputs!: QueryList<ElementRef<HTMLInputElement>>;
 
@@ -37,14 +46,37 @@ export class ResetPasswordCodePage implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Obtener email de los query params
+    // Verificar si hay token en los query params
     this.route.queryParams.subscribe(params => {
-      this.email = params['email'] || '';
-      if (!this.email) {
-        // Si no hay email, redirigir al primer paso
-        this.router.navigate(['/forgot-password']);
+      this.token = params['token'] || '';
+      if (!this.token) {
+        // Si no hay token, redirigir al login
+        this.router.navigate(['/login']);
+        return;
       }
+      
+      // Validar que el token sea válido y la sesión exista
+      this.api.validateResetToken(this.token).subscribe({
+        next: (response) => {
+          if (!response.exists) {
+            // Token inválido o sesión no existe
+            this.router.navigate(['/forgot-password']);
+          }
+          // Si exists=true, permitir continuar independientemente de verified
+        },
+        error: () => {
+          // Token inválido o error de servidor
+          this.router.navigate(['/forgot-password']);
+        }
+      });
     });
+  }
+
+  ngOnDestroy() {
+    // Limpiar timer al destruir el componente
+    if (this.resendTimer) {
+      clearInterval(this.resendTimer);
+    }
   }
 
   /* Código completo concatenado. */
@@ -142,20 +174,23 @@ export class ResetPasswordCodePage implements OnInit {
       return;
     }
     
-    this.isLoading = true;
+    this.isVerifying = true;
     this.errorMessage = '';
+    this.successMessage = '';
+    this.hasError = false;
     this.buttonState = 'pressed';
 
-    this.api.verifyResetCode(this.email, this.code).subscribe({
-      next: () => {
-        // Navegar al tercer paso con email y código
+    this.api.verifyResetToken(this.token, this.code).subscribe({
+      next: (response) => {
+        // Navegar al tercer paso con el token
         this.router.navigate(['/new-password'], {
-          queryParams: { email: this.email, code: this.code }
+          queryParams: { token: this.token }
         });
       },
       error: (error: any) => {
         this.errorMessage = error.message || 'Código de verificación incorrecto';
-        this.isLoading = false;
+        this.hasError = true;
+        this.isVerifying = false;
         this.buttonState = 'normal';
         this.triggerShakeError();
         // Limpiar inputs en caso de error
@@ -166,35 +201,64 @@ export class ResetPasswordCodePage implements OnInit {
         this.focusIndex(0);
       },
       complete: () => {
-        this.isLoading = false;
+        this.isVerifying = false;
+        this.buttonState = 'normal';
       }
     });
   }
 
   /**
-   * Reenvía el código de verificación al email
+   * Reenvía el código de verificación usando el token actual
    */
   resendCode() {
-    this.isLoading = true;
-    this.errorMessage = '';
+    if (this.resendDisabled || this.isResending) {
+      return;
+    }
 
-    this.api.requestPasswordReset(this.email).subscribe({
-      next: () => {
-        this.errorMessage = 'Código reenviado correctamente';
+    this.isResending = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.hasError = false;
+
+    this.api.resendResetCode(this.token).subscribe({
+      next: (response) => {
+        this.successMessage = response.message || 'Código reenviado correctamente';
+        this.hasError = false;
         // Limpiar inputs después de reenviar
         this.codeDigits = ['', '', '', '', '', ''];
         this.inputs.forEach(input => {
           if (input.nativeElement) input.nativeElement.value = '';
         });
         this.focusIndex(0);
+        
+        // Iniciar countdown de 60 segundos
+        this.startResendCountdown();
       },
       error: (error: any) => {
         this.errorMessage = error.message || 'Error al reenviar el código';
+        this.hasError = true;
       },
       complete: () => {
-        this.isLoading = false;
+        this.isResending = false;
       }
     });
+  }
+
+  /**
+   * Inicia el countdown para deshabilitar el botón de reenvío
+   */
+  private startResendCountdown() {
+    this.resendDisabled = true;
+    this.resendCountdown = 60;
+    
+    this.resendTimer = setInterval(() => {
+      this.resendCountdown--;
+      if (this.resendCountdown <= 0) {
+        this.resendDisabled = false;
+        clearInterval(this.resendTimer);
+        this.resendTimer = null;
+      }
+    }, 1000);
   }
 
   /**

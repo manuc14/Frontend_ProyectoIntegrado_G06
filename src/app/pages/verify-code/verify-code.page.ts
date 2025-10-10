@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, QueryList, ViewChildren, signal } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
@@ -15,7 +15,7 @@ import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../
   styleUrl: './verify-code.page.scss',
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
-export class VerifyCodePage {
+export class VerifyCodePage implements OnInit, OnDestroy {
   /*
  * VerifyCodePage
  * Formulario interactivo para introducción de código de verificación de 6 dígitos.
@@ -30,6 +30,15 @@ export class VerifyCodePage {
   shakeForm = false;
   buttonState = 'normal';
   focusedInput = -1;
+  // Reenvío de código
+  resendDisabled = false;
+  resendCountdown = 0;
+  private resendTimer: any;
+  // Estados separados para cada operación
+  isVerifying = false;
+  isResending = false;
+  successMessage = '';
+  hasError = false;
 
   @ViewChildren('codeInput') inputs!: QueryList<ElementRef<HTMLInputElement>>;
 
@@ -37,11 +46,29 @@ export class VerifyCodePage {
     // Obtener token desde el query parameter estándar ?token=valor
     const tokenParam = this.route.snapshot.queryParamMap.get('token');
     this.token.set(tokenParam ?? '');
-    
+  }
+
+  ngOnInit() {
     // Si no hay token, redirigir al registro
     if (!this.token()) {
       this.router.navigate(['/signup']);
+      return;
     }
+    
+    // Validar que el token sea válido y la sesión exista
+    this.api.validateVerificationToken(this.token()).subscribe({
+      next: (response) => {
+        if (!response.exists) {
+          // Token inválido o sesión no existe
+          this.router.navigate(['/signup']);
+        }
+        // Si exists=true, permitir continuar independientemente de verified
+      },
+      error: () => {
+        // Token inválido o error de servidor
+        this.router.navigate(['/signup']);
+      }
+    });
   }
 
   /* Código completo concatenado. */
@@ -132,15 +159,17 @@ export class VerifyCodePage {
 
   /* Envía el código para verificación usando el token y navega a la página de confirmación. */
   onVerify() {
-    if (!this.canVerify || this.isLoading) {
+    if (!this.canVerify || this.isVerifying) {
       if (!this.canVerify) {
         this.triggerShakeError();
       }
       return;
     }
     
-    this.isLoading = true;
+    this.isVerifying = true;
     this.errorMessage = '';
+    this.successMessage = '';
+    this.hasError = false;
     this.buttonState = 'pressed';
     
     // Llamada al nuevo endpoint con token
@@ -154,7 +183,8 @@ export class VerifyCodePage {
       error: (error: any) => {
         console.error('Error en verificación:', error);
         this.errorMessage = error.message || 'Código de verificación incorrecto';
-        this.isLoading = false;
+        this.hasError = true;
+        this.isVerifying = false;
         this.buttonState = 'normal';
         this.triggerShakeError();
         // Limpiar inputs en caso de error
@@ -165,7 +195,7 @@ export class VerifyCodePage {
         this.focusIndex(0);
       },
       complete: () => {
-        this.isLoading = false;
+        this.isVerifying = false;
         this.buttonState = 'normal';
       }
     });
@@ -173,30 +203,55 @@ export class VerifyCodePage {
 
   /* Reenvía un nuevo código de verificación usando el token actual. */
   onResendCode() {
-    if (this.isLoading) return;
+    if (this.isResending || this.resendDisabled) return;
     
-    this.isLoading = true;
+    this.isResending = true;
     this.errorMessage = '';
+    this.successMessage = '';
+    this.hasError = false;
     
     this.api.resendVerificationCode(this.token()).subscribe({
       next: (response: any) => {
         console.log('Código reenviado:', response);
-        this.errorMessage = 'Nuevo código enviado a tu email';
+        this.successMessage = 'Nuevo código enviado a tu email';
+        this.hasError = false;
         // Limpiar inputs para el nuevo código
         this.codeDigits = ['', '', '', '', '', ''];
         this.inputs.forEach(input => {
           if (input.nativeElement) input.nativeElement.value = '';
         });
         this.focusIndex(0);
+        // Iniciar countdown para reenvío
+        this.startResendCountdown();
       },
       error: (error: any) => {
         console.error('Error al reenviar código:', error);
         this.errorMessage = error.message || 'Error al reenviar el código';
+        this.hasError = true;
       },
       complete: () => {
-        this.isLoading = false;
+        this.isResending = false;
       }
     });
+  }
+
+  /**
+   * Inicia el countdown para reenvío de código
+   */
+  private startResendCountdown(): void {
+    this.resendDisabled = true;
+    this.resendCountdown = 60;
+    
+    this.resendTimer = setInterval(() => {
+      this.resendCountdown--;
+      if (this.resendCountdown <= 0) {
+        this.resendDisabled = false;
+        if (this.resendTimer) {
+          clearInterval(this.resendTimer);
+          this.resendTimer = null;
+        }
+      }
+    }, 1000);
   }
 
   /**
@@ -222,5 +277,15 @@ export class VerifyCodePage {
    */
   getInputFocusState(index: number): string {
     return this.focusedInput === index ? 'focused' : 'normal';
+  }
+
+  /**
+   * Limpia recursos al destruir el componente
+   */
+  ngOnDestroy(): void {
+    if (this.resendTimer) {
+      clearInterval(this.resendTimer);
+      this.resendTimer = null;
+    }
   }
 }
