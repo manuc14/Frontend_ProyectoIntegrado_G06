@@ -183,7 +183,6 @@ fieldset:has(.segmented) legend {
 input.ng-invalid.ng-touched {
     border-color: var(--destructive);
     box-shadow: 0 0 0 2px var(--destructive);
-    background: var(--destructive-foreground);
 }
 
 input.ng-invalid.ng-touched:focus {

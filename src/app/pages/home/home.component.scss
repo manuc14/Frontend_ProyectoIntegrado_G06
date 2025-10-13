@@ -140,6 +140,7 @@
     flex-direction: column; 
     min-height: 100vh; 
     padding-bottom: 80px;
+    padding-top: 90px; /* Espacio para el header fijo (72px + margen) */
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
@@ -213,5 +214,6 @@
     
     .home {
         padding-bottom: 60px;
+        padding-top: 80px; /* Menos espacio en móvil para header más pequeño */
     }
 }
