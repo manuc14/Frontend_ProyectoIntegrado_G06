@@ -1,0 +1,14 @@
+.link9 { background: #ffffff; border-radius: 12px; border: 1px solid #dbe0ea; padding: 1px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s ease; }
+.link9:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.background5 { background: #eef1f6; height: 120px; position: relative; display: flex; align-items: center; }
+.thumb { width: 100%; height: 100%; object-fit: cover; }
+.container16 { position: absolute; left: 8px; top: 8px; display: flex; gap: 6px; }
+.background8 { background: rgba(255, 255, 255, 0.9); border-radius: 48px; padding: 4px 8px; backdrop-filter: blur(8px); }
+.background7 { background: #ffb86b; border-radius: 48px; padding: 4px 8px; }
+.tag-left { color: #1e293b; font-family: "Inter-SemiBold", sans-serif; font-size: 12px; font-weight: 600; }
+.tag-right { color: #1a0b00; font-family: "Inter-SemiBold", sans-serif; font-size: 12px; font-weight: 600; }
+.container17 { padding: 10px; display: flex; align-items: center; justify-content: space-between; }
+.title { color: #0f172a; font-family: "Inter-SemiBold", sans-serif; font-size: 13px; font-weight: 600; }
+.container18 { display: flex; align-items: center; gap: 6px; }
+.badge { color: #637189; font-family: "Inter-SemiBold", sans-serif; font-size: 12px; font-weight: 600; }
+a { text-decoration: none; }

@@ -1,0 +1,35 @@
+<app-header></app-header>
+
+<!-- Pantalla de bienvenida inicial -->
+<section class="welcome-screen" [class.hidden]="hasScrolled">
+  <div class="welcome-content">
+    <div class="welcome-logo">
+      <img src="assets/icons/logo_v2.png" alt="ESIMedia" class="logo-welcome" />
+    </div>
+    <h1 class="welcome-title">ESIMedia</h1>
+    <div class="scroll-indicator">
+      <p class="scroll-text">Desliza para descubrir más</p>
+      <div class="scroll-arrow">↓</div>
+    </div>
+  </div>
+</section>
+
+<main class="home" [@fadeIn] [class.content-visible]="hasScrolled">
+  <div class="page-container">
+    <app-hero [@slideInFromTop]></app-hero>
+
+    <section class="section" [@fadeIn]>
+      <app-section-list title="Top Vídeos" subtitle="Vídeos" [items]="topVideos"></app-section-list>
+    </section>
+
+    <section class="section" [@fadeIn]>
+      <app-section-list title="Audios Destacados" subtitle="Audios" [items]="trendingAudios"></app-section-list>
+    </section>
+
+    <section class="section" [@fadeIn]>
+      <app-section-list title="Películas de Halloween" subtitle="De Temporada" [items]="halloweenFilms"></app-section-list>
+    </section>
+  </div>
+</main>
+
+<app-footer></app-footer>

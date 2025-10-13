@@ -1,1 +1,182 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   ESTILOS GLOBALES - FRONTEND PROYECTO INTEGRADO G06
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   VARIABLES DE COLOR - NUEVA PALETA
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Colores principales */
+  --background: #eef1f6;
+  --foreground: #0f172a;
+  --border: #dbe0ea;
+  --input: #0f172a;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #e6eeff;
+  --secondary-foreground: #1e293b;
+  --muted: #e9edf5;
+  --muted-foreground: #637189;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  
+  /* Colores de estado */
+  --success: #d5f3e5;
+  --success-foreground: #14532d;
+  --accent: #ffe7b0;
+  --accent-foreground: #5b3b00;
+  --destructive: #ffe4e2;
+  --destructive-foreground: #7a1d16;
+  --warning: #fff2c2;
+  
+  /* Ring y efectos */
+  --ring: #2563eb40; /* 25% opacity */
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  
+  /* Sidebar */
+  --sidebar: #f7f8fc;
+  --sidebar-foreground: #1e293b;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+}
+
+.page-title { 
+    color: var(--foreground); 
+    font-family: "Inter-SemiBold", sans-serif;  
+    margin: 0;
+    background: linear-gradient(135deg, var(--foreground) 0%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* --------------------------------------------------------------------------
+   RESET Y ESTILOS BASE
+   -------------------------------------------------------------------------- */
+
+/* Reset global para modelo de caja consistente y base limpia */
+a, button, input, select, h1, h2, h3, h4, h5, * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: none;
+    text-decoration: none;
+    background: none;
+    -webkit-font-smoothing: antialiased;
+    color-scheme: light;
+}
+
+/* Reset de elementos de lista */
+menu, ol, ul { 
+    list-style-type: none; 
+    margin: 0; 
+    padding: 0; 
+}
+
+/* --------------------------------------------------------------------------
+   CONFIGURACIÓN BASE DE HTML Y BODY
+   -------------------------------------------------------------------------- */
+
+/* Configuración de diseño de altura completa */
+html, body { 
+    height: 100%; 
+}
+
+/* Tipografía base y fondo */
+body { 
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
+    background: var(--background);
+    color: var(--foreground);
+}
+
+/* --------------------------------------------------------------------------
+   CONTROL GLOBAL DE ICONOS SVG
+   -------------------------------------------------------------------------- */
+
+/* SVGs que usan currentColor herederán automáticamente el color del texto padre */
+svg[fill="currentColor"],
+img.svg-icon {
+    color: inherit;
+}
+
+/* Control específico de iconos en botones */
+button svg,
+.btn svg,
+.link svg,
+.link2 svg,
+.link3 svg,
+.link4 svg,
+.link5 svg,
+.link6 svg,
+.link7 svg,
+.link8 svg {
+    color: inherit;
+}
+
+/* Iconos en botones primarios - forzar blanco */
+.link4 img,
+.link7 img,
+button.primary img,
+.btn-primary img {
+    filter: brightness(0) invert(1);
+}
+
+/* Iconos en botones secundarios - adaptar al texto */
+.link3 img,
+.link6 img,
+.link8 img,
+button.secondary img,
+.btn-secondary img {
+    filter: none;
+    opacity: 0.8;
+}
+
+/* --------------------------------------------------------------------------
+   ESTADOS DE FOCUS GLOBALES PARA INPUTS
+   -------------------------------------------------------------------------- */
+
+/* Asegurar que todos los inputs usen el color primario en focus */
+input:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px var(--ring) !important;
+}
+
+/* --------------------------------------------------------------------------
+   UTILIDADES GLOBALES
+   -------------------------------------------------------------------------- */
+
+/* Clases de utilidad para espaciado */
+.mt-0 { margin-top: 0; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+
+/* Clases de utilidad para texto */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+/* Clases de utilidad para display */
+.hidden { display: none; }
+.block { display: block; }
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }

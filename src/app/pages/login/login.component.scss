@@ -1,0 +1,191 @@
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE LOGIN
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DISEÑO DE PÁGINA
+   -------------------------------------------------------------------------- */
+
+.login-page {
+    max-width: 480px;
+    margin: 32px auto 56px auto;
+    padding-top: 32px; 
+    padding-bottom: 48px;
+    background: var(--background);
+    color: var(--foreground);
+}
+
+.login-page h1 {
+    margin: 0 0 8px 0;
+    color: var(--foreground);
+}
+
+.hint {
+    color: var(--muted-foreground);
+    margin: 0 0 16px 0;
+}
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR DE TARJETA
+   -------------------------------------------------------------------------- */
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* --------------------------------------------------------------------------
+   ELEMENTOS DE FORMULARIO
+   -------------------------------------------------------------------------- */
+
+/* Etiquetas de formulario */
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Campos de entrada */
+input[type="email"],
+input[type="password"] {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--input);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--ring);
+    background: var(--card);
+}
+
+input[type="email"]:hover,
+input[type="password"]:hover {
+    border-color: var(--primary);
+}
+
+input[type="email"]:not(:focus):not(:hover),
+input[type="password"]:not(:focus):not(:hover) {
+    border-color: var(--border);
+    box-shadow: none;
+    background: var(--card);
+}
+
+/* Estados de validación de entrada */
+.invalid {
+    border-color: var(--destructive-foreground) !important; 
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive) 50%, transparent);
+}
+
+.invalid:focus {
+    outline: none; 
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 25%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   UTILIDADES DE DISEÑO
+   -------------------------------------------------------------------------- */
+
+.row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.row.end {
+    justify-content: flex-end;
+}
+
+/* --------------------------------------------------------------------------
+   UTILIDADES DE TEXTO
+   -------------------------------------------------------------------------- */
+
+.muted {
+    color: var(--muted-foreground);
+}
+
+.muted.small {
+    font-size: 12px;
+    color: var(--muted-foreground);
+}
+
+.field-error {
+    color: var(--destructive-foreground);
+    font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   ACCIONES Y BOTONES
+   -------------------------------------------------------------------------- */
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn.primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.btn.primary:hover {
+    background: color-mix(in srgb, var(--primary) 90%, black);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   BANNERS Y NOTIFICACIONES
+   -------------------------------------------------------------------------- */
+
+.banner {
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--muted);
+    color: var(--foreground);
+}
+
+.banner.error {
+    border-color: color-mix(in srgb, var(--destructive) 50%, transparent);
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+}
+
+/* --------------------------------------------------------------------------
+   DISEÑO RESPONSIVO
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+    .actions {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+    }
+}

@@ -1,0 +1,63 @@
+<header class="background-horizontal-border" 
+        [class.fixed-header]="isHomePage" 
+        [class.normal-header]="!isHomePage" 
+        [@fadeIn]>
+  <!-- Logo grande arriba que desaparece con scroll (solo en home) -->
+  <div class="container brand desktop-logo" [class.force-hidden]="!isHomePage">
+    <a routerLink="/" class="logo-link">
+      <div class="iconify-icon logo-container">
+        <img class="svg logo-large" src="assets/icons/logo_v2.png" alt="ESIMedia" />
+      </div>
+    </a>
+  </div>
+
+  <!-- Logo pequeño a la izquierda que aparece después del scroll -->
+  <div class="container brand desktop-logo-small" [class.force-visible]="!isHomePage">
+    <a routerLink="/" class="logo-link">
+      <div class="iconify-icon">
+        <img class="svg logo-small" src="assets/icons/logo_v2.png" alt="ESIMedia" />
+      </div>
+      <div class="text">ESIMedia</div>
+    </a>
+  </div>
+
+  <!-- Logo a la izquierda en móvil (siempre visible) -->
+  <div class="container brand mobile-logo">
+    <a routerLink="/" class="logo-link">
+      <div class="iconify-icon">
+        <img class="svg" src="assets/icons/logo_v2.png" alt="ESIMedia" />
+      </div>
+      <div class="text">ESIMedia</div>
+    </a>
+  </div>
+
+  <!-- Toggle para menú en móvil (checkbox hack) -->
+  <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-label="Abrir menú" />
+  <label for="nav-toggle" class="menu-btn" aria-controls="primary-nav">
+    <span></span><span></span><span></span>
+  </label>
+
+  <!-- Acciones visibles solo en móvil dentro del menú -->
+  <nav id="primary-nav" class="container2" role="navigation" aria-label="Navegación principal">
+    <a class="link3 only-mobile" routerLink="/login" [@navHover]> 
+      <div class="text6">Iniciar Sesión</div> 
+    </a>
+    <a class="link4 only-mobile" routerLink="/signup" [@navHover]> 
+      <div class="text6">Registrarse</div> 
+    </a>
+  </nav>
+
+  <div class="container actions only-desktop">
+    <a class="link3" routerLink="/login" [@navHover]> 
+      <div class="text6">Iniciar Sesión</div> 
+    </a>
+    <a class="link4" routerLink="/signup" [@navHover]>
+      <div class="iconify-icon">
+        <div class="svg2">
+          <img class="group" src="assets/icons/user-plus.svg" alt="signup" />
+        </div>
+      </div>
+      <div class="text7">Registrarse</div>
+    </a>
+  </div>
+</header>
