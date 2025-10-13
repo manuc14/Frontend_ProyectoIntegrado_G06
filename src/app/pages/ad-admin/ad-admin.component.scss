@@ -1,0 +1,908 @@
+// ========================================
+// MIXINS REUTILIZABLES
+// ========================================
+
+@mixin flex-container($direction: row, $gap: 0, $align: flex-start, $justify: flex-start) {
+  display: flex;
+  flex-direction: $direction;
+  gap: $gap;
+  align-items: $align;
+  justify-content: $justify;
+}
+
+@mixin icon-size($size: 18px) {
+  width: $size;
+  height: $size;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+@mixin text-base($color, $size, $weight, $family: "NimbusSans-Medium") {
+  color: $color;
+  text-align: left;
+  font-family: $family, sans-serif;
+  font-size: $size;
+  font-weight: $weight;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@mixin text-ellipsis {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+@mixin button-base {
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+// ========================================
+// ESTRUCTURA PRINCIPAL
+// ========================================
+
+.background {
+  background: #f7f8fc;
+  @include flex-container(column);
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+  overflow: hidden;
+
+  &, * {
+    box-sizing: border-box;
+  }
+}
+
+// ========================================
+// OVERLAY Y MENÚ HAMBURGUESA
+// ========================================
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  @include button-base;
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+
+  &:focus {
+    outline: none;
+  }
+
+  @media (max-width: 768px) {
+    &.show {
+      display: block;
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+.menu-toggle {
+  display: none !important;
+  @include button-base;
+  @include flex-container(column, 0, center, center);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  margin-right: 8px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  &:active {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  &:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  svg {
+    @include icon-size(24px);
+  }
+
+  @media (max-width: 768px) {
+    display: flex !important;
+  }
+}
+
+// ========================================
+// HEADER
+// ========================================
+
+.background-horizontal-border {
+  background: #f7f8fc;
+  border-style: solid;
+  border-color: #e4e8f0;
+  border-width: 0 0 1px 0;
+  padding: 0 24px 1px 24px;
+  @include flex-container(row, 0, center, space-between);
+  align-self: stretch;
+  flex-shrink: 0;
+  height: 64px;
+  position: relative;
+
+  @media (max-width: 768px) {
+    padding: 0 16px 1px 16px;
+  }
+}
+
+.header-left {
+  @include flex-container(row, 0, center, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.container {
+  @include flex-container(row, 12px, center, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.iconify-icon {
+  @include flex-container(column, 0, center, center);
+  @include icon-size(18px);
+  position: relative;
+
+  @media (max-width: 768px) {
+    @include icon-size(25px);
+  }
+}
+
+.svg {
+  flex-shrink: 0;
+  @include icon-size(32px);
+  position: relative;
+}
+
+.container2 {
+  padding: 1px 0 2px 0;
+  @include flex-container(column, 0, flex-start, flex-start);
+  position: relative;
+  min-width: 0;
+  flex: 1;
+}
+
+.text {
+  @include text-base(#3d4656, 16px, 600, "NimbusSans-SemiBold");
+}
+
+.admin {
+  border-radius: 48px;
+  flex-shrink: 0;
+  @include icon-size(28px);
+  position: relative;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.background2 {
+  background: #ffe4e2;
+  border-radius: 12px;
+  padding: 10px 11px 11px 11px;
+  @include flex-container(column, 0, flex-start, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.text2 {
+  @include text-base(#7c1f18, 14px, 500);
+  white-space: nowrap;
+}
+
+// ========================================
+// LAYOUT PRINCIPAL
+// ========================================
+
+.container3 {
+  @include flex-container(row, 0, flex-start, flex-start);
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+// ========================================
+// SIDEBAR
+// ========================================
+
+.background-vertical-border {
+  background: #f7f8fc;
+  border-style: solid;
+  border-color: #dddee2;
+  border-width: 0 1px 0 0;
+  padding: 20px 17px 20px 16px;
+  @include flex-container(column, 8px, flex-start, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  width: 248px;
+  position: relative;
+  overflow-y: auto;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  @media (max-width: 1200px) {
+    width: 220px;
+  }
+
+  @media (max-width: 1024px) {
+    width: 200px;
+  }
+
+  @media (max-width: 768px) {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    bottom: 0;
+    width: 280px;
+    z-index: 100;
+    transform: translateX(-100%);
+    box-shadow: none;
+
+    &.show {
+      transform: translateX(0);
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+.container4 {
+  padding: 9px 12px;
+  @include flex-container(column, 0, flex-start, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.text3 {
+  @include text-base(#66748c, 12px, 500);
+}
+
+.background3 {
+  background: #2563eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  @include flex-container(row, 0, center, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 38px;
+  height: auto;
+
+  &:hover {
+    background-color: #2849ab;
+  }
+
+  &:active {
+    background-color: #2849ab;
+  }
+}
+
+.container5 {
+  @include flex-container(row, 10px, center, flex-start);
+  flex-shrink: 0;
+  position: relative;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.svg2,
+.svg3,
+.group,
+.group2,
+.group3 {
+  @include icon-size(18px);
+  position: relative;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.text4 {
+  @include text-base(#f7f9fe, 14px, 500);
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+
+.container6 {
+  border-radius: 12px;
+  padding: 10px 12px;
+  @include flex-container(row, 0, center, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 38px;
+  height: auto;
+
+  &:hover {
+    background-color: rgba(37, 99, 235, 0.08);
+  }
+
+  &:active {
+    background-color: rgba(37, 99, 235, 0.12);
+  }
+}
+
+.text5,
+.text6,
+.text7 {
+  @include text-base(#212b3d, 14px, 500);
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+
+// ========================================
+// ÁREA DE CONTENIDO
+// ========================================
+
+.background4 {
+  background: #eef1f6;
+  padding: 24px;
+  @include flex-container(column, 0, flex-start, flex-start);
+  align-self: stretch;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+.margin {
+  padding: 0 0 16px 0;
+  @include flex-container(column, 0, flex-start, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.container7 {
+  @include flex-container(row, 0, center, space-between);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.container8 {
+  padding: 2px 0;
+  @include flex-container(column, 0, flex-start, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.text8 {
+  @include text-base(#0f172a, 20px, 600, "NimbusSans-SemiBold");
+}
+
+.background5 {
+  background: #2563eb;
+  border-radius: 12px;
+  padding: 11px 15px;
+  @include flex-container(row, 8px, center, center);
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+
+  &:hover {
+    background-color: #1d4ed8;
+  }
+
+  &:active {
+    background-color: #1e40af;
+  }
+
+  &:focus {
+    outline: 2px solid #1e40af;
+    outline-offset: 2px;
+  }
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+.iconify-icon2 {
+  @include flex-container(row, 0, center, center);
+  @include icon-size(18px);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.text9 {
+  @include text-base(#f7f9fe, 14px, 500);
+  flex: 1;
+}
+
+.container9 {
+  @include flex-container(row, 8px, center, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.background-border {
+  background: #ffffff;
+  border-radius: 12px;
+  border-style: solid;
+  border-color: #e2e6ee;
+  border-width: 1px;
+  padding: 11px 13px;
+  @include flex-container(row, 8px, center, flex-start);
+  flex: 1;
+  position: relative;
+
+  .iconify-icon {
+    @include flex-container(column, 0, center, center);
+    @include icon-size(18px);
+    position: relative;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+      @include icon-size(25px);
+    }
+  }
+}
+
+.text10 {
+  @include text-base(#0f172a, 14px, 500);
+  flex: 1;
+}
+
+.container10 {
+  @include flex-container(row, 8px, center, center);
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.iconify-icon3 {
+  @include flex-container(row, 0, center, center);
+  @include icon-size(18px);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.svg4,
+.group4,
+.group5,
+.group6,
+.group7 {
+  @include icon-size(18px);
+  position: relative;
+}
+
+.filtrar {
+  @include text-base(#2e3647, 14px, 500);
+}
+
+// ========================================
+// TABLA
+// ========================================
+
+.container11 {
+  @include flex-container(column, 0, flex-start, flex-start);
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.background-border2 {
+  background: #ffffff;
+  border-radius: 24px;
+  border-style: solid;
+  border-color: #e1e5ee;
+  border-width: 1px;
+  padding: 0;
+  @include flex-container(column, 0, flex-start, flex-start);
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: auto;
+
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+
+    &:hover {
+      background: #555;
+    }
+  }
+}
+
+.background6 {
+  background: #e6eeff;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: minmax(60px, 0.8fr) minmax(80px, 1.2fr) minmax(90px, 1.4fr) minmax(80px, 1.2fr) minmax(140px, 2.5fr) minmax(100px, 1.6fr) minmax(80px, 1.2fr) minmax(70px, 1fr) minmax(70px, 1fr);
+  gap: 16px;
+  align-items: center;
+  align-self: stretch;
+  flex-shrink: 0;
+  border-radius: 24px 24px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-width: 100%;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    width: 100%;
+  }
+
+  @media (max-width: 1400px) {
+    grid-template-columns: minmax(55px, 0.8fr) minmax(75px, 1.1fr) minmax(85px, 1.3fr) minmax(75px, 1.1fr) minmax(130px, 2.3fr) minmax(95px, 1.5fr) minmax(75px, 1.1fr) minmax(65px, 0.9fr) minmax(65px, 0.9fr);
+    gap: 14px;
+
+    &::before {
+      min-width: calc(765px + 8 * 14px);
+    }
+  }
+
+  @media (max-width: 1200px) {
+    grid-template-columns: minmax(50px, 0.7fr) minmax(70px, 1fr) minmax(80px, 1.2fr) minmax(70px, 1fr) minmax(120px, 2fr) minmax(90px, 1.4fr) minmax(70px, 1fr) minmax(60px, 0.85fr) minmax(60px, 0.85fr);
+    gap: 12px;
+
+    &::before {
+      min-width: calc(702px + 8 * 12px);
+    }
+  }
+}
+
+.text11,
+.text12,
+.text13,
+.text14,
+.text15,
+.text16,
+.text17,
+.text18,
+.text19 {
+  @include text-base(#1f2a3c, 13px, 600, "NimbusSans-SemiBold");
+  @include text-ellipsis;
+
+  @media (max-width: 1200px) {
+    font-size: 12px;
+  }
+}
+
+.container12 {
+  @include flex-container(column, 0, flex-start, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  width: fit-content;
+  min-width: 100%;
+}
+
+.horizontal-border {
+  border-style: solid;
+  border-color: #e8ebf2;
+  border-width: 1px 0 0 0;
+  padding: 15px 16px 14px 16px;
+  display: grid;
+  grid-template-columns: minmax(60px, 0.8fr) minmax(80px, 1.2fr) minmax(90px, 1.4fr) minmax(80px, 1.2fr) minmax(140px, 2.5fr) minmax(100px, 1.6fr) minmax(80px, 1.2fr) minmax(70px, 1fr) minmax(70px, 1fr);
+  gap: 16px;
+  align-items: center;
+  align-self: stretch;
+  flex-shrink: 0;
+
+  > * {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  > .container16 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  @media (max-width: 1400px) {
+    grid-template-columns: minmax(55px, 0.8fr) minmax(75px, 1.1fr) minmax(85px, 1.3fr) minmax(75px, 1.1fr) minmax(130px, 2.3fr) minmax(95px, 1.5fr) minmax(75px, 1.1fr) minmax(65px, 0.9fr) minmax(65px, 0.9fr);
+    gap: 14px;
+  }
+
+  @media (max-width: 1200px) {
+    grid-template-columns: minmax(50px, 0.7fr) minmax(70px, 1fr) minmax(80px, 1.2fr) minmax(70px, 1fr) minmax(120px, 2fr) minmax(90px, 1.4fr) minmax(70px, 1fr) minmax(60px, 0.85fr) minmax(60px, 0.85fr);
+    gap: 12px;
+  }
+}
+
+.container13 {
+  @include flex-container(row, 0, center, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.a-1,
+.a-3,
+.a-4,
+.a-5 {
+  border-radius: 48px;
+  flex-shrink: 0;
+  @include icon-size(28px);
+  position: relative;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.background8 {
+  background: #10202a;
+  border-radius: 48px;
+  flex-shrink: 0;
+  @include icon-size(28px);
+  position: relative;
+}
+
+.text20,
+.text21,
+.text22,
+.text23,
+.text24,
+.text25,
+.text26,
+.text27,
+.text28,
+.text29,
+.text30,
+.text31,
+.text32,
+.text33,
+.text34,
+.text35,
+.text36,
+.text37,
+.text38,
+.text39,
+.text40,
+.text41,
+.text42,
+.text43 {
+  @include text-base(#1f2a3c, 14px, 500);
+  @include text-ellipsis;
+  min-width: 0;
+
+  @media (max-width: 1200px) {
+    font-size: 13px;
+  }
+}
+
+.container14 {
+  padding: 1px 0 2px 0;
+  @include flex-container(column, 0, flex-start, flex-start);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+}
+
+.container15 {
+  @include flex-container(column, 0, flex-start, center);
+  flex-shrink: 0;
+  position: relative;
+  min-width: 0;
+}
+
+.background-border3 {
+  background: #ffffff;
+  border-radius: 48px;
+  border-style: solid;
+  border-color: #e9ecf2;
+  border-width: 1px;
+  padding: 1px;
+  @include flex-container(row, 0, center, center);
+  flex-shrink: 0;
+  @include icon-size(28px);
+  position: relative;
+}
+
+.svg5,
+.svg8,
+.svg9,
+.svg10,
+.svg11,
+.svg12,
+.svg13,
+.svg14,
+.svg15,
+.svg16,
+.svg17 {
+  @include icon-size(18px);
+  position: relative;
+}
+
+.container16 {
+  @include flex-container(row, 0, center, center);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.background-border4 {
+  background: #ffe7b0;
+  border-radius: 12px;
+  border-style: solid;
+  border-color: #e9ecf2;
+  border-width: 1px;
+  padding: 9px;
+  @include flex-container(row, 0, center, center);
+  flex-shrink: 0;
+  @include icon-size(36px);
+  position: relative;
+  cursor: pointer;
+}
+
+.svg6 {
+  @include icon-size(18px);
+  position: relative;
+}
+
+.background7 {
+  background: #ffe4e2;
+  border-radius: 12px;
+  padding: 9px;
+  @include flex-container(row, 0, center, center);
+  flex-shrink: 0;
+  @include icon-size(36px);
+  position: relative;
+  cursor: pointer;
+}
+
+.svg7 {
+  @include icon-size(18px);
+  position: relative;
+}
+
+// ========================================
+// PAGINACIÓN
+// ========================================
+
+.margin2 {
+  padding: 12px 0 0 0;
+  @include flex-container(column, 0, flex-start, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.container17 {
+  @include flex-container(row, 0, center, space-between);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.container18 {
+  padding: 1px 0;
+  @include flex-container(column, 0, flex-start, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.text44 {
+  @include text-base(#90a4ae, 12px, 500);
+}
+
+.container19 {
+  @include flex-container(row, 8px, flex-start, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.border,
+.border2 {
+  border-radius: 12px;
+  border-style: solid;
+  border-color: #202b3c;
+  border-width: 1px;
+  padding: 10px 12px;
+  @include flex-container(row, 8px, center, center);
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  &:hover {
+    background-color: rgba(32, 43, 60, 0.05);
+  }
+
+  &:active {
+    background-color: rgba(32, 43, 60, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.iconify-icon4,
+.iconify-icon5 {
+  @include flex-container(row, 0, center, center);
+  @include icon-size(18px);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.svg18,
+.svg19 {
+  @include icon-size(18px);
+  position: relative;
+}
+
+.text45,
+.text46 {
+  @include text-base(#202b3c, 14px, 500);
+  white-space: nowrap;
+  transition: opacity 0.3s ease;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}

@@ -1,0 +1,304 @@
+<!-- src/app/pages/ad-users/ad-users.component.html -->
+<div class="background" [@fadeIn]>
+
+  <button
+    class="sidebar-overlay"
+    type="button"
+    [class.show]="sidebarVisible"
+    (click)="closeSidebar()"
+    [attr.aria-label]="'Cerrar menú lateral'">
+  </button>
+
+  <div class="background-horizontal-border">
+    <div class="header-left">
+      <button
+        class="menu-toggle"
+        type="button"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="'Abrir menú de navegación'"
+        [attr.aria-expanded]="sidebarVisible">
+        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 12H21M3 6H21M3 18H21" stroke="#3d4656" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div class="container">
+        <div class="iconify-icon">
+          <img class="svg" ngSrc="assets/admin/logo_v2.svg" alt="logo ESIMedia" height="32" width="32"/>
+        </div>
+        <div class="container2">
+          <div class="text">ESIMedia</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="29"
+           width="29"/>
+      <div class="background2">
+        <div class="text2">Cerrar sesión</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container3">
+    <div class="background-vertical-border" [class.show]="sidebarVisible">
+      <div class="container4">
+        <div class="text3">Navegación</div>
+      </div>
+      <button class="background3" type="button" (click)="navigateToUsers()" [@buttonHover] [@buttonPress]>
+        <div class="container5">
+          <div class="iconify-icon">
+            <img class="group" ngSrc="assets/admin/usuarios.svg" alt="icono usuarios" height="18" width="18"/>
+          </div>
+          <div class="container2">
+            <div class="text4">Usuarios</div>
+          </div>
+        </div>
+      </button>
+      <button class="container6" type="button" (click)="navigateToAdmins()" [@buttonHover] [@buttonPress]>
+        <div class="container5">
+          <div class="iconify-icon">
+            <img class="svg3" ngSrc="assets/admin/administradores.svg" alt="icono administradores" height="18" width="18"/>
+          </div>
+          <div class="container2">
+            <div class="text5">Administradores</div>
+          </div>
+        </div>
+      </button>
+      <button class="container6" type="button" (click)="navigateToCreators()" [@buttonHover] [@buttonPress]>
+        <div class="container5">
+          <div class="iconify-icon">
+            <img class="group2" ngSrc="assets/admin/creadores.svg" alt="icono creadores de contenido" width="18" height="18"/>
+          </div>
+          <div class="container2">
+            <div class="text6">Creadores de Contenido</div>
+          </div>
+        </div>
+      </button>
+      <button class="container6" type="button">
+        <div class="container5">
+          <div class="iconify-icon">
+            <img class="group3" ngSrc="assets/admin/configuracion.svg" alt="icono configuración" height="18" width="18"/>
+          </div>
+          <div class="container2">
+            <div class="text7">Configuración</div>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <div class="background4">
+      <div class="margin">
+        <div class="container7">
+          <div class="container8">
+            <div class="text8">Usuarios</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="margin">
+        <div class="container9">
+          <div class="background-border" [@inputFocus]>
+            <div class="iconify-icon">
+              <img class="group4" ngSrc="assets/admin/buscar.svg" alt="icono búsqueda" height="18" width="18"/>
+            </div>
+            <div class="container2">
+              <div class="text9">Buscar por nombre, email, alias…</div>
+            </div>
+          </div>
+          <div class="container10" [@buttonHover]>
+            <div class="iconify-icon2">
+              <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
+            </div>
+            <div class="filtrar">Filtrar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container11" [@shakeError]>
+        <div class="background-border2">
+          <div class="background5">
+            <div class="container2"><div class="text10">Foto</div></div>
+            <div class="container2"><div class="text11">Nombre</div></div>
+            <div class="container2"><div class="text12">Apellidos</div></div>
+            <div class="container2"><div class="text13">Alias</div></div>
+            <div class="container2"><div class="text14">Email</div></div>
+            <div class="container2"><div class="text15">Fecha de<br />nacimiento</div></div>
+            <div class="container2"><div class="text16">Rol</div></div>
+            <div class="container2"><div class="text17">Estado</div></div>
+            <div class="container2"><div class="text18">Editar</div></div>
+            <div class="container2"><div class="text19">Eliminar</div></div>
+          </div>
+
+          <div class="container12">
+            <div class="horizontal-border">
+              <div class="container13">
+                <img class="u-1" ngSrc="assets/admin/user1.png" alt="foto de María" height="28" width="28"/>
+              </div>
+              <div class="container2"><div class="text20">María</div></div>
+              <div class="container2"><div class="text21">López Sánchez</div></div>
+              <div class="container2"><div class="text22">&#64;mlopez</div></div>
+              <div class="container14"><div class="text23">maria.lopez&#64;esimedia.com</div></div>
+              <div class="container2"><div class="text24">12/03/1992</div></div>
+              <div class="container15"><div class="background6"><div class="vip">VIP</div></div></div>
+              <div class="container15">
+                <div class="background-border3">
+                  <img class="svg5" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background-border4">
+                  <img class="svg6" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background7">
+                  <img class="svg7" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
+                       width="19"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="horizontal-border">
+              <div class="container13">
+                <img class="u-2" ngSrc="assets/admin/user2.png" alt="foto de Carlos" height="28" width="28"/>
+              </div>
+              <div class="container2"><div class="text25">Carlos</div></div>
+              <div class="container2"><div class="text26">Pérez Gómez</div></div>
+              <div class="container2"><div class="text27">&#64;carlosp</div></div>
+              <div class="container14"><div class="text28">carlos.perez&#64;esimedia.com</div></div>
+              <div class="container2"><div class="text24">28/11/1988</div></div>
+              <div class="container15"><div class="background8"><div class="est-ndar">Estándar</div></div></div>
+              <div class="container15">
+                <div class="background-border3">
+                  <img class="svg5" ngSrc="assets/admin/bloqueado.svg" alt="estado bloqueado" height="18"
+                       width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background-border4">
+                  <img class="svg8" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background7">
+                  <img class="svg9" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
+                       width="19"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="horizontal-border2">
+              <div class="container13">
+                <img class="u-3" ngSrc="assets/admin/user3.png" alt="foto de Lucía" height="28" width="28"/>
+              </div>
+              <div class="container2"><div class="text29">Lucía</div></div>
+              <div class="container2"><div class="text30">Gómez Lozano</div></div>
+              <div class="container2"><div class="text31">&#64;lgomez</div></div>
+              <div class="container14"><div class="text32">lucia.gomez&#64;esimedia.com</div></div>
+              <div class="container2"><div class="text24">04/06/1995</div></div>
+              <div class="container15"><div class="background8"><div class="text33">Estándar</div></div></div>
+              <div class="container15">
+                <div class="background-border3">
+                  <img class="svg10" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background-border4">
+                  <img class="svg11" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background7">
+                  <img class="svg12" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
+                       width="19"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="horizontal-border2">
+              <div class="container13">
+                <img class="u-4" ngSrc="assets/admin/user4.png" alt="foto de Ana" height="28" width="28"/>
+              </div>
+              <div class="container2"><div class="text34">Ana</div></div>
+              <div class="container2"><div class="text35">Martínez Ribera</div></div>
+              <div class="container2"><div class="text36">&#64;amartinez</div></div>
+              <div class="container14"><div class="text37">ana.martinez&#64;esimedia.com</div></div>
+              <div class="container2"><div class="text24">20/01/1990</div></div>
+              <div class="container15"><div class="background6"><div class="vip">VIP</div></div></div>
+              <div class="container15">
+                <div class="background-border3">
+                  <img class="svg13" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background-border4">
+                  <img class="svg14" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background7">
+                  <img class="svg15" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
+                       width="19"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="horizontal-border2">
+              <div class="container13">
+                <img class="u-5" ngSrc="assets/admin/user5.png" alt="foto de Diego" height="28" width="28"/>
+              </div>
+              <div class="container2"><div class="text38">Diego</div></div>
+              <div class="container2"><div class="text39">Ramírez González</div></div>
+              <div class="container2"><div class="text40">&#64;dramirez</div></div>
+              <div class="container14"><div class="text41">diego.ramirez&#64;esimedia.com</div></div>
+              <div class="container2"><div class="text24">09/09/1987</div></div>
+              <div class="container15"><div class="background8"><div class="est-ndar">Estándar</div></div></div>
+              <div class="container15">
+                <div class="background-border3">
+                  <img class="svg5" ngSrc="assets/admin/bloqueado.svg" alt="estado bloqueado" height="18"
+                       width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background-border4">
+                  <img class="svg16" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
+                </div>
+              </div>
+              <div class="container16">
+                <div class="background7">
+                  <img class="svg17" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
+                       width="19"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="margin2">
+        <div class="container17">
+          <div class="container18">
+            <div class="text42">Mostrando 1–5 de 124</div>
+          </div>
+          <div class="container19">
+            <div class="border" [@buttonHover] [@buttonPress]>
+              <div class="iconify-icon3">
+                <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
+              </div>
+              <div class="text43">Anterior</div>
+            </div>
+            <div class="border2" [@buttonHover] [@buttonPress]>
+              <div class="text44">Siguiente</div>
+              <div class="iconify-icon4">
+                <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18"
+                     width="18"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

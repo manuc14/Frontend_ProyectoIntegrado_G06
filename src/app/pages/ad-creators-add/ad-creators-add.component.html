@@ -1,0 +1,177 @@
+<div class="background" [@fadeIn]>
+  <div class="overlay">
+    <div class="background-border-shadow">
+      <div class="horizontal-border">
+        <div class="container">
+          <div class="text">Añadir creador de contenido</div>
+        </div>
+        <button class="border" type="button" (click)="goBack()" [@buttonHover] [@buttonPress]>
+          <div class="iconify-icon">
+            <img class="svg" ngSrc="assets/admin/salir.svg" alt="icono cerrar" height="18" width="19"/>
+          </div>
+          <div class="text2">Cerrar</div>
+        </button>
+      </div>
+
+      <div class="container2">
+        <div class="container3">
+          <!-- Sección de foto -->
+          <div class="background2">
+            <div class="container4">
+              <div class="text3">Foto *</div>
+            </div>
+            <div class="container5">
+              <div class="container6">
+                <div class="background3">
+                  <img class="avatar" ngSrc="assets/admin/foto_upload.svg" alt="foto de perfil" height="18" width="18"/>
+                </div>
+                <button class="border2" type="button" [@buttonHover] [@buttonPress]>
+                  <div class="iconify-icon">
+                    <img class="svg2" ngSrc="assets/admin/img_subir.svg" alt="icono subir" height="18" width="18"/>
+                  </div>
+                  <div class="text4">Subir imagen</div>
+                </button>
+                <button class="border3" type="button" [@buttonHover] [@buttonPress]>
+                  <div class="iconify-icon">
+                    <div class="svg3">
+                      <img class="group" ngSrc="assets/admin/img_predefinida.svg" alt="icono predefinida" height="18" width="19" />
+                    </div>
+                  </div>
+                  <div class="text5">Subir predefinida</div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nombre -->
+          <div class="background4">
+            <div class="container4">
+              <div class="text6">Nombre *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="nombre">Nombre</div>
+            </div>
+          </div>
+
+          <!-- Apellidos -->
+          <div class="background5">
+            <div class="container4">
+              <div class="text7">Apellidos *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="apellidos">Apellidos</div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="background6">
+            <div class="container4">
+              <div class="text8">Email *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="email-plataforma-com">email&#64;plataforma.com</div>
+            </div>
+          </div>
+
+          <!-- Alias -->
+          <div class="background7">
+            <div class="paragraph">
+              <div class="text9">Alias *</div>
+              <div class="text10">(no repetible)</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="alias-unico">&#64;alias_unico</div>
+            </div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="background8">
+            <div class="container4">
+              <div class="text11">Contraseña *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="div">••••••••</div>
+            </div>
+          </div>
+
+          <!-- Repetir contraseña -->
+          <div class="background9">
+            <div class="container4">
+              <div class="text12">Repetir contraseña *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="div">••••••••</div>
+            </div>
+          </div>
+
+          <!-- Especialidad y Tipo de contenido -->
+          <div class="container7">
+            <div class="background10">
+              <div class="container4">
+                <div class="text13">Especialidad *</div>
+              </div>
+              <div class="background-border2">
+                <div class="container8">
+                  <div class="text14">Seleccionar especialidad</div>
+                </div>
+                <div class="iconify-icon2">
+                  <img class="svg4" ngSrc="assets/admin/desplegable.svg" alt="desplegable" height="18" width="18"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="background10">
+              <div class="container4">
+                <div class="text15">Tipo de contenido *</div>
+              </div>
+              <div class="container9">
+                <button class="background-border3" type="button" [@buttonHover] [@buttonPress]>
+                  <div class="iconify-icon2">
+                    <img class="svg5" ngSrc="assets/admin/tipo_creador.svg" alt="selector audio" height="14" width="14"/>
+                  </div>
+                  <div class="audio">Audio</div>
+                </button>
+                <button class="background-border3" type="button" [@buttonHover] [@buttonPress]>
+                  <div class="iconify-icon2">
+                    <img class="svg6" ngSrc="assets/admin/tipo_creador.svg" alt="selector video" height="14" width="14"/>
+                  </div>
+                  <div class="video">Video</div>
+                </button>
+              </div>
+              <div class="container10">
+                <div class="text16">Solo una opción es válida</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <div class="background11">
+            <div class="container4">
+              <div class="descripci-n">Descripción</div>
+            </div>
+            <div class="background-border4" [@inputFocus]>
+              <div class="breve-bio-o-descripci-n-del-creador">
+                Breve bio o descripción del creador
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="horizontal-border2">
+        <button class="background12" type="button" (click)="goBack()" [@buttonHover] [@buttonPress]>
+          <div class="iconify-icon">
+            <img class="svg7" ngSrc="assets/admin/eliminar.svg" alt="icono cancelar" height="18" width="19"/>
+          </div>
+          <div class="text17">Cancelar</div>
+        </button>
+        <button class="background13" type="button" [@buttonHover] [@buttonPress]>
+          <div class="iconify-icon3">
+            <img class="svg8" ngSrc="assets/admin/tick.svg" alt="icono crear" height="18" width="19" />
+          </div>
+          <div class="text18">Crear creador</div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
