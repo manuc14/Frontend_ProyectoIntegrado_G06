@@ -1,0 +1,132 @@
+<div class="background" [@fadeIn]>
+  <div class="overlay">
+    <div class="background-border-shadow">
+      <div class="horizontal-border">
+        <div class="container">
+          <div class="text">Añadir administrador</div>
+        </div>
+        <button class="border" type="button" (click)="goBack()" [@buttonHover] [@buttonPress]>
+          <div class="iconify-icon">
+            <img class="svg" ngSrc="assets/admin/salir.svg" alt="icono salir" height="18" width="19"/>
+          </div>
+          <div class="text2">Cerrar</div>
+        </button>
+      </div>
+
+      <div class="container2">
+        <!-- Sección de foto -->
+        <div class="background2">
+          <div class="paragraph">
+            <div class="text3">Foto</div>
+            <div class="text4">(opcional)</div>
+          </div>
+          <div class="container3">
+            <div class="container4">
+              <div class="background3">
+                <div class="svg2">
+                  <img class="group" ngSrc="assets/admin/foto_upload.svg" alt="usuario por defecto" height="18" width="18"/>
+                </div>
+              </div>
+              <button class="border2" type="button" [@buttonHover] [@buttonPress]>
+                <div class="iconify-icon">
+                  <img class="svg3" ngSrc="assets/admin/img_subir.svg" alt="subir foto" height="18" width="18"/>
+                </div>
+                <div class="subir-imagen">Subir imagen</div>
+              </button>
+              <button class="border3" type="button" [@buttonHover] [@buttonPress]>
+                <div class="container5">
+                  <div class="iconify-icon2">
+                    <div class="svg2">
+                      <img class="group2" ngSrc="assets/admin/img_predefinida.svg" alt="elegir predefinida" height="18" width="19"/>
+                    </div>
+                  </div>
+                  <div class="elegir-predefinida">Elegir predefinida</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid de campos - Fila 1 -->
+        <div class="container6">
+          <div class="background4">
+            <div class="container7">
+              <div class="text5">Nombre *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="nombre">Nombre</div>
+            </div>
+          </div>
+          <div class="background5">
+            <div class="container7">
+              <div class="text6">Apellidos *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="apellidos">Apellidos</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid de campos - Fila 2 -->
+        <div class="container6">
+          <div class="background6">
+            <div class="container7">
+              <div class="text7">Email *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="email-empresa-com">email&#64;empresa.com</div>
+            </div>
+          </div>
+          <div class="background7">
+            <div class="container7">
+              <div class="text8">Contraseña *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="div">••••••••</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid de campos - Fila 3 -->
+        <div class="container6">
+          <div class="background8">
+            <div class="container7">
+              <div class="text9">Repetir contraseña *</div>
+            </div>
+            <div class="background-border" [@inputFocus]>
+              <div class="div">••••••••</div>
+            </div>
+          </div>
+          <div class="background9">
+            <div class="container7">
+              <div class="text10">Departamento *</div>
+            </div>
+            <div class="background-border2">
+              <div class="container8">
+                <div class="text11">Operaciones</div>
+              </div>
+              <div class="iconify-icon2">
+                <img class="svg4" ngSrc="assets/admin/desplegable.svg" alt="desplegable" height="18" width="19"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="horizontal-border2">
+        <button class="background10" type="button" (click)="goBack()" [@buttonHover] [@buttonPress]>
+          <div class="iconify-icon">
+            <img class="svg5" ngSrc="assets/admin/eliminar.svg" alt="icono cancelar" height="18" width="19"/>
+          </div>
+          <div class="text12">Cancelar</div>
+        </button>
+        <button class="background11" type="button" [@buttonHover] [@buttonPress]>
+          <div class="iconify-icon3">
+            <img class="svg6" ngSrc="assets/admin/tick.svg" alt="icono crear" height="18" width="19"/>
+          </div>
+          <div class="text13">Crear administrador</div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

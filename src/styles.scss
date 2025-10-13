@@ -15,14 +15,14 @@ a, button, input, select, h1, h2, h3, h4, h5, * {
     text-decoration: none;
     background: none;
     -webkit-font-smoothing: antialiased;
-    color-scheme: light dark;
+    color-scheme: dark only;
 }
 
 /* Reset de elementos de lista */
-menu, ol, ul { 
-    list-style-type: none; 
-    margin: 0; 
-    padding: 0; 
+menu, ol, ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -30,12 +30,12 @@ menu, ol, ul {
    -------------------------------------------------------------------------- */
 
 /* Configuración de diseño de altura completa */
-html, body { 
-    height: 100%; 
+html, body {
+    height: 100%;
 }
 
 /* Tipografía base y fondo */
-body { 
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
-    background: #071017; 
+body {
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #071017;
 }
