@@ -103,21 +103,27 @@
       </div>
 
       <div class="margin">
-        <div class="container9">
-          <div class="background-border" [@inputFocus]>
-            <div class="iconify-icon">
-              <img class="group5" ngSrc="assets/admin/buscar.svg" alt="icono búsqueda" height="18" width="18"/>
-            </div>
-            <div class="container2">
-              <div class="text10">Buscar por nombre, email, alias…</div>
-            </div>
-          </div>
-          <div class="container10" [@buttonHover]>
-            <div class="iconify-icon3">
-              <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
-            </div>
-            <div class="filtrar">Filtrar</div>
-          </div>
+        <div class="search-section">
+          <app-search-bar 
+            [searchTerm]="searchTerm"
+            placeholder="Buscar por nombre, email, alias, categoría…"
+            ariaLabel="Campo de búsqueda de creadores"
+            (search)="onSearch($event)"
+            (clear)="onClearSearch()">
+            
+            <!-- Botón de filtros insertado via content projection -->
+            <button 
+              slot="actions" 
+              type="button"
+              class="container10" 
+              [@buttonHover]
+              [attr.aria-label]="'Filtrar creadores'">
+              <div class="iconify-icon3">
+                <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
+              </div>
+              <div class="filtrar">Filtrar</div>
+            </button>
+          </app-search-bar>
         </div>
       </div>
 
@@ -129,166 +135,69 @@
             <div class="container2"><div class="text13">Apellidos</div></div>
             <div class="container2"><div class="text14">Email</div></div>
             <div class="container2"><div class="text15">Alias</div></div>
-            <div class="container2"><div class="text16">Especialidad</div></div>
-            <div class="container12"><div class="text17">Tipo de<br/>contenido</div></div>
+            <div class="container2"><div class="text16">Categoría</div></div>
+            <div class="container12"><div class="text17">Seguidores</div></div>
             <div class="container2"><div class="text18">Estado</div></div>
             <div class="container2"><div class="text19">Editar</div></div>
             <div class="container2"><div class="text20">Eliminar</div></div>
           </div>
 
           <div class="container13">
-            <div class="horizontal-border">
-              <div class="container14">
-                <img class="c-1" ngSrc="assets/admin/user1.png" alt="foto de María" height="28" width="28"/>
+            <!-- Mostrar mensaje si no hay resultados -->
+            <div *ngIf="filteredCreators.length === 0" class="no-results">
+              <div class="no-results-content">
+                <p>No se encontraron creadores que coincidan con "{{ searchTerm }}"</p>
+                <button type="button" (click)="onClearSearch()" class="clear-search-btn">
+                  Mostrar todos los creadores
+                </button>
               </div>
-              <div class="container2"><div class="text21">María</div></div>
-              <div class="container2"><div class="text22">López Sánchez</div></div>
-              <div class="container15"><div class="text23">maria.lopez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text24">&#64;mlopez</div></div>
-              <div class="background7"><div class="text25">Crítica de cine</div></div>
+            </div>
+
+            <!-- Lista dinámica de creadores -->
+            <div 
+              *ngFor="let creator of filteredCreators; let i = index; trackBy: trackByCreatorId" 
+              class="horizontal-border">
+              <div class="container14">
+                <img 
+                  [ngSrc]="creator.photo" 
+                  [alt]="'foto de ' + creator.name" 
+                  height="28" 
+                  width="28"/>
+              </div>
+              <div class="container2"><div class="text21">{{ creator.name }}</div></div>
+              <div class="container2"><div class="text22">{{ creator.lastName }}</div></div>
+              <div class="container15"><div class="text23">{{ creator.email }}</div></div>
+              <div class="container2"><div class="text24">{{ creator.alias }}</div></div>
+              <div class="background7"><div class="text25">{{ creator.category }}</div></div>
               <div class="container16">
                 <div class="background-border3">
-                  <div class="video-text">Vídeo</div>
+                  <div class="video-text">{{ creator.followers }}</div>
                 </div>
               </div>
               <div class="container17">
                 <div class="background-border4">
-                  <img class="svg6" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
+                  <img 
+                    [ngSrc]="creator.status === 'activo' ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'" 
+                    [alt]="'estado ' + creator.status" 
+                    height="18" 
+                    width="19"/>
                 </div>
               </div>
               <div class="container18">
-                <div class="background8">
-                  <img class="svg7" ngSrc="assets/admin/editar.svg" alt="editar creador" height="18" width="18"/>
-                </div>
+                <button 
+                  type="button"
+                  class="background8"
+                  [attr.aria-label]="'Editar ' + creator.name">
+                  <img src="assets/admin/editar.svg" alt="editar creador" height="18" width="18"/>
+                </button>
               </div>
               <div class="container18">
-                <div class="background9">
-                  <img class="svg8" ngSrc="assets/admin/eliminar.svg" alt="eliminar creador" height="18" width="18"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border">
-              <div class="container14">
-                <img class="c-2" ngSrc="assets/admin/user2.png" alt="foto de Carlos" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text26">Carlos</div></div>
-              <div class="container2"><div class="text27">Pérez Gómez</div></div>
-              <div class="container15"><div class="text28">carlos.perez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text29">&#64;carlosp</div></div>
-              <div class="background7"><div class="text30">Tech reviews</div></div>
-              <div class="container19">
-                <div class="background-border3">
-                  <div class="text31">Audio</div>
-                </div>
-              </div>
-              <div class="container17">
-                <div class="background-border4">
-                  <img class="group6" ngSrc="assets/admin/bloqueado.svg" alt="estado bloqueado" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container18">
-                <div class="background8">
-                  <img class="svg9" ngSrc="assets/admin/editar.svg" alt="editar creador" height="18" width="18"/>
-                </div>
-              </div>
-              <div class="container18">
-                <div class="background9">
-                  <img class="svg10" ngSrc="assets/admin/eliminar.svg" alt="eliminar creador" height="18" width="18"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border">
-              <div class="container14">
-                <img class="c-3" ngSrc="assets/admin/user3.png" alt="foto de Lucía" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text32">Lucía</div></div>
-              <div class="container2"><div class="text33">Gómez Lozano</div></div>
-              <div class="container15"><div class="text34">lucia.gomez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text35">&#64;lgomez</div></div>
-              <div class="background7"><div class="text36">Tutoriales</div></div>
-              <div class="container19">
-                <div class="background-border3">
-                  <div class="text31">Vídeo</div>
-                </div>
-              </div>
-              <div class="container17">
-                <div class="background-border4">
-                  <img class="svg11" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container18">
-                <div class="background8">
-                  <img class="svg12" ngSrc="assets/admin/editar.svg" alt="editar creador" height="18" width="18"/>
-                </div>
-              </div>
-              <div class="container18">
-                <div class="background9">
-                  <img class="svg13" ngSrc="assets/admin/eliminar.svg" alt="eliminar creador" height="18" width="18"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border">
-              <div class="container14">
-                <img class="c-4" ngSrc="assets/admin/user4.png" alt="foto de Ana" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text37">Ana</div></div>
-              <div class="container2"><div class="text38">Martínez Ribera</div></div>
-              <div class="container15"><div class="text39">ana.martinez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text40">&#64;amartinez</div></div>
-              <div class="background7"><div class="text41">Vlogs viajes</div></div>
-              <div class="container20">
-                <div class="background-border3">
-                  <div class="text31">Audio</div>
-                </div>
-              </div>
-              <div class="container17">
-                <div class="background-border4">
-                  <img class="svg14" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container18">
-                <div class="background8">
-                  <img class="svg15" ngSrc="assets/admin/editar.svg" alt="editar creador" height="18" width="18"/>
-                </div>
-              </div>
-              <div class="container18">
-                <div class="background9">
-                  <img class="svg16" ngSrc="assets/admin/eliminar.svg" alt="eliminar creador" height="18" width="18"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border">
-              <div class="container14">
-                <img class="c-5" ngSrc="assets/admin/user5.png" alt="foto de Diego" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text42">Diego</div></div>
-              <div class="container2"><div class="text43">Ramírez González</div></div>
-              <div class="container15"><div class="text44">diego.ramirez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text45">&#64;dramirez</div></div>
-              <div class="background7"><div class="text46">Podcast cine</div></div>
-              <div class="container19">
-                <div class="background-border3">
-                  <div class="text31">Audio</div>
-                </div>
-              </div>
-              <div class="container17">
-                <div class="background-border4">
-                  <img class="group7" ngSrc="assets/admin/bloqueado.svg" alt="estado bloqueado" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container18">
-                <div class="background8">
-                  <img class="svg17" ngSrc="assets/admin/editar.svg" alt="editar creador" height="18" width="18"/>
-                </div>
-              </div>
-              <div class="container18">
-                <div class="background9">
-                  <img class="svg18" ngSrc="assets/admin/eliminar.svg" alt="eliminar creador" height="18" width="18"/>
-                </div>
+                <button 
+                  type="button"
+                  class="background9"
+                  [attr.aria-label]="'Eliminar ' + creator.name">
+                  <img src="assets/admin/eliminar.svg" alt="eliminar creador" height="18" width="18"/>
+                </button>
               </div>
             </div>
           </div>

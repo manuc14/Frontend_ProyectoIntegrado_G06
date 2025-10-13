@@ -455,6 +455,66 @@
   flex: 1;
 }
 
+// ========================================
+// SECCIÓN DE BÚSQUEDA CON SEARCH-BAR COMPONENT
+// ========================================
+
+.search-section {
+  @include flex-container(row, 8px, center, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+  width: 100%;
+}
+
+// Estilos para el componente "no results" en ad-admin
+.no-results {
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  min-height: 400px;
+  width: 100%;
+  align-self: stretch;
+  @include flex-container(column, 0, center, center);
+  flex: 1;
+  
+  .no-results-content {
+    @include flex-container(column, 16px, center, center);
+    
+    p {
+      @include text-base(#6b7280, 16px, 500);
+      margin: 0;
+    }
+    
+    .clear-search-btn {
+      @include button-base;
+      background: #2563eb;
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        background: #1d4ed8;
+      }
+    }
+  }
+}
+
+// Estilo para el role de admin
+.text-role {
+  @include text-base(#1f2a3c, 14px, 500);
+  @include text-ellipsis;
+}
+
+// ========================================
+// ESTILOS LEGACY (MANTENIDOS PARA RETROCOMPATIBILIDAD)
+// ========================================
+
 .container9 {
   @include flex-container(row, 8px, center, flex-start);
   align-self: stretch;
@@ -634,6 +694,21 @@
   flex-shrink: 0;
   width: fit-content;
   min-width: 100%;
+  
+  .search-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--background-color);
+    border-bottom: 1px solid var(--input-border-color);
+    margin-bottom: 0;
+    
+    app-search-bar {
+      flex: 1;
+      min-width: 200px;
+    }
+  }
 }
 
 .horizontal-border {

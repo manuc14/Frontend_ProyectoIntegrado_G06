@@ -938,3 +938,58 @@
     display: none;
   }
 }
+
+// ========================================
+// SECCIÓN DE BÚSQUEDA CON SEARCH-BAR COMPONENT
+// ========================================
+
+.search-section {
+  @include flex-container(row, 8px, center, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+  width: 100%;
+}
+
+// ========================================
+// ESTILOS PARA EL COMPONENTE "NO RESULTS"
+// ========================================
+
+.no-results {
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  min-height: 400px;
+  width: 100%;
+  align-self: stretch;
+  @include flex-container(column, 0, center, center);
+  flex: 1;
+  
+  .no-results-content {
+    @include flex-container(column, 16px, center, center);
+    
+    p {
+      @include text-base(#6b7280, 16px, 500);
+      margin: 0;
+    }
+    
+    .clear-search-btn {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-family: "NimbusSans-Medium", sans-serif;
+      
+      &:hover {
+        background: #1d4ed8;
+      }
+    }
+  }
+}

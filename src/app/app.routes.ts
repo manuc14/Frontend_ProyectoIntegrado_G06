@@ -25,7 +25,6 @@ export const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
 	{ path: 'verify-email', component: VerifyEmailPage },
 	{ path: 'verify-code', component: VerifyCodePage },
-	{ path: 'verified-email', component: VerifiedEmailPage },
 	{ path: 'ad-users', component: AdminUsersPage },
   { path: 'ad-admin', component: AdminAdmsPage },
   { path: 'ad-creators', component: AdminCreatorsPage },

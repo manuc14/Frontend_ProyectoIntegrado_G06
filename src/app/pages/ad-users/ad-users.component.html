@@ -98,21 +98,27 @@
       </div>
 
       <div class="margin">
-        <div class="container9">
-          <div class="background-border" [@inputFocus]>
-            <div class="iconify-icon">
-              <img class="group4" ngSrc="assets/admin/buscar.svg" alt="icono búsqueda" height="18" width="18"/>
-            </div>
-            <div class="container2">
-              <div class="text9">Buscar por nombre, email, alias…</div>
-            </div>
-          </div>
-          <div class="container10" [@buttonHover]>
-            <div class="iconify-icon2">
-              <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
-            </div>
-            <div class="filtrar">Filtrar</div>
-          </div>
+        <div class="search-section">
+          <app-search-bar 
+            [searchTerm]="searchTerm"
+            placeholder="Buscar por nombre, email, alias…"
+            ariaLabel="Campo de búsqueda de usuarios"
+            (search)="onSearch($event)"
+            (clear)="onClearSearch()">
+            
+            <!-- Botón de filtros insertado via content projection -->
+            <button 
+              slot="actions" 
+              type="button"
+              class="container10" 
+              [@buttonHover]
+              [attr.aria-label]="'Filtrar usuarios'">
+              <div class="iconify-icon2">
+                <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
+              </div>
+              <div class="filtrar">Filtrar</div>
+            </button>
+          </app-search-bar>
         </div>
       </div>
 
@@ -132,144 +138,72 @@
           </div>
 
           <div class="container12">
-            <div class="horizontal-border">
-              <div class="container13">
-                <img class="u-1" ngSrc="assets/admin/user1.png" alt="foto de María" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text20">María</div></div>
-              <div class="container2"><div class="text21">López Sánchez</div></div>
-              <div class="container2"><div class="text22">&#64;mlopez</div></div>
-              <div class="container14"><div class="text23">maria.lopez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text24">12/03/1992</div></div>
-              <div class="container15"><div class="background6"><div class="vip">VIP</div></div></div>
-              <div class="container15">
-                <div class="background-border3">
-                  <img class="svg5" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background-border4">
-                  <img class="svg6" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background7">
-                  <img class="svg7" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
-                       width="19"/>
-                </div>
+            <!-- Mostrar mensaje si no hay resultados -->
+            <div *ngIf="filteredUsers.length === 0" class="no-results">
+              <div class="no-results-content">
+                <p>No se encontraron usuarios que coincidan con "{{ searchTerm }}"</p>
+                <button type="button" (click)="clearSearch()" class="clear-search-btn">
+                  Mostrar todos los usuarios
+                </button>
               </div>
             </div>
 
-            <div class="horizontal-border">
+            <!-- Lista dinámica de usuarios -->
+            <div 
+              *ngFor="let user of filteredUsers; let i = index; trackBy: trackByUserId" 
+              class="horizontal-border"
+              [class.horizontal-border2]="i > 0">
               <div class="container13">
-                <img class="u-2" ngSrc="assets/admin/user2.png" alt="foto de Carlos" height="28" width="28"/>
+                <img 
+                  [ngSrc]="user.photo" 
+                  [alt]="'foto de ' + user.name" 
+                  height="28" 
+                  width="28"/>
               </div>
-              <div class="container2"><div class="text25">Carlos</div></div>
-              <div class="container2"><div class="text26">Pérez Gómez</div></div>
-              <div class="container2"><div class="text27">&#64;carlosp</div></div>
-              <div class="container14"><div class="text28">carlos.perez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text24">28/11/1988</div></div>
-              <div class="container15"><div class="background8"><div class="est-ndar">Estándar</div></div></div>
+              <div class="container2"><div class="text20">{{ user.name }}</div></div>
+              <div class="container2"><div class="text21">{{ user.lastName }}</div></div>
+              <div class="container2"><div class="text22">{{ user.alias }}</div></div>
+              <div class="container14"><div class="text23">{{ user.email }}</div></div>
+              <div class="container2"><div class="text24">{{ user.birthDate }}</div></div>
+              <div class="container15">
+                <div 
+                  class="background6" 
+                  [class.background8]="user.role === 'Estándar'"
+                  [class.background6]="user.role === 'VIP'">
+                  <div 
+                    class="vip" 
+                    [class.est-ndar]="user.role === 'Estándar'">
+                    {{ user.role }}
+                  </div>
+                </div>
+              </div>
               <div class="container15">
                 <div class="background-border3">
-                  <img class="svg5" ngSrc="assets/admin/bloqueado.svg" alt="estado bloqueado" height="18"
-                       width="19"/>
+                  <img 
+                    [ngSrc]="'assets/admin/' + (user.status === 'activo' ? 'activo' : 'bloqueado') + '.svg'" 
+                    [alt]="'estado ' + user.status" 
+                    height="18" 
+                    width="19"/>
                 </div>
               </div>
               <div class="container16">
                 <div class="background-border4">
-                  <img class="svg8" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
+                  <img 
+                    class="svg6" 
+                    ngSrc="assets/admin/editar.svg" 
+                    alt="editar usuario" 
+                    height="18" 
+                    width="19"/>
                 </div>
               </div>
               <div class="container16">
                 <div class="background7">
-                  <img class="svg9" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
-                       width="19"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border2">
-              <div class="container13">
-                <img class="u-3" ngSrc="assets/admin/user3.png" alt="foto de Lucía" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text29">Lucía</div></div>
-              <div class="container2"><div class="text30">Gómez Lozano</div></div>
-              <div class="container2"><div class="text31">&#64;lgomez</div></div>
-              <div class="container14"><div class="text32">lucia.gomez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text24">04/06/1995</div></div>
-              <div class="container15"><div class="background8"><div class="text33">Estándar</div></div></div>
-              <div class="container15">
-                <div class="background-border3">
-                  <img class="svg10" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background-border4">
-                  <img class="svg11" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background7">
-                  <img class="svg12" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
-                       width="19"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border2">
-              <div class="container13">
-                <img class="u-4" ngSrc="assets/admin/user4.png" alt="foto de Ana" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text34">Ana</div></div>
-              <div class="container2"><div class="text35">Martínez Ribera</div></div>
-              <div class="container2"><div class="text36">&#64;amartinez</div></div>
-              <div class="container14"><div class="text37">ana.martinez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text24">20/01/1990</div></div>
-              <div class="container15"><div class="background6"><div class="vip">VIP</div></div></div>
-              <div class="container15">
-                <div class="background-border3">
-                  <img class="svg13" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background-border4">
-                  <img class="svg14" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background7">
-                  <img class="svg15" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
-                       width="19"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border2">
-              <div class="container13">
-                <img class="u-5" ngSrc="assets/admin/user5.png" alt="foto de Diego" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text38">Diego</div></div>
-              <div class="container2"><div class="text39">Ramírez González</div></div>
-              <div class="container2"><div class="text40">&#64;dramirez</div></div>
-              <div class="container14"><div class="text41">diego.ramirez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text24">09/09/1987</div></div>
-              <div class="container15"><div class="background8"><div class="est-ndar">Estándar</div></div></div>
-              <div class="container15">
-                <div class="background-border3">
-                  <img class="svg5" ngSrc="assets/admin/bloqueado.svg" alt="estado bloqueado" height="18"
-                       width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background-border4">
-                  <img class="svg16" ngSrc="assets/admin/editar.svg" alt="editar usuario" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background7">
-                  <img class="svg17" ngSrc="assets/admin/eliminar.svg" alt="eliminar usuario" height="18"
-                       width="19"/>
+                  <img 
+                    class="svg7" 
+                    ngSrc="assets/admin/eliminar.svg" 
+                    alt="eliminar usuario" 
+                    height="18" 
+                    width="19"/>
                 </div>
               </div>
             </div>
@@ -280,7 +214,11 @@
       <div class="margin2">
         <div class="container17">
           <div class="container18">
-            <div class="text42">Mostrando 1–5 de 124</div>
+            <div class="text42">
+              Mostrando {{ filteredUsers.length > 0 ? '1–' + filteredUsers.length : '0' }} 
+              de {{ filteredUsers.length }} 
+              {{ searchTerm ? '(filtrado de ' + allUsers.length + ' total)' : '' }}
+            </div>
           </div>
           <div class="container19">
             <div class="border" [@buttonHover] [@buttonPress]>

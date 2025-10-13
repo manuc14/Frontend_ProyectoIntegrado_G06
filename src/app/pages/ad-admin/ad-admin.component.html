@@ -104,21 +104,27 @@
       </div>
 
       <div class="margin">
-        <div class="container9">
-          <div class="background-border" [@inputFocus]>
-            <div class="iconify-icon">
-              <img class="group4" ngSrc="assets/admin/buscar.svg" alt="icono búsqueda" height="18" width="18"/>
-            </div>
-            <div class="container2">
-              <div class="text10">Buscar por nombre, email, departamento…</div>
-            </div>
-          </div>
-          <div class="container10" [@buttonHover]>
-            <div class="iconify-icon3">
-              <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
-            </div>
-            <div class="filtrar">Filtrar</div>
-          </div>
+        <div class="search-section">
+          <app-search-bar 
+            [searchTerm]="searchTerm"
+            placeholder="Buscar por nombre, email, departamento…"
+            ariaLabel="Campo de búsqueda de administradores"
+            (search)="onSearch($event)"
+            (clear)="onClearSearch()">
+            
+            <!-- Botón de filtros insertado via content projection -->
+            <button 
+              slot="actions" 
+              type="button"
+              class="container10" 
+              [@buttonHover]
+              [attr.aria-label]="'Filtrar administradores'">
+              <div class="iconify-icon3">
+                <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
+              </div>
+              <div class="filtrar">Filtrar</div>
+            </button>
+          </app-search-bar>
         </div>
       </div>
 
@@ -128,146 +134,68 @@
             <div class="container2"><div class="text11">Foto</div></div>
             <div class="container2"><div class="text12">Nombre</div></div>
             <div class="container2"><div class="text13">Apellidos</div></div>
-            <div class="container2"><div class="text14">Alias</div></div>
-            <div class="container2"><div class="text15">Email</div></div>
-            <div class="container2"><div class="text16">Departamento</div></div>
+            <div class="container2"><div class="text14">Email</div></div>
+            <div class="container2"><div class="text15">Departamento</div></div>
+            <div class="container2"><div class="text16">Rol</div></div>
             <div class="container2"><div class="text17">Estado</div></div>
             <div class="container2"><div class="text18">Editar</div></div>
             <div class="container2"><div class="text19">Eliminar</div></div>
           </div>
 
           <div class="container12">
-            <div class="horizontal-border">
-              <div class="container13">
-                <img class="a-1" ngSrc="assets/admin/user1.png" alt="foto de María" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text20">María</div></div>
-              <div class="container2"><div class="text21">López Sánchez</div></div>
-              <div class="container2"><div class="text22">&#64;mlopez</div></div>
-              <div class="container14"><div class="text23">maria.lopez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text24">Operaciones</div></div>
-              <div class="container15">
-                <div class="background-border3">
-                  <img class="svg10" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background-border4">
-                  <img class="svg6" ngSrc="assets/admin/editar.svg" alt="editar administrador" height="18" width="18"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background7">
-                  <img class="svg7" ngSrc="assets/admin/eliminar.svg" alt="eliminar administrador" height="18" width="18"/>
-                </div>
+            <!-- Mostrar mensaje si no hay resultados -->
+            <div *ngIf="filteredAdmins.length === 0" class="no-results">
+              <div class="no-results-content">
+                <p>No se encontraron administradores que coincidan con "{{ searchTerm }}"</p>
+                <button type="button" (click)="onClearSearch()" class="clear-search-btn">
+                  Mostrar todos los administradores
+                </button>
               </div>
             </div>
 
-            <div class="horizontal-border">
+            <!-- Lista dinámica de administradores -->
+            <div 
+              *ngFor="let admin of filteredAdmins; let i = index; trackBy: trackByAdminId" 
+              class="horizontal-border"
+              [class.horizontal-border2]="i > 0">
               <div class="container13">
-                <div class="background8"></div>
+                <img 
+                  [ngSrc]="admin.photo" 
+                  [alt]="'foto de ' + admin.name" 
+                  height="28" 
+                  width="28"/>
               </div>
-              <div class="container2"><div class="text25">Carlos</div></div>
-              <div class="container2"><div class="text26">Pérez Gómez</div></div>
-              <div class="container2"><div class="text27">&#64;carlosp</div></div>
-              <div class="container14"><div class="text28">carlos.perez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text29">Seguridad</div></div>
+              <div class="container2"><div class="text20">{{ admin.name }}</div></div>
+              <div class="container2"><div class="text21">{{ admin.lastName }}</div></div>
+              <div class="container14"><div class="text23">{{ admin.email }}</div></div>
+              <div class="container2"><div class="text24">{{ admin.department }}</div></div>
+              <div class="container2"><div class="text-role">{{ admin.role }}</div></div>
               <div class="container15">
                 <div class="background-border3">
-                  <img class="svg5" ngSrc="assets/admin/bloqueado.svg" alt="estado bloqueado" height="18"
-                       width="19"/>
+                  <img 
+                    [ngSrc]="admin.status === 'activo' ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'" 
+                    [alt]="'estado ' + admin.status" 
+                    height="18" 
+                    width="19"/>
                 </div>
               </div>
               <div class="container16">
-                <div class="background-border4">
-                  <img class="svg8" ngSrc="assets/admin/editar.svg" alt="editar administrador" height="18" width="18"/>
-                </div>
+                <button 
+                  type="button"
+                  class="background-border4"
+                  [attr.aria-label]="'Editar ' + admin.name">
+                  <img src="assets/admin/editar.svg" alt="editar administrador" height="18" width="18"/>
+                </button>
               </div>
               <div class="container16">
-                <div class="background7">
-                  <img class="svg9" ngSrc="assets/admin/eliminar.svg" alt="eliminar administrador" height="18" width="18"/>
-                </div>
+                <button 
+                  type="button"
+                  class="background7"
+                  [attr.aria-label]="'Eliminar ' + admin.name">
+                  <img src="assets/admin/eliminar.svg" alt="eliminar administrador" height="18" width="18"/>
+                </button>
               </div>
-            </div>
-
-            <div class="horizontal-border">
-              <div class="container13">
-                <img class="a-3" ngSrc="assets/admin/user3.png" alt="foto de Lucía" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text30">Lucía</div></div>
-              <div class="container2"><div class="text31">Gómez Lozano</div></div>
-              <div class="container2"><div class="text32">&#64;lgomez</div></div>
-              <div class="container14"><div class="text33">lucia.gomez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text24">Operaciones</div></div>
-              <div class="container15">
-                <div class="background-border3">
-                  <img class="svg10" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background-border4">
-                  <img class="svg11" ngSrc="assets/admin/editar.svg" alt="editar administrador" height="18" width="18"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background7">
-                  <img class="svg12" ngSrc="assets/admin/eliminar.svg" alt="eliminar administrador" height="18" width="18"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border">
-              <div class="container13">
-                <img class="a-4" ngSrc="assets/admin/user4.png" alt="foto de Ana" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text34">Ana</div></div>
-              <div class="container2"><div class="text35">Martínez Ribera</div></div>
-              <div class="container2"><div class="text36">&#64;amartinez</div></div>
-              <div class="container14"><div class="text37">ana.martinez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text38">Marketing</div></div>
-              <div class="container15">
-                <div class="background-border3">
-                  <img class="svg13" ngSrc="assets/admin/activo.svg" alt="estado activo" height="18" width="18"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background-border4">
-                  <img class="svg14" ngSrc="assets/admin/editar.svg" alt="editar administrador" height="18" width="18"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background7">
-                  <img class="svg15" ngSrc="assets/admin/eliminar.svg" alt="eliminar administrador" height="18" width="18"/>
-                </div>
-              </div>
-            </div>
-
-            <div class="horizontal-border">
-              <div class="container13">
-                <img class="a-5" ngSrc="assets/admin/user5.png" alt="foto de Diego" height="28" width="28"/>
-              </div>
-              <div class="container2"><div class="text39">Diego</div></div>
-              <div class="container2"><div class="text40">Ramírez González</div></div>
-              <div class="container2"><div class="text41">&#64;dramirez</div></div>
-              <div class="container14"><div class="text42">diego.ramirez&#64;esimedia.com</div></div>
-              <div class="container2"><div class="text43">Soporte</div></div>
-              <div class="container15">
-                <div class="background-border3">
-                  <img class="svg5" ngSrc="assets/admin/bloqueado.svg" alt="estado bloqueado" height="18"
-                       width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background-border4">
-                  <img class="svg16" ngSrc="assets/admin/editar.svg" alt="editar administrador" height="18" width="19"/>
-                </div>
-              </div>
-              <div class="container16">
-                <div class="background7">
-                  <img class="svg17" ngSrc="assets/admin/eliminar.svg" alt="eliminar administrador" height="18" width="19"/>
-                </div>
-              </div>
-            </div>
+          </div>
           </div>
         </div>
       </div>
