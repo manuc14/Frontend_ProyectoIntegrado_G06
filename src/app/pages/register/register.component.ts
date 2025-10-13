@@ -142,7 +142,7 @@ export class RegisterComponent {
   private extractAvatarFileName(avatarPath: string): string {
     if (!avatarPath) return '';
     // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
-    return avatarPath.split('/').pop() || '';
+    return avatarPath.split('/').pop() ?? '';
   }
 
   /* Valida y decide si mostrar la promo VIP o continuar con el alta. */
@@ -194,7 +194,7 @@ export class RegisterComponent {
     let fotoNombre = '';
     if (v.fotoElegida) {
       // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
-      fotoNombre = v.fotoElegida.split('/').pop() || '';
+      fotoNombre = v.fotoElegida.split('/').pop() ?? '';
     }
 
     const payload = {
@@ -260,7 +260,7 @@ export class RegisterComponent {
             // Email duplicado
             this.form.get('email')?.setErrors({ ...(this.form.get('email')?.errors||{}), emailTaken: true });
             this.bannerKind = 'error';
-            this.bannerText = message || 'El email ya está registrado.';
+            this.bannerText = message ?? 'El email ya está registrado.';
             this.triggerShakeError();
             return;
           }
@@ -284,7 +284,7 @@ export class RegisterComponent {
 
           // Otros errores
           this.bannerKind = 'error';
-          this.bannerText = message || 'No se pudo crear la cuenta. Inténtalo de nuevo.';
+          this.bannerText = message ?? 'No se pudo crear la cuenta. Inténtalo de nuevo.';
           this.triggerShakeError();
           console.error('Error de registro', err);
         },

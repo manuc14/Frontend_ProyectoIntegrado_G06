@@ -118,7 +118,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     // Solo aplicar lógica de scroll en la página home
     if (!this.isHomePage) return;
     
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
     
     // Solo cambiar una vez cuando se hace el primer scroll en home
     if (scrollTop > 50 && !this.hasScrolled) {

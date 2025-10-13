@@ -80,7 +80,7 @@ export class HomeComponent implements OnInit {
    */
   @HostListener('window:scroll', ['$event'])
   onWindowScroll() {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
     
     // Ocultar pantalla de bienvenida cuando se hace scroll
     if (scrollTop > 100 && !this.hasScrolled) {
