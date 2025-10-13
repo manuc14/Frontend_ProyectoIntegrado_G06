@@ -29,7 +29,7 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
 }
 
 /* --------------------------------------------------------------------------
@@ -76,8 +76,8 @@ input[type="email"]:focus,
 input[type="password"]:focus,
 input[type="date"]:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px var(--ring);
     background: var(--card);
 }
 
@@ -95,6 +95,56 @@ input[type="date"]:not(:focus):not(:hover) {
     border-color: var(--border);
     box-shadow: none;
     background: var(--card);
+}
+
+/* --------------------------------------------------------------------------
+   INPUTS CON TOGGLE DE VISIBILIDAD (MOSTRAR/OCULTAR CONTRASEÑA)
+   -------------------------------------------------------------------------- */
+
+.input-with-toggle {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-toggle input {
+    width: 100%;
+    padding-right: 50px; /* Espacio para el botón */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.password-toggle:hover {
+    background-color: var(--muted);
+}
+
+.password-toggle:focus {
+    outline: none;
+    background-color: var(--muted);
+}
+
+.password-toggle img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.password-toggle:hover img,
+.password-toggle:focus img {
+    opacity: 1;
 }
 
 /* Estilo de conjuntos de campos */
@@ -131,14 +181,14 @@ fieldset:has(.segmented) legend {
 
 /* Validación de formularios */
 input.ng-invalid.ng-touched {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
-    background: rgba(239, 68, 68, 0.05);
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 2px var(--destructive);
+    background: var(--destructive-foreground);
 }
 
 input.ng-invalid.ng-touched:focus {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.35);
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 2px var(--destructive);
 }
 
 /* --------------------------------------------------------------------------
@@ -156,7 +206,7 @@ label.with-help > span {
 }
 
 label.with-help .help {
-    margin-left: auto;
+    margin-left: 8px;
     align-self: flex-start;
     background: var(--muted);
     color: var(--muted-foreground);
@@ -181,7 +231,6 @@ label.with-help .help:hover {
 }
 
 label.with-help .help .tooltip {
-    display: none;
     position: absolute;
     top: 28px;
     right: 0;
@@ -193,12 +242,7 @@ label.with-help .help .tooltip {
     color: var(--foreground);
     border-radius: 12px;
     padding: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-label.with-help .help:focus .tooltip, 
-label.with-help .help:hover .tooltip {
-    display: block;
+    box-shadow: var(--shadow);
 }
 
 label.with-help .help .tooltip strong {
@@ -275,7 +319,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 .segment.active {
     background: var(--primary);
     color: var(--primary-foreground);
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    box-shadow: var(--shadow-sm);
     transform: translateY(0);
 }
 
@@ -304,7 +348,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     align-items: center;
     gap: 12px;
     padding: 16px;
-    color: #7ea2ad;
+    color: var(--muted-foreground);
     justify-content: center;
 }
 
@@ -313,10 +357,10 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     align-items: flex-start;
     gap: 12px;
     padding: 16px;
-    background: rgba(255, 171, 76, 0.1);
-    border: 1px solid rgba(255, 171, 76, 0.3);
+    background: var(--muted);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    color: #ffab4c;
+    color: var(--muted-foreground);
 }
 
 .error-icon {
@@ -330,12 +374,12 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     strong {
         display: block;
         margin-bottom: 4px;
-        color: #ffab4c;
+        color: var(--muted-foreground);
     }
     
     p {
         margin: 0;
-        color: #d4a574;
+        color: var(--muted-foreground);
         font-size: 14px;
         line-height: 1.4;
     }
@@ -344,8 +388,8 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 .spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid #17303a;
-    border-top: 2px solid #00e0a1;
+    border: 2px solid var(--muted);
+    border-top: 2px solid var(--success);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -388,14 +432,14 @@ label.with-help .help .tooltip ul.password-requirements li::before {
         border-color: var(--primary);
         background: var(--secondary);
         transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        box-shadow: var(--shadow-sm);
     }
     
     &.selected {
         border-color: var(--primary);
         background: var(--secondary);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent),
-                    0 4px 16px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 0 0 2px var(--ring),
+                    var(--shadow);
         transform: scale(1.05);
     }
     
@@ -429,7 +473,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     justify-content: center;
     font-size: 12px;
     font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-sm);
     z-index: 2;
     animation: checkmarkBounce 0.3s ease-out;
 }
@@ -477,8 +521,8 @@ label.with-help .help .tooltip ul.password-requirements li::before {
         
         &.selected {
             transform: scale(1.03);
-            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 30%, transparent),
-                        0 2px 8px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 0 0 2px var(--ring),
+                        var(--shadow-sm);
         }
     }
     
@@ -515,7 +559,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 }
 
 .field-error {
-    color: #ef4444;
+    color: var(--destructive-foreground);
     font-size: 14px;
     margin-top: 4px;
     display: flex;
@@ -530,7 +574,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 
 .errors {
     margin-top: 12px;
-    color: #ef4444;
+    color: var(--destructive-foreground);
     display: flex;
     flex-direction: column;
     gap: 4px;

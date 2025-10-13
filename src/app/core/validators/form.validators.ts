@@ -2,10 +2,14 @@
  * Validadores compartidos para formularios (autenticación y perfil).
  * - matchPasswordsValidator: asegura que dos controles de un FormGroup coincidan (p. ej., password/repeatPassword)
  * - minAgeValidator: valida una edad mínima a partir de una fecha de nacimiento
+ * - maxAgeValidator: valida que una fecha no sea anterior al año mínimo permitido
  * - passwordPolicyValidator (opcional): política de ejemplo que exige longitud, mayúscula (no en primera posición), carácter especial y número
  * - PasswordValidators: clase con validadores específicos para contraseñas
  */
 import { AbstractControl, ValidationErrors, ValidatorFn, FormGroup } from '@angular/forms';
+
+/** Año mínimo permitido para fechas de nacimiento */
+export const MIN_BIRTH_YEAR = 1900;
 
 /** Asegura que dos controles del mismo grupo tengan valores idénticos. */
 export function matchPasswordsValidator(aKey: string, bKey: string): ValidatorFn {
@@ -28,6 +32,20 @@ export function minAgeValidator(minYears: number): ValidatorFn {
     if (dob > now) return { futureDate: true };
     const age = now.getFullYear() - dob.getFullYear() - (now < new Date(now.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
     return age < minYears ? { minAge: { required: minYears, actual: age } } : null;
+  };
+}
+
+/** Valida que una fecha no sea anterior al año mínimo permitido (ej: 1900). */
+export function maxAgeValidator(minYear: number = MIN_BIRTH_YEAR): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const v = control.value as string | Date | null;
+    if (!v) return null;
+    const dob = new Date(v);
+    if (isNaN(dob.getTime())) return { invalidDate: true };
+    if (dob.getFullYear() < minYear) {
+      return { maxAge: true };
+    }
+    return null;
   };
 }
 

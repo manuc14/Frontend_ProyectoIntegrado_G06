@@ -102,6 +102,7 @@ export class ApiService {
   private http = inject(HttpClient);
   // URL base configurada según el entorno (development/production)
   private base = environment.baseApiUrl;
+  private resourceBase = environment.baseResourceUrl;
 
   /**
    * Maneja errores HTTP y devuelve mensajes amigables para el usuario.
@@ -193,17 +194,17 @@ export class ApiService {
    * Si falla, propaga el error para que el componente pueda manejarlo.
    */
   getAvatars(): Observable<AvatarsResponseDto> {
-    return this.http.get<AvatarsResponseDto>(`${this.base}/auth/avatars`).pipe(
+    return this.http.get<AvatarsResponseDto>(`${this.resourceBase}/avatars`).pipe(
       catchError(this.handleError('carga de avatares', 'No se pudieron cargar los avatares disponibles'))
     );
   }
 
   /** 
    * Construye la URL completa para un avatar dado su ruta relativa.
-   * El backend ya devuelve URLs completas como '/resources/avatars/avatar1.png'.
+   * El proxy redirige /resources/* al backend automáticamente.
    */
   getFullAvatarUrl(relativePath: string): string {
-    return `${relativePath}`;
+    return relativePath;
   }
 
   /** 
@@ -231,9 +232,6 @@ export class ApiService {
    */
   resetPasswordWithToken(token: string, newPassword: string, repetirPassword: string): Observable<ResetPasswordResponse> {
     return this.http.post<ResetPasswordResponse>(`${this.base}/auth/reset-password?token=${token}`, { newPassword, repetirPassword })
-      .pipe(
-        catchError(this.handleError('restablecimiento de contraseña', 'No se pudo actualizar la contraseña'))
-      );
   }
 
   /** 

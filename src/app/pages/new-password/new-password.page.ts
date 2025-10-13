@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
-import { PasswordValidators } from '../../core/validators/password.validators';
+import { PasswordValidators } from '../../core/validators/form.validators';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
 @Component({
@@ -106,7 +106,16 @@ export class NewPasswordPage implements OnInit {
           }, 2000);
         },
         error: (error: any) => {
-          this.errorMessage = error.message || 'Error al actualizar la contraseña';
+          // Extraer mensajes específicos de los details, ignorar el mensaje general
+          const details = error.error?.details;
+          const detailMessages = Array.isArray(details) 
+            ? details.map((detail: any) => detail.message).filter(Boolean)
+            : [];
+          
+          this.errorMessage = detailMessages.length > 0 
+            ? detailMessages.join('. ')
+            : (error.message || 'Error al actualizar la contraseña');
+            
           this.isLoading = false;
           this.buttonState = 'normal';
           this.triggerShakeError();

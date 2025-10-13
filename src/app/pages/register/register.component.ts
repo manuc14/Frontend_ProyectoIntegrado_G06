@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
@@ -8,7 +8,7 @@ import { ApiService } from '../../core/services/api.service';
 import { VipPromoModalComponent } from '../../shared/vip-promo-modal/vip-promo-modal.component';
 import { HttpResponse } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
-import { matchPasswordsValidator, minAgeValidator, passwordPolicyValidator } from '../../core/validators/password.validators';
+import { matchPasswordsValidator, minAgeValidator, maxAgeValidator, passwordPolicyValidator, MIN_BIRTH_YEAR } from '../../core/validators/form.validators';
 import { applyBackendDetails, clearBackendErrors } from '../../core/utils/error-mapper';
 import { FORM_LIMITS } from '../../core/constants/form-limits';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
@@ -50,6 +50,7 @@ export class RegisterComponent {
   readonly maxNombre = FORM_LIMITS.nombreMax; // usado en template
   readonly maxApellidos = FORM_LIMITS.apellidosMax; // usado en template
   readonly maxEmail = FORM_LIMITS.emailMax; // usado en template
+  readonly MIN_BIRTH_YEAR = MIN_BIRTH_YEAR; // usado en template
   
   // Avatares del backend
   avatars: string[] = [];
@@ -63,13 +64,18 @@ export class RegisterComponent {
   loading = false;
   bannerKind: 'success' | 'error' | null = null;
   bannerText = '';
-  // VIP promo modal state
+  // VIP promo modal estado
   showVipPromo = false;
   promptedVipOnce = false;
-  // Animation states
+  // Animation estados
   shakeForm = false;
   buttonState = 'normal';
   focusedFields: {[key: string]: boolean} = {};
+  // Tooltip estado
+  showPasswordTooltip = false;
+  // Password visibilidad estados
+  showPassword = false;
+  showRepeatPassword = false;
 
   constructor(private fb: FormBuilder, private api: ApiService, private router: Router) {
     this.form = this.fb.nonNullable.group({
@@ -77,7 +83,7 @@ export class RegisterComponent {
       apellidos: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(FORM_LIMITS.apellidosMax)]),
       email: this.fb.nonNullable.control('', [Validators.required, Validators.email, Validators.maxLength(FORM_LIMITS.emailMax)]),
       alias: this.fb.nonNullable.control('', [Validators.maxLength(FORM_LIMITS.aliasMax)]),
-      fechaNacimiento: this.fb.nonNullable.control('', [Validators.required, minAgeValidator(FORM_LIMITS.minAgeYears)]),
+      fechaNacimiento: this.fb.nonNullable.control('', [Validators.required, minAgeValidator(FORM_LIMITS.minAgeYears), maxAgeValidator(MIN_BIRTH_YEAR)]),
       password: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(FORM_LIMITS.passwordMin), Validators.maxLength(FORM_LIMITS.passwordMax), passwordPolicyValidator()]),
       repeatPassword: this.fb.nonNullable.control('', [Validators.required]),
       vip: this.fb.nonNullable.control<boolean>(false),
@@ -204,10 +210,6 @@ export class RegisterComponent {
       activo: false,
     };
 
-    console.log('📸 Avatar seleccionado:', v.fotoElegida);
-    console.log('📁 Nombre de archivo extraído:', fotoNombre);
-    console.log('📤 Payload enviado al backend:', payload);
-
     this.bannerKind = null;
     this.bannerText = '';
     this.loading = true;
@@ -308,5 +310,47 @@ export class RegisterComponent {
    */
   getInputFocusState(field: string): string {
     return this.focusedFields[field] ? 'focused' : 'normal';
+  }
+
+  /**
+   * Alterna la visibilidad del tooltip de contraseña
+   */
+  togglePasswordTooltip(): void {
+    this.showPasswordTooltip = !this.showPasswordTooltip;
+  }
+
+  /**
+   * Alterna la visibilidad de la contraseña
+   */
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  /**
+   * Alterna la visibilidad de repetir contraseña
+   */
+  toggleRepeatPasswordVisibility(): void {
+    this.showRepeatPassword = !this.showRepeatPassword;
+  }
+
+  /**
+   * Cierra el tooltip de contraseña
+   */
+  closePasswordTooltip(): void {
+    this.showPasswordTooltip = false;
+  }
+
+  /**
+   * Cierra el tooltip cuando se hace click fuera de él
+   */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const helpButton = target.closest('.help');
+    
+    // Si el click no fue en el botón de ayuda o en el tooltip, cerrar el tooltip
+    if (!helpButton && this.showPasswordTooltip) {
+      this.showPasswordTooltip = false;
+    }
   }
 }
