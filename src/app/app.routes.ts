@@ -15,7 +15,6 @@ import { ContentPage } from './pages/content/content.page';
 import { CatalogPage } from './pages/catalog/catalog.page';
 import { VerifyEmailPage } from './pages/verify-email/verify-email.page';
 import { VerifyCodePage } from './pages/verify-code/verify-code.page';
-import { VerifiedEmailPage } from './pages/verified-email/verified-email.page';
 import { ForgotPasswordPage } from './pages/forgot-password/forgot-password.page';
 import { ResetPasswordCodePage } from './pages/reset-password-code/reset-password-code.page';
 import { NewPasswordPage } from './pages/new-password/new-password.page';

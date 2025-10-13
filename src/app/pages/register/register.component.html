@@ -1,7 +1,7 @@
 <app-header />
 
 <main class="register-page" [@fadeIn]>
-  <h1>Crear tu cuenta</h1>
+  <h1 class="page-title">Crear tu cuenta</h1>
   <p class="hint">Los campos con * son obligatorios.</p>
 
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card" [@shakeError]="shakeForm ? 'shake' : ''">
@@ -50,16 +50,19 @@
                [@inputFocus]="getInputFocusState('fechaNacimiento')"
                (focus)="onFieldFocus('fechaNacimiento', true)"
                (blur)="onFieldFocus('fechaNacimiento', false)" />
-        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['required']">La fecha de nacimiento es obligatoria.</small>
+        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['required']">El formato de la fecha no es válido.</small>
         <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['futureDate']">La fecha no puede ser futura.</small>
         <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['minAge']">Debes tener al menos 4 años.</small>
+        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['maxAge']">Fecha no válida. Prueba a introducir a partir de {{ MIN_BIRTH_YEAR }}.</small>
       </label>
       <label class="with-help">
         <span>
           Contraseña *
-          <button type="button" class="help" aria-label="Requisitos de contraseña" tabindex="0">
+          <button type="button" class="help" aria-label="Requisitos de contraseña" 
+                  (click)="togglePasswordTooltip()" 
+                  [attr.aria-expanded]="showPasswordTooltip">
             ?
-            <div class="tooltip" role="tooltip">
+            <div class="tooltip" role="tooltip" *ngIf="showPasswordTooltip">
               <strong>Requisitos de contraseña</strong>
               <ul class="password-requirements">
                 <li>Mínimo 8 caracteres</li>
@@ -70,10 +73,18 @@
             </div>
           </button>
         </span>
-        <input type="password" formControlName="password" 
-               [@inputFocus]="getInputFocusState('password')"
-               (focus)="onFieldFocus('password', true)"
-               (blur)="onFieldFocus('password', false)" />
+        <div class="input-with-toggle">
+          <input [type]="showPassword ? 'text' : 'password'" formControlName="password" 
+                 [@inputFocus]="getInputFocusState('password')"
+                 (focus)="onFieldFocus('password', true)"
+                 (blur)="onFieldFocus('password', false)" />
+          <button type="button" class="password-toggle" 
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <img [src]="showPassword ? 'assets/icons/eye-off-svgrepo-com.svg' : 'assets/icons/eye-svgrepo-com.svg'" 
+                 [alt]="showPassword ? 'Ocultar' : 'Mostrar'" />
+          </button>
+        </div>
         <ng-container *ngIf="f['password'].touched as touched">
           <small class="field-error" *ngIf="touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
           <ng-container *ngIf="touched && (f['password'].errors?.['minlength'] || f['password'].errors?.['passwordPolicy']?.['minLengthPolicy']); else otherPolicy">
@@ -90,10 +101,18 @@
       </label>
       <label>
         <span>Repetir contraseña *</span>
-        <input type="password" formControlName="repeatPassword" 
-               [@inputFocus]="getInputFocusState('repeatPassword')"
-               (focus)="onFieldFocus('repeatPassword', true)"
-               (blur)="onFieldFocus('repeatPassword', false)" />
+        <div class="input-with-toggle">
+          <input [type]="showRepeatPassword ? 'text' : 'password'" formControlName="repeatPassword" 
+                 [@inputFocus]="getInputFocusState('repeatPassword')"
+                 (focus)="onFieldFocus('repeatPassword', true)"
+                 (blur)="onFieldFocus('repeatPassword', false)" />
+          <button type="button" class="password-toggle" 
+                  (click)="toggleRepeatPasswordVisibility()"
+                  [attr.aria-label]="showRepeatPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <img [src]="showRepeatPassword ? 'assets/icons/eye-off-svgrepo-com.svg' : 'assets/icons/eye-svgrepo-com.svg'" 
+                 [alt]="showRepeatPassword ? 'Ocultar' : 'Mostrar'" />
+          </button>
+        </div>
         <small class="field-error" *ngIf="form.touched && form.errors?.['mismatch']">Las contraseñas no coinciden.</small>
       </label>
       <fieldset class="span-2">
@@ -101,7 +120,7 @@
         <div class="segmented" role="radiogroup" aria-label="Elige plan">
           <label class="segment" [class.active]="(form.value.vip + '') === 'false'">
             <input type="radio" formControlName="vip" [value]="false" />
-            <span>Standard</span>
+            <span>Estándar</span>
           </label>
           <label class="segment" [class.active]="(form.value.vip + '') === 'true'">
             <input type="radio" formControlName="vip" [value]="true" />
@@ -135,7 +154,8 @@
                     [attr.aria-label]="'Seleccionar avatar ' + (i + 1)">
               <img [src]="getAvatarUrl(avatar)" 
                    [alt]="'Avatar ' + (i + 1)"
-                   loading="lazy" />
+                   loading="lazy"
+                   draggable="false" />
               <div class="check-mark" *ngIf="avatar === selectedAvatar">✓</div>
             </button>
           </div>
