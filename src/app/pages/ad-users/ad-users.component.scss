@@ -864,3 +864,53 @@
     display: none;
   }
 }
+
+// ========================================
+// ESTILOS ADICIONALES PARA DATOS DINÁMICOS
+// ========================================
+
+
+.u-1, .u-2, .u-3, .u-4, .u-5, .u-6, .u-7, .u-8, .u-9, .u-10,
+.u-11, .u-12, .u-13, .u-14, .u-15, .u-16, .u-17, .u-18, .u-19, .u-20 {
+  border-radius: 48px;
+  flex-shrink: 0;
+  @include icon-size(28px);
+  position: relative;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.text20,
+.text21,
+.text22,
+.text23,
+.text25,
+.text26,
+.text27,
+.text28,
+.text29,
+.text30,
+.text31,
+.text32,
+.text34,
+.text35,
+.text36,
+.text37,
+.text38,
+.text39,
+.text40,
+.text41 {
+  @include text-base(#1f2a3c, 14px, 500);
+  @include text-ellipsis;
+  min-width: 0;
+  @media (max-width: 1200px) {
+    font-size: 13px;
+  }
+}
+
+.svg6, .svg7, .svg8, .svg9, .svg10, .svg11, .svg12, .svg13, .svg14, .svg15,
+.svg16, .svg17, .svg18, .svg19, .svg20, .svg21, .svg22, .svg23, .svg24, .svg25 {
+  @include icon-size(18px);
+  position: relative;
+  flex-shrink: 0;
+}
