@@ -1,9 +1,10 @@
 import {Component, HostListener} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
+import { FilterPanelComponent, FilterGroup, AppliedFilters } from '../../shared/filter-panel/filter-panel.component';
 
 // Interfaz para los datos de usuario
 interface User {
@@ -21,7 +22,7 @@ interface User {
 @Component({
   selector: 'app-adusers',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent],
+  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterPanelComponent],
   templateUrl: './ad-users.component.html',
   styleUrl: './ad-users.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
@@ -29,6 +30,36 @@ interface User {
 export class AdminUsersPage {
   sidebarVisible = false;
   searchTerm = '';
+  showFilters = false;
+  appliedFilters: AppliedFilters = {};
+  
+  // Configuración de filtros para usuarios
+  filterGroups: FilterGroup[] = [
+    {
+      id: 'role',
+      label: 'Rol de usuario',
+      type: 'select',
+      placeholder: 'Seleccionar rol...',
+      options: [
+        { value: 'VIP', label: 'VIP', count: 2 },
+        { value: 'Estándar', label: 'Estándar', count: 3 }
+      ]
+    },
+    {
+      id: 'status',
+      label: 'Estado',
+      type: 'multiselect',
+      options: [
+        { value: 'activo', label: 'Activo', count: 4 },
+        { value: 'bloqueado', label: 'Bloqueado', count: 1 }
+      ]
+    },
+    {
+      id: 'birthYear',
+      label: 'Nacido después del año',
+      type: 'date'
+    }
+  ];
   
   // Datos de usuarios simulados
   allUsers: User[] = [
@@ -162,6 +193,68 @@ export class AdminUsersPage {
   onClearSearch(): void {
     this.searchTerm = '';
     this.filteredUsers = [...this.allUsers];
+  }
+
+  /**
+   * Abre el panel de filtros
+   */
+  openFilters(): void {
+    this.showFilters = true;
+  }
+
+  /**
+   * Maneja los cambios en los filtros aplicados
+   */
+  onFiltersChanged(appliedFilters: AppliedFilters): void {
+    this.appliedFilters = appliedFilters;
+    this.applyFiltersToData();
+  }
+
+  /**
+   * Maneja el reset de filtros
+   */
+  onFiltersReset(): void {
+    this.appliedFilters = {};
+    this.filteredUsers = [...this.allUsers];
+    this.performSearch(); // Reaplica la búsqueda si hay término
+  }
+
+  /**
+   * Aplica los filtros a los datos
+   */
+  private applyFiltersToData(): void {
+    let data = [...this.allUsers];
+
+    // Aplicar filtro de rol
+    if (this.appliedFilters['role']) {
+      const role = this.appliedFilters['role'] as string;
+      data = data.filter(user => user.role === role);
+    }
+
+    // Aplicar filtro de estado (puede ser string o array para multiselect)
+    if (this.appliedFilters['status']) {
+      const status = this.appliedFilters['status'];
+      if (Array.isArray(status)) {
+        // Multiselect: incluir usuarios que tengan cualquiera de los estados seleccionados
+        data = data.filter(user => status.includes(user.status));
+      } else {
+        // Select simple
+        data = data.filter(user => user.status === status);
+      }
+    }
+
+    // Aplicar filtro de año de nacimiento
+    if (this.appliedFilters['birthYear']) {
+      const year = parseInt(this.appliedFilters['birthYear'] as string);
+      data = data.filter(user => {
+        // Parsear fecha de nacimiento (formato DD/MM/YYYY)
+        const [, , userYear] = user.birthDate.split('/').map(Number);
+        return userYear >= year;
+      });
+    }
+
+    this.filteredUsers = data;
+    this.performSearch(); // Reaplica la búsqueda si hay término
   }
 
   /**

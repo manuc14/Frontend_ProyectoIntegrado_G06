@@ -112,6 +112,7 @@
               type="button"
               class="container10" 
               [@buttonHover]
+              (click)="openFilters()"
               [attr.aria-label]="'Filtrar usuarios'">
               <div class="iconify-icon2">
                 <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
@@ -239,4 +240,13 @@
       </div>
     </div>
   </div>
+
+  <!-- FilterPanel Component -->
+  <app-filter-panel
+    [isVisible]="showFilters"
+    [filterGroups]="filterGroups"
+    (close)="showFilters = false"
+    (filtersChanged)="onFiltersChanged($event)"
+    (filtersReset)="onFiltersReset()">
+  </app-filter-panel>
 </div>

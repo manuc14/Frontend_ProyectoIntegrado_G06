@@ -1,0 +1,161 @@
+<!-- Overlay del panel de filtros -->
+<div 
+  class="filter-overlay" 
+  [class.visible]="isVisible"
+  (click)="onOverlayClick($event)"
+  (keydown)="onKeyDown($event)"
+  [attr.aria-hidden]="!isVisible"
+  *ngIf="isVisible">
+  
+  <!-- Panel de filtros -->
+  <section 
+    class="filter-panel" 
+    (click)="$event.stopPropagation()" 
+    (keydown)="$event.stopPropagation()"
+    aria-labelledby="filter-panel-title">
+    
+    <!-- Header del panel -->
+    <div class="filter-header">
+      <div class="filter-title">
+        <h3 id="filter-panel-title">{{ title }}</h3>
+        <span class="active-count" *ngIf="getActiveFiltersCount() > 0">
+          {{ getActiveFiltersCount() }} filtro{{ getActiveFiltersCount() > 1 ? 's' : '' }} activo{{ getActiveFiltersCount() > 1 ? 's' : '' }}
+        </span>
+      </div>
+      
+      <button 
+        type="button" 
+        class="close-btn"
+        (click)="closePanel()"
+        [attr.aria-label]="'Cerrar panel de filtros'">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Contenido de filtros -->
+    <div class="filter-content">
+      <div class="filter-groups">
+        
+        <!-- Grupo de filtros -->
+        <div 
+          *ngFor="let group of filterGroups" 
+          class="filter-group"
+          [class.active]="isFilterActive(group.id)">
+          
+          <span class="filter-group-label">{{ group.label }}</span>
+          
+          <!-- Filtro Select Simple -->
+          <div *ngIf="group.type === 'select'" class="filter-control">
+            <select 
+              [value]="getFilterValue(group.id)"
+              (change)="onSelectChange(group.id, $event)"
+              class="filter-select">
+              <option value="">{{ group.placeholder || 'Seleccionar...' }}</option>
+              <option 
+                *ngFor="let option of group.options" 
+                [value]="option.value">
+                {{ option.label }}
+                <span *ngIf="option.count" class="option-count">({{ option.count }})</span>
+              </option>
+            </select>
+          </div>
+
+          <!-- Filtro MultiSelect -->
+          <div *ngIf="group.type === 'multiselect'" class="filter-control">
+            <div class="multiselect-options">
+              <label 
+                *ngFor="let option of group.options" 
+                class="checkbox-option">
+                <input 
+                  type="checkbox"
+                  [checked]="isOptionSelected(group.id, option.value)"
+                  (change)="onCheckboxChange(group.id, option.value, $event)">
+                <span class="checkbox-label">
+                  {{ option.label }}
+                  <span *ngIf="option.count" class="option-count">({{ option.count }})</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Filtro Toggle -->
+          <div *ngIf="group.type === 'toggle'" class="filter-control">
+            <input 
+              type="checkbox"
+              [id]="'toggle-' + group.id"
+              [checked]="getFilterValue(group.id)"
+              (change)="onToggleChange(group.id, $event)"
+              class="toggle-input">
+            <label class="toggle-option" [attr.for]="'toggle-' + group.id">
+              <span class="toggle-slider"></span>
+              <span class="sr-only">{{ group.label }}</span>
+            </label>
+          </div>
+
+          <!-- Filtro de Fecha -->
+          <div *ngIf="group.type === 'date'" class="filter-control">
+            <input 
+              type="date"
+              [value]="getFilterValue(group.id)"
+              (change)="onDateChange(group.id, $event)"
+              class="filter-date">
+          </div>
+
+          <!-- Filtro de Rango -->
+          <div *ngIf="group.type === 'range'" class="filter-control">
+            <div class="range-inputs">
+              <input 
+                type="number"
+                [placeholder]="'Mín: ' + (group.min || '0')"
+                [value]="getFilterValue(group.id)?.min"
+                (change)="onRangeMinChange(group.id, $event)"
+                class="filter-range-input">
+              <span class="range-separator">-</span>
+              <input 
+                type="number"
+                [placeholder]="'Máx: ' + (group.max || '∞')"
+                [value]="getFilterValue(group.id)?.max"
+                (change)="onRangeMaxChange(group.id, $event)"
+                class="filter-range-input">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer del panel -->
+    <div class="filter-footer">
+      <button 
+        type="button" 
+        class="reset-btn"
+        (click)="resetFilters()"
+        [disabled]="getActiveFiltersCount() === 0">
+        Limpiar filtros
+      </button>
+      
+      <div class="action-buttons">
+        <button 
+          type="button" 
+          class="cancel-btn"
+          (click)="closePanel()">
+          Cancelar
+        </button>
+        
+        <button 
+          type="button" 
+          class="apply-btn"
+          (click)="applyFilters()"
+          [disabled]="!hasChanges">
+          Aplicar filtros
+          <span *ngIf="getActiveFiltersCount() > 0" class="apply-count">
+            ({{ getActiveFiltersCount() }})
+          </span>
+        </button>
+      </div>
+    </div>
+
+  </section>
+</div>
