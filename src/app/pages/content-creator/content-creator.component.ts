@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FooterComponent } from '../../shared/footer/footer.component';
 import { Router } from '@angular/router';
 
 interface ContentList {
@@ -19,7 +20,7 @@ interface RecentEdit {
 @Component({
   selector: 'app-content-creator',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,FooterComponent],
   templateUrl: './content-creator.component.html',
   styleUrls: ['./content-creator.component.scss']
 })
@@ -61,6 +62,13 @@ export class ContentCreatorComponent implements OnInit {
    */
   navigateToUpload(): void {
     this.router.navigate(['/upload-content']);
+  }
+
+  /**
+   * Navega a la página de inicio
+   */
+  navigateToHome(): void {
+    this.router.navigate(['/']);
   }
 
   /**

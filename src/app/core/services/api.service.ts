@@ -238,4 +238,26 @@ export class ApiService {
         catchError(this.handleError('reenvío de código', 'No se pudo reenviar el código. Intenta más tarde'))
       );
   }
+
+  /**
+   * Sube un archivo de audio al backend y devuelve la URL del archivo subido.
+   * Utiliza multipart/form-data para enviar el archivo.
+   */
+  uploadAudioFile(file: File) {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    return this.http.post<{url: string}>(`${this.base}/uploads/audio`, fd).pipe(
+      catchError(this.handleError('subida de archivo de audio', 'No se pudo subir el archivo de audio'))
+    );
+  }
+
+  /**
+   * Crea un nuevo contenido en el backend.
+   * Espera un objeto con los campos del formulario y devuelve la respuesta del servidor.
+   */
+  createContent(body: any) {
+    return this.http.post<{message?: string, id?: string}>(`${this.base}/contenidos`, body).pipe(
+      catchError(this.handleError('crear contenido', 'No se pudo crear el contenido'))
+    );
+  }
 }
