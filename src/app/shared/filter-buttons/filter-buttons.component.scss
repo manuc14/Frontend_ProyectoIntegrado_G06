@@ -1,0 +1,175 @@
+/* ====================================================================
+   FILTER BUTTONS COMPONENT STYLES - AGRUPADOS
+   ==================================================================== */
+
+.filter-buttons-container {
+  display: flex;
+  align-items: flex-end; /* Cambiado de flex-start a flex-end para alinear todo por abajo */
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-groups {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+/* Cada grupo de filtros - SIN RECUADRO, solo título */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  /* Sin fondo ni bordes - más limpio */
+  padding: 0;
+}
+
+/* Etiqueta del grupo */
+.group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+/* Contenedor de botones del grupo */
+.group-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Botones de filtro - MÁS REDONDEADOS */
+.filter-btn {
+  padding: 0.5rem 1.25rem;
+  border: 2px solid var(--primary);
+  background-color: transparent;
+  color: var(--primary);
+  border-radius: 20px; /* Más redondeado */
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  
+  &:hover {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+  }
+  
+  &.active {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Estilo especial para grupos mutuamente exclusivos - conexión visual sutil */
+.mutually-exclusive {
+  .filter-btn {
+    /* Conexión visual más sutil para mostrar exclusividad */
+    &:not(:last-child) {
+      margin-right: -1px;
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+    
+    &:not(:first-child) {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+    
+    &:first-child:last-child {
+      border-radius: 20px; /* Si solo hay uno, mantener redondeado completo */
+    }
+  }
+}
+
+/* Botón limpiar filtros - alineado con los botones */
+.clear-filters-btn {
+  padding: 0.5rem 1.25rem;
+  border: 2px solid #ef4444;
+  background-color: transparent;
+  color: #ef4444;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: fit-content;
+  /* margin-top removido - ahora se alinea automáticamente con flex-end */
+  
+  &:hover {
+    background-color: #ef4444;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filter-buttons-container {
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-groups {
+    gap: 1rem;
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    padding: 0; /* Sin padding en móvil también */
+    gap: 0.375rem;
+  }
+  
+  .group-buttons {
+    gap: 0.375rem;
+  }
+  
+  .filter-btn,
+  .clear-filters-btn {
+    padding: 0.375rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .clear-filters-btn {
+    align-self: stretch;
+    margin-top: 0.5rem;
+  }
+  
+  /* En móvil, mantener todos los botones redondeados */
+  .mutually-exclusive .filter-btn {
+    border-radius: 16px !important;
+    margin-right: 0;
+  }
+}

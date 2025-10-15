@@ -1,0 +1,40 @@
+<div class="search-container">
+  <!-- Wrapper del input de búsqueda -->
+  <div class="search-input-wrapper">
+    <!-- Icono de búsqueda -->
+    <div class="search-icon">
+      <img 
+        src="assets/admin/buscar.svg" 
+        alt="icono buscar" 
+        height="18" 
+        width="18"/>
+    </div>
+    
+    <!-- Input de búsqueda -->
+    <input 
+      [(ngModel)]="searchTerm"
+      (input)="onSearch()"
+      (blur)="onBlur()"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [attr.aria-label]="ariaLabel"
+      class="search-input"
+      type="text"
+      autocomplete="off"/>
+    
+    <!-- Botón para limpiar búsqueda (solo visible cuando hay texto) -->
+    <button 
+      *ngIf="searchTerm.length > 0"
+      type="button"
+      class="clear-search-icon"
+      (click)="onClearSearch()"
+      [attr.aria-label]="'Limpiar búsqueda'">
+      <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  
+  <!-- Slot para contenido adicional (como botón de filtros) -->
+  <ng-content select="[slot=actions]"></ng-content>
+</div>

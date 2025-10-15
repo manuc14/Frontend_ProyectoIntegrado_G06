@@ -97,8 +97,8 @@ export class LoginComponent {
           const tipo = res.user?.tipo || '';
           // Mapeo de tipos del backend a rutas de la app
           let target: string = '/catalog';
-          if (/admin/i.test(tipo)) target = '/admin';
-          else if (/content|editor|gest/i.test(tipo)) target = '/content';
+          if (/admin/i.test(tipo)) target = '/admin-home';
+          else if (/creador/i.test(tipo)) target = '/content';
 
           // Agregar token a la URL como parámetro de consulta
           const navigationExtras = {
@@ -113,8 +113,8 @@ export class LoginComponent {
         error: (err: any) => {
           console.error('Login error', err);
           this.bannerKind = 'error';
-          // El error interceptor ya maneja los mensajes amigables
-          this.bannerText = err || 'No se pudo completar el inicio de sesión';
+          // Extraer solo el mensaje sin el prefijo "Error: "
+          this.bannerText = err?.message || 'No se pudo completar el inicio de sesión';
           this.triggerShakeError();
         }
       });

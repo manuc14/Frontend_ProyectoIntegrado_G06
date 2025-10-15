@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
-import { PasswordValidators } from '../../core/validators/password.validators';
+import { PasswordValidators } from '../../core/validators/form.validators';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
 @Component({
@@ -25,8 +25,7 @@ export class NewPasswordPage implements OnInit {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
-  email = '';
-  code = '';
+  token = '';
   // Animation states
   shakeForm = false;
   buttonState = 'normal';
@@ -54,15 +53,35 @@ export class NewPasswordPage implements OnInit {
   }
 
   ngOnInit() {
-    // Obtener email y código de los query params
+    // Obtener token de los query params
     this.route.queryParams.subscribe(params => {
-      this.email = params['email'] || '';
-      this.code = params['code'] || '';
+      this.token = params['token'] || '';
       
-      if (!this.email || !this.code) {
-        // Si no hay email o código, redirigir al primer paso
+      if (!this.token) {
+        // Si no hay token, redirigir al primer paso
         this.router.navigate(['/forgot-password']);
+        return;
       }
+      
+      // Validar que el token sea válido y el código haya sido verificado
+      this.api.validateResetToken(this.token).subscribe({
+        next: (response) => {
+          if (!response.exists) {
+            // Token inválido o sesión no existe
+            this.router.navigate(['/forgot-password']);
+          } else if (!response.verified) {
+            // Token válido pero código no verificado, redirigir a verificación
+            this.router.navigate(['/reset-password-code'], { 
+              queryParams: { token: this.token } 
+            });
+          }
+          // Si exists=true y verified=true, permitir continuar
+        },
+        error: () => {
+          // Token inválido o error de servidor
+          this.router.navigate(['/forgot-password']);
+        }
+      });
     });
   }
 
@@ -76,20 +95,27 @@ export class NewPasswordPage implements OnInit {
       this.successMessage = '';
       this.buttonState = 'pressed';
 
-      const { password } = this.passwordForm.value;
+      const { password, confirmPassword } = this.passwordForm.value;
 
-      this.api.resetPassword(this.email, this.code, password).subscribe({
-        next: (response) => {
-          this.successMessage = 'Contraseña actualizada correctamente';
+      this.api.resetPasswordWithToken(this.token, password, confirmPassword).subscribe({
+        next: (response: any) => {
+          this.successMessage = response.message || 'Contraseña actualizada correctamente';
           // Redirigir al login después de 2 segundos
           setTimeout(() => {
-            this.router.navigate(['/login'], { 
-              queryParams: { message: 'password-reset-success' } 
-            });
+            this.router.navigate(['/login']);
           }, 2000);
         },
         error: (error: any) => {
-          this.errorMessage = error.message || 'Error al actualizar la contraseña';
+          // Extraer mensajes específicos de los details, ignorar el mensaje general
+          const details = error.error?.details;
+          const detailMessages = Array.isArray(details) 
+            ? details.map((detail: any) => detail.message).filter(Boolean)
+            : [];
+          
+          this.errorMessage = detailMessages.length > 0 
+            ? detailMessages.join('. ')
+            : (error.message || 'Error al actualizar la contraseña');
+            
           this.isLoading = false;
           this.buttonState = 'normal';
           this.triggerShakeError();
@@ -145,7 +171,7 @@ export class NewPasswordPage implements OnInit {
    */
   goBack() {
     this.router.navigate(['/reset-password-code'], {
-      queryParams: { email: this.email }
+      queryParams: { token: this.token }
     });
   }
 

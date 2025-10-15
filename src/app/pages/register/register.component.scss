@@ -15,11 +15,6 @@
     min-height: 100vh;
 }
 
-.register-page h1 {
-    margin: 0 0 8px 0;
-    color: var(--foreground);
-}
-
 .hint {
     color: var(--muted-foreground);
     margin: 0 0 16px 0;
@@ -34,7 +29,7 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
 }
 
 /* --------------------------------------------------------------------------
@@ -81,8 +76,8 @@ input[type="email"]:focus,
 input[type="password"]:focus,
 input[type="date"]:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px var(--ring);
     background: var(--card);
 }
 
@@ -100,6 +95,56 @@ input[type="date"]:not(:focus):not(:hover) {
     border-color: var(--border);
     box-shadow: none;
     background: var(--card);
+}
+
+/* --------------------------------------------------------------------------
+   INPUTS CON TOGGLE DE VISIBILIDAD (MOSTRAR/OCULTAR CONTRASEÑA)
+   -------------------------------------------------------------------------- */
+
+.input-with-toggle {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-toggle input {
+    width: 100%;
+    padding-right: 50px; /* Espacio para el botón */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.password-toggle:hover {
+    background-color: var(--muted);
+}
+
+.password-toggle:focus {
+    outline: none;
+    background-color: var(--muted);
+}
+
+.password-toggle img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.password-toggle:hover img,
+.password-toggle:focus img {
+    opacity: 1;
 }
 
 /* Estilo de conjuntos de campos */
@@ -136,14 +181,13 @@ fieldset:has(.segmented) legend {
 
 /* Validación de formularios */
 input.ng-invalid.ng-touched {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
-    background: rgba(239, 68, 68, 0.05);
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 2px var(--destructive);
 }
 
 input.ng-invalid.ng-touched:focus {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.35);
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 2px var(--destructive);
 }
 
 /* --------------------------------------------------------------------------
@@ -161,7 +205,7 @@ label.with-help > span {
 }
 
 label.with-help .help {
-    margin-left: auto;
+    margin-left: 8px;
     align-self: flex-start;
     background: var(--muted);
     color: var(--muted-foreground);
@@ -186,7 +230,6 @@ label.with-help .help:hover {
 }
 
 label.with-help .help .tooltip {
-    display: none;
     position: absolute;
     top: 28px;
     right: 0;
@@ -198,12 +241,7 @@ label.with-help .help .tooltip {
     color: var(--foreground);
     border-radius: 12px;
     padding: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-label.with-help .help:focus .tooltip, 
-label.with-help .help:hover .tooltip {
-    display: block;
+    box-shadow: var(--shadow);
 }
 
 label.with-help .help .tooltip strong {
@@ -280,7 +318,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 .segment.active {
     background: var(--primary);
     color: var(--primary-foreground);
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    box-shadow: var(--shadow-sm);
     transform: translateY(0);
 }
 
@@ -309,7 +347,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     align-items: center;
     gap: 12px;
     padding: 16px;
-    color: #7ea2ad;
+    color: var(--muted-foreground);
     justify-content: center;
 }
 
@@ -318,10 +356,10 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     align-items: flex-start;
     gap: 12px;
     padding: 16px;
-    background: rgba(255, 171, 76, 0.1);
-    border: 1px solid rgba(255, 171, 76, 0.3);
+    background: var(--muted);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    color: #ffab4c;
+    color: var(--muted-foreground);
 }
 
 .error-icon {
@@ -335,12 +373,12 @@ label.with-help .help .tooltip ul.password-requirements li::before {
     strong {
         display: block;
         margin-bottom: 4px;
-        color: #ffab4c;
+        color: var(--muted-foreground);
     }
     
     p {
         margin: 0;
-        color: #d4a574;
+        color: var(--muted-foreground);
         font-size: 14px;
         line-height: 1.4;
     }
@@ -349,69 +387,109 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 .spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid #17303a;
-    border-top: 2px solid #00e0a1;
+    border: 2px solid var(--muted);
+    border-top: 2px solid var(--success);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
 .avatar-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 20px;
     max-width: 100%;
+    padding: 12px;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .avatar-option {
     position: relative;
     background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    padding: 8px;
+    border: 3px solid var(--border);
+    border-radius: 50%; /* Completamente circular */
+    padding: 2px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden; /* Para mantener imagen dentro del círculo */
     
     &:hover {
         border-color: var(--primary);
         background: var(--secondary);
-        transform: translateY(-2px);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: var(--shadow-sm);
     }
     
     &.selected {
         border-color: var(--primary);
         background: var(--secondary);
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent);
+        box-shadow: 0 0 0 2px var(--ring),
+                    var(--shadow);
+        transform: scale(1.05);
     }
     
     img {
-        width: 100%;
-        height: 100%;
+        width: 170%;
+        height: 170%;
         object-fit: cover;
-        border-radius: 8px;
-        max-width: 64px;
-        max-height: 64px;
+        border-radius: 50%; /* Imagen también circular */
+        max-width: 175px;
+        max-height: 175px;
+        transition: transform 0.3s ease;
+    }
+    
+    &:hover img {
+        transform: scale(1.1);
     }
 }
 
 .check-mark {
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: -6px;
+    right: -6px;
     background: var(--primary);
     color: var(--primary-foreground);
+    border: 2px solid var(--card);
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
     font-weight: bold;
-    border: 2px solid var(--card);
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+    animation: checkmarkBounce 0.3s ease-out;
+}
+
+@keyframes checkmarkBounce {
+    0% {
+        transform: scale(0) rotate(180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(90deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
 }
 
 @keyframes spin {
@@ -423,15 +501,49 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 @media (max-width: 640px) {
     .avatar-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
+        gap: 16px;
+        padding: 8px;
     }
     
     .avatar-option {
-        padding: 6px;
+        padding: 2px;
+        border-width: 2px;
         
         img {
-            max-width: 48px;
-            max-height: 48px;
+            max-width: 72px;
+            max-height: 72px;
+        }
+        
+        &:hover {
+            transform: translateY(-1px) scale(1.03);
+        }
+        
+        &.selected {
+            transform: scale(1.03);
+            box-shadow: 0 0 0 2px var(--ring),
+                        var(--shadow-sm);
+        }
+    }
+    
+    .check-mark {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        top: -4px;
+        right: -4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .avatar-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .avatar-option {
+        img {
+            max-width: 84px;
+            max-height: 84px;
         }
     }
 }
@@ -446,7 +558,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 }
 
 .field-error {
-    color: #ef4444;
+    color: var(--destructive-foreground);
     font-size: 14px;
     margin-top: 4px;
     display: flex;
@@ -461,7 +573,7 @@ label.with-help .help .tooltip ul.password-requirements li::before {
 
 .errors {
     margin-top: 12px;
-    color: #ef4444;
+    color: var(--destructive-foreground);
     display: flex;
     flex-direction: column;
     gap: 4px;

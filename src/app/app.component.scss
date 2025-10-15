@@ -1,0 +1,53 @@
+/* ==========================================================================
+   APP COMPONENT STYLES - ESTILOS ESPECÍFICOS DEL COMPONENTE RAÍZ
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   LAYOUT GENERAL DE LA APLICACIÓN
+   -------------------------------------------------------------------------- */
+
+/* Compensar el espacio del header fijo + logo grande arriba SOLO en home */
+:host-context(body.home-page) {
+    padding-top: 160px; /* Ajustado para logo a -30px */
+}
+
+/* En otras páginas, sin padding extra */
+:host-context(body.other-page) {
+    padding-top: 0;
+}
+
+/* En móvil, ajustar según la página */
+@media (max-width: 768px) {
+    :host-context(body.home-page) {
+        padding-top: 72px;
+    }
+    
+    :host-context(body.other-page) {
+        padding-top: 0;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   ESTILOS ESPECÍFICOS DEL ROUTER-OUTLET
+   -------------------------------------------------------------------------- */
+
+router-outlet + * {
+    display: block;
+    width: 100%;
+}
+
+/* Animaciones de transición entre páginas */
+.page-transition {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

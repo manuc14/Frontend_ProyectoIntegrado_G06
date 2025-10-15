@@ -70,6 +70,28 @@ export interface LoginResponse {
 }
 
 /*
+ * Interfaces para el flujo de restablecimiento de contraseña
+ */
+export interface ForgotPasswordResponse {
+  message: string;
+  details: any;
+  resetToken: string;
+  validationErrorCount: number;
+}
+
+export interface VerifyResetTokenResponse {
+  message: string;
+  details: any;
+  validationErrorCount: number;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+  details: any;
+  validationErrorCount: number;
+}
+
+/*
  * ApiService
  * Servicio centralizado para todas las comunicaciones HTTP con el backend.
  * Gestiona autenticación, registro, contenido multimedia y avatares.
@@ -80,6 +102,7 @@ export class ApiService {
   private http = inject(HttpClient);
   // URL base configurada según el entorno (development/production)
   private base = environment.baseApiUrl;
+  private resourceBase = environment.baseResourceUrl;
 
   /**
    * Maneja errores HTTP y devuelve mensajes amigables para el usuario.
@@ -171,49 +194,54 @@ export class ApiService {
    * Si falla, propaga el error para que el componente pueda manejarlo.
    */
   getAvatars(): Observable<AvatarsResponseDto> {
-    return this.http.get<AvatarsResponseDto>(`${this.base}/auth/avatars`).pipe(
+    return this.http.get<AvatarsResponseDto>(`${this.resourceBase}/avatars`).pipe(
       catchError(this.handleError('carga de avatares', 'No se pudieron cargar los avatares disponibles'))
     );
   }
 
   /** 
    * Construye la URL completa para un avatar dado su ruta relativa.
-   * Combina la URL base del API con la ruta del avatar.
+   * El proxy redirige /resources/* al backend automáticamente.
    */
   getFullAvatarUrl(relativePath: string): string {
-    return `${this.base}${relativePath}`;
+    return relativePath;
   }
 
   /** 
    * Solicita el restablecimiento de contraseña enviando un código al email.
    * Primer paso del flujo de recuperación de contraseña.
    */
-  requestPasswordReset(email: string): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.base}/auth/forgot-password`, { email })
-      .pipe(
-        catchError(this.handleError('solicitud de restablecimiento', 'No se pudo enviar el código de restablecimiento'))
-      );
+  requestPasswordReset(email: string): Observable<ForgotPasswordResponse> {
+    return this.http.post<ForgotPasswordResponse>(`${this.base}/auth/forgot-password`, { email });
   }
 
   /** 
-   * Verifica el código de restablecimiento de contraseña.
+   * Verifica el código de restablecimiento usando el token.
    * Segundo paso del flujo de recuperación de contraseña.
    */
-  verifyResetCode(email: string, code: string): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.base}/auth/verify-reset-code`, { email, code })
+  verifyResetToken(token: string, code: string): Observable<VerifyResetTokenResponse> {
+    return this.http.post<VerifyResetTokenResponse>(`${this.base}/auth/verify-reset-code?token=${token}`, { code })
       .pipe(
         catchError(this.handleError('verificación de código', 'El código de verificación es incorrecto o ha expirado'))
       );
   }
 
   /** 
-   * Establece nueva contraseña usando el código verificado.
+   * Establece nueva contraseña usando el token verificado.
    * Tercer paso del flujo de recuperación de contraseña.
    */
-  resetPassword(email: string, code: string, newPassword: string): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.base}/auth/reset-password`, { email, code, newPassword })
+  resetPasswordWithToken(token: string, newPassword: string, repetirPassword: string): Observable<ResetPasswordResponse> {
+    return this.http.post<ResetPasswordResponse>(`${this.base}/auth/reset-password?token=${token}`, { newPassword, repetirPassword })
+  }
+
+  /** 
+   * Reenvía el código de restablecimiento usando el token actual.
+   * Permite reenviar el código sin generar un nuevo token.
+   */
+  resendResetCode(token: string): Observable<{message: string, details: any, validationErrorCount: number}> {
+    return this.http.post<{message: string, details: any, validationErrorCount: number}>(`${this.base}/auth/resend-reset-code?token=${token}`, {})
       .pipe(
-        catchError(this.handleError('restablecimiento de contraseña', 'No se pudo actualizar la contraseña'))
+        catchError(this.handleError('reenvío de código', 'No se pudo reenviar el código de verificación'))
       );
   }
 
@@ -260,4 +288,35 @@ export class ApiService {
       catchError(this.handleError('crear contenido', 'No se pudo crear el contenido'))
     );
   }
+  /** 
+   * Valida un token de reset de contraseña antes de mostrar la pantalla.
+   * Verifica si la sesión existe y si el código fue validado.
+   */
+  validateResetToken(token: string): Observable<ResetTokenValidationResponse> {
+    return this.http.get<ResetTokenValidationResponse>(`${this.base}/auth/validate-reset-token?token=${token}`);
+  }
+
+  /** 
+   * Valida un token de verificación de email antes de mostrar la pantalla.
+   * Verifica si la sesión existe y si el código fue validado.
+   */
+  validateVerificationToken(token: string): Observable<VerificationTokenValidationResponse> {
+    return this.http.get<VerificationTokenValidationResponse>(`${this.base}/auth/validate-verification-token?token=${token}`);
+  }
+}
+
+/*
+ * Interfaz para la respuesta de validación de token de reset
+ */
+export interface ResetTokenValidationResponse {
+  exists: boolean;
+  verified: boolean;
+}
+
+/*
+ * Interfaz para la respuesta de validación de token de verificación de email
+ */
+export interface VerificationTokenValidationResponse {
+  exists: boolean;
+  verified: boolean;
 }

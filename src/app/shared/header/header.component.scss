@@ -7,22 +7,16 @@
    -------------------------------------------------------------------------- */
 
 .background-horizontal-border {
-    background: var(--card);
-    border-style: solid;
-    border-color: var(--border);
-    border-width: 0 0 1px 0;
+    border: 0 0 1px 0 solid var(--border);
     padding: 12px 16px;
     display: flex;
-    flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    /* Position será controlado por clase condicional */
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    height: 72px; /* Altura fija del header */
-    /* Desvanecido en la parte inferior */
+    height: 72px;
     background: linear-gradient(to bottom, var(--card) 0%, var(--card) 85%, rgba(255, 255, 255, 0.95) 100%);
     backdrop-filter: blur(8px);
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
@@ -36,7 +30,6 @@
 /* Header normal (no fijo) en otras páginas */
 .background-horizontal-border.normal-header {
     position: static;
-    /* Estilos más simples para header normal */
     background: var(--card);
     backdrop-filter: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -62,7 +55,7 @@
 .desktop-logo {
     position: absolute;
     left: 50%;
-    top: -30px; /* Un poco más abajo */
+    top: -40px; /* Se solape con el main de la página */
     transform: translateX(-50%);
     z-index: 15;
     opacity: 1;
@@ -116,45 +109,40 @@
 
 /* Logo gigante inicial en desktop arriba del header */
 .svg.logo-large { 
-    width: 250px; 
-    height: 250px;
+    width: 350px; 
+    height: 350px;
     filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.2));
-    transition: all 0.5s ease; /* Transición suave para el logo */
+    transition: all 0.5s ease;
 }
 
 /* Efecto cuando se oculta el logo grande */
 .desktop-logo.hidden .svg.logo-large {
     filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.1));
-    transform: scale(0.9); /* Pequeño efecto de escala */
+    transform: scale(0.9);
 }
 
-/* Logo pequeño para la izquierda */
-.svg.logo-small {
-    width: 32px;
-    height: 32px;
-    transition: all 0.3s ease;
-}
-
-/* Logo normal para móvil */
+/* Logos pequeños y normales */
+.svg.logo-small,
 .svg { 
     width: 32px; 
     height: 32px; 
+    transition: all 0.3s ease;
 }
 
-/* Texto del logo */
+/* Texto base del logo */
 .text { 
     color: var(--foreground); 
     font-family: "Inter-SemiBold", sans-serif; 
     font-size: 18px; 
     font-weight: 600;
-    transition: all 0.3s ease; /* Transición para el texto */
+    transition: all 0.3s ease;
 }
 
 /* Texto específico del logo pequeño con efecto de entrada */
 .desktop-logo-small .text {
     opacity: 0;
     transform: translateY(5px);
-    transition: opacity 0.4s ease 0.5s, transform 0.4s ease 0.5s; /* Delay adicional */
+    transition: opacity 0.4s ease 0.5s, transform 0.4s ease 0.5s;
 }
 
 .desktop-logo-small.visible .text,
@@ -167,7 +155,6 @@
    ESTILOS PARA ENLACES DEL LOGO
    -------------------------------------------------------------------------- */
 
-/* Enlace del logo - resetear estilos de enlace y mantener diseño */
 .logo-link {
     display: flex;
     align-items: center;
@@ -179,38 +166,20 @@
     &:hover {
         opacity: 0.8;
     }
-    
-    /* Asegurar que el enlace tome todo el espacio disponible */
-    .iconify-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .text {
-        color: var(--foreground);
-        font-family: "Inter-SemiBold", sans-serif;
-        font-size: 18px;
-        font-weight: 600;
-    }
 }
 
-/* Logo para móvil - siempre a la izquierda */
+/* Logo para móvil */
 .mobile-logo {
     display: none;
+    order: 1;
+    margin-right: auto;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .iconify-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.text { 
-    color: var(--foreground); 
-    font-family: "Inter-SemiBold", sans-serif; 
-    font-size: 18px; 
-    font-weight: 600; 
 }
 
 /* --------------------------------------------------------------------------
@@ -232,12 +201,17 @@
     order: 3;
 }
 
-.link3 { 
-    background: var(--secondary); 
+/* Base común para botones */
+.link3,
+.link4 { 
     border-radius: 12px; 
     padding: 12px 16px; 
     transition: all 0.2s ease;
     font-weight: 600;
+}
+
+.link3 { 
+    background: var(--secondary); 
 }
 
 .link3:hover {
@@ -247,13 +221,9 @@
 
 .link4 { 
     background: var(--primary); 
-    border-radius: 12px; 
-    padding: 12px 16px; 
     display: flex; 
     gap: 8px; 
     align-items: center; 
-    transition: all 0.2s ease;
-    font-weight: 600;
 }
 
 .link4:hover {
@@ -261,18 +231,20 @@
     transform: translateY(-1px);
 }
 
-.text6 { 
-    color: var(--secondary-foreground); 
+/* Base para texto de botones */
+.text6,
+.text7 { 
     font-family: "Inter-SemiBold", sans-serif; 
     font-size: 14px; 
     font-weight: 600; 
 }
 
+.text6 { 
+    color: var(--secondary-foreground); 
+}
+
 .text7 { 
     color: var(--primary-foreground); 
-    font-family: "Inter-SemiBold", sans-serif; 
-    font-size: 14px; 
-    font-weight: 600; 
 }
 
 /* --------------------------------------------------------------------------
@@ -369,14 +341,17 @@ a {
         background: linear-gradient(to bottom, var(--card) 0%, var(--card) 85%, rgba(255, 255, 255, 0.95) 100%);
     }
     
-    /* Ocultar logo de desktop y mostrar logo de móvil */
-    .desktop-logo {
+    /* Ocultar ambos logos de desktop */
+    .desktop-logo,
+    .desktop-logo-small {
         display: none !important;
     }
     
+    /* Mostrar solo el logo móvil a la izquierda */
     .mobile-logo { 
         display: flex;
-        order: 1; 
+        order: 1;
+        margin-right: auto;
     }
     
     .menu-btn { 
@@ -401,12 +376,12 @@ a {
         padding: 12px;
         margin-top: 8px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-    
-    .container2 a { 
-        display: block; 
-        width: 100%; 
-        text-align: center;
+        
+        a { 
+            display: block; 
+            width: 100%; 
+            text-align: center;
+        }
     }
     
     /* Mostrar menú cuando el toggle está activo */
@@ -435,74 +410,5 @@ a {
     
     .link3, .link4 { 
         padding: 10px 14px; 
-    }
-}
-
-/* --------------------------------------------------------------------------
-   DISEÑO RESPONSIVO
-   -------------------------------------------------------------------------- */
-
-/* Diseño para tablet y móvil */
-@media (max-width: 768px) {
-    .background-horizontal-border { 
-        flex-wrap: wrap; 
-        gap: 12px; 
-        padding: 10px 12px; 
-    }
-    
-    .container.brand { 
-        order: 1; 
-    }
-    
-    .menu-btn { 
-        display: flex; 
-        order: 2; 
-    }
-    
-    .container.actions { 
-        order: 3; 
-        margin-left: auto; 
-    }
-    
-    .container2 { 
-        order: 4; 
-        width: 100%; 
-        flex-direction: column; 
-        align-items: stretch; 
-        gap: 8px; 
-        display: none; 
-    }
-    
-    .container2 a { 
-        display: block; 
-        width: 100%; 
-    }
-    
-    /* Mostrar menú cuando el toggle está activo */
-    .nav-toggle:checked ~ .container2 { 
-        display: flex; 
-    }
-    
-    .only-mobile { 
-        display: block; 
-    }
-    
-    .only-desktop { 
-        display: none !important; 
-    }
-}
-
-/* Ajustes para móvil pequeño */
-@media (max-width: 480px) {
-    .text { 
-        font-size: 16px; 
-    }
-    
-    .text2, .text3, .text4, .text5, .text6, .text7 { 
-        font-size: 13px; 
-    }
-    
-    .link, .link2 { 
-        padding: 10px 12px; 
     }
 }
