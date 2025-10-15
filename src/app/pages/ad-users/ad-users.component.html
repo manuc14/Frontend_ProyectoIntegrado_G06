@@ -132,7 +132,7 @@
             <div class="container2"><div class="text13">Alias</div></div>
             <div class="container2"><div class="text14">Email</div></div>
             <div class="container2"><div class="text15">Fecha de<br />nacimiento</div></div>
-            <div class="container2"><div class="text16">Rol</div></div>
+            <div class="container2"><div class="text16">Tipo</div></div>
             <div class="container2"><div class="text17">Estado</div></div>
             <div class="container2"><div class="text18">Editar</div></div>
             <div class="container2"><div class="text19">Eliminar</div></div>
@@ -150,8 +150,8 @@
             </div>
 
             <!-- Lista dinámica de usuarios -->
-            <div 
-              *ngFor="let user of filteredUsers; let i = index; trackBy: trackByUserId" 
+            <div
+              *ngFor="let user of usuariosPaginados; let i = index; trackBy: trackByUserId"
               class="horizontal-border"
               [class.horizontal-border2]="i > 0">
               <div class="container13">
@@ -215,20 +215,30 @@
       <div class="margin2">
         <div class="container17">
           <div class="container18">
-            <div class="text42">
-              Mostrando {{ filteredUsers.length > 0 ? '1–' + filteredUsers.length : '0' }} 
-              de {{ filteredUsers.length }} 
-              {{ searchTerm ? '(filtrado de ' + allUsers.length + ' total)' : '' }}
-            </div>
+            <div class="text42">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container19">
-            <div class="border" [@buttonHover] [@buttonPress]>
+            <div 
+              class="border" 
+              [@buttonHover] 
+              [@buttonPress]
+              (click)="paginaAnterior()"
+              [style.opacity]="currentPage === 1 ? '0.5' : '1'"
+              [style.cursor]="currentPage === 1 ? 'not-allowed' : 'pointer'"
+              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'">
               <div class="iconify-icon3">
                 <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text43">Anterior</div>
             </div>
-            <div class="border2" [@buttonHover] [@buttonPress]>
+            <div 
+              class="border2" 
+              [@buttonHover] 
+              [@buttonPress]
+              (click)="paginaSiguiente()"
+              [style.opacity]="currentPage === totalPaginas ? '0.5' : '1'"
+              [style.cursor]="currentPage === totalPaginas ? 'not-allowed' : 'pointer'"
+              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'">
               <div class="text44">Siguiente</div>
               <div class="iconify-icon4">
                 <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18"

@@ -1,4 +1,4 @@
-import {Component, HostListener} from '@angular/core';
+import {Component, HostListener, OnInit, ViewChild, ElementRef, AfterViewInit} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -6,8 +6,9 @@ import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animati
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
+import { UserService, UserEV } from '../../core/services/user.service';
 
-// Interfaz para los datos de usuario
+// Interfaz temporal para compatibilidad (será reemplazada por UserEV)
 interface User {
   id: string;
   photo: string;
@@ -28,9 +29,15 @@ interface User {
   styleUrl: './ad-users.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
 })
-export class AdminUsersPage {
+export class AdminUsersPage implements OnInit, AfterViewInit {
+  @ViewChild('tableContainer') tableContainer!: ElementRef;
+
   sidebarVisible = false;
   searchTerm = '';
+  
+  // Estados para carga y errores (de la rama de tu compañero)
+  isLoading = true;
+  error: string | null = null;
   
   // Configuración de filtros como grupos
   filterGroups: FilterGroup[] = [
@@ -68,69 +75,150 @@ export class AdminUsersPage {
 
   selectedSort: SortOption | null = null;
   
-  // Datos de usuarios simulados
-  allUsers: User[] = [
-    {
-      id: '1',
-      photo: 'assets/admin/user1.png',
-      name: 'María',
-      lastName: 'López Sánchez',
-      alias: '@mlopez',
-      email: 'maria.lopez@esimedia.com',
-      birthDate: '12/03/1992',
-      role: 'VIP',
-      status: 'activo'
-    },
-    {
-      id: '2',
-      photo: 'assets/admin/user2.png',
-      name: 'Carlos',
-      lastName: 'Pérez Gómez',
-      alias: '@carlosp',
-      email: 'carlos.perez@esimedia.com',
-      birthDate: '28/11/1988',
-      role: 'Estándar',
-      status: 'bloqueado'
-    },
-    {
-      id: '3',
-      photo: 'assets/admin/user3.png',
-      name: 'Lucía',
-      lastName: 'Gómez Lozano',
-      alias: '@lgomez',
-      email: 'lucia.gomez@esimedia.com',
-      birthDate: '04/06/1995',
-      role: 'Estándar',
-      status: 'activo'
-    },
-    {
-      id: '4',
-      photo: 'assets/admin/user4.png',
-      name: 'Ana',
-      lastName: 'Martínez Ribera',
-      alias: '@amartinez',
-      email: 'ana.martinez@esimedia.com',
-      birthDate: '20/01/1990',
-      role: 'VIP',
-      status: 'activo'
-    },
-    {
-      id: '5',
-      photo: 'assets/admin/user5.png',
-      name: 'Diego',
-      lastName: 'Ramírez González',
-      alias: '@dramirez',
-      email: 'diego.ramirez@esimedia.com',
-      birthDate: '09/09/1987',
-      role: 'Estándar',
-      status: 'bloqueado'
+  // Arrays de datos - INTEGRACIÓN CON BD
+  usuarios: UserEV[] = []; // Datos originales de la BD
+  allUsers: User[] = []; // Datos transformados para compatibilidad
+  filteredUsers: User[] = []; // Lista filtrada/buscada/ordenada
+
+  // Para paginación dinámica (de la rama de tu compañero)
+  currentPage = 1;
+  pageSize = 5; // Valor inicial, se calculará dinámicamente
+  totalUsuarios = 0;
+
+  // Constantes para el cálculo (de la rama de tu compañero)
+  private readonly HEADER_HEIGHT = 64;
+  private readonly TITLE_SECTION_HEIGHT = 80;
+  private readonly SEARCH_SECTION_HEIGHT = 80;
+  private readonly TABLE_HEADER_HEIGHT = 45;
+  private readonly ROW_HEIGHT = 59;
+  private readonly PAGINATION_HEIGHT = 80;
+  private readonly PADDING = 48;
+
+  constructor(
+    private router: Router,
+    private userService: UserService
+  ) {}
+
+  ngOnInit(): void {
+    this.cargarUsuarios();
+  }
+
+  ngAfterViewInit(): void {
+    // Calcular el tamaño de página inicial
+    this.calcularPageSize();
+
+    // Recalcular cuando cambie el tamaño de la ventana
+    setTimeout(() => this.calcularPageSize(), 100);
+  }
+
+  /**
+   * Calcula cuántas filas caben en la pantalla para paginación dinámica
+   */
+  calcularPageSize(): void {
+    // Obtener la altura disponible para la tabla
+    const windowHeight = window.innerHeight;
+
+    const availableHeight = windowHeight
+      - this.HEADER_HEIGHT
+      - this.TITLE_SECTION_HEIGHT
+      - this.SEARCH_SECTION_HEIGHT
+      - this.TABLE_HEADER_HEIGHT
+      - this.PAGINATION_HEIGHT
+      - this.PADDING;
+
+    // Calcular cuántas filas completas caben
+    const filasQueCaben = Math.floor(availableHeight / this.ROW_HEIGHT);
+
+    // Establecer un mínimo de 5 filas y un máximo de 25 para mejor UX
+    this.pageSize = Math.max(5, Math.min(filasQueCaben, 25));
+
+    // Si estamos en una página que ya no existe después del recálculo, volver a la última válida
+    const totalPaginasNuevas = Math.ceil(this.totalUsuarios / this.pageSize);
+    if (this.currentPage > totalPaginasNuevas && totalPaginasNuevas > 0) {
+      this.currentPage = totalPaginasNuevas;
     }
-  ];
 
-  // Lista filtrada de usuarios
-  filteredUsers: User[] = [...this.allUsers];
+    console.log(`Altura disponible: ${availableHeight}px, Filas por página: ${this.pageSize}`);
+  }
 
-  constructor(private router: Router) {}
+  // ======================================== 
+  // MÉTODOS DE CARGA DE DATOS
+  // ========================================
+
+  /**
+   * Carga usuarios desde la base de datos
+   */
+  cargarUsuarios(): void {
+    this.isLoading = true;
+    this.error = null;
+
+    this.userService.listarUsuarios().subscribe({
+      next: (data) => {
+        this.usuarios = data;
+        this.totalUsuarios = data.length;
+        
+        // Transformar UserEV a User para compatibilidad con filtros/búsqueda
+        this.allUsers = this.transformarUsuarios(data);
+        this.filteredUsers = [...this.allUsers];
+        
+        this.isLoading = false;
+        console.log(`Usuarios cargados: ${this.usuarios.length}`);
+
+        // Recalcular el pageSize después de cargar los datos
+        setTimeout(() => this.calcularPageSize(), 100);
+      },
+      error: (err) => {
+        console.error('Error al cargar usuarios:', err);
+        
+        // Mantener arrays vacíos cuando hay error
+        this.usuarios = [];
+        this.allUsers = [];
+        this.filteredUsers = [];
+        this.totalUsuarios = 0;
+        
+        this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
+        this.isLoading = false;
+        
+        // Recalcular pageSize incluso con error para mantener UI consistente
+        setTimeout(() => this.calcularPageSize(), 100);
+      }
+    });
+  }
+
+  /**
+   * Transforma UserEV (BD) a User (interfaz del componente)
+   */
+  private transformarUsuarios(usuarios: UserEV[]): User[] {
+    return usuarios.map(usuario => ({
+      id: usuario.id,
+      photo: usuario.foto ? `assets/admin/${usuario.foto}` : 'assets/admin/admin_default.png',
+      name: usuario.nombre,
+      lastName: usuario.apellidos,
+      alias: `@${usuario.alias}`,
+      email: usuario.correo,
+      birthDate: this.formatearFecha(usuario.fechaNacimiento),
+      role: usuario.esVip ? 'VIP' : 'Estándar',
+      status: usuario.activo ? 'activo' : 'bloqueado'
+    }));
+  }
+
+  /**
+   * Formatea fecha de YYYY-MM-DD a DD/MM/YYYY
+   */
+  formatearFecha(fecha: string): string {
+    if (!fecha) return '-';
+
+    const date = new Date(fecha);
+    const dia = date.getDate().toString().padStart(2, '0');
+    const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+    const anio = date.getFullYear();
+
+    return `${dia}/${mes}/${anio}`;
+  }
+
+  // ======================================== 
+  // MÉTODOS DE NAVEGACIÓN
+  // ========================================
 
   toggleSidebar(): void {
     this.sidebarVisible = !this.sidebarVisible;
@@ -160,7 +248,12 @@ export class AdminUsersPage {
     if (event.target.innerWidth > 768) {
       this.closeSidebar();
     }
+    this.calcularPageSize();
   }
+
+  // ======================================== 
+  // MÉTODOS DE BÚSQUEDA Y FILTROS (MANTENER)
+  // ========================================
 
   /**
    * Ejecuta la búsqueda de usuarios - Evento del SearchBar component
@@ -291,6 +384,9 @@ export class AdminUsersPage {
       this.applySorting();
     }
     
+    // Resetear a la primera página cuando cambian los filtros
+    this.currentPage = 1;
+    
     console.log(`Filtros aplicados. Usuarios mostrados: ${this.filteredUsers.length} de ${this.allUsers.length}`);
   }
 
@@ -305,6 +401,16 @@ export class AdminUsersPage {
    * Obtiene el mensaje apropiado cuando no hay resultados
    */
   getNoResultsMessage(): string {
+    // Si hay error de conexión, mostrar mensaje específico
+    if (this.error) {
+      return this.error;
+    }
+    
+    // Si está cargando, no mostrar mensaje
+    if (this.isLoading) {
+      return '';
+    }
+    
     const activeFilters = this.getActiveFilters();
     const hasSearch = this.searchTerm.trim().length > 0;
     const hasFilters = activeFilters.length > 0;
@@ -325,6 +431,11 @@ export class AdminUsersPage {
    * Obtiene el texto del botón para limpiar
    */
   getClearButtonText(): string {
+    // Si hay error de conexión, mostrar botón para reintentar
+    if (this.error) {
+      return 'Reintentar conexión';
+    }
+    
     const hasSearch = this.searchTerm.trim().length > 0;
     const hasFilters = this.getActiveFilters().length > 0;
 
@@ -340,9 +451,16 @@ export class AdminUsersPage {
   }
 
   /**
-   * Limpia tanto búsqueda como filtros
+   * Limpia tanto búsqueda como filtros, o reintenta conexión si hay error
    */
   clearSearchAndFilters(): void {
+    // Si hay error, reintentar carga de usuarios
+    if (this.error) {
+      this.cargarUsuarios();
+      return;
+    }
+    
+    // Si no hay error, limpiar búsqueda y filtros
     this.searchTerm = '';
     this.onClearAllFilters();
   }
@@ -397,4 +515,79 @@ export class AdminUsersPage {
       }
     });
   }
+
+  // ======================================== 
+  // MÉTODOS DE PAGINACIÓN Y OTROS
+  // ========================================
+
+  /**
+   * Obtiene usuarios para la página actual
+   */
+  get usuariosPaginados(): User[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    return this.filteredUsers.slice(start, end);
+  }
+
+  /**
+   * Calcula el total de páginas
+   */
+  get totalPaginas(): number {
+    if (this.filteredUsers.length === 0) return 1;
+    return Math.ceil(this.filteredUsers.length / this.pageSize);
+  }
+
+  /**
+   * Genera el texto del rango mostrado
+   */
+  get rangoMostrado(): string {
+    if (this.isLoading) {
+      return 'Cargando...';
+    }
+    if (this.error) {
+      return 'Error de conexión';
+    }
+    if (this.filteredUsers.length === 0) {
+      return '0 de 0';
+    }
+    const start = (this.currentPage - 1) * this.pageSize + 1;
+    const end = Math.min(this.currentPage * this.pageSize, this.filteredUsers.length);
+    return `${start}–${end} de ${this.filteredUsers.length}`;
+  }
+
+  /**
+   * Navega a la página anterior
+   */
+  paginaAnterior(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  /**
+   * Navega a la página siguiente
+   */
+  paginaSiguiente(): void {
+    if (this.currentPage < this.totalPaginas) {
+      this.currentPage++;
+    }
+  }
+
+  /**
+   * Edita un usuario
+   */
+  editarUsuario(id: string): void {
+    console.log('Editar usuario:', id);
+    // TODO: Implementar navegación a página de edición
+    // this.router.navigate(['/ad-users/edit', id]);
+  }
+
+  /**
+   * Elimina un usuario
+   */
+  eliminarUsuario(id: string): void {
+    console.log('Eliminar usuario:', id);
+    // TODO: Implementar diálogo de confirmación y eliminación
+  }
+
 }

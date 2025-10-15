@@ -112,10 +112,10 @@
         
         <div class="search-section">
           <app-search-bar 
-            [searchTerm]="searchTerm"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchTermChange($event)"
             placeholder="Buscar por nombre, email, alias, categoría…"
             ariaLabel="Campo de búsqueda de creadores"
-            (search)="onSearch($event)"
             (clear)="onClearSearch()">
           </app-search-bar>
           
@@ -128,96 +128,177 @@
         </div>
       </div>
 
-      <div class="container11" [@shakeError]>
+      <div class="container11" [@shakeError] #tableContainer>
         <div class="background-border2">
-          <div class="background6">
-            <div class="container2"><div class="text11">Foto</div></div>
-            <div class="container2"><div class="text12">Nombre</div></div>
-            <div class="container2"><div class="text13">Apellidos</div></div>
-            <div class="container2"><div class="text14">Email</div></div>
-            <div class="container2"><div class="text15">Alias</div></div>
-            <div class="container2"><div class="text16">Categoría</div></div>
-            <div class="container12"><div class="text17">Seguidores</div></div>
-            <div class="container2"><div class="text18">Estado</div></div>
-            <div class="container2"><div class="text19">Editar</div></div>
-            <div class="container2"><div class="text20">Eliminar</div></div>
-          </div>
-
-          <div class="container13">
-            <!-- Mostrar mensaje si no hay resultados -->
-            <div *ngIf="filteredCreators.length === 0" class="no-results">
-              <div class="no-results-content">
-                <p>{{ getNoResultsMessage() }}</p>
-                <button type="button" (click)="clearSearchAndFilters()" class="clear-search-btn">
-                  {{ getClearButtonText() }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Lista dinámica de creadores -->
-            <div 
-              *ngFor="let creator of filteredCreators; let i = index; trackBy: trackByCreatorId" 
-              class="horizontal-border">
-              <div class="container14">
-                <img 
-                  [ngSrc]="creator.photo" 
-                  [alt]="'foto de ' + creator.name" 
-                  height="28" 
-                  width="28"/>
-              </div>
-              <div class="container2"><div class="text21">{{ creator.name }}</div></div>
-              <div class="container2"><div class="text22">{{ creator.lastName }}</div></div>
-              <div class="container15"><div class="text23">{{ creator.email }}</div></div>
-              <div class="container2"><div class="text24">{{ creator.alias }}</div></div>
-              <div class="background7"><div class="text25">{{ creator.category }}</div></div>
-              <div class="container16">
-                <div class="background-border3">
-                  <div class="video-text">{{ creator.followers }}</div>
-                </div>
-              </div>
-              <div class="container17">
-                <div class="background-border4">
-                  <img 
-                    [ngSrc]="creator.status === 'activo' ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'" 
-                    [alt]="'estado ' + creator.status" 
-                    height="18" 
-                    width="19"/>
-                </div>
-              </div>
-              <div class="container18">
-                <button 
-                  type="button"
-                  class="background8"
-                  [attr.aria-label]="'Editar ' + creator.name">
-                  <img src="assets/admin/editar.svg" alt="editar creador" height="18" width="18"/>
-                </button>
-              </div>
-              <div class="container18">
-                <button 
-                  type="button"
-                  class="background9"
-                  [attr.aria-label]="'Eliminar ' + creator.name">
-                  <img src="assets/admin/eliminar.svg" alt="eliminar creador" height="18" width="18"/>
-                </button>
-              </div>
+          <!-- Mostrar mensaje de carga -->
+          <div *ngIf="isLoading" style="padding: 40px; text-align: center;">
+            <div style="color: #66748c; font-size: 16px; font-family: 'NimbusSans-Medium', sans-serif;">
+              Cargando creadores de contenido...
             </div>
           </div>
+
+          <!-- Mostrar mensaje de error -->
+          <div *ngIf="error && !isLoading" style="padding: 40px; text-align: center;">
+            <div style="color: #ef4444; font-size: 16px; font-family: 'NimbusSans-Medium', sans-serif; margin-bottom: 16px;">
+              {{ error }}
+            </div>
+            <button
+              (click)="cargarCreadores()"
+              style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'NimbusSans-Medium', sans-serif; font-size: 14px;">
+              Reintentar
+            </button>
+          </div>
+
+          <!-- Mostrar tabla cuando hay datos -->
+          <ng-container *ngIf="!isLoading && !error">
+            <!-- Encabezados -->
+            <div class="background6">
+              <div class="container2"><div class="text11">Foto</div></div>
+              <div class="container2"><div class="text12">Nombre</div></div>
+              <div class="container2"><div class="text13">Apellidos</div></div>
+              <div class="container2"><div class="text14">Email</div></div>
+              <div class="container2"><div class="text15">Alias</div></div>
+              <div class="container2"><div class="text16">Categoría</div></div>
+              <div class="container12"><div class="text17">Tipo contenido</div></div>
+              <div class="container2"><div class="text18">Estado</div></div>
+              <div class="container2"><div class="text19">Editar</div></div>
+              <div class="container2"><div class="text20">Eliminar</div></div>
+            </div>
+
+            <!-- Filas de datos -->
+            <div class="container13">
+              <!-- Mostrar mensaje si no hay resultados -->
+              <div *ngIf="filteredCreators.length === 0" class="no-results">
+                <div class="no-results-content">
+                  <p>{{ getNoResultsMessage() }}</p>
+                  <button type="button" (click)="clearSearchAndFilters()" class="clear-search-btn">
+                    {{ getClearButtonText() }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Lista dinámica de creadores -->
+              <div
+                *ngFor="let creator of creadoresPaginados; let i = index; trackBy: trackByCreatorId"
+                class="horizontal-border">
+
+                <!-- Foto -->
+                <div class="container14">
+                  <img
+                    [ngSrc]="creator.foto ? 'assets/admin/' + creator.foto : 'assets/admin/admin_default.png'"
+                    [alt]="'foto de ' + creator.nombre"
+                    height="28"
+                    width="28"
+                    priority/>
+                </div>
+
+                <!-- Nombre -->
+                <div class="container2">
+                  <div class="text21">{{ creator.nombre }}</div>
+                </div>
+
+                <!-- Apellidos -->
+                <div class="container2">
+                  <div class="text22">{{ creator.apellidos }}</div>
+                </div>
+
+                <!-- Email -->
+                <div class="container15">
+                  <div class="text23">{{ creator.correo }}</div>
+                </div>
+
+                <!-- Alias -->
+                <div class="container2">
+                  <div class="text24">&#64;{{ creator.alias }}</div>
+                </div>
+
+                <!-- Categoría -->
+                <div class="background7">
+                  <div class="text25">{{ creator.especialidad }}</div>
+                </div>
+
+                <!-- Tipo de contenido -->
+                <div class="container16">
+                  <div class="background-border3">
+                    <div class="video-text">{{ creator.tipoContenido === 'VIDEO' ? 'Vídeo' : 'Audio' }}</div>
+                  </div>
+                </div>
+
+                <!-- Estado (Activo/Bloqueado) -->
+                <div class="container17">
+                  <div class="background-border4">
+                    <img
+                      class="svg6"
+                      [ngSrc]="creator.activo ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'"
+                      [alt]="creator.activo ? 'estado activo' : 'estado bloqueado'"
+                      height="18"
+                      width="19"/>
+                  </div>
+                </div>
+
+                <!-- Botón Editar -->
+                <div class="container18">
+                  <div class="background8" (click)="editarCreador(creator.id)" style="cursor: pointer;">
+                    <img
+                      class="svg7"
+                      ngSrc="assets/admin/editar.svg"
+                      alt="editar creador"
+                      height="18"
+                      width="18"/>
+                  </div>
+                </div>
+
+                <!-- Botón Eliminar -->
+                <div class="container18">
+                  <div class="background9" (click)="eliminarCreador(creator.id)" style="cursor: pointer;">
+                    <img
+                      class="svg8"
+                      ngSrc="assets/admin/eliminar.svg"
+                      alt="eliminar creador"
+                      height="18"
+                      width="18"/>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mensaje cuando no hay creadores -->
+              <div *ngIf="filteredCreators.length === 0 && allCreators.length === 0" style="padding: 40px; text-align: center;">
+                <div style="color: #66748c; font-size: 16px; font-family: 'NimbusSans-Medium', sans-serif;">
+                  No hay creadores de contenido registrados
+                </div>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </div>
 
       <div class="margin2">
         <div class="container7">
           <div class="container21">
-            <div class="text47">Mostrando 1–5 de 36</div>
+            <div class="text47">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container22">
-            <div class="border" [@buttonHover] [@buttonPress]>
+            <div
+              class="border"
+              [@buttonHover]
+              [@buttonPress]
+              (click)="paginaAnterior()"
+              [style.opacity]="currentPage === 1 ? '0.5' : '1'"
+              [style.cursor]="currentPage === 1 ? 'not-allowed' : 'pointer'"
+              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'">
               <div class="iconify-icon4">
                 <img class="svg19" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text48">Anterior</div>
             </div>
-            <div class="border2" [@buttonHover] [@buttonPress]>
+            <div
+              class="border2"
+              [@buttonHover]
+              [@buttonPress]
+              (click)="paginaSiguiente()"
+              [style.opacity]="currentPage === totalPaginas ? '0.5' : '1'"
+              [style.cursor]="currentPage === totalPaginas ? 'not-allowed' : 'pointer'"
+              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'">
               <div class="text49">Siguiente</div>
               <div class="iconify-icon5">
                 <img class="svg20" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
