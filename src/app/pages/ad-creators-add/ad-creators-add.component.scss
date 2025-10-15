@@ -1,7 +1,7 @@
+// src/app/pages/ad-creator-add/ad-creator-add.component.scss
 // ========================================
 // MIXINS REUTILIZABLES
 // ========================================
-
 @mixin flex-container($direction: row, $gap: 0, $align: flex-start, $justify: flex-start) {
   display: flex;
   flex-direction: $direction;
@@ -25,14 +25,13 @@
 // ========================================
 // ESTRUCTURA PRINCIPAL
 // ========================================
-
 .background,
 .background * {
   box-sizing: border-box;
 }
 
 .background {
-  background: #5e5f61;
+  background: #5f6062;
   @include flex-container(column);
   min-height: 100vh;
   width: 100vw;
@@ -54,24 +53,30 @@
   border-style: solid;
   border-color: #c3c5cc;
   border-width: 1px;
-  padding: 1px;
+  padding: 0;
   @include flex-container(column);
   flex-shrink: 0;
-  width: 820px;
+  width: 560px;
   max-width: 100%;
   position: relative;
   box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 
-  @media (max-width: 860px) {
+  @media (max-width: 600px) {
     width: 100%;
     max-width: 95vw;
   }
 }
 
+form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 // ========================================
 // HEADER DEL MODAL
 // ========================================
-
 .horizontal-border {
   border-style: solid;
   border-color: #eaedf2;
@@ -81,6 +86,7 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 }
 
 .container {
@@ -105,8 +111,8 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
-  transition: background-color 0.2s ease;
   background: transparent;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: rgba(0, 0, 0, 0.02);
@@ -134,41 +140,25 @@
 // ========================================
 // CONTENEDOR PRINCIPAL DEL FORMULARIO
 // ========================================
-
 .container2 {
   padding: 20px;
   @include flex-container(column, 16px);
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 }
 
 // ========================================
-// GRID DE CAMPOS
+// SECCIÓN DE FOTO
 // ========================================
-
-.container3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-// ========================================
-// SECCIÓN DE FOTO - Ocupa toda la fila
-// ========================================
-
 .background2 {
   background: #ffffff;
   @include flex-container(column, 8px);
-  grid-column: 1 / -1;
+  align-self: stretch;
+  flex-shrink: 0;
   position: relative;
+  width: 100%;
 }
 
 .container4 {
@@ -177,6 +167,7 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 }
 
 .text3 {
@@ -198,7 +189,7 @@
 }
 
 .background3 {
-  background: #eaedf4;
+  background: #e9edf5;
   border-radius: 48px;
   @include flex-container(row, 0, center, center);
   flex-shrink: 0;
@@ -208,16 +199,24 @@
   overflow: hidden;
 }
 
-.avatar {
+.svg3 {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
   position: relative;
-  object-fit: contain;
 }
 
-.border2,
-.border3 {
+.group,
+.group2 {
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.border2 {
   border-radius: 12px;
   border-style: solid;
   border-color: #eff1f6;
@@ -227,51 +226,89 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
-  transition: background-color 0.2s ease;
   background: transparent;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: rgba(0, 0, 0, 0.02);
   }
 }
 
-.svg2,
-.svg3 {
+.svg2 {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
   position: relative;
-}
-
-.group {
-  width: 18px;
-  height: 18px;
-  position: absolute;
-  left: 0;
-  top: 0;
   overflow: visible;
 }
 
-.text4,
-.text5 {
-  @include text-base(#212c3d, 14px, 400);
+.subir-imagen {
+  @include text-base(#11192c, 14px, 400);
+  white-space: nowrap;
+}
+
+.border3 {
+  border-radius: 12px;
+  border-style: solid;
+  border-color: #eff1f6;
+  border-width: 1px;
+  padding: 9px 11px;
+  @include flex-container(column);
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  background: transparent;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+}
+
+.container7 {
+  @include flex-container(row, 8px, center, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.iconify-icon2 {
+  @include flex-container(column, 0, center, center);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.elegir-predefinida {
+  @include text-base(#11192c, 14px, 400);
   white-space: nowrap;
 }
 
 // ========================================
-// CAMPOS INDIVIDUALES
+// CAMPOS DEL FORMULARIO (FULL WIDTH)
 // ========================================
-
 .background4,
 .background5,
 .background6,
 .background7,
 .background8,
-.background9 {
+.background9,
+.background10,
+.background11,
+.background12 {
   background: #ffffff;
   @include flex-container(column, 8px);
-  min-width: 0;
+  align-self: stretch;
+  flex-shrink: 0;
   position: relative;
+  width: 100%;
+}
+
+.container8 {
+  padding: 1px 0 2px 0;
+  @include flex-container(column);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+  width: 100%;
 }
 
 .text6,
@@ -279,7 +316,10 @@
 .text8,
 .text9,
 .text11,
-.text12 {
+.text12,
+.text13,
+.text15,
+.text17 {
   @include text-base(#69768d, 13px, 400);
   width: auto;
 }
@@ -287,7 +327,6 @@
 .text10 {
   @include text-base(#69768d, 12px, 400);
   width: auto;
-  margin-left: 4px;
 }
 
 .paragraph {
@@ -309,6 +348,7 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
   transition: border-color 0.2s ease;
 
   &:focus-within {
@@ -319,41 +359,24 @@
 .nombre,
 .apellidos,
 .email-plataforma-com,
-.alias-unico,
+.alias-input,
 .div {
-  @include text-base(#212c3d, 14px, 400);
-  width: auto;
-}
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  @include text-base(#11192c, 14px, 400);
 
-// ========================================
-// ESPECIALIDAD Y TIPO - Ocupa toda la fila
-// ========================================
-
-.container7 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  grid-column: 1 / -1;
-  position: relative;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+  &::placeholder {
+    @include text-base(#9ca3af, 14px, 400);
   }
 }
 
-.background10 {
-  background: #ffffff;
-  @include flex-container(column, 8px);
-  min-width: 0;
-  position: relative;
-}
-
-.text13,
-.text15 {
-  @include text-base(#69768d, 13px, 400);
-  width: auto;
-}
-
+// ========================================
+// ESPECIALIDAD Y TIPO DE CONTENIDO
+// ========================================
 .background-border2 {
   background: #ffffff;
   border-radius: 12px;
@@ -366,6 +389,7 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
+  width: 100%;
   transition: border-color 0.2s ease;
 
   &:hover {
@@ -373,7 +397,7 @@
   }
 }
 
-.container8 {
+.container9 {
   padding: 1px 0 2px 0;
   @include flex-container(column);
   flex: 1;
@@ -382,19 +406,18 @@
 }
 
 .text14 {
-  @include text-base(#212c3d, 14px, 400);
-  width: auto;
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  cursor: pointer;
+  @include text-base(#11192c, 14px, 400);
 }
 
-.iconify-icon2 {
-  @include flex-container(column, 0, center, center);
-  flex-shrink: 0;
-  position: relative;
-}
-
-.svg4,
-.svg5,
-.svg6 {
+.svg4 {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
@@ -402,7 +425,7 @@
   overflow: visible;
 }
 
-.container9 {
+.container10 {
   @include flex-container(row, 12px, center, flex-start);
   align-self: stretch;
   flex-shrink: 0;
@@ -416,8 +439,8 @@
   border-color: #eaedf3;
   border-width: 1px;
   padding: 10px 11px;
-  @include flex-container(row, 8px, center, flex-start);
-  flex-shrink: 0;
+  @include flex-container(row, 8px, center, center);
+  flex: 1;
   position: relative;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -426,6 +449,20 @@
     border-color: #2563eb;
     background-color: rgba(37, 99, 235, 0.02);
   }
+
+  &.selected {
+    border-color: #2563eb;
+    background: #dbeafe;
+  }
+}
+
+.svg5,
+.svg6 {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  position: relative;
+  overflow: visible;
 }
 
 .audio,
@@ -434,7 +471,7 @@
   white-space: nowrap;
 }
 
-.container10 {
+.container11 {
   padding: 1px 0;
   @include flex-container(column);
   align-self: stretch;
@@ -448,22 +485,8 @@
 }
 
 // ========================================
-// DESCRIPCIÓN - Ocupa toda la fila
+// DESCRIPCIÓN
 // ========================================
-
-.background11 {
-  background: #ffffff;
-  @include flex-container(column, 8px);
-  grid-column: 1 / -1;
-  min-width: 0;
-  position: relative;
-}
-
-.descripci-n {
-  @include text-base(#69768d, 13px, 400);
-  width: auto;
-}
-
 .background-border4 {
   background: #ffffff;
   border-radius: 12px;
@@ -483,15 +506,25 @@
   }
 }
 
-.breve-bio-o-descripci-n-del-creador {
-  @include text-base(#212c3d, 14px, 400);
-  width: auto;
+.breve-bio {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  resize: vertical;
+  min-height: 64px;
+  @include text-base(#11192c, 14px, 400);
+
+  &::placeholder {
+    @include text-base(#9ca3af, 14px, 400);
+  }
 }
 
 // ========================================
 // FOOTER DEL MODAL
 // ========================================
-
 .horizontal-border2 {
   border-style: solid;
   border-color: #eaedf2;
@@ -501,14 +534,15 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 
-  @media (max-width: 600px) {
+  @media (max-width: 500px) {
     flex-direction: column-reverse;
     gap: 12px;
   }
 }
 
-.background12 {
+.background13 {
   background: #ffe4e2;
   border-radius: 12px;
   padding: 9px 11px;
@@ -516,14 +550,14 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
-  transition: background-color 0.2s ease;
   border: none;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: #ffd4d1;
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 500px) {
     width: 100%;
   }
 }
@@ -536,12 +570,12 @@
   overflow: visible;
 }
 
-.text17 {
+.text18 {
   @include text-base(#7a1d16, 14px, 400);
   white-space: nowrap;
 }
 
-.background13 {
+.background14 {
   background: #2563eb;
   border-radius: 12px;
   padding: 11px 15px;
@@ -549,8 +583,8 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
-  transition: background-color 0.2s ease;
   border: none;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: #1d4ed8;
@@ -560,7 +594,7 @@
     background-color: #1e40af;
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 500px) {
     width: 100%;
   }
 }
@@ -578,7 +612,90 @@
   overflow: visible;
 }
 
-.text18 {
+.text19 {
   @include text-base(#ffffff, 14px, 400);
   white-space: nowrap;
+}
+
+// ========================================
+// MENSAJES DE ERROR Y VALIDACIÓN
+// ========================================
+.error-message-box {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #991b1b;
+  font-family: 'NimbusSans-Medium', sans-serif;
+  font-size: 14px;
+  margin-bottom: 8px;
+  align-self: stretch;
+}
+
+.error-border {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+// ========================================
+// REQUISITOS DE CONTRASEÑA
+// ========================================
+.password-requirements {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.requirement-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #dc2626;
+  font-family: 'NimbusSans-Regular', sans-serif;
+}
+
+.requirement-icon {
+  color: #dc2626;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.requirement-text {
+  color: #991b1b;
+}
+
+// ========================================
+// MODAL DE AVATARES
+// ========================================
+.avatar-item {
+  cursor: pointer;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  padding: 0;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  aspect-ratio: 1;
+
+  &:hover {
+    border-color: #2563eb;
+    transform: scale(1.05);
+  }
+
+  &.avatar-selected {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  }
+}
+
+// ========================================
+// ESTADOS
+// ========================================
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
 }

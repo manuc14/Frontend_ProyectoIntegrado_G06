@@ -1,7 +1,8 @@
+// Reemplaza el SCSS completo con este:
+
 // ========================================
 // MIXINS REUTILIZABLES
 // ========================================
-
 @mixin flex-container($direction: row, $gap: 0, $align: flex-start, $justify: flex-start) {
   display: flex;
   flex-direction: $direction;
@@ -9,7 +10,6 @@
   align-items: $align;
   justify-content: $justify;
 }
-
 @mixin text-base($color, $size, $weight, $family: "NimbusSans-Regular") {
   color: $color;
   text-align: left;
@@ -21,57 +21,58 @@
   align-items: center;
   justify-content: flex-start;
 }
-
 // ========================================
 // ESTRUCTURA PRINCIPAL
 // ========================================
-
 .background,
 .background * {
   box-sizing: border-box;
 }
-
 .background {
   background: #5f6062;
   @include flex-container(column);
-  min-height: 100vh; // Cambiado de height fijo a min-height
+  min-height: 100vh;
   width: 100vw;
   position: relative;
 }
-
 .overlay {
   padding: 24px;
   @include flex-container(row, 0, center, center);
   align-self: stretch;
-  flex: 1; // Permite que el overlay crezca
+  flex: 1;
   min-height: 0;
   position: relative;
 }
-
 .background-border-shadow {
   background: #ffffff;
   border-radius: 24px;
   border-style: solid;
   border-color: #c3c5cc;
   border-width: 1px;
-  padding: 1px;
+  padding: 0;
   @include flex-container(column);
   flex-shrink: 0;
-  width: 760px;
+  width: 560px;
   max-width: 100%;
   position: relative;
   box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 
-  @media (max-width: 800px) {
+  @media (max-width: 600px) {
     width: 100%;
     max-width: 95vw;
   }
 }
 
+form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 // ========================================
 // HEADER DEL MODAL
 // ========================================
-
 .horizontal-border {
   border-style: solid;
   border-color: #eaedf2;
@@ -81,20 +82,18 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 }
-
 .container {
   padding: 2px 0;
   @include flex-container(column);
   flex-shrink: 0;
   position: relative;
 }
-
 .text {
   @include text-base(#0f172a, 18px, 700, "NimbusSans-Bold");
   width: auto;
 }
-
 .border {
   border-radius: 12px;
   border-style: solid;
@@ -105,18 +104,16 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
+  background: transparent;
   transition: background-color 0.2s ease;
-
   &:hover {
     background-color: rgba(0, 0, 0, 0.02);
   }
 }
-
 .iconify-icon {
   @include flex-container(row, 0, center, center);
   flex-shrink: 0;
 }
-
 .svg {
   flex-shrink: 0;
   width: 18px;
@@ -124,36 +121,32 @@
   position: relative;
   overflow: visible;
 }
-
 .text2 {
   @include text-base(#212c3d, 14px, 400);
   white-space: nowrap;
 }
-
 // ========================================
 // CONTENEDOR PRINCIPAL DEL FORMULARIO
 // ========================================
-
 .container2 {
   padding: 20px;
   @include flex-container(column, 16px);
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 }
-
 // ========================================
 // SECCIÓN DE FOTO
 // ========================================
-
 .background2 {
   background: #ffffff;
   @include flex-container(column, 8px);
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 }
-
 .paragraph {
   padding: 1px 0 2px 0;
   @include flex-container(row, 0, flex-start, flex-start);
@@ -161,31 +154,26 @@
   flex-shrink: 0;
   position: relative;
 }
-
 .text3 {
   @include text-base(#69768d, 13px, 400);
   width: auto;
 }
-
 .text4 {
   margin: 0 0 0 4px;
   @include text-base(#69768d, 12px, 400);
   width: auto;
 }
-
 .container3 {
   @include flex-container(row, 0, center, flex-start);
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
 }
-
 .container4 {
   @include flex-container(row, 12px, center, flex-start);
   flex-shrink: 0;
   position: relative;
 }
-
 .background3 {
   background: #e9edf5;
   border-radius: 48px;
@@ -194,15 +182,14 @@
   width: 56px;
   height: 56px;
   position: relative;
+  overflow: hidden;
 }
-
 .svg2 {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
   position: relative;
 }
-
 .group,
 .group2 {
   width: 18px;
@@ -212,7 +199,6 @@
   top: 0;
   overflow: visible;
 }
-
 .border2 {
   border-radius: 12px;
   border-style: solid;
@@ -223,13 +209,12 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
+  background: transparent;
   transition: background-color 0.2s ease;
-
   &:hover {
     background-color: rgba(0, 0, 0, 0.02);
   }
 }
-
 .svg3 {
   flex-shrink: 0;
   width: 18px;
@@ -237,12 +222,10 @@
   position: relative;
   overflow: visible;
 }
-
 .subir-imagen {
   @include text-base(#11192c, 14px, 400);
   white-space: nowrap;
 }
-
 .border3 {
   border-radius: 12px;
   border-style: solid;
@@ -253,95 +236,61 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
+  background: transparent;
   transition: background-color 0.2s ease;
-
   &:hover {
     background-color: rgba(0, 0, 0, 0.02);
   }
 }
-
 .container5 {
   @include flex-container(row, 8px, center, flex-start);
   flex-shrink: 0;
   position: relative;
 }
-
 .iconify-icon2 {
   @include flex-container(column, 0, center, center);
   flex-shrink: 0;
   position: relative;
 }
-
 .elegir-predefinida {
   @include text-base(#11192c, 14px, 400);
   white-space: nowrap;
 }
-
 // ========================================
-// GRID DE CAMPOS DEL FORMULARIO
+// CAMPOS DEL FORMULARIO (FULL WIDTH)
 // ========================================
-
-.container6 {
-  @include flex-container(row, 16px, flex-start, flex-start);
-  align-self: stretch;
-  flex-shrink: 0;
-  position: relative;
-  flex-wrap: wrap; // Permite que los campos se colapsen en móvil
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 16px;
-  }
-}
-
-// Columna izquierda
 .background4,
-.background6,
-.background8 {
-  background: #ffffff;
-  @include flex-container(column, 8px);
-  flex: 1;
-  min-width: 0;
-  position: relative;
-
-  @media (max-width: 768px) {
-    width: 100%;
-  }
-}
-
-// Columna derecha
 .background5,
+.background6,
+.background-alias,
 .background7,
+.background8,
 .background9 {
   background: #ffffff;
   @include flex-container(column, 8px);
-  flex: 1;
-  min-width: 0;
+  align-self: stretch;
+  flex-shrink: 0;
   position: relative;
-
-  @media (max-width: 768px) {
-    width: 100%;
-  }
+  width: 100%;
 }
-
 .container7 {
   padding: 1px 0 2px 0;
   @include flex-container(column);
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 }
-
 .text5,
 .text6,
 .text7,
+.text-alias,
 .text8,
 .text9,
 .text10 {
   @include text-base(#69768d, 13px, 400);
   width: auto;
 }
-
 .background-border {
   background: #ffffff;
   border-radius: 12px;
@@ -353,21 +302,28 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
   transition: border-color 0.2s ease;
-
   &:focus-within {
     border-color: #2563eb;
   }
 }
-
 .nombre,
 .apellidos,
 .email-empresa-com,
+.alias-input,
 .div {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  padding: 0;
+  margin: 0;
   @include text-base(#11192c, 14px, 400);
-  width: auto;
+  &::placeholder {
+    @include text-base(#9ca3af, 14px, 400);
+  }
 }
-
 .background-border2 {
   background: #ffffff;
   border-radius: 12px;
@@ -380,13 +336,12 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
+  width: 100%;
   transition: border-color 0.2s ease;
-
   &:hover {
     border-color: #c3c5cc;
   }
 }
-
 .container8 {
   padding: 1px 0 2px 0;
   @include flex-container(column);
@@ -394,12 +349,17 @@
   min-width: 0;
   position: relative;
 }
-
 .text11 {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  cursor: pointer;
   @include text-base(#11192c, 14px, 400);
-  width: auto;
 }
-
 .svg4 {
   flex-shrink: 0;
   width: 18px;
@@ -407,11 +367,9 @@
   position: relative;
   overflow: visible;
 }
-
 // ========================================
 // FOOTER DEL MODAL
 // ========================================
-
 .horizontal-border2 {
   border-style: solid;
   border-color: #eaedf2;
@@ -421,13 +379,13 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
+  width: 100%;
 
-  @media (max-width: 600px) {
+  @media (max-width: 500px) {
     flex-direction: column-reverse;
     gap: 12px;
   }
 }
-
 .background10 {
   background: #ffe4e2;
   border-radius: 12px;
@@ -436,17 +394,16 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
+  border: none;
   transition: background-color 0.2s ease;
-
   &:hover {
     background-color: #ffd4d1;
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 500px) {
     width: 100%;
   }
 }
-
 .svg5 {
   flex-shrink: 0;
   width: 18px;
@@ -454,12 +411,10 @@
   position: relative;
   overflow: visible;
 }
-
 .text12 {
   @include text-base(#7a1d16, 14px, 400);
   white-space: nowrap;
 }
-
 .background11 {
   background: #2563eb;
   border-radius: 12px;
@@ -468,26 +423,23 @@
   flex-shrink: 0;
   position: relative;
   cursor: pointer;
+  border: none;
   transition: background-color 0.2s ease;
-
   &:hover {
     background-color: #1d4ed8;
   }
-
   &:active {
     background-color: #1e40af;
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 500px) {
     width: 100%;
   }
 }
-
 .iconify-icon3 {
   @include flex-container(row, 0, center, center);
   flex-shrink: 0;
 }
-
 .svg6 {
   flex-shrink: 0;
   width: 18px;
@@ -495,8 +447,108 @@
   position: relative;
   overflow: visible;
 }
-
 .text13 {
   @include text-base(#ffffff, 14px, 400);
   white-space: nowrap;
+}
+// ========================================
+// ESTADOS
+// ========================================
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+.avatar-item {
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+
+  &.avatar-selected {
+    border-color: #2563eb;
+    background: #dbeafe;
+  }
+}
+
+// Añadir al final del archivo SCSS existente
+
+// ========================================
+// MENSAJES DE ERROR Y VALIDACIÓN
+// ========================================
+.error-message-box {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #991b1b;
+  font-family: 'NimbusSans-Medium', sans-serif;
+  font-size: 14px;
+  margin-bottom: 8px;
+  align-self: stretch;
+}
+
+.error-border {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+// ========================================
+// REQUISITOS DE CONTRASEÑA
+// ========================================
+.password-requirements {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.requirement-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #dc2626;
+  font-family: 'NimbusSans-Regular', sans-serif;
+}
+
+.requirement-icon {
+  color: #dc2626;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.requirement-text {
+  color: #991b1b;
+}
+
+// ========================================
+// MODAL DE AVATARES MEJORADO
+// ========================================
+.avatar-item {
+  cursor: pointer;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  padding: 0;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  aspect-ratio: 1;
+
+  &:hover {
+    border-color: #2563eb;
+    transform: scale(1.05);
+  }
+
+  &.avatar-selected {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  }
 }

@@ -20,25 +20,25 @@
         </div>
         <div class="container3">
           <div class="background2">
-            <img class="avatar" ngSrc="assets/admin/user4.png" alt="foto de usuario" height="28" width="28"/>
+            <img class="avatar" [ngSrc]="adminData.foto || 'assets/admin/admin_default.png'" [alt]="'foto de ' + adminData.nombre" height="28" width="28"/>
           </div>
           <div class="container4">
             <div class="paragraph">
-              <div class="laura-mart-nez">Laura Martínez</div>
-              <div class="laura-martinez">&#64;laura_martinez</div>
+              <div class="laura-mart-nez">{{ adminData.nombre }} {{ adminData.apellidos }}</div>
+              <div class="laura-martinez">&#64;{{ adminData.alias }}</div>
             </div>
             <div class="container5">
               <div class="container6">
                 <div class="strong">
                   <div class="text3">Email:</div>
                 </div>
-                <div class="text4">laura.martinez&#64;plataforma.com</div>
+                <div class="text4">{{ adminData.correo }}</div>
               </div>
               <div class="container6">
                 <div class="strong">
                   <div class="text5">Departamento:</div>
                 </div>
-                <div class="text6">Operaciones</div>
+                <div class="text6">{{ adminData.departamento }}</div>
               </div>
             </div>
             <div class="container7">

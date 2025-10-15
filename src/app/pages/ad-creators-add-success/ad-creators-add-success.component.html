@@ -20,12 +20,12 @@
         </div>
         <div class="container3">
           <div class="background2">
-            <img class="avatar" ngSrc="assets/admin/user4.png" alt="foto de usuario" height="28" width="28"/>
+            <img class="avatar" [ngSrc]="creatorData.foto || 'assets/admin/admin_default.png'" [alt]="'foto de ' + creatorData.nombre" height="28" width="28"/>
           </div>
           <div class="container4">
             <div class="paragraph">
-              <div class="laura-mart-nez">Laura Martínez</div>
-              <div class="laura-martinez">&#64;laura_martinez</div>
+              <div class="laura-mart-nez">{{ creatorData.nombre }} {{ creatorData.apellidos }}</div>
+              <div class="laura-martinez">&#64;{{ creatorData.alias }}</div>
             </div>
             <div class="container5">
               <div class="container6">
@@ -33,20 +33,20 @@
                   <div class="text3">Email:</div>
                 </div>
                 <div class="laura-martinez-plataforma-com">
-                  laura.martinez&#64;plataforma.com
+                  {{ creatorData.correo }}
                 </div>
               </div>
               <div class="container6">
                 <div class="strong">
                   <div class="text4">Especialidad:</div>
                 </div>
-                <div class="text5">Guiones y edición</div>
+                <div class="text5">{{ creatorData.especialidad }}</div>
               </div>
               <div class="container6">
                 <div class="strong">
                   <div class="text6">Tipo de contenido:</div>
                 </div>
-                <div class="text7">Video</div>
+                <div class="text7">{{ creatorData.tipoContenido === 'VIDEO' ? 'Vídeo' : 'Audio' }}</div>
               </div>
             </div>
             <div class="container7">

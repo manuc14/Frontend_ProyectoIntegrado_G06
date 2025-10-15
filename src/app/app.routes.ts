@@ -6,9 +6,7 @@ import { AdminUsersPage } from './pages/ad-users/ad-users.component';
 import { AdminAdmsPage } from './pages/ad-admin/ad-admin.component';
 import { AdminCreatorsPage } from './pages/ad-creators/ad-creators.component';
 import { AdminAdmsAddPage } from './pages/ad-admin-add/ad-admin-add.component';
-import { AdminCreatorsAddPage } from './pages/ad-creators-add/ad-creators-add.component';
 import { AdminAdmsAddSuccessPage } from './pages/ad-admin-add-success/ad-admin-add-success.component';
-import { AdminCreatorsAddSuccessPage } from './pages/ad-creators-add-success/ad-creators-add-success.component';
 
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
 import { ContentPage } from './pages/content/content.page';
@@ -29,9 +27,7 @@ export const routes: Routes = [
   { path: 'ad-admin', component: AdminAdmsPage },
   { path: 'ad-creators', component: AdminCreatorsPage },
   { path: 'ad-admin-add', component: AdminAdmsAddPage },
-  { path: 'ad-creators-add', component: AdminCreatorsAddPage },
   { path: 'ad-admin-add-success', component: AdminAdmsAddSuccessPage },
-  { path: 'ad-creators-add-success', component: AdminCreatorsAddSuccessPage },
 	{ path: 'content', component: ContentPage },
 	{ path: 'catalog', component: CatalogPage },
 	{ path: 'forgot-password', component: ForgotPasswordPage },
