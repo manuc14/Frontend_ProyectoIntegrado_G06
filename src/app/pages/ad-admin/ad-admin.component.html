@@ -104,6 +104,13 @@
       </div>
 
       <div class="margin">
+        <!-- Filtros de administradores -->
+        <app-filter-buttons
+          [filterGroups]="filterGroups"
+          (filterChange)="onFilterChange($event)"
+          (clearAll)="onClearAllFilters()">
+        </app-filter-buttons>
+        
         <div class="search-section">
           <app-search-bar 
             [searchTerm]="searchTerm"
@@ -111,20 +118,14 @@
             ariaLabel="Campo de búsqueda de administradores"
             (search)="onSearch($event)"
             (clear)="onClearSearch()">
-            
-            <!-- Botón de filtros insertado via content projection -->
-            <button 
-              slot="actions" 
-              type="button"
-              class="container10" 
-              [@buttonHover]
-              [attr.aria-label]="'Filtrar administradores'">
-              <div class="iconify-icon3">
-                <img class="svg4" ngSrc="assets/admin/filtrar.svg" alt="icono filtrar" height="18" width="19"/>
-              </div>
-              <div class="filtrar">Filtrar</div>
-            </button>
           </app-search-bar>
+          
+          <!-- Dropdown de ordenamiento -->
+          <app-sort-dropdown
+            [sortOptions]="sortOptions"
+            [selectedSort]="selectedSort"
+            (sortChange)="onSortChange($event)">
+          </app-sort-dropdown>
         </div>
       </div>
 
@@ -146,9 +147,9 @@
             <!-- Mostrar mensaje si no hay resultados -->
             <div *ngIf="filteredAdmins.length === 0" class="no-results">
               <div class="no-results-content">
-                <p>No se encontraron administradores que coincidan con "{{ searchTerm }}"</p>
-                <button type="button" (click)="onClearSearch()" class="clear-search-btn">
-                  Mostrar todos los administradores
+                <p>{{ getNoResultsMessage() }}</p>
+                <button type="button" (click)="clearSearchAndFilters()" class="clear-search-btn">
+                  {{ getClearButtonText() }}
                 </button>
               </div>
             </div>

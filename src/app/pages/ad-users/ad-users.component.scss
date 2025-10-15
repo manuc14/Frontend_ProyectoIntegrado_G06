@@ -443,11 +443,21 @@
 // ========================================
 
 .search-section {
-  @include flex-container(row, 8px, center, flex-start);
+  @include flex-container(row, 16px, center, flex-start);
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
   width: 100%;
+  
+  // El search-bar ocupa todo el espacio disponible
+  app-search-bar {
+    flex: 1;
+  }
+  
+  // El sort-dropdown mantiene su tamaño
+  app-sort-dropdown {
+    flex-shrink: 0;
+  }
 }
 
 // ========================================

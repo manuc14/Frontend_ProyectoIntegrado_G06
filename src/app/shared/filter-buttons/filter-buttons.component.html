@@ -1,0 +1,40 @@
+<!-- Componente de botones de filtro agrupados -->
+<div class="filter-buttons-container">
+  
+  <!-- Grupos de filtros -->
+  <div class="filter-groups">
+    <div 
+      *ngFor="let group of filterGroups" 
+      class="filter-group"
+      [class.mutually-exclusive]="group.mutuallyExclusive">
+      
+      <!-- Etiqueta del grupo -->
+      <span class="group-label">{{ group.label }}</span>
+      
+      <!-- Botones del grupo -->
+      <div class="group-buttons">
+        <button 
+          *ngFor="let filter of group.filters"
+          type="button"
+          class="filter-btn"
+          [class.active]="filter.active"
+          (click)="onFilterClick(filter, group)"
+          [attr.aria-label]="'Filtrar por ' + filter.label"
+          [attr.aria-pressed]="filter.active">
+          {{ filter.label }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón limpiar filtros -->
+  <button 
+    *ngIf="hasActiveFilters()"
+    type="button"
+    class="clear-filters-btn"
+    (click)="onClearAllFilters()"
+    aria-label="Limpiar todos los filtros">
+    Limpiar filtros
+  </button>
+
+</div>
