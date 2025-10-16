@@ -1,11 +1,12 @@
 <!-- src/app/pages/ad-creator-add/ad-creator-add.component.html -->
+<!-- src/app/pages/ad-creators-add/ad-creators-add.component.html -->
 <div class="background" [@fadeIn]>
   <div class="overlay">
     <div class="background-border-shadow">
       <form [formGroup]="creatorForm" (ngSubmit)="onSubmit()">
         <div class="horizontal-border">
           <div class="container">
-            <div class="text">Añadir creador de contenido</div>
+            <div class="text">Añadir creador</div>
           </div>
           <button class="border" type="button" (click)="goBack()" [@buttonHover] [@buttonPress]>
             <div class="iconify-icon">
@@ -16,8 +17,8 @@
         </div>
         <div class="container2">
           <!-- Mensaje de error general -->
-          <div *ngIf="errorMessage" class="error-message-box" [@shakeError]>
-            {{ errorMessage }}
+          <div *ngIf="bannerText && bannerKind === 'error'" class="error-message-box" [@shakeError]>
+            {{ bannerText }}
           </div>
           <!-- Sección de foto -->
           <div class="background2">
@@ -48,104 +49,118 @@
                   </div>
                   <div class="subir-imagen">Subir imagen</div>
                 </button>
-                <button class="border3" type="button" (click)="openAvatarModal()" [@buttonHover] [@buttonPress]>
-                  <div class="container7">
-                    <div class="iconify-icon2">
-                      <div class="svg3">
-                        <img class="group2" ngSrc="assets/admin/img_predefinida.svg" alt="elegir predefinida" height="18" width="19"/>
-                      </div>
-                    </div>
-                    <div class="elegir-predefinida">Elegir predefinida</div>
-                  </div>
-                </button>
               </div>
             </div>
           </div>
           <!-- Campo Nombre -->
           <div class="background4">
-            <div class="container8">
-              <div class="text6">Nombre *</div>
+            <div class="container7">
+              <div class="text5">Nombre *</div>
             </div>
-            <div class="background-border" [class.error-border]="shouldShowError('nombre')" [@inputFocus]>
+            <div class="background-border" [class.error-border]="f['nombre'].touched && f['nombre'].errors?.['required']" [@inputFocus]="getInputFocusState('nombre')">
               <input
                 type="text"
                 formControlName="nombre"
                 class="nombre"
-                placeholder="Nombre">
+                placeholder="Nombre"
+                [attr.maxlength]="maxNombre"
+                (focus)="onFieldFocus('nombre', true)"
+                (blur)="onFieldFocus('nombre', false)">
             </div>
+            <small class="field-error" *ngIf="f['nombre'].touched && f['nombre'].errors?.['required']">El nombre es obligatorio.</small>
+            <small class="field-error" *ngIf="f['nombre'].touched && f['nombre'].errors?.['maxlength']">El nombre no puede superar {{maxNombre}} caracteres.</small>
           </div>
           <!-- Campo Apellidos -->
-          <div class="background5">
-            <div class="container8">
-              <div class="text7">Apellidos *</div>
+          <div class="background4">
+            <div class="container7">
+              <div class="text5">Apellidos *</div>
             </div>
-            <div class="background-border" [class.error-border]="shouldShowError('apellidos')" [@inputFocus]>
+            <div class="background-border" [class.error-border]="f['apellidos'].touched && f['apellidos'].errors?.['required']" [@inputFocus]="getInputFocusState('apellidos')">
               <input
                 type="text"
                 formControlName="apellidos"
                 class="apellidos"
-                placeholder="Apellidos">
+                placeholder="Apellidos"
+                [attr.maxlength]="maxApellidos"
+                (focus)="onFieldFocus('apellidos', true)"
+                (blur)="onFieldFocus('apellidos', false)">
             </div>
+            <small class="field-error" *ngIf="f['apellidos'].touched && f['apellidos'].errors?.['required']">Los apellidos son obligatorios.</small>
+            <small class="field-error" *ngIf="f['apellidos'].touched && f['apellidos'].errors?.['maxlength']">Los apellidos no pueden superar {{maxApellidos}} caracteres.</small>
           </div>
           <!-- Campo Email -->
-          <div class="background6">
-            <div class="container8">
-              <div class="text8">Email *</div>
+          <div class="background4">
+            <div class="container7">
+              <div class="text5">Email *</div>
             </div>
-            <div class="background-border" [class.error-border]="shouldShowError('email')" [@inputFocus]>
+            <div class="background-border" [class.error-border]="f['email'].touched && f['email'].errors?.['required']" [@inputFocus]="getInputFocusState('email')">
               <input
                 type="email"
                 formControlName="email"
-                class="email-plataforma-com"
-                placeholder="email@plataforma.com">
+                class="email"
+                placeholder="Email"
+                [attr.maxlength]="maxEmail"
+                (focus)="onFieldFocus('email', true)"
+                (blur)="onFieldFocus('email', false)">
             </div>
+            <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['required']">El email es obligatorio.</small>
+            <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['email']">El formato del email no es válido.</small>
+            <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['maxlength']">El email no puede superar {{maxEmail}} caracteres.</small>
           </div>
           <!-- Campo Alias -->
-          <div class="background7">
-            <div class="paragraph">
-              <div class="text9">Alias *</div>
-              <div class="text10">(no repetible)</div>
+          <div class="background4">
+            <div class="container7">
+              <div class="text5">Alias (opcional, máx {{maxAlias}})</div>
             </div>
-            <div class="background-border" [class.error-border]="shouldShowError('alias')" [@inputFocus]>
+            <div class="background-border" [class.error-border]="f['alias'].touched && f['alias'].errors?.['maxlength']" [@inputFocus]="getInputFocusState('alias')">
               <input
                 type="text"
                 formControlName="alias"
-                class="alias-input"
-                placeholder="@alias_unico">
+                class="alias"
+                placeholder="Alias"
+                [attr.maxlength]="maxAlias"
+                (focus)="onFieldFocus('alias', true)"
+                (blur)="onFieldFocus('alias', false)">
             </div>
+            <small class="subhint">Es tu nombre público.</small>
+            <small class="field-error" *ngIf="f['alias'].touched && f['alias'].errors?.['maxlength']">El alias no puede superar {{maxAlias}} caracteres.</small>
           </div>
           <!-- Campo Contraseña -->
-          <div class="background8">
-            <div class="container8">
-              <div class="text11">Contraseña *</div>
+          <div class="background4">
+            <div class="container7">
+              <div class="text5">Contraseña *</div>
             </div>
-            <div class="background-border" [class.error-border]="shouldShowError('password')" [@inputFocus]>
+            <div class="background-border" [class.error-border]="f['password'].touched && f['password'].errors?.['required']" [@inputFocus]="getInputFocusState('password')">
               <input
                 type="password"
                 formControlName="password"
-                class="div"
-                placeholder="••••••••">
+                class="password"
+                placeholder="Contraseña"
+                [attr.maxlength]="maxPassword"
+                (focus)="onFieldFocus('password', true)"
+                (blur)="onFieldFocus('password', false)">
             </div>
-            <!-- Requisitos de contraseña en tiempo real -->
-            <div *ngIf="creatorForm.get('password')?.value" class="password-requirements">
-              <div class="requirement-item" *ngFor="let req of passwordRequirements">
-                <span class="requirement-icon">✕</span>
-                <span class="requirement-text">{{ req }}</span>
-              </div>
-            </div>
+            <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
+            <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">La contraseña debe tener al menos {{FORM_LIMITS.passwordMin}} caracteres.</small>
+            <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['maxlength']">La contraseña no puede superar {{maxPassword}} caracteres.</small>
+            <small class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['passwordPolicy']">La contraseña no cumple con los requisitos de seguridad.</small>
           </div>
           <!-- Campo Repetir contraseña -->
-          <div class="background9">
-            <div class="container8">
-              <div class="text12">Repetir contraseña *</div>
+          <div class="background4">
+            <div class="container7">
+              <div class="text5">Repetir contraseña *</div>
             </div>
-            <div class="background-border" [class.error-border]="shouldShowError('repetirPassword')" [@inputFocus]>
+            <div class="background-border" [class.error-border]="f['repetirPassword'].touched && f['repetirPassword'].errors?.['required']" [@inputFocus]="getInputFocusState('repetirPassword')">
               <input
                 type="password"
                 formControlName="repetirPassword"
-                class="div"
-                placeholder="••••••••">
+                class="repetirPassword"
+                placeholder="Repetir contraseña"
+                (focus)="onFieldFocus('repetirPassword', true)"
+                (blur)="onFieldFocus('repetirPassword', false)">
             </div>
+            <small class="field-error" *ngIf="f['repetirPassword'].touched && f['repetirPassword'].errors?.['required']">Debes repetir la contraseña.</small>
+            <small class="field-error" *ngIf="f['repetirPassword'].touched && creatorForm.errors?.['passwordMismatch']">Las contraseñas no coinciden.</small>
           </div>
           <!-- Campo Especialidad -->
           <div class="background10">
@@ -215,30 +230,6 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
-  <!-- Modal de avatares predefinidos -->
-  <div *ngIf="showAvatarModal"
-       style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
-       (click)="closeAvatarModal()"
-       [@fadeIn]>
-    <div style="background: white; border-radius: 16px; width: 90%; max-width: 500px; overflow: hidden; display: flex; flex-direction: column;"
-         (click)="$event.stopPropagation()">
-      <div style="padding: 20px; border-bottom: 1px solid #eaedf2; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="color: #0f172a; font-family: 'NimbusSans-Bold', sans-serif; font-size: 18px; font-weight: 700; margin: 0;">Selecciona un avatar</h3>
-        <button type="button" (click)="closeAvatarModal()" style="background: transparent; border: none; cursor: pointer; padding: 4px;">
-          <img ngSrc="assets/admin/salir.svg" alt="cerrar" height="18" width="19"/>
-        </button>
-      </div>
-      <div style="padding: 30px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-        <div
-          *ngFor="let avatar of availableAvatars"
-          class="avatar-item"
-          [class.avatar-selected]="selectedAvatar === avatar"
-          (click)="selectPredefinedAvatar(avatar)">
-          <img [src]="avatar" alt="avatar predefinido" width="100" height="100" style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover;"/>
-        </div>
-      </div>
     </div>
   </div>
 </div>

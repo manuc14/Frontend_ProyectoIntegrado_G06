@@ -98,7 +98,7 @@
             <div class="iconify-icon2">
               <img class="group4" ngSrc="assets/admin/add.svg" alt="icono añadir" height="18" width="18"/>
             </div>
-            <div class="text9">Añadir administrador</div>
+            <div class="text4">Añadir administrador</div>
           </button>
         </div>
       </div>
@@ -132,15 +132,15 @@
       <div class="container11" [@shakeError]>
         <div class="background-border2">
           <div class="background5">
-            <div class="container2"><div class="text10">Foto</div></div>
-            <div class="container2"><div class="text11">Nombre</div></div>
-            <div class="container2"><div class="text12">Apellidos</div></div>
-            <div class="container2"><div class="text13">Alias</div></div>
-            <div class="container2"><div class="text14">Email</div></div>
-            <div class="container2"><div class="text15">Departamento</div></div>
-            <div class="container2"><div class="text16">Estado</div></div>
-            <div class="container2"><div class="text17">Editar</div></div>
-            <div class="container2"><div class="text18">Eliminar</div></div>
+            <div class="container2"><div class="table-header-text">Foto</div></div>
+            <div class="container2"><div class="table-header-text">Nombre</div></div>
+            <div class="container2"><div class="table-header-text">Apellidos</div></div>
+            <div class="container2"><div class="table-header-text">Alias</div></div>
+            <div class="container2"><div class="table-header-text">Email</div></div>
+            <div class="container2"><div class="table-header-text">Departamento</div></div>
+            <div class="container2"><div class="table-header-text">Estado</div></div>
+            <div class="container2"><div class="table-header-text">Editar</div></div>
+            <div class="container2"><div class="table-header-text">Eliminar</div></div>
           </div>
 
           <div class="container12">
@@ -166,11 +166,11 @@
                   height="28"
                   width="28"/>
               </div>
-              <div class="container2"><div class="text20">{{ admin.nombre }}</div></div>
-              <div class="container2"><div class="text21">{{ admin.apellidos }}</div></div>
-              <div class="container2"><div class="text22">&#64;{{ admin.alias }}</div></div>
-              <div class="container14"><div class="text23">{{ admin.correo }}</div></div>
-              <div class="container2"><div class="text24">{{ admin.departamento }}</div></div>
+              <div class="container2"><div class="table-cell-text">{{ admin.nombre }}</div></div>
+              <div class="container2"><div class="table-cell-text">{{ admin.apellidos }}</div></div>
+              <div class="container2"><div class="table-cell-text">&#64;{{ admin.alias }}</div></div>
+              <div class="container14"><div class="table-cell-text">{{ admin.correo }}</div></div>
+              <div class="container2"><div class="table-cell-text">{{ admin.departamento }}</div></div>
               <div class="container15">
                 <div class="background-border3">
                   <img
@@ -209,18 +209,18 @@
             <div class="text44">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container19">
-            <div class="border" [@buttonHover] [@buttonPress] (click)="paginaAnterior()">
+            <button class="border" [@buttonHover] [@buttonPress] (click)="paginaAnterior()" type="button" aria-label="Ir a la página anterior">
               <div class="iconify-icon4">
                 <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text45">Anterior</div>
-            </div>
-            <div class="border2" [@buttonHover] [@buttonPress] (click)="paginaSiguiente()">
+            </button>
+            <button class="border2" [@buttonHover] [@buttonPress] (click)="paginaSiguiente()" type="button" aria-label="Ir a la página siguiente">
               <div class="text46">Siguiente</div>
               <div class="iconify-icon5">
                 <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

@@ -1,12 +1,27 @@
 // src/app/pages/ad-admin-add/ad-admin-add.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 import { AdminService } from '../../core/services/admin.service';
 import { ApiService } from '../../core/services/api.service';
-import { AvatarsResponseDto } from '../../core/models/media.models';
+import { matchPasswordsValidator, passwordPolicyValidator } from '../../core/validators/form.validators';
+import { applyBackendDetails, clearBackendErrors } from '../../core/utils/error-mapper';
+import { FORM_LIMITS } from '../../core/constants/form-limits';
+import { HttpResponse } from '@angular/common/http';
+import { finalize } from 'rxjs/operators';
+
+interface AdminAddForm {
+  nombre: FormControl<string>;
+  apellidos: FormControl<string>;
+  email: FormControl<string>;
+  alias: FormControl<string>;
+  password: FormControl<string>;
+  repetirPassword: FormControl<string>;
+  departamento: FormControl<string>;
+  fotoElegida: FormControl<string | null>;
+}
 
 @Component({
   selector: 'app-adadminadd',
@@ -17,7 +32,13 @@ import { AvatarsResponseDto } from '../../core/models/media.models';
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class AdminAdmsAddPage implements OnInit {
-  adminForm: FormGroup;
+  readonly maxAlias = FORM_LIMITS.aliasMax;
+  readonly maxNombre = FORM_LIMITS.nombreMax;
+  readonly maxApellidos = FORM_LIMITS.apellidosMax;
+  readonly maxEmail = FORM_LIMITS.emailMax;
+  readonly maxPassword = FORM_LIMITS.passwordMax;
+
+  adminForm: FormGroup<AdminAddForm>;
   selectedFile: File | null = null;
   selectedAvatar: string | null = null;
   previewUrl: string = 'assets/admin/foto_upload.svg';
@@ -35,117 +56,104 @@ export class AdminAdmsAddPage implements OnInit {
   ];
 
   showAvatarModal = false;
-  availableAvatars: string[] = [
-    'assets/admin/predef1.png',
-    'assets/admin/predef2.png',
-    'assets/admin/predef3.png',
-    'assets/admin/predef4.png'
-  ];
+  availableAvatars: string[] = [];
+  defaultAvatar = '';
+  avatarLoadError = false;
 
   isLoadingAvatars = false;
   isSubmitting = false;
-  errorMessage: string | null = null;
+  bannerKind: 'success' | 'error' | null = null;
+  bannerText = '';
   formSubmitted = false;
 
-  // Validaciones de contraseña en tiempo real
-  passwordStrength = {
-    hasMinLength: false,
-    hasUpperCase: false,
-    hasLowerCase: false,
-    hasNumber: false,
-    hasSpecialChar: false
-  };
+  // Animation estados
+  shakeForm = false;
+  buttonState = 'normal';
+  focusedFields: {[key: string]: boolean} = {};
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private adminService: AdminService,
-    public apiService: ApiService
+    private apiService: ApiService
   ) {
-    this.adminForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      apellidos: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      alias: ['', [Validators.required, Validators.minLength(2)]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      repetirPassword: ['', [Validators.required]],
-      departamento: ['Operaciones', [Validators.required]]
-    }, {
-      validators: this.passwordMatchValidator
-    });
+    this.adminForm = this.fb.nonNullable.group({
+      nombre: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(FORM_LIMITS.nombreMax)]),
+      apellidos: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(FORM_LIMITS.apellidosMax)]),
+      email: this.fb.nonNullable.control('', [Validators.required, Validators.email, Validators.maxLength(FORM_LIMITS.emailMax)]),
+      alias: this.fb.nonNullable.control('', [Validators.maxLength(FORM_LIMITS.aliasMax)]),
+      password: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(FORM_LIMITS.passwordMin), Validators.maxLength(FORM_LIMITS.passwordMax), passwordPolicyValidator()]),
+      repetirPassword: this.fb.nonNullable.control('', [Validators.required]),
+      departamento: this.fb.nonNullable.control('Operaciones', [Validators.required]),
+      fotoElegida: this.fb.control<string | null>(null),
+    }, { validators: [matchPasswordsValidator('password', 'repetirPassword')] });
   }
+
+  get f() { return this.adminForm.controls; }
 
   ngOnInit(): void {
-    this.cargarAvatares();
-
-    // Escuchar cambios en el campo de contraseña
-    this.adminForm.get('password')?.valueChanges.subscribe(password => {
-      this.checkPasswordStrength(password || '');
-    });
+    this.loadAvatars();
   }
 
-  checkPasswordStrength(password: string): void {
-    this.passwordStrength = {
-      hasMinLength: password.length >= 8,
-      hasUpperCase: /[A-Z]/.test(password),
-      hasLowerCase: /[a-z]/.test(password),
-      hasNumber: /[0-9]/.test(password),
-      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-    };
-  }
-
-  get isPasswordValid(): boolean {
-    return Object.values(this.passwordStrength).every(v => v === true);
-  }
-
-  // ✅ ESTA ES LA FUNCIÓN CORREGIDA
-  get passwordRequirements(): string[] {
-    const requirements: string[] = [];
-    if (!this.passwordStrength.hasMinLength) requirements.push('Mínimo 8 caracteres');
-    if (!this.passwordStrength.hasUpperCase) requirements.push('Al menos una mayúscula');
-    if (!this.passwordStrength.hasLowerCase) requirements.push('Al menos una minúscula');
-    if (!this.passwordStrength.hasNumber) requirements.push('Al menos un dígito');
-    if (!this.passwordStrength.hasSpecialChar) requirements.push('Al menos un carácter especial');
-    return requirements;
-  }
-
-  passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password');
-    const repetirPassword = form.get('repetirPassword');
-
-    if (password && repetirPassword && password.value !== repetirPassword.value) {
-      repetirPassword.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
-    }
-    return null;
-  }
-
-  cargarAvatares(): void {
+  loadAvatars() {
     this.isLoadingAvatars = true;
+    this.avatarLoadError = false;
     this.apiService.getAvatars().subscribe({
-      next: (response: AvatarsResponseDto) => {
-        this.availableAvatars = response.avatars;
-        this.isLoadingAvatars = false;
+      next: (response) => {
+        this.availableAvatars = response.avatars || [];
+        this.defaultAvatar = response.defaultAvatar || '';
+        this.selectedAvatar = this.defaultAvatar;
+        // Actualizar formulario con avatar por defecto
+        this.adminForm.patchValue({ fotoElegida: this.defaultAvatar });
       },
-      error: (err) => {
-        console.error('Error al cargar avatares:', err);
+      error: (error) => {
+        console.error('Error al cargar avatares:', error);
+        // Mostrar mensaje de error y configurar avatar por defecto vacío
+        this.isLoadingAvatars = false;
+        this.avatarLoadError = true;
+        this.availableAvatars = [];
+        this.defaultAvatar = '';
+        this.selectedAvatar = '';
+        // El formulario mantendrá fotoElegida como null para usar el avatar por defecto del backend
+        this.adminForm.patchValue({ fotoElegida: null });
+      },
+      complete: () => {
         this.isLoadingAvatars = false;
       }
     });
+  }
+
+  selectAvatar(avatarPath: string) {
+    this.selectedAvatar = avatarPath;
+    this.adminForm.patchValue({ fotoElegida: avatarPath });
+  }
+
+  getAvatarUrl(relativePath: string): string {
+    return this.apiService.getFullAvatarUrl(relativePath);
+  }
+
+  private extractAvatarFileName(avatarPath: string): string {
+    if (!avatarPath) return '';
+    // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
+    return avatarPath.split('/').pop() ?? '';
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
+    if (input.files?.[0]) {
       const file = input.files[0];
 
       if (!file.type.startsWith('image/')) {
-        this.errorMessage = 'Por favor, selecciona un archivo de imagen válido.';
+        this.bannerKind = 'error';
+        this.bannerText = 'Por favor, selecciona un archivo de imagen válido.';
+        this.triggerShakeError();
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        this.errorMessage = 'La imagen no debe superar los 5MB.';
+        this.bannerKind = 'error';
+        this.bannerText = 'La imagen no debe superar los 5MB.';
+        this.triggerShakeError();
         return;
       }
 
@@ -168,92 +176,126 @@ export class AdminAdmsAddPage implements OnInit {
     }
   }
 
-  openAvatarModal(): void {
-    this.showAvatarModal = true;
-  }
-
-  closeAvatarModal(): void {
-    this.showAvatarModal = false;
-  }
-
-  selectPredefinedAvatar(avatar: string): void {
-    this.selectedAvatar = avatar;
-    this.selectedFile = null;
-    this.previewUrl = avatar;
-    this.isDefaultIcon = false;
-    this.closeAvatarModal();
-  }
-
   shouldShowError(fieldName: string): boolean {
     const field = this.adminForm.get(fieldName);
-    return this.formSubmitted && field !== null && field.invalid;
+    return this.formSubmitted && !!field?.invalid;
   }
-
-  // src/app/pages/ad-admin-add/ad-admin-add.component.ts
-// Reemplaza el método onSubmit() completo:
 
   onSubmit(): void {
     this.formSubmitted = true;
-    this.errorMessage = null;
-
-    // Validar que la contraseña cumpla todos los requisitos
-    if (!this.isPasswordValid) {
-      this.errorMessage = 'Valores incorrectos. Revisa los campos para continuar.';
-      return;
-    }
+    this.bannerKind = null;
+    this.bannerText = '';
 
     if (this.adminForm.invalid) {
-      this.errorMessage = 'Valores incorrectos. Revisa los campos para continuar.';
+      this.triggerShakeError();
       return;
     }
 
-    this.isSubmitting = true;
+    this.buttonState = 'pressed';
 
-    const formData = new FormData();
+    const v = this.adminForm.value;
+    const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
 
-    const adminData = {
-      nombre: this.adminForm.get('nombre')?.value.trim(),
-      apellidos: this.adminForm.get('apellidos')?.value.trim(),
-      correo: this.adminForm.get('email')?.value.trim(),
-      alias: this.adminForm.get('alias')?.value.trim(),
-      contrasena: this.adminForm.get('password')?.value,
-      confirmarContrasena: this.adminForm.get('repetirPassword')?.value,
-      departamento: this.adminForm.get('departamento')?.value,
-      avatarPath: this.selectedAvatar || null
+    // Extraer solo el nombre del archivo del avatar seleccionado
+    let fotoNombre = '';
+    if (v.fotoElegida) {
+      // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
+      fotoNombre = v.fotoElegida.split('/').pop() ?? '';
+    }
+
+    const payload = {
+      nombre: v.nombre!,
+      apellidos: v.apellidos!,
+      correo: v.email!,
+      alias,
+      contrasena: v.password!,
+      confirmarContrasena: v.repetirPassword!,
+      departamento: v.departamento!,
+      avatarPath: fotoNombre || null
     };
 
-    // Añadir el objeto admin como un Blob JSON
-    formData.append('admin', new Blob([JSON.stringify(adminData)], { type: 'application/json' }));
+    this.bannerKind = null;
+    this.bannerText = '';
+    this.isSubmitting = true;
+    this.adminForm.disable();
+
+    const formData = new FormData();
+    formData.append('admin', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
 
     // Añadir la foto si existe
     if (this.selectedFile) {
       formData.append('foto', this.selectedFile, this.selectedFile.name);
     }
 
-    this.adminService.crearAdministrador(formData).subscribe({
-      next: (response) => {
-        console.log('Administrador creado exitosamente:', response);
-        // Pasar los datos del administrador creado a la página de éxito
-        this.router.navigate(['/ad-admin-add-success'], {
-          state: {
-            adminData: {
-              nombre: this.adminForm.get('nombre')?.value.trim(),
-              apellidos: this.adminForm.get('apellidos')?.value.trim(),
-              correo: this.adminForm.get('email')?.value.trim(),
-              alias: this.adminForm.get('alias')?.value.trim(),
-              departamento: this.adminForm.get('departamento')?.value,
-              foto: response.foto || this.selectedAvatar || 'assets/admin/admin_default.png'
-            }
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error al crear administrador:', error);
-        this.errorMessage = error.message || 'Error al crear el administrador. Por favor, intenta nuevamente.';
+    this.adminService.crearAdministrador(formData)
+      .pipe(finalize(() => {
         this.isSubmitting = false;
-      }
-    });
+        this.adminForm.enable();
+        this.buttonState = 'normal';
+      }))
+      .subscribe({
+        next: (res: HttpResponse<any>) => {
+          const status = res.status;
+          if (status === 201 || status === 200) {
+            const body: any = res.body || {};
+            const successMsg = (body?.message as string) || 'Administrador creado correctamente';
+            console.log('Administrador creado', body);
+            this.bannerKind = 'success';
+            this.bannerText = successMsg;
+            // Navegar después de un breve delay para mostrar el mensaje
+            setTimeout(() => {
+              this.router.navigate(['/ad-admin']);
+            }, 1500);
+            return;
+          }
+          // Status inesperado, tratar como error
+          this.bannerKind = 'error';
+          this.bannerText = 'No se pudo crear el administrador.';
+        },
+        error: (err) => {
+          // Limpia errores previos de backend en controles relevantes
+          clearBackendErrors(this.adminForm, ['email','password','repetirPassword','nombre','apellidos','alias']);
+
+          const status = err?.originalError?.status || err?.status;
+          const payload = err?.originalError?.error || err?.error || {};
+          // Usar el mensaje procesado por el interceptor primero
+          const message: string | undefined = err?.message || payload?.message;
+          const details: Array<{ field: string; message: string }>|undefined = payload?.details;
+
+          if (status === 409) {
+            // Email duplicado
+            this.adminForm.get('email')?.setErrors({ ...(this.adminForm.get('email')?.errors||{}), emailTaken: true });
+            this.bannerKind = 'error';
+            this.bannerText = message ?? 'El email ya está registrado.';
+            this.triggerShakeError();
+            return;
+          }
+
+          if (status === 400 && Array.isArray(details) && details.length > 0) {
+            const fieldMap: Record<string,string> = {
+              confirmarContrasena: 'repetirPassword',
+              contrasena: 'password',
+              correo: 'email',
+              nombre: 'nombre',
+              apellidos: 'apellidos',
+              alias: 'alias',
+            };
+            const msgJoin = applyBackendDetails(this.adminForm, details, fieldMap);
+            this.bannerKind = 'error';
+            this.bannerText = (message ? message + '\n' : '') + msgJoin;
+            this.triggerShakeError();
+            return;
+          }
+
+          // Otros errores
+          this.bannerKind = 'error';
+          this.bannerText = message ?? 'No se pudo crear el administrador. Inténtalo de nuevo.';
+          this.triggerShakeError();
+          console.error('Error de creación de administrador', err);
+        },
+      });
   }
+
   goBack(): void {
     if (this.adminForm.dirty) {
       const confirmLeave = confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.');
@@ -263,5 +305,17 @@ export class AdminAdmsAddPage implements OnInit {
     } else {
       this.router.navigate(['/ad-admin']);
     }
+  }
+
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
+  }
+
+  onFieldFocus(field: string, focused: boolean): void {
+    this.focusedFields[field] = focused;
+  }
+
+  getInputFocusState(field: string): string {
+    return this.focusedFields[field] ? 'focused' : 'normal';
   }
 }

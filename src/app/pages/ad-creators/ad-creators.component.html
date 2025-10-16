@@ -51,7 +51,7 @@
             <img class="group" ngSrc="assets/admin/usuarios_negro.svg" alt="icono usuarios" height="18" width="18"/>
           </div>
           <div class="container2">
-            <div class="text4">Usuarios</div>
+            <div class="text5">Usuarios</div>
           </div>
         </div>
       </button>
@@ -71,7 +71,7 @@
             <img class="group2" ngSrc="assets/admin/creadores_blanco.svg" alt="icono creadores de contenido" width="18" height="18"/>
           </div>
           <div class="container2">
-            <div class="text6">Creadores de Contenido</div>
+            <div class="text4">Creadores de Contenido</div>
           </div>
         </div>
       </button>
@@ -93,11 +93,11 @@
           <div class="container8">
             <div class="text8">Creadores de Contenido</div>
           </div>
-          <button class="background5" type="button" (click)="addNewCreator()">
+          <button class="background9" type="button" (click)="addNewCreator()">
             <div class="iconify-icon2">
               <img class="group4" ngSrc="assets/admin/add.svg" alt="icono añadir" height="18" width="18"/>
             </div>
-            <div class="text9">Añadir creador</div>
+            <div class="text4">Añadir creador</div>
           </button>
         </div>
       </div>
@@ -152,21 +152,21 @@
           <!-- Mostrar tabla cuando hay datos -->
           <ng-container *ngIf="!isLoading && !error">
             <!-- Encabezados -->
-            <div class="background6">
-              <div class="container2"><div class="text11">Foto</div></div>
-              <div class="container2"><div class="text12">Nombre</div></div>
-              <div class="container2"><div class="text13">Apellidos</div></div>
-              <div class="container2"><div class="text14">Email</div></div>
-              <div class="container2"><div class="text15">Alias</div></div>
-              <div class="container2"><div class="text16">Categoría</div></div>
-              <div class="container12"><div class="text17">Tipo contenido</div></div>
-              <div class="container2"><div class="text18">Estado</div></div>
-              <div class="container2"><div class="text19">Editar</div></div>
-              <div class="container2"><div class="text20">Eliminar</div></div>
+            <div class="background5">
+              <div class="container2"><div class="table-header-text">Foto</div></div>
+              <div class="container2"><div class="table-header-text">Nombre</div></div>
+              <div class="container2"><div class="table-header-text">Apellidos</div></div>
+              <div class="container2"><div class="table-header-text">Email</div></div>
+              <div class="container2"><div class="table-header-text">Alias</div></div>
+              <div class="container2"><div class="table-header-text">Categoría</div></div>
+              <div class="container2"><div class="table-header-text">Tipo contenido</div></div>
+              <div class="container2"><div class="table-header-text">Estado</div></div>
+              <div class="container2"><div class="table-header-text">Editar</div></div>
+              <div class="container2"><div class="table-header-text">Eliminar</div></div>
             </div>
 
             <!-- Filas de datos -->
-            <div class="container13">
+            <div class="container12">
               <!-- Mostrar mensaje si no hay resultados -->
               <div *ngIf="filteredCreators.length === 0" class="no-results">
                 <div class="no-results-content">
@@ -180,10 +180,11 @@
               <!-- Lista dinámica de creadores -->
               <div
                 *ngFor="let creator of creadoresPaginados; let i = index; trackBy: trackByCreatorId"
-                class="horizontal-border">
+                class="horizontal-border"
+                [class.horizontal-border2]="i > 0">
 
                 <!-- Foto -->
-                <div class="container14">
+                <div class="container13">
                   <img
                     [ngSrc]="creator.foto ? 'assets/admin/' + creator.foto : 'assets/admin/admin_default.png'"
                     [alt]="'foto de ' + creator.nombre"
@@ -194,39 +195,41 @@
 
                 <!-- Nombre -->
                 <div class="container2">
-                  <div class="text21">{{ creator.nombre }}</div>
+                  <div class="table-cell-text">{{ creator.nombre }}</div>
                 </div>
 
                 <!-- Apellidos -->
                 <div class="container2">
-                  <div class="text22">{{ creator.apellidos }}</div>
+                  <div class="table-cell-text">{{ creator.apellidos }}</div>
                 </div>
 
                 <!-- Email -->
-                <div class="container15">
-                  <div class="text23">{{ creator.correo }}</div>
+                <div class="container14">
+                  <div class="table-cell-text">{{ creator.correo }}</div>
                 </div>
 
                 <!-- Alias -->
                 <div class="container2">
-                  <div class="text24">&#64;{{ creator.alias }}</div>
+                  <div class="table-cell-text">&#64;{{ creator.alias }}</div>
                 </div>
 
                 <!-- Categoría -->
-                <div class="background7">
-                  <div class="text25">{{ creator.especialidad }}</div>
+                <div class="container15">
+                  <div class="background6">
+                    <div class="category-badge">{{ creator.especialidad }}</div>
+                  </div>
                 </div>
 
                 <!-- Tipo de contenido -->
-                <div class="container16">
-                  <div class="background-border3">
-                    <div class="video-text">{{ creator.tipoContenido === 'VIDEO' ? 'Vídeo' : 'Audio' }}</div>
+                <div class="container15">
+                  <div class="background8">
+                    <div class="category-badge">{{ creator.tipoContenido === 'VIDEO' ? 'Vídeo' : 'Audio' }}</div>
                   </div>
                 </div>
 
                 <!-- Estado (Activo/Bloqueado) -->
-                <div class="container17">
-                  <div class="background-border4">
+                <div class="container15">
+                  <div class="background-border3">
                     <img
                       class="svg6"
                       [ngSrc]="creator.activo ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'"
@@ -237,27 +240,27 @@
                 </div>
 
                 <!-- Botón Editar -->
-                <div class="container18">
-                  <div class="background8" (click)="editarCreador(creator.id)" style="cursor: pointer;">
+                <div class="container16">
+                  <button type="button" class="background-border4" (click)="editarCreador(creator.id)" style="cursor: pointer;">
                     <img
                       class="svg7"
                       ngSrc="assets/admin/editar.svg"
                       alt="editar creador"
                       height="18"
                       width="18"/>
-                  </div>
+                  </button>
                 </div>
 
                 <!-- Botón Eliminar -->
-                <div class="container18">
-                  <div class="background9" (click)="eliminarCreador(creator.id)" style="cursor: pointer;">
+                <div class="container16">
+                  <button type="button" class="background7" (click)="eliminarCreador(creator.id)" style="cursor: pointer;">
                     <img
                       class="svg8"
                       ngSrc="assets/admin/eliminar.svg"
                       alt="eliminar creador"
                       height="18"
                       width="18"/>
-                  </div>
+                  </button>
                 </div>
               </div>
 
@@ -278,7 +281,7 @@
             <div class="text47">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container22">
-            <div
+            <button type="button"
               class="border"
               [@buttonHover]
               [@buttonPress]
@@ -290,8 +293,8 @@
                 <img class="svg19" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text48">Anterior</div>
-            </div>
-            <div
+            </button>
+            <button type="button"
               class="border2"
               [@buttonHover]
               [@buttonPress]
@@ -303,7 +306,7 @@
               <div class="iconify-icon5">
                 <img class="svg20" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

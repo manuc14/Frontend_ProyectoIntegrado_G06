@@ -126,16 +126,16 @@
       <div class="container11" [@shakeError]>
         <div class="background-border2">
           <div class="background5">
-            <div class="container2"><div class="text10">Foto</div></div>
-            <div class="container2"><div class="text11">Nombre</div></div>
-            <div class="container2"><div class="text12">Apellidos</div></div>
-            <div class="container2"><div class="text13">Alias</div></div>
-            <div class="container2"><div class="text14">Email</div></div>
-            <div class="container2"><div class="text15">Fecha de<br />nacimiento</div></div>
-            <div class="container2"><div class="text16">Tipo</div></div>
-            <div class="container2"><div class="text17">Estado</div></div>
-            <div class="container2"><div class="text18">Editar</div></div>
-            <div class="container2"><div class="text19">Eliminar</div></div>
+            <div class="container2"><div class="table-header-text">Foto</div></div>
+            <div class="container2"><div class="table-header-text">Nombre</div></div>
+            <div class="container2"><div class="table-header-text">Apellidos</div></div>
+            <div class="container2"><div class="table-header-text">Alias</div></div>
+            <div class="container2"><div class="table-header-text">Email</div></div>
+            <div class="container2"><div class="table-header-text">Fecha de<br />nacimiento</div></div>
+            <div class="container2"><div class="table-header-text">Tipo</div></div>
+            <div class="container2"><div class="table-header-text">Estado</div></div>
+            <div class="container2"><div class="table-header-text">Editar</div></div>
+            <div class="container2"><div class="table-header-text">Eliminar</div></div>
           </div>
 
           <div class="container12">
@@ -161,19 +161,19 @@
                   height="28" 
                   width="28"/>
               </div>
-              <div class="container2"><div class="text20">{{ user.name }}</div></div>
-              <div class="container2"><div class="text21">{{ user.lastName }}</div></div>
-              <div class="container2"><div class="text22">{{ user.alias }}</div></div>
-              <div class="container14"><div class="text23">{{ user.email }}</div></div>
-              <div class="container2"><div class="text24">{{ user.birthDate }}</div></div>
+              <div class="container2"><div class="table-cell-text">{{ user.name }}</div></div>
+              <div class="container2"><div class="table-cell-text">{{ user.lastName }}</div></div>
+              <div class="container2"><div class="table-cell-text">{{ user.alias }}</div></div>
+              <div class="container14"><div class="table-cell-text">{{ user.email }}</div></div>
+              <div class="container2"><div class="table-cell-text">{{ user.birthDate }}</div></div>
               <div class="container15">
                 <div 
                   class="background6" 
                   [class.background8]="user.role === 'Estándar'"
                   [class.background6]="user.role === 'VIP'">
                   <div 
-                    class="vip" 
-                    [class.est-ndar]="user.role === 'Estándar'">
+                    class="category-badge" 
+                    [class]="user.role === 'Estándar' ? 'est-ndar' : ''">
                     {{ user.role }}
                   </div>
                 </div>
@@ -218,33 +218,37 @@
             <div class="text42">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container19">
-            <div 
+            <button 
               class="border" 
               [@buttonHover] 
               [@buttonPress]
               (click)="paginaAnterior()"
               [style.opacity]="currentPage === 1 ? '0.5' : '1'"
               [style.cursor]="currentPage === 1 ? 'not-allowed' : 'pointer'"
-              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'">
+              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'"
+              type="button"
+              [attr.aria-label]="'Ir a la página anterior'">
               <div class="iconify-icon3">
                 <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text43">Anterior</div>
-            </div>
-            <div 
+            </button>
+            <button 
               class="border2" 
               [@buttonHover] 
               [@buttonPress]
               (click)="paginaSiguiente()"
               [style.opacity]="currentPage === totalPaginas ? '0.5' : '1'"
               [style.cursor]="currentPage === totalPaginas ? 'not-allowed' : 'pointer'"
-              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'">
+              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'"
+              type="button"
+              [attr.aria-label]="'Ir a la página siguiente'">
               <div class="text44">Siguiente</div>
               <div class="iconify-icon4">
                 <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18"
                      width="18"/>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

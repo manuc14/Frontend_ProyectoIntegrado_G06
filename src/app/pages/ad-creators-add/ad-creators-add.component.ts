@@ -1,11 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 import { CreatorService } from '../../core/services/creator.service';
 import { ApiService } from '../../core/services/api.service';
-import { AvatarsResponseDto } from '../../core/models/media.models';
+import { matchPasswordsValidator, passwordPolicyValidator } from '../../core/validators/form.validators';
+import { applyBackendDetails, clearBackendErrors } from '../../core/utils/error-mapper';
+import { FORM_LIMITS } from '../../core/constants/form-limits';
+import { HttpResponse } from '@angular/common/http';
+import { finalize } from 'rxjs/operators';
+
+interface CreatorAddForm {
+  nombre: FormControl<string>;
+  apellidos: FormControl<string>;
+  email: FormControl<string>;
+  alias: FormControl<string>;
+  password: FormControl<string>;
+  repetirPassword: FormControl<string>;
+  especialidad: FormControl<string>;
+  tipoContenido: FormControl<string>;
+  descripcion: FormControl<string>;
+  fotoElegida: FormControl<string | null>;
+}
 
 @Component({
   selector: 'app-adcreatorsadd',
@@ -16,7 +33,14 @@ import { AvatarsResponseDto } from '../../core/models/media.models';
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class AdminCreatorsAddPage implements OnInit {
-  creatorForm: FormGroup;
+  readonly maxAlias = FORM_LIMITS.aliasMax;
+  readonly maxNombre = FORM_LIMITS.nombreMax;
+  readonly maxApellidos = FORM_LIMITS.apellidosMax;
+  readonly maxEmail = FORM_LIMITS.emailMax;
+  readonly maxPassword = FORM_LIMITS.passwordMax;
+  readonly FORM_LIMITS = FORM_LIMITS;
+
+  creatorForm: FormGroup<CreatorAddForm>;
   selectedFile: File | null = null;
   selectedAvatar: string | null = null;
   previewUrl: string = 'assets/admin/foto_upload.svg';
@@ -34,116 +58,101 @@ export class AdminCreatorsAddPage implements OnInit {
   ];
 
   showAvatarModal = false;
-  availableAvatars: string[] = [
-    'assets/admin/predef1.png',
-    'assets/admin/predef2.png',
-    'assets/admin/predef3.png',
-    'assets/admin/predef4.png'
-  ];
+  availableAvatars: string[] = [];
+  defaultAvatar = '';
+  avatarLoadError = false;
 
   isLoadingAvatars = false;
   isSubmitting = false;
-  errorMessage: string | null = null;
+  bannerKind: 'success' | 'error' | null = null;
+  bannerText = '';
   formSubmitted = false;
 
-  passwordStrength = {
-    hasMinLength: false,
-    hasUpperCase: false,
-    hasLowerCase: false,
-    hasNumber: false,
-    hasSpecialChar: false
-  };
+  // Animation estados
+  shakeForm = false;
+  buttonState = 'normal';
+  focusedFields: {[key: string]: boolean} = {};
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private creatorService: CreatorService,
-    public apiService: ApiService
+    private apiService: ApiService
   ) {
-    this.creatorForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      apellidos: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      alias: ['', [Validators.required, Validators.minLength(2)]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      repetirPassword: ['', [Validators.required]],
-      especialidad: ['Música', [Validators.required]],
-      tipoContenido: ['', [Validators.required]],
-      descripcion: ['']
-    }, {
-      validators: this.passwordMatchValidator
-    });
+    this.creatorForm = this.fb.nonNullable.group({
+      nombre: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(FORM_LIMITS.nombreMax)]),
+      apellidos: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(FORM_LIMITS.apellidosMax)]),
+      email: this.fb.nonNullable.control('', [Validators.required, Validators.email, Validators.maxLength(FORM_LIMITS.emailMax)]),
+      alias: this.fb.nonNullable.control('', [Validators.maxLength(FORM_LIMITS.aliasMax)]),
+      password: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(FORM_LIMITS.passwordMin), Validators.maxLength(FORM_LIMITS.passwordMax), passwordPolicyValidator()]),
+      repetirPassword: this.fb.nonNullable.control('', [Validators.required]),
+      especialidad: this.fb.nonNullable.control('Música', [Validators.required]),
+      tipoContenido: this.fb.nonNullable.control('', [Validators.required]),
+      descripcion: this.fb.nonNullable.control(''),
+      fotoElegida: this.fb.control<string | null>(null),
+    }, { validators: [matchPasswordsValidator('password', 'repetirPassword')] });
   }
+
+  get f() { return this.creatorForm.controls; }
 
   ngOnInit(): void {
-    this.cargarAvatares();
-
-    this.creatorForm.get('password')?.valueChanges.subscribe(password => {
-      this.checkPasswordStrength(password || '');
-    });
+    this.loadAvatars();
   }
 
-  checkPasswordStrength(password: string): void {
-    this.passwordStrength = {
-      hasMinLength: password.length >= 8,
-      hasUpperCase: /[A-Z]/.test(password),
-      hasLowerCase: /[a-z]/.test(password),
-      hasNumber: /[0-9]/.test(password),
-      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-    };
-  }
-
-  get isPasswordValid(): boolean {
-    return Object.values(this.passwordStrength).every(v => v === true);
-  }
-
-  get passwordRequirements(): string[] {
-    const requirements: string[] = [];
-    if (!this.passwordStrength.hasMinLength) requirements.push('Mínimo 8 caracteres');
-    if (!this.passwordStrength.hasUpperCase) requirements.push('Al menos una mayúscula');
-    if (!this.passwordStrength.hasLowerCase) requirements.push('Al menos una minúscula');
-    if (!this.passwordStrength.hasNumber) requirements.push('Al menos un dígito');
-    if (!this.passwordStrength.hasSpecialChar) requirements.push('Al menos un carácter especial');
-    return requirements;
-  }
-
-  passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password');
-    const repetirPassword = form.get('repetirPassword');
-
-    if (password && repetirPassword && password.value !== repetirPassword.value) {
-      repetirPassword.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
-    }
-    return null;
-  }
-
-  cargarAvatares(): void {
+  loadAvatars() {
     this.isLoadingAvatars = true;
+    this.avatarLoadError = false;
     this.apiService.getAvatars().subscribe({
-      next: (response: AvatarsResponseDto) => {
-        this.availableAvatars = response.avatars;
-        this.isLoadingAvatars = false;
+      next: (response) => {
+        this.availableAvatars = response.avatars || [];
+        this.defaultAvatar = response.defaultAvatar || '';
+        this.selectedAvatar = this.defaultAvatar;
+        // Actualizar formulario con avatar por defecto
+        this.creatorForm.patchValue({ fotoElegida: this.defaultAvatar });
       },
-      error: (err) => {
-        console.error('Error al cargar avatares:', err);
+      error: (error) => {
+        console.error('Error al cargar avatares:', error);
+        // Mostrar mensaje de error y configurar avatar por defecto vacío
+        this.isLoadingAvatars = false;
+        this.avatarLoadError = true;
+        this.availableAvatars = [];
+        this.defaultAvatar = '';
+        this.selectedAvatar = '';
+        // El formulario mantendrá fotoElegida como null para usar el avatar por defecto del backend
+        this.creatorForm.patchValue({ fotoElegida: null });
+      },
+      complete: () => {
         this.isLoadingAvatars = false;
       }
     });
+  }
+
+  getAvatarUrl(relativePath: string): string {
+    return this.apiService.getFullAvatarUrl(relativePath);
+  }
+
+  private extractAvatarFileName(avatarPath: string): string {
+    if (!avatarPath) return '';
+    // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
+    return avatarPath.split('/').pop() ?? '';
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
+    if (input.files?.[0]) {
       const file = input.files[0];
 
       if (!file.type.startsWith('image/')) {
-        this.errorMessage = 'Por favor, selecciona un archivo de imagen válido.';
+        this.bannerKind = 'error';
+        this.bannerText = 'Por favor, selecciona un archivo de imagen válido.';
+        this.triggerShakeError();
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        this.errorMessage = 'La imagen no debe superar los 5MB.';
+        this.bannerKind = 'error';
+        this.bannerText = 'La imagen no debe superar los 5MB.';
+        this.triggerShakeError();
         return;
       }
 
@@ -166,122 +175,130 @@ export class AdminCreatorsAddPage implements OnInit {
     }
   }
 
-  openAvatarModal(): void {
-    this.showAvatarModal = true;
-  }
-
-  closeAvatarModal(): void {
-    this.showAvatarModal = false;
-  }
-
-  async selectPredefinedAvatar(avatar: string): Promise<void> {
-    this.selectedAvatar = avatar;
-    this.selectedFile = null;
-
-    try {
-      const res = await fetch(avatar);
-      const blob = await res.blob();
-      const fileName = avatar.split('/').pop() || 'avatar.png';
-      this.selectedFile = new File([blob], fileName, { type: blob.type });
-      this.previewUrl = URL.createObjectURL(blob);
-      this.isDefaultIcon = false;
-      this.closeAvatarModal();
-    } catch (error) {
-      console.error('Error loading predefined avatar:', error);
-      this.errorMessage = 'Error al cargar el avatar predefinido.';
-    }
-  }
-
   setTipoContenido(tipo: string): void {
     this.creatorForm.patchValue({ tipoContenido: tipo });
   }
 
   shouldShowError(fieldName: string): boolean {
     const field = this.creatorForm.get(fieldName);
-    return this.formSubmitted && field !== null && field.invalid;
+    return this.formSubmitted && !!field?.invalid;
   }
 
   onSubmit(): void {
     this.formSubmitted = true;
-    this.errorMessage = null;
-
-    // Validar que la foto sea obligatoria
-    if (!this.selectedFile && !this.selectedAvatar) {
-      this.errorMessage = 'La foto es obligatoria para los creadores de contenido.';
-      return;
-    }
-
-    // Validar que la contraseña cumpla todos los requisitos
-    if (!this.isPasswordValid) {
-      this.errorMessage = 'Valores incorrectos. Revisa los campos para continuar.';
-      return;
-    }
+    this.bannerKind = null;
+    this.bannerText = '';
 
     if (this.creatorForm.invalid) {
-      this.errorMessage = 'Valores incorrectos. Revisa los campos para continuar.';
+      this.triggerShakeError();
       return;
     }
 
-    this.isSubmitting = true;
+    this.buttonState = 'pressed';
 
-    const formData = new FormData();
+    const v = this.creatorForm.value;
+    const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
 
-    // ✅ Preparar avatarPath con la ruta completa si existe
-    let avatarPath = null;
-    if (this.selectedAvatar) {
-      // Si el avatar seleccionado no empieza con "avatars/", añadirlo
-      avatarPath = this.selectedAvatar.startsWith('avatars/')
-        ? this.selectedAvatar
-        : 'avatars/' + this.selectedAvatar.split('/').pop();
+    // Extraer solo el nombre del archivo del avatar seleccionado
+    let fotoNombre = '';
+    if (v.fotoElegida) {
+      // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
+      fotoNombre = v.fotoElegida.split('/').pop() ?? '';
     }
 
-    // Crear el objeto creador como JSON
-    const creadorData = {
-      nombre: this.creatorForm.get('nombre')?.value.trim(),
-      apellidos: this.creatorForm.get('apellidos')?.value.trim(),
-      correo: this.creatorForm.get('email')?.value.trim(),
-      alias: this.creatorForm.get('alias')?.value.trim(),
-      contrasena: this.creatorForm.get('password')?.value,
-      confirmarContrasena: this.creatorForm.get('repetirPassword')?.value,
-      especialidad: this.creatorForm.get('especialidad')?.value,
-      tipoContenido: this.creatorForm.get('tipoContenido')?.value,
-      descripcion: this.creatorForm.get('descripcion')?.value?.trim() || '',
-      avatarPath: avatarPath
+    const payload = {
+      nombre: v.nombre!,
+      apellidos: v.apellidos!,
+      correo: v.email!,
+      alias,
+      contrasena: v.password!,
+      confirmarContrasena: v.repetirPassword!,
+      especialidad: v.especialidad!,
+      tipoContenido: v.tipoContenido!,
+      descripcion: v.descripcion || '',
+      avatarPath: fotoNombre || null
     };
 
-    // Añadir el objeto creador como un Blob JSON
-    formData.append('creador', new Blob([JSON.stringify(creadorData)], { type: 'application/json' }));
+    this.bannerKind = null;
+    this.bannerText = '';
+    this.isSubmitting = true;
+    this.creatorForm.disable();
+
+    const formData = new FormData();
+    formData.append('creador', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
 
     // Añadir la foto si existe
     if (this.selectedFile) {
       formData.append('foto', this.selectedFile, this.selectedFile.name);
     }
 
-    this.creatorService.crearCreador(formData).subscribe({
-      next: (response) => {
-        console.log('Creador creado exitosamente:', response);
-        // Pasar los datos del creador creado a la página de éxito
-        this.router.navigate(['/ad-creators-add-success'], {
-          state: {
-            creatorData: {
-              nombre: this.creatorForm.get('nombre')?.value.trim(),
-              apellidos: this.creatorForm.get('apellidos')?.value.trim(),
-              correo: this.creatorForm.get('email')?.value.trim(),
-              alias: this.creatorForm.get('alias')?.value.trim(),
-              especialidad: this.creatorForm.get('especialidad')?.value,
-              tipoContenido: this.creatorForm.get('tipoContenido')?.value,
-              descripcion: this.creatorForm.get('descripcion')?.value?.trim() || '',
-              foto: response.foto || avatarPath || 'assets/admin/admin_default.png'
-            }
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error al crear creador:', error);
-        this.errorMessage = error.message || 'Error al crear el creador. Por favor, intenta nuevamente.';
+    this.creatorService.crearCreador(formData)
+      .pipe(finalize(() => {
         this.isSubmitting = false;
-      }
-    });
+        this.creatorForm.enable();
+        this.buttonState = 'normal';
+      }))
+      .subscribe({
+        next: (res: HttpResponse<any>) => {
+          const status = res.status;
+          if (status === 201 || status === 200) {
+            const body: any = res.body || {};
+            const successMsg = (body?.message as string) || 'Creador creado correctamente';
+            console.log('Creador creado', body);
+            this.bannerKind = 'success';
+            this.bannerText = successMsg;
+            // Navegar después de un breve delay para mostrar el mensaje
+            setTimeout(() => {
+              this.router.navigate(['/ad-creators']);
+            }, 1500);
+            return;
+          }
+          // Status inesperado, tratar como error
+          this.bannerKind = 'error';
+          this.bannerText = 'No se pudo crear el creador.';
+        },
+        error: (err) => {
+          // Limpia errores previos de backend en controles relevantes
+          clearBackendErrors(this.creatorForm, ['email','password','repetirPassword','nombre','apellidos','alias']);
+
+          const status = err?.originalError?.status || err?.status;
+          const payload = err?.originalError?.error || err?.error || {};
+          // Usar el mensaje procesado por el interceptor primero
+          const message: string | undefined = err?.message || payload?.message;
+          const details: Array<{ field: string; message: string }>|undefined = payload?.details;
+
+          if (status === 409) {
+            // Email duplicado
+            this.creatorForm.get('email')?.setErrors({ ...(this.creatorForm.get('email')?.errors||{}), emailTaken: true });
+            this.bannerKind = 'error';
+            this.bannerText = message ?? 'El email ya está registrado.';
+            this.triggerShakeError();
+            return;
+          }
+
+          if (status === 400 && Array.isArray(details) && details.length > 0) {
+            const fieldMap: Record<string,string> = {
+              confirmarContrasena: 'repetirPassword',
+              contrasena: 'password',
+              correo: 'email',
+              nombre: 'nombre',
+              apellidos: 'apellidos',
+              alias: 'alias',
+            };
+            const msgJoin = applyBackendDetails(this.creatorForm, details, fieldMap);
+            this.bannerKind = 'error';
+            this.bannerText = (message ? message + '\n' : '') + msgJoin;
+            this.triggerShakeError();
+            return;
+          }
+
+          // Otros errores
+          this.bannerKind = 'error';
+          this.bannerText = message ?? 'No se pudo crear el creador. Inténtalo de nuevo.';
+          this.triggerShakeError();
+          console.error('Error de creación de creador', err);
+        },
+      });
   }
 
   goBack(): void {
@@ -293,5 +310,17 @@ export class AdminCreatorsAddPage implements OnInit {
     } else {
       this.router.navigate(['/ad-creators']);
     }
+  }
+
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
+  }
+
+  onFieldFocus(field: string, focused: boolean): void {
+    this.focusedFields[field] = focused;
+  }
+
+  getInputFocusState(field: string): string {
+    return this.focusedFields[field] ? 'focused' : 'normal';
   }
 }
