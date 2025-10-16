@@ -110,16 +110,16 @@
           (filterChange)="onFilterChange($event)"
           (clearAll)="onClearAllFilters()">
         </app-filter-buttons>
-        
+
         <div class="search-section">
-          <app-search-bar 
+          <app-search-bar
             [(ngModel)]="searchTerm"
             (ngModelChange)="onSearchTermChange($event)"
             placeholder="Buscar por nombre, email, departamento…"
             ariaLabel="Campo de búsqueda de administradores"
             (clear)="onClearSearch()">
           </app-search-bar>
-          
+
           <!-- Dropdown de ordenamiento -->
           <app-sort-dropdown
             [sortOptions]="sortOptions"
@@ -161,7 +161,7 @@
               [class.horizontal-border2]="i > 0">
               <div class="container13">
                 <img
-                  [ngSrc]="admin.foto ? 'assets/admin/' + admin.foto : 'assets/admin/admin_default.png'"
+                  [ngSrc]="getAdminPhoto(admin.foto)"
                   [alt]="'foto de ' + admin.nombre"
                   height="28"
                   width="28"/>

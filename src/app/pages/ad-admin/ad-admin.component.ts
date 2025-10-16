@@ -8,8 +8,6 @@ import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { AdminService, AdminEV } from '../../core/services/admin.service';
 
-// Interfaz eliminada - ahora usamos AdminEV directamente de la BD
-
 @Component({
   selector: 'app-adadmin',
   standalone: true,
@@ -20,7 +18,6 @@ import { AdminService, AdminEV } from '../../core/services/admin.service';
 })
 export class AdminAdmsPage implements OnInit, AfterViewInit {
   @ViewChild('tableContainer') tableContainer!: ElementRef;
-
   sidebarVisible = false;
   searchTerm = '';
 
@@ -39,7 +36,6 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     { id: 'department-asc', label: 'Departamento A-Z', field: 'departamento', direction: 'asc' },
     { id: 'department-desc', label: 'Departamento Z-A', field: 'departamento', direction: 'desc' }
   ];
-
   selectedSort: SortOption | null = null;
 
   // Configuración de filtros como grupos para administradores
@@ -109,7 +105,6 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
 
   calcularPageSize(): void {
     const windowHeight = window.innerHeight;
-
     const availableHeight = windowHeight
       - this.HEADER_HEIGHT
       - this.TITLE_SECTION_HEIGHT
@@ -139,9 +134,6 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
         this.totalAdmins = data.length;
         this.filteredAdmins = [...data];
         this.isLoading = false;
-
-        // Aplicar filtros y ordenamiento iniciales
-        // this.applyFilters(); // Removido para consistencia con ad-creators
 
         setTimeout(() => this.calcularPageSize(), 100);
       },
@@ -180,14 +172,39 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     this.router.navigate(['/ad-admin-add']);
   }
 
+  /**
+   * Navega a la página de edición con el ID del administrador
+   */
   editarAdministrador(id: string): void {
     console.log('Editar administrador:', id);
-    // TODO: Implementar navegación a página de edición
+    this.router.navigate(['/ad-admin-edit', id]);
   }
 
+  /**
+   * Elimina un administrador previa confirmación
+   */
   eliminarAdministrador(id: string): void {
-    console.log('Eliminar administrador:', id);
-    // TODO: Implementar diálogo de confirmación y eliminación
+    const admin = this.allAdmins.find(a => a.id === id);
+    if (!admin) return;
+
+    const confirmar = confirm(
+      `¿Estás seguro de que deseas eliminar al administrador ${admin.nombre} ${admin.apellidos}?\n\nEsta acción no se puede deshacer.`
+    );
+
+    if (!confirmar) return;
+
+    this.adminService.eliminarAdministrador(id).subscribe({
+      next: () => {
+        console.log('Administrador eliminado exitosamente');
+        // Recargar la lista
+        this.cargarAdministradores();
+        alert('Administrador eliminado exitosamente');
+      },
+      error: (err) => {
+        console.error('Error al eliminar administrador:', err);
+        alert('Error al eliminar el administrador: ' + (err.message || 'Error desconocido'));
+      }
+    });
   }
 
   // Getters para paginación
@@ -222,39 +239,25 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * Ejecuta la búsqueda de administradores - Evento del SearchBar component
-   */
   onSearch(searchTerm: string): void {
-    // searchTerm ya está actualizado por ngModel
-    this.applyFilters(); // Esto aplicará filtros y luego la búsqueda
+    this.applyFilters();
   }
 
-  /**
-   * Maneja cambios en el término de búsqueda
-   */
   onSearchTermChange(searchTerm: string): void {
     this.searchTerm = searchTerm;
     this.applyFilters();
   }
 
-  /**
-   * Realiza la búsqueda filtrada (método legacy, ahora usa applyFilters)
-   */
   private performSearch(): void {
     this.applyFilters();
   }
 
-  /**
-   * Realiza la búsqueda filtrada sobre los datos ya filtrados
-   */
   private performSearchOnFiltered(): void {
     if (!this.searchTerm.trim()) {
       return;
     }
 
     const searchLower = this.searchTerm.toLowerCase().trim();
-
     this.filteredAdmins = this.filteredAdmins.filter(admin => {
       return (
         (admin.nombre?.toLowerCase() || '').includes(searchLower) ||
@@ -266,19 +269,11 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     });
   }
 
-  /**
-   * Limpia la búsqueda - Evento del SearchBar component
-   */
   onClearSearch(): void {
-    // searchTerm ya está limpiado por el componente search-bar
-    this.applyFilters(); // Esto aplicará solo los filtros sin búsqueda
+    this.applyFilters();
   }
 
-  /**
-   * Maneja el cambio de filtros
-   */
   onFilterChange(event: { filterId: string; value: any; active: boolean; group: string }): void {
-    // Encontrar y actualizar el filtro en la configuración
     this.filterGroups.forEach(group => {
       group.filters.forEach(filter => {
         if (filter.id === event.filterId) {
@@ -286,29 +281,22 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
         }
       });
     });
-    
+
     this.applyFilters();
     console.log('Filtros activos:', this.getActiveFilters());
   }
 
-  /**
-   * Limpia todos los filtros
-   */
   onClearAllFilters(): void {
-    // Desactivar todos los filtros
     this.filterGroups.forEach(group => {
       group.filters.forEach(filter => {
         filter.active = false;
       });
     });
-    
+
     this.applyFilters();
     console.log('Todos los filtros limpiados');
   }
 
-  /**
-   * Obtiene los filtros activos para debugging
-   */
   private getActiveFilters(): any[] {
     const activeFilters: any[] = [];
     this.filterGroups.forEach(group => {
@@ -321,24 +309,16 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     return activeFilters;
   }
 
-  /**
-   * Aplica los filtros activos a los datos
-   */
   private applyFilters(): void {
     let data = [...this.allAdmins];
 
-    // Obtener todos los filtros activos de todos los grupos
     const activeFilters = this.getActiveFilters();
-
     if (activeFilters.length > 0) {
       data = data.filter(admin => {
-        // Verificar si el administrador pasa TODOS los filtros activos (AND lógico)
         return activeFilters.every(filter => {
-          // Filtros de departamento
           if (filter.groupId === 'department') {
             return admin.departamento === filter.value;
           }
-          // Filtros de estado
           if (filter.groupId === 'status') {
             return admin.activo === filter.value;
           }
@@ -347,33 +327,24 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
       });
     }
 
-    // Aplicar primero los filtros, luego la búsqueda
     this.filteredAdmins = data;
 
-    // Si hay un término de búsqueda, aplicarlo sobre los datos ya filtrados
     if (this.searchTerm.trim()) {
       this.performSearchOnFiltered();
     }
 
     console.log(`Filtros aplicados. Administradores mostrados: ${this.filteredAdmins.length} de ${this.allAdmins.length}`);
 
-    // Aplicar ordenamiento si hay uno seleccionado
     if (this.selectedSort) {
       this.applySorting();
     }
   }
 
-  /**
-   * Maneja el cambio de ordenamiento
-   */
   onSortChange(event: SortEvent): void {
     this.selectedSort = event.option;
     this.applySorting();
   }
 
-  /**
-   * Aplica el ordenamiento seleccionado a los datos filtrados
-   */
   private applySorting(): void {
     if (!this.selectedSort) {
       return;
@@ -395,16 +366,10 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     console.log(`Ordenamiento aplicado: ${this.selectedSort.label}`);
   }
 
-  /**
-   * TrackBy function para optimizar el *ngFor
-   */
   trackByAdminId(index: number, admin: AdminEV): string {
     return admin.id;
   }
 
-  /**
-   * Obtiene el mensaje apropiado cuando no hay resultados
-   */
   getNoResultsMessage(): string {
     const activeFilters = this.getActiveFilters();
     const hasSearch = this.searchTerm.trim().length > 0;
@@ -422,9 +387,6 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * Obtiene el texto del botón para limpiar
-   */
   getClearButtonText(): string {
     const hasSearch = this.searchTerm.trim().length > 0;
     const hasFilters = this.getActiveFilters().length > 0;
@@ -440,11 +402,26 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * Limpia tanto búsqueda como filtros
-   */
   clearSearchAndFilters(): void {
     this.searchTerm = '';
     this.onClearAllFilters();
+  }
+
+  /**
+   * Obtiene la ruta de la foto del administrador o la foto por defecto
+   */
+  getAdminPhoto(foto: string | undefined | null): string {
+    // Si no hay foto o está vacía, devolver la foto por defecto
+    if (!foto || foto.trim() === '') {
+      return 'assets/admin/default.png';
+    }
+
+    // Si la foto no incluye la ruta completa, agregarla
+    if (!foto.startsWith('assets/')) {
+      return `assets/admin/${foto}`;
+    }
+
+    // Devolver la foto tal cual si ya tiene la ruta completa
+    return foto;
   }
 }

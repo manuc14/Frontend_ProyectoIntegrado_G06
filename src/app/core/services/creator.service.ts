@@ -9,6 +9,7 @@ import { environment } from '../../../environments/environment';
  * Contiene toda la información de administración de creadores de contenido
  */
 export interface CreatorEC {
+  descripcion: string;
   id: string;
   nombre: string;
   apellidos: string;

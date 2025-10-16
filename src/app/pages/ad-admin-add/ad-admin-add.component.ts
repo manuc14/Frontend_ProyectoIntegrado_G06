@@ -98,7 +98,6 @@ export class AdminAdmsAddPage implements OnInit {
     return Object.values(this.passwordStrength).every(v => v === true);
   }
 
-  // ✅ ESTA ES LA FUNCIÓN CORREGIDA
   get passwordRequirements(): string[] {
     const requirements: string[] = [];
     if (!this.passwordStrength.hasMinLength) requirements.push('Mínimo 8 caracteres');
@@ -242,7 +241,7 @@ export class AdminAdmsAddPage implements OnInit {
               correo: this.adminForm.get('email')?.value.trim(),
               alias: this.adminForm.get('alias')?.value.trim(),
               departamento: this.adminForm.get('departamento')?.value,
-              foto: response.foto || this.selectedAvatar || 'assets/admin/admin_default.png'
+              foto: response.foto || this.selectedAvatar || 'assets/admin/default.png'
             }
           }
         });
