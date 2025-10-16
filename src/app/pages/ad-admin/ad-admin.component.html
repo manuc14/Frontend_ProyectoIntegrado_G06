@@ -127,13 +127,31 @@
             <div class="text44">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container19">
-            <button class="border" [@buttonHover] [@buttonPress] (click)="paginaAnterior()" type="button" aria-label="Ir a la página anterior">
+            <button 
+              class="border" 
+              [@buttonHover] 
+              [@buttonPress] 
+              (click)="paginaAnterior()"
+              [style.opacity]="currentPage === 1 ? '0.5' : '1'"
+              [style.cursor]="currentPage === 1 ? 'not-allowed' : 'pointer'"
+              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'"
+              type="button"
+              aria-label="Ir a la página anterior">
               <div class="iconify-icon4">
                 <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text45">Anterior</div>
             </button>
-            <button class="border2" [@buttonHover] [@buttonPress] (click)="paginaSiguiente()" type="button" aria-label="Ir a la página siguiente">
+            <button 
+              class="border2" 
+              [@buttonHover] 
+              [@buttonPress] 
+              (click)="paginaSiguiente()"
+              [style.opacity]="currentPage === totalPaginas ? '0.5' : '1'"
+              [style.cursor]="currentPage === totalPaginas ? 'not-allowed' : 'pointer'"
+              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'"
+              type="button"
+              aria-label="Ir a la página siguiente">
               <div class="text46">Siguiente</div>
               <div class="iconify-icon5">
                 <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>

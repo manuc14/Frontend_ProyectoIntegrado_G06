@@ -1,4 +1,4 @@
-import {Component, HostListener, OnInit, ViewChild, ElementRef, AfterViewInit} from '@angular/core';
+import {Component, HostListener, OnInit} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {Router} from '@angular/router';
@@ -20,8 +20,7 @@ import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/adm
   styleUrl: './ad-admin.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
 })
-export class AdminAdmsPage implements OnInit, AfterViewInit {
-  @ViewChild('tableContainer') tableContainer!: ElementRef;
+export class AdminAdmsPage implements OnInit {
 
   sidebarVisible = false;
   searchTerm = '';
@@ -73,19 +72,10 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
   allAdmins: AdminEV[] = []; // Datos de la BD (sin transformación)
   filteredAdmins: AdminEV[] = []; // Lista filtrada/buscada/ordenada
 
-  // Para paginación dinámica
+  // Para paginación (fijo)
   currentPage = 1;
-  pageSize = 5; // Valor inicial, se calculará dinámicamente
+  pageSize = 5; // Fijo para simplificar
   totalAdmins = 0;
-
-  // Constantes para el cálculo
-  private readonly HEADER_HEIGHT = 64;
-  private readonly TITLE_SECTION_HEIGHT = 80;
-  private readonly SEARCH_SECTION_HEIGHT = 80;
-  private readonly TABLE_HEADER_HEIGHT = 45;
-  private readonly ROW_HEIGHT = 59;
-  private readonly PAGINATION_HEIGHT = 80;
-  private readonly PADDING = 48;
 
   constructor(
     private router: Router,
@@ -96,39 +86,12 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     this.cargarAdministradores();
   }
 
-  ngAfterViewInit(): void {
-    // Calcular el tamaño de página inicial
-    this.calcularPageSize();
-  }
-
   @HostListener('window:resize', ['$event'])
   onResize(event: any): void {
     if (event.target.innerWidth > 768) {
       this.closeSidebar();
     }
-    this.calcularPageSize();
-  }
-
-  calcularPageSize(): void {
-    const windowHeight = window.innerHeight;
-
-    const availableHeight = windowHeight
-      - this.HEADER_HEIGHT
-      - this.TITLE_SECTION_HEIGHT
-      - this.SEARCH_SECTION_HEIGHT
-      - this.TABLE_HEADER_HEIGHT
-      - this.PAGINATION_HEIGHT
-      - this.PADDING;
-
-    const filasQueCaben = Math.floor(availableHeight / this.ROW_HEIGHT);
-    this.pageSize = Math.max(3, Math.min(filasQueCaben, 20));
-
-    const totalPaginasNuevas = Math.ceil(this.totalAdmins / this.pageSize);
-    if (this.currentPage > totalPaginasNuevas && totalPaginasNuevas > 0) {
-      this.currentPage = totalPaginasNuevas;
-    }
-
-    console.log(`Altura disponible: ${availableHeight}px, Filas por página: ${this.pageSize}`);
+      // pageSize es fijo; no se necesita recalcular
   }
 
   cargarAdministradores(): void {
@@ -142,10 +105,8 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
         this.filteredAdmins = [...data];
         this.isLoading = false;
 
-        // Aplicar filtros y ordenamiento iniciales
-        // this.applyFilters(); // Removido para consistencia con ad-creators
-
-        setTimeout(() => this.calcularPageSize(), 100);
+  // Aplicar filtros y ordenamiento iniciales
+  // this.applyFilters(); // Removido para consistencia con ad-creators
       },
       error: (err) => {
         console.error('Error al cargar administradores:', err);
@@ -206,12 +167,12 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
 
   editarAdministrador(id: string): void {
     console.log('Editar administrador:', id);
-    // TODO: Implementar navegación a página de edición
+    // Implementación pendiente: navegar a la página de edición
   }
 
   eliminarAdministrador(id: string): void {
     console.log('Eliminar administrador:', id);
-    // TODO: Implementar diálogo de confirmación y eliminación
+    // Implementación pendiente: mostrar diálogo de confirmación y eliminar
   }
 
   // Getters para paginación

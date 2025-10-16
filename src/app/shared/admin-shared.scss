@@ -1,4 +1,4 @@
-@import 'admin-mixins.scss';
+@use './admin-mixins' as *;
 
 // ========================================
 // ESTRUCTURA PRINCIPAL
@@ -924,7 +924,7 @@ $table-grid-gap: 16px;
 }
 
 .text42 {
-  @include text-base(var(--muted-foreground), 12px, 500);
+  @include text-base(var(--muted-foreground), 14px, 500);
 }
 
 .container19 {

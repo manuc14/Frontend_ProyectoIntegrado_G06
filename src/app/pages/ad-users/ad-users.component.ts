@@ -1,4 +1,4 @@
-import {Component, HostListener, OnInit, ViewChild, ElementRef, AfterViewInit} from '@angular/core';
+import {Component, HostListener, OnInit} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -31,8 +31,7 @@ interface User {
   styleUrl: './ad-users.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
 })
-export class AdminUsersPage implements OnInit, AfterViewInit {
-  @ViewChild('tableContainer') tableContainer!: ElementRef;
+export class AdminUsersPage implements OnInit {
 
   sidebarVisible = false;
   searchTerm = '';
@@ -82,19 +81,10 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
   allUsers: User[] = []; // Datos transformados para compatibilidad
   filteredUsers: User[] = []; // Lista filtrada/buscada/ordenada
 
-  // Para paginación dinámica (de la rama de tu compañero)
+  // Para paginación (fijo): usar un valor sencillo y predecible
   currentPage = 1;
-  pageSize = 5; // Valor inicial, se calculará dinámicamente
+  pageSize = 5; // Valor fijo solicitado
   totalUsuarios = 0;
-
-  // Constantes para el cálculo (de la rama de tu compañero)
-  private readonly HEADER_HEIGHT = 64;
-  private readonly TITLE_SECTION_HEIGHT = 80;
-  private readonly SEARCH_SECTION_HEIGHT = 80;
-  private readonly TABLE_HEADER_HEIGHT = 45;
-  private readonly ROW_HEIGHT = 59;
-  private readonly PAGINATION_HEIGHT = 80;
-  private readonly PADDING = 48;
 
   constructor(
     private router: Router,
@@ -105,43 +95,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     this.cargarUsuarios();
   }
 
-  ngAfterViewInit(): void {
-    // Calcular el tamaño de página inicial
-    this.calcularPageSize();
-
-    // Recalcular cuando cambie el tamaño de la ventana
-    setTimeout(() => this.calcularPageSize(), 100);
-  }
-
-  /**
-   * Calcula cuántas filas caben en la pantalla para paginación dinámica
-   */
-  calcularPageSize(): void {
-    // Obtener la altura disponible para la tabla
-    const windowHeight = window.innerHeight;
-
-    const availableHeight = windowHeight
-      - this.HEADER_HEIGHT
-      - this.TITLE_SECTION_HEIGHT
-      - this.SEARCH_SECTION_HEIGHT
-      - this.TABLE_HEADER_HEIGHT
-      - this.PAGINATION_HEIGHT
-      - this.PADDING;
-
-    // Calcular cuántas filas completas caben
-    const filasQueCaben = Math.floor(availableHeight / this.ROW_HEIGHT);
-
-    // Establecer un mínimo de 5 filas y un máximo de 25 para mejor UX
-    this.pageSize = Math.max(5, Math.min(filasQueCaben, 25));
-
-    // Si estamos en una página que ya no existe después del recálculo, volver a la última válida
-    const totalPaginasNuevas = Math.ceil(this.totalUsuarios / this.pageSize);
-    if (this.currentPage > totalPaginasNuevas && totalPaginasNuevas > 0) {
-      this.currentPage = totalPaginasNuevas;
-    }
-
-    console.log(`Altura disponible: ${availableHeight}px, Filas por página: ${this.pageSize}`);
-  }
+  // Cálculo dinámico de pageSize eliminado — se utiliza pageSize fijo.
 
   // ======================================== 
   // MÉTODOS DE CARGA DE DATOS
@@ -166,8 +120,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
         this.isLoading = false;
         console.log(`Usuarios cargados: ${this.usuarios.length}`);
 
-        // Recalcular el pageSize después de cargar los datos
-        setTimeout(() => this.calcularPageSize(), 100);
+  // No hay cálculo dinámico de pageSize — no hay nada que recalcular aquí.
       },
       error: (err) => {
         console.error('Error al cargar usuarios:', err);
@@ -181,8 +134,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
         this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
         this.isLoading = false;
         
-        // Recalcular pageSize incluso con error para mantener UI consistente
-        setTimeout(() => this.calcularPageSize(), 100);
+  // No hay cálculo dinámico de pageSize — no hay nada que recalcular aquí.
       }
     });
   }
@@ -231,11 +183,11 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
   }
 
   handleNav(event: string): void {
-    // Handle navigation events emitted by sidebar component
+  // Maneja eventos de navegación emitidos por el componente lateral
     this.closeSidebar();
     switch(event) {
       case 'users':
-        // already on users - maybe refresh
+        // ya en usuarios — refrescar si se desea
         window.location.reload();
         break;
       case 'admins':
@@ -269,7 +221,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     if (event.target.innerWidth > 768) {
       this.closeSidebar();
     }
-    this.calcularPageSize();
+  // No hay recalculo de pageSize — pageSize es fijo
   }
 
   // ======================================== 
@@ -599,7 +551,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
    */
   editarUsuario(id: string): void {
     console.log('Editar usuario:', id);
-    // TODO: Implementar navegación a página de edición
+    // Implementación pendiente: navegar a la página de edición
     // this.router.navigate(['/ad-users/edit', id]);
   }
 
@@ -608,7 +560,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
    */
   eliminarUsuario(id: string): void {
     console.log('Eliminar usuario:', id);
-    // TODO: Implementar diálogo de confirmación y eliminación
+    // Implementación pendiente: mostrar diálogo de confirmación y eliminar
   }
 
 }

@@ -39,15 +39,15 @@ export class AdminService {
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = 'Se ha producido un error inesperado. Inténtelo de nuevo más tarde.';
+      let adminMessage = 'Se ha producido un error inesperado. Inténtelo de nuevo más tarde.';
 
       // Si el backend envía un mensaje de error personalizado, usarlo
       if (error.error && typeof error.error === 'object' && error.error.message) {
-        userMessage = error.error.message;
+        adminMessage = error.error.message;
       }
 
       console.error(`Error en ${operation}:`, error);
-      return throwError(() => new Error(userMessage));
+      return throwError(() => new Error(adminMessage));
     };
   }
 
