@@ -1,0 +1,30 @@
+<div class="background-horizontal-border">
+  <div class="header-left">
+    <button
+      class="menu-toggle"
+      type="button"
+      (click)="onToggle()"
+      [attr.aria-label]="'Abrir menú de navegación'"
+      [attr.aria-expanded]="sidebarVisible">
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="#3d4656" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="container">
+      <div class="iconify-icon">
+        <img class="svg" ngSrc="assets/admin/logo_v2.svg" alt="logo ESIMedia" height="32" width="32"/>
+      </div>
+      <div class="container2">
+        <div class="text">ESIMedia</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="29" width="29"/>
+    <div class="background2">
+      <div class="text2">Cerrar sesión</div>
+    </div>
+  </div>
+</div>

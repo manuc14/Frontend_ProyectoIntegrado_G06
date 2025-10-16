@@ -40,39 +40,11 @@ export class UserService {
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = defaultMessage;
+      let userMessage = 'Se ha producido un error inesperado. Inténtelo de nuevo más tarde.';
 
       // Si el backend envía un mensaje de error personalizado, usarlo
       if (error.error && typeof error.error === 'object' && error.error.message) {
         userMessage = error.error.message;
-      } else {
-        // Mensajes amigables basados en códigos de estado HTTP
-        switch (error.status) {
-          case 400:
-            userMessage = 'Los datos solicitados no son válidos.';
-            break;
-          case 401:
-            userMessage = 'No tienes autorización para acceder a esta información.';
-            break;
-          case 403:
-            userMessage = 'No tienes permisos para ver los usuarios.';
-            break;
-          case 404:
-            userMessage = 'El servicio de usuarios no está disponible en este momento.';
-            break;
-          case 500:
-            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
-            break;
-          case 503:
-            userMessage = 'El servicio de usuarios no está disponible temporalmente.';
-            break;
-          default:
-            if (error.status === 0) {
-              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
-            } else {
-              userMessage = defaultMessage;
-            }
-        }
       }
 
       console.error(`Error en ${operation}:`, error);

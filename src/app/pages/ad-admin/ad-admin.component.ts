@@ -7,13 +7,15 @@ import { SearchBarComponent } from '../../shared/search-bar/search-bar.component
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { AdminService, AdminEV } from '../../core/services/admin.service';
+import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
+import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 
 // Interfaz eliminada - ahora usamos AdminEV directamente de la BD
 
 @Component({
   selector: 'app-adadmin',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent],
+  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
   templateUrl: './ad-admin.component.html',
   styleUrl: './ad-admin.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
@@ -174,6 +176,28 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
   navigateToCreators(): void {
     this.closeSidebar();
     this.router.navigate(['/ad-creators']);
+  }
+
+  /**
+   * Maneja eventos de navegación emitidos por el componente lateral
+   * - cierra la barra lateral y navega a la ruta correspondiente
+   */
+  handleNav(event: string): void {
+    this.closeSidebar();
+    switch (event) {
+      case 'users':
+        this.router.navigate(['/ad-users']);
+        break;
+      case 'admins':
+        // ya en administradores — refrescar
+        window.location.reload();
+        break;
+      case 'creators':
+        this.router.navigate(['/ad-creators']);
+        break;
+      default:
+        break;
+    }
   }
 
   addNewAdmin(): void {

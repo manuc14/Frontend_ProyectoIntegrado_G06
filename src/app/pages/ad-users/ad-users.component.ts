@@ -7,6 +7,8 @@ import { SearchBarComponent } from '../../shared/search-bar/search-bar.component
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { UserService, UserEV } from '../../core/services/user.service';
+import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
+import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 
 // Interfaz temporal para compatibilidad (será reemplazada por UserEV)
 interface User {
@@ -24,7 +26,7 @@ interface User {
 @Component({
   selector: 'app-adusers',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent],
+  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
   templateUrl: './ad-users.component.html',
   styleUrl: './ad-users.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
@@ -226,6 +228,25 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
 
   closeSidebar(): void {
     this.sidebarVisible = false;
+  }
+
+  handleNav(event: string): void {
+    // Handle navigation events emitted by sidebar component
+    this.closeSidebar();
+    switch(event) {
+      case 'users':
+        // already on users - maybe refresh
+        window.location.reload();
+        break;
+      case 'admins':
+        this.router.navigate(['/ad-admin']);
+        break;
+      case 'creators':
+        this.router.navigate(['/ad-creators']);
+        break;
+      default:
+        break;
+    }
   }
 
   navigateToUsers(): void {

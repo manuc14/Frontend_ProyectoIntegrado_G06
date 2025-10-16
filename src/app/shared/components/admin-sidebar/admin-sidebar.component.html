@@ -1,0 +1,45 @@
+<div class="background-vertical-border" [class.show]="visible">
+  <div class="container4">
+    <div class="text3">Navegación</div>
+  </div>
+  <button class="container6" type="button" (click)="goTo('users')" [@buttonHover] [@buttonPress] [attr.aria-pressed]="activeKey === 'users'" [class.active]="activeKey === 'users'">
+    <div class="container5">
+      <div class="iconify-icon">
+        <img class="svg3" ngSrc="assets/admin/usuarios.svg" alt="icono usuarios" height="18" width="18"/>
+      </div>
+      <div class="container2">
+        <div class="text4">Usuarios</div>
+      </div>
+    </div>
+  </button>
+  <button class="container6" type="button" (click)="goTo('admins')" [@buttonHover] [@buttonPress] [attr.aria-pressed]="activeKey === 'admins'" [class.active]="activeKey === 'admins'">
+    <div class="container5">
+      <div class="iconify-icon">
+        <img class="svg3" ngSrc="assets/admin/administradores.svg" alt="icono administradores" height="18" width="18"/>
+      </div>
+      <div class="container2">
+        <div class="text5">Administradores</div>
+      </div>
+    </div>
+  </button>
+  <button class="container6" type="button" (click)="goTo('creators')" [@buttonHover] [@buttonPress] [attr.aria-pressed]="activeKey === 'creators'" [class.active]="activeKey === 'creators'">
+    <div class="container5">
+      <div class="iconify-icon">
+        <img class="group2" ngSrc="assets/admin/creadores.svg" alt="icono creadores de contenido" width="18" height="18"/>
+      </div>
+      <div class="container2">
+        <div class="text6">Creadores de Contenido</div>
+      </div>
+    </div>
+  </button>
+  <button class="container6" type="button" [class.active]="false" aria-disabled="true">
+    <div class="container5">
+      <div class="iconify-icon">
+        <img class="group3" ngSrc="assets/admin/configuracion.svg" alt="icono configuración" height="18" width="18"/>
+      </div>
+      <div class="container2">
+        <div class="text7">Configuración</div>
+      </div>
+    </div>
+  </button>
+</div>

@@ -1,92 +1,10 @@
 <!-- src/app/pages/ad-users/ad-users.component.html -->
 <div class="background" [@fadeIn]>
 
-  <button
-    class="sidebar-overlay"
-    type="button"
-    [class.show]="sidebarVisible"
-    (click)="closeSidebar()"
-    [attr.aria-label]="'Cerrar menú lateral'">
-  </button>
-
-  <div class="background-horizontal-border">
-    <div class="header-left">
-      <button
-        class="menu-toggle"
-        type="button"
-        (click)="toggleSidebar()"
-        [attr.aria-label]="'Abrir menú de navegación'"
-        [attr.aria-expanded]="sidebarVisible">
-        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 12H21M3 6H21M3 18H21" stroke="#3d4656" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-
-      <div class="container">
-        <div class="iconify-icon">
-          <img class="svg" ngSrc="assets/admin/logo_v2.svg" alt="logo ESIMedia" height="32" width="32"/>
-        </div>
-        <div class="container2">
-          <div class="text">ESIMedia</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="29"
-           width="29"/>
-      <div class="background2">
-        <div class="text2">Cerrar sesión</div>
-      </div>
-    </div>
-  </div>
+  <app-admin-header [sidebarVisible]="sidebarVisible" (toggleSidebar)="toggleSidebar()"></app-admin-header>
 
   <div class="container3">
-    <div class="background-vertical-border" [class.show]="sidebarVisible">
-      <div class="container4">
-        <div class="text3">Navegación</div>
-      </div>
-      <button class="background3" type="button" (click)="navigateToUsers()" [@buttonHover] [@buttonPress]>
-        <div class="container5">
-          <div class="iconify-icon">
-            <img class="group" ngSrc="assets/admin/usuarios.svg" alt="icono usuarios" height="18" width="18"/>
-          </div>
-          <div class="container2">
-            <div class="text4">Usuarios</div>
-          </div>
-        </div>
-      </button>
-      <button class="container6" type="button" (click)="navigateToAdmins()" [@buttonHover] [@buttonPress]>
-        <div class="container5">
-          <div class="iconify-icon">
-            <img class="svg3" ngSrc="assets/admin/administradores.svg" alt="icono administradores" height="18" width="18"/>
-          </div>
-          <div class="container2">
-            <div class="text5">Administradores</div>
-          </div>
-        </div>
-      </button>
-      <button class="container6" type="button" (click)="navigateToCreators()" [@buttonHover] [@buttonPress]>
-        <div class="container5">
-          <div class="iconify-icon">
-            <img class="group2" ngSrc="assets/admin/creadores.svg" alt="icono creadores de contenido" width="18" height="18"/>
-          </div>
-          <div class="container2">
-            <div class="text6">Creadores de Contenido</div>
-          </div>
-        </div>
-      </button>
-      <button class="container6" type="button">
-        <div class="container5">
-          <div class="iconify-icon">
-            <img class="group3" ngSrc="assets/admin/configuracion.svg" alt="icono configuración" height="18" width="18"/>
-          </div>
-          <div class="container2">
-            <div class="text7">Configuración</div>
-          </div>
-        </div>
-      </button>
-    </div>
+    <app-admin-sidebar [visible]="sidebarVisible" (navigate)="handleNav($event)"></app-admin-sidebar>
 
     <div class="background4">
       <div class="margin">

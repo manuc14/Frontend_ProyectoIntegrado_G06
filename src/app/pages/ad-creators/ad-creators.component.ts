@@ -7,13 +7,15 @@ import { SearchBarComponent } from '../../shared/search-bar/search-bar.component
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { CreatorService, CreatorEC } from '../../core/services/creator.service';
+import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
+import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 
 // Interfaz eliminada - ahora usamos CreatorEC directamente de la BD
 
 @Component({
   selector: 'app-adcreators',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent],
+  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
   templateUrl: './ad-creators.component.html',
   styleUrl: './ad-creators.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
@@ -231,6 +233,24 @@ export class AdminCreatorsPage implements OnInit, AfterViewInit {
   navigateToCreators(): void {
     this.closeSidebar();
     window.location.reload();
+  }
+
+  handleNav(event: string): void {
+    this.closeSidebar();
+    switch(event) {
+      case 'users':
+        this.router.navigate(['/ad-users']);
+        break;
+      case 'admins':
+        this.router.navigate(['/ad-admin']);
+        break;
+      case 'creators':
+        // already on creators - refresh
+        window.location.reload();
+        break;
+      default:
+        break;
+    }
   }
 
   addNewCreator(): void {

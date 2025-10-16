@@ -1,0 +1,54 @@
+:host { display: block; }
+
+@import '../../admin-mixins.scss';
+@import '../../admin-shared.scss';
+
+/* Active state for sidebar items when used as a standalone component */
+.background-vertical-border .background3.active,
+.background-vertical-border .container6.active {
+	background: color-mix(in srgb, var(--primary) 92%, black);
+	box-shadow: inset 4px 0 0 var(--primary);
+}
+
+
+/* Unified text/icon colors for sidebar items
+	 - Inactive: dark color for text and icons
+	 - Active: primary-foreground (typically white) for text and icons
+	 Do NOT change the font-family (only color/weight). */
+
+.background-vertical-border .container6,
+.background-vertical-border .background3 {
+	/* Ensure button layout keeps existing font; only touch color/weight */
+	color: var(--text, #212B3D);
+}
+
+/* Target any inner text element that starts with class "text" (text4/text5/text6...) */
+.background-vertical-border .container6 .container2 [class^="text"],
+.background-vertical-border .background3 .container2 [class^="text"] {
+	color: #212B3D; /* inactive (negro oscuro) */
+	font-weight: 500; /* keep weight readable, does not change font-family */
+}
+
+/* Icon images: default (inactive) keep as-is (we assume SVGs use dark strokes)
+	 If needed, the active rule below will visually make the icon light using a CSS filter. */
+.background-vertical-border .container6 .iconify-icon img,
+.background-vertical-border .background3 .iconify-icon img {
+	filter: none;
+	transition: filter .15s ease, opacity .15s ease;
+}
+
+/* Active state: text -> primary foreground (likely white); icon -> make visually light */
+.background-vertical-border .container6.active .container2 [class^="text"],
+.background-vertical-border .background3.active .container2 [class^="text"] {
+	color: var(--primary-foreground);
+	font-weight: 500; /* no bold per request */
+}
+
+.background-vertical-border .container6.active .iconify-icon img,
+.background-vertical-border .background3.active .iconify-icon img {
+	/* Try to make dark SVG strokes appear light on the colored background. This uses filters
+		 which work well for simple monochrome icons. If any icon needs a bespoke white asset,
+		 we can swap the src later. */
+	filter: invert(1) brightness(2) saturate(0);
+}
+
