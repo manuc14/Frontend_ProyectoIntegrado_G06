@@ -218,7 +218,6 @@ export class AdminEntityFormComponent implements OnInit {
       .pipe(finalize(() => { this.isSubmitting = false; this.form.enable(); this.buttonState = 'normal'; }))
       .subscribe({
         next: (res: any) => {
-          const status = res?.status || res?.body?.status;
           // Tratar como éxito si HTTP 200/201 o si el backend devuelve objeto simple
           this.bannerKind = 'success';
           this.bannerText = (res?.body?.message || res?.message) || (this.entityType === 'admin' ? 'Administrador creado correctamente' : 'Creador creado correctamente');

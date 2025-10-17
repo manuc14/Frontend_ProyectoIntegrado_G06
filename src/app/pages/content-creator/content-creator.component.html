@@ -1,0 +1,160 @@
+<div class="creator-panel">
+  <!-- Local header for Content Creator (logo left, upload + avatar right) -->
+  <header class="header local-creator-header" role="banner">
+    <div class="brand-section">
+      <div class="logo-container">
+        <img src="assets/icons/logo_v1.png" alt="ESIMedia" class="logo" />
+      </div>
+      <div class="brand-text">ESIMedia</div>
+    </div>
+
+    <div class="header-actions">
+      <button class="header-upload-button" (click)="navigateToUpload()" aria-label="Subir contenido">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/>
+        </svg>
+        Subir contenido
+      </button>
+
+      <div class="avatar-button" aria-hidden="true">
+        <div class="avatar"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main content area -->
+  <div class="main-layout">
+    <!-- Left sidebar -->
+    <div class="sidebar">
+      <div class="channel-info">
+        <div class="channel-avatar">
+          <!-- Reemplazar check verde por avatar circular genérico -->
+          <div class="avatar-placeholder" aria-hidden="true"></div>
+        </div>
+        <div class="channel-name">Mi Canal</div>
+        <div class="channel-handle">&#64;usuario</div>
+      </div>
+      
+  <div class="sidebar-menu">
+        <button class="menu-item active" type="button" (click)="navigateToHome()" aria-label="Ir a inicio" tabindex="0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,6V14H13V6H11M11,16V18H13V16H11Z"/>
+          </svg>
+          <span>Inicio</span>
+        </button>
+        <div class="menu-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 16V8l-9 5-9-5v8l9 5 9-5z" />
+            <path d="M3 7.5L12 3l9 4.5" />
+          </svg>
+          <span>Contenido</span>
+        </div>
+        <div class="menu-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6"/>
+          </svg>
+          <span>Estadísticas</span>
+        </div>
+        <div class="menu-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M3 3h18v4H3V3zm0 6h18v12H3V9zm2 2v8h14v-8H5z" />
+          </svg>
+          <span>Biblioteca</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center content -->
+    <div class="content-area">
+      <div class="panel-header">
+        <h1 class="panel-title">Panel del Creador</h1>
+      </div>
+      <div class="creator-panel-container">
+        <div class="three-boxes-row">
+          <!-- Left column: Estadísticas encima de Mis listas -->
+          <div class="left-column">
+            <!-- Box 1: Estadísticas -->
+            <div class="panel-box stats-box">
+              <div class="box-title">Estadísticas</div>
+              <div class="box-description">Resumen del rendimiento de tu canal.</div>
+              <button class="box-button stats-button" (click)="viewStatistics()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6"/>
+                </svg>
+                Ver estadísticas
+              </button>
+            </div>
+
+            <!-- Upload button moved to header. Removed inline duplicate. -->
+
+            <!-- Box 2: Mis listas (moved under Estadísticas) -->
+            <div class="panel-box lists-box">
+              <div class="box-title">Mis listas</div>
+              <div class="lists-content">
+                <!-- existing-lists intentionally removed; keep only the dashed create box below -->
+                <button class="create-new-list" (click)="createNewList()" aria-label="Crear nueva lista">
+                  <div class="create-icon">+</div>
+                  <div class="create-text">Crear nueva lista</div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          
+        </div>
+
+        <!-- Edit content wide box -->
+        <div class="edit-content-box">
+          <div class="edit-content-title">Editar contenido</div>
+          <button class="edit-action-button" (click)="startEditing()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M15,18V16H6V18H15M18,14V12H6V14H18Z"/>
+            </svg>
+            Ir a edición
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent edits -->
+      <div class="recent-edits-section">
+        <div class="section-header-small">
+          <span>Ediciones recientes</span>
+        </div>
+
+        <div class="recent-edits-grid edits-grid">
+          <!-- Create new edit card -->
+          <button class="create-edit-item create-card animate-entry"
+                  type="button"
+                  (click)="startEditing()"
+                  aria-label="Crear nueva edición">
+            <div class="create-icon">+</div>
+            <div class="create-text">
+              <span>Crear nueva</span>
+              <span>edición</span>
+            </div>
+          </button>
+
+          <!-- Recent edits -->
+          @for (edit of recentEdits; track edit) {
+            <div class="edit-card">
+              <img [src]="edit.thumbnail" [alt]="edit.title" class="edit-thumbnail" />
+              <div class="edit-info">
+                <div class="edit-title">{{ edit.title }}</div>
+                <div class="edit-date">{{ edit.lastEdited | date }}</div>
+                <div class="edit-description">Actualizado recientemente</div>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (recentEdits.length === 0) {
+          <div class="empty-state">
+            <p class="empty-message">Aún no has editado ningún vídeo. Empieza a editar tu primer contenido.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+  <!-- Shared footer component (keeps exact footer used in other pages) -->
+  <app-footer></app-footer>
+</div>

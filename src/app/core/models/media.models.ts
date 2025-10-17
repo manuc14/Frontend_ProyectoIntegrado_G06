@@ -41,3 +41,14 @@ export interface AvatarsResponseDto {
   avatars: string[];
   defaultAvatar: string;
 }
+
+/*
+ * Respuesta del endpoint de miniaturas predefinidas
+ * Contiene lista de rutas de miniaturas disponibles y miniatura por defecto
+ */
+export interface ThumbnailsResponseDto {
+  success: boolean;
+  message: string;
+  thumbnails: string[];
+  defaultThumbnail: string;
+}

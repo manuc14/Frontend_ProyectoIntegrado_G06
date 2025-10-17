@@ -1,0 +1,828 @@
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE UPLOAD CONTENT
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DISEÑO DE PÁGINA
+   -------------------------------------------------------------------------- */
+
+.upload-page {
+  max-width: 1200px;
+  margin: 32px auto 56px auto;
+  padding: 32px 16px 48px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.upload-page h1 {
+  margin: 0 0 8px 0;
+  color: var(--foreground);
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--muted-foreground);
+  margin: 0 0 24px 0;
+  font-size: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR DE TARJETA Y FORMULARIO
+   -------------------------------------------------------------------------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.upload-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+/* --------------------------------------------------------------------------
+   ESTRUCTURA DE FORMULARIO
+   -------------------------------------------------------------------------- */
+
+.left-column,
+.right-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section h2 {
+  color: var(--foreground);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+/* --------------------------------------------------------------------------
+   ELEMENTOS DE FORMULARIO
+   -------------------------------------------------------------------------- */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  color: var(--foreground);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.required {
+  color: #000000; /* force black for required asterisk */
+}
+
+/* Make the asterisk next to tags and title black where requested */
+.tags-asterisk {
+  color: #000000; /* black */
+  margin-left: 4px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label span {
+  color: var(--foreground);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   CAMPOS DE ENTRADA
+   -------------------------------------------------------------------------- */
+
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+textarea,
+select {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--input);
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted-foreground);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  background: var(--card);
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--primary);
+}
+
+input:not(:focus):not(:hover),
+textarea:not(:focus):not(:hover),
+select:not(:focus):not(:hover) {
+  border-color: var(--border);
+  box-shadow: none;
+  background: var(--card);
+}
+/* --------------------------------------------------------------------------
+   ESTADOS DE VALIDACIÓN
+   -------------------------------------------------------------------------- */
+
+input:disabled,
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.invalid {
+  border-color: var(--destructive) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive) 25%, transparent);
+}
+
+.invalid:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 25%, transparent);
+}
+
+/* Error state for real-time validation */
+input.error,
+textarea.error,
+select.error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2);
+}
+
+input.error:focus,
+textarea.error:focus,
+select.error:focus {
+  outline: none;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+/* Remove red highlight specifically for the title input (when empty) by overriding
+   the invalid style on that field. We target the title by placeholder text to avoid
+   changing other invalid inputs site-wide. */
+input[placeholder="Introduce el título"] {
+  &.invalid {
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   UTILIDADES DE TEXTO Y DISEÑO
+   -------------------------------------------------------------------------- */
+
+.char-count {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  text-align: right;
+}
+
+.field-info {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   GRUPOS DE RADIO
+   -------------------------------------------------------------------------- */
+
+.radio-group {
+  display: flex;
+  gap: 16px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  flex-direction: row !important;
+}
+
+.radio-option input[type="radio"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+.radio-option span {
+  color: var(--foreground);
+  font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   SECCIÓN DE THUMBNAILS
+   -------------------------------------------------------------------------- */
+
+.thumbnails-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.thumbnails-grid {
+  display: grid;
+  /* larger previews: 2 columns to make thumbnails more prominent */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.thumbnail-slot {
+  aspect-ratio: 16/9;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.thumbnail-slot:hover {
+  border-color: var(--primary);
+  background: var(--secondary);
+}
+
+.thumbnail-slot.upload {
+  background: var(--card);
+  /* Make the upload slot use a dashed border so it matches the thumbnail look */
+  border: 2px dashed var(--border);
+}
+
+.thumbnail-slot.upload input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.plus {
+  font-size: 24px;
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.upload-text {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.thumbnail-slot.preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* suggested thumbnail buttons */
+.thumbnail-slot.suggested {
+  padding: 0;
+  border: 2px solid transparent;
+  background: var(--card);
+}
+
+.thumbnail-slot.suggested img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.thumbnail-slot.suggested.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.10);
+}
+
+.thumbnail-slot .check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+.thumbnail-slot.upload.custom-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.thumbnail-slot.upload.custom-upload .upload-content .plus {
+  color: var(--secondary);
+}
+
+/* Hover animation using the secondary color for the custom upload box */
+.thumbnail-slot.upload.custom-upload:hover {
+  border-color: var(--secondary);
+  /* solid secondary background like the audio drop area */
+  background: var(--secondary);
+  box-shadow: 0 8px 20px rgba(15, 46, 64, 0.08);
+}
+
+.thumbnail-slot.upload.custom-upload:hover .upload-content .plus,
+.thumbnail-slot.upload.custom-upload:hover .upload-content .upload-text {
+  color: var(--secondary-foreground);
+}
+
+/* Visual indicator for a local preview while upload is pending or if selected visually */
+.thumbnail-slot.preview.local-selected {
+  border: 3px solid var(--primary);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.12);
+}
+
+/* make the preview image slightly rounded and more prominent */
+
+.thumbnail-slot.empty {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   ÁREA DE SUBIDA DE ARCHIVOS
+   -------------------------------------------------------------------------- */
+
+.file-upload-area {
+  position: relative;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  background: var(--card);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.file-upload-area:hover {
+  border-color: var(--primary);
+  background: var(--secondary);
+}
+
+.file-upload-area input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+}
+
+.upload-placeholder p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   SISTEMA DE TAGS
+   -------------------------------------------------------------------------- */
+
+.tags-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  background: #f3f4f6; /* light neutral gray */
+  color: var(--foreground);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.remove-tag {
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+
+  &:hover {
+    color: var(--destructive);
+  }
+}
+
+.tag-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tags-container .field-error {
+  color: #dc2626; /* more intense red */
+  font-size: 13px;
+  margin-top: -4px;
+  font-weight: 600;
+}
+
+/* Error summary for missing required fields */
+.form-error-summary {
+  grid-column: span 2;
+  background: rgba(220,38,38,0.06);
+  border: 1px solid rgba(220,38,38,0.12);
+  color: #991b1b;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Thumbnail upload warning style: amber warning, slightly smaller font like availability errors */
+.thumbnails-section .field-error {
+  color: #b45309; /* amber-700 */
+  font-size: 12px;
+  margin-top: -4px;
+  font-weight: 600;
+}
+
+.tag-input-row input {
+  flex: 1;
+}
+
+/* --------------------------------------------------------------------------
+   BOTONES
+   -------------------------------------------------------------------------- */
+
+.btn {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn.primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.btn.primary:hover {
+  background: var(--primary);
+  opacity: 0.9;
+}
+
+.btn.secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+}
+
+.btn.secondary:hover {
+  background: var(--secondary);
+  border-color: var(--primary);
+  opacity: 0.9;
+}
+
+.btn.small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   ACCIONES DE FORMULARIO
+   -------------------------------------------------------------------------- */
+
+.form-actions {
+  grid-column: span 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+/* --------------------------------------------------------------------------
+   DISEÑO RESPONSIVO
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .upload-form {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    grid-column: span 1;
+    flex-direction: column-reverse;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+  
+  .thumbnails-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .upload-page {
+    padding: 20px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-page h1 {
+    font-size: 24px;
+  }
+  
+  .upload-form {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .radio-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ESTILOS PARA CAMPOS DESHABILITADOS
+   -------------------------------------------------------------------------- */
+
+.disabled-field {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+  transition: opacity 0.3s ease;
+}
+
+.disabled-field::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--muted);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+input[disabled],
+input[readonly],
+select[disabled],
+textarea[disabled] {
+  background-color: var(--muted) !important;
+  color: var(--muted-foreground) !important;
+  border-color: var(--border) !important;
+  cursor: not-allowed;
+  transition: all 0.3s ease;
+}
+
+input[disabled]::placeholder,
+input[readonly]::placeholder,
+textarea[disabled]::placeholder {
+  color: var(--muted-foreground) !important;
+}
+
+input[readonly] {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+input[readonly]:focus,
+input[disabled]:focus {
+  outline: 2px solid var(--muted-foreground) !important;
+  outline-offset: 2px;
+}
+
+.file-upload-area.disabled-field {
+  background-color: var(--muted);
+  border-color: var(--border);
+  cursor: not-allowed;
+  transition: all 0.3s ease;
+}
+
+.file-upload-area.disabled-field .upload-placeholder p {
+  color: var(--muted-foreground);
+  font-style: italic;
+  font-weight: 500;
+}
+
+// Tooltip para campos deshabilitados
+input[disabled][title]:hover::after,
+select[disabled][title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #17303a;
+  color: #e8f6f5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+  z-index: 1000;
+  border: 1px solid #2a4a5a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   SUCCESS TOAST MESSAGE
+   -------------------------------------------------------------------------- */
+
+.success-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+  z-index: 9999;
+  font-weight: 500;
+  max-width: 400px;
+  
+  // Initial state - hidden
+  opacity: 0;
+  transform: translateX(100%) scale(0.95);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  
+  &.show {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    pointer-events: auto;
+  }
+  
+  &.hide {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+}
+
+.success-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.success-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+}
+
+// Media query para pantallas pequeñas
+@media (max-width: 640px) {
+  .success-toast {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+    margin: 0;
+  }
+}
+
+// Estilos específicos para el toast de miniatura
+.success-toast.thumbnail-success {
+  // Posicionarlo debajo del toast principal si están ambos visibles
+  top: 90px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3);
+  
+  @media (max-width: 640px) {
+    top: 86px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   AUDIO UPLOAD STATUS STYLES
+   -------------------------------------------------------------------------- */
+
+.upload-status {
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  
+  &.uploading {
+    color: #3b82f6;
+  }
+  
+  &.success {
+    color: #10b981;
+  }
+  
+  &.error {
+    color: #ef4444;
+  }
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

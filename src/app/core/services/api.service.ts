@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { SectionDto, AvatarsResponseDto } from '../models/media.models';
+import { SectionDto, AvatarsResponseDto, ThumbnailsResponseDto } from '../models/media.models';
 
 /*
  * Interfaz para la petición de registro de usuario
@@ -176,6 +176,24 @@ export class ApiService {
     return relativePath;
   }
 
+  /**
+   * Obtiene la lista de miniaturas predefinidas disponibles.
+   * Incluye las rutas de las miniaturas y la miniatura por defecto.
+   */
+  getThumbnails(): Observable<ThumbnailsResponseDto> {
+    return this.http.get<ThumbnailsResponseDto>(`${this.resourceBase}/thumbnails`).pipe(
+      catchError(this.handleError('carga de miniaturas', 'No se pudieron cargar las miniaturas disponibles'))
+    );
+  }
+
+  /** 
+   * Construye la URL completa para una miniatura dada su ruta relativa.
+   * El proxy redirige /resources/* al backend automáticamente.
+   */
+  getFullThumbnailUrl(relativePath: string): string {
+    return relativePath;
+  }
+
   /** 
    * Solicita el restablecimiento de contraseña enviando un código al email.
    * Primer paso del flujo de recuperación de contraseña.
@@ -251,6 +269,24 @@ export class ApiService {
   validateVerificationToken(token: string): Observable<VerificationTokenValidationResponse> {
     return this.http.get<VerificationTokenValidationResponse>(`${this.base}/auth/validate-verification-token?token=${token}`);
   }
+
+  /**
+   * Sube un archivo de audio al backend y devuelve la URL del archivo subido.
+   * Utiliza multipart/form-data para enviar el archivo.
+   */
+  // NOTE: Audio upload is handled by UploadAudioService. Keeping this method here caused
+  // duplication of responsibilities. Use UploadAudioService.uploadAudio(file) instead.
+
+  /**
+   * Crea un nuevo contenido en el backend.
+   * Espera un objeto con los campos del formulario y devuelve la respuesta del servidor.
+   */
+  createContent(body: any) {
+    return this.http.post<{message?: string, id?: string}>(`${this.base}/contenidos`, body).pipe(
+      catchError(this.handleError('crear contenido', 'No se pudo crear el contenido'))
+    );
+  }
+
 }
 
 /*
