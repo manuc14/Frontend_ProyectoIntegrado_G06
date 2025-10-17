@@ -7,6 +7,9 @@ import { SearchBarComponent } from '../../shared/search-bar/search-bar.component
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { AdminService, AdminEV } from '../../core/services/admin.service';
+import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
+import { of } from 'rxjs';
+import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 
@@ -98,22 +101,24 @@ export class AdminAdmsPage implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.adminService.listarAdministradores().subscribe({
-      next: (data) => {
-        this.allAdmins = data;
-        this.totalAdmins = data.length;
-        this.filteredAdmins = [...data];
-        this.isLoading = false;
-
-  // Aplicar filtros y ordenamiento iniciales
-  // this.applyFilters(); // Removido para consistencia con ad-creators
-      },
-      error: (err) => {
-        console.error('Error al cargar administradores:', err);
-        this.error = 'Error al cargar los administradores. Por favor, intente nuevamente.';
-        this.isLoading = false;
-      }
-    });
+    this.adminService.listarAdministradores()
+      .pipe(
+        tap((data: AdminEV[]) => {
+          this.allAdmins = data.map(d => ({ ...d, fechaNacimientoFormatted: formatDateIsoToDDMMYYYY((d as any).fechaNacimiento) } as AdminEV));
+          this.totalAdmins = data.length;
+          this.filteredAdmins = [...this.allAdmins];
+        }),
+        catchError((err: any) => {
+          // Error manejado: dejar estado y mensaje de error
+          this.error = 'Error al cargar los administradores. Por favor, intente nuevamente.';
+          // Devolver observable vacío para completar
+          return of([] as AdminEV[]);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe();
   }
 
   toggleSidebar(): void {
@@ -166,12 +171,10 @@ export class AdminAdmsPage implements OnInit {
   }
 
   editarAdministrador(id: string): void {
-    console.log('Editar administrador:', id);
     // Implementación pendiente: navegar a la página de edición
   }
 
   eliminarAdministrador(id: string): void {
-    console.log('Eliminar administrador:', id);
     // Implementación pendiente: mostrar diálogo de confirmación y eliminar
   }
 
@@ -212,7 +215,7 @@ export class AdminAdmsPage implements OnInit {
    */
   onSearch(searchTerm: string): void {
     // searchTerm ya está actualizado por ngModel
-    this.applyFilters(); // Esto aplicará filtros y luego la búsqueda
+    this.applyFiltersAndSearch();
   }
 
   /**
@@ -220,7 +223,7 @@ export class AdminAdmsPage implements OnInit {
    */
   onSearchTermChange(searchTerm: string): void {
     this.searchTerm = searchTerm;
-    this.applyFilters();
+    this.applyFiltersAndSearch();
   }
 
   /**
@@ -234,21 +237,8 @@ export class AdminAdmsPage implements OnInit {
    * Realiza la búsqueda filtrada sobre los datos ya filtrados
    */
   private performSearchOnFiltered(): void {
-    if (!this.searchTerm.trim()) {
-      return;
-    }
-
-    const searchLower = this.searchTerm.toLowerCase().trim();
-
-    this.filteredAdmins = this.filteredAdmins.filter(admin => {
-      return (
-        (admin.nombre?.toLowerCase() || '').includes(searchLower) ||
-        (admin.apellidos?.toLowerCase() || '').includes(searchLower) ||
-        (admin.alias?.toLowerCase() || '').includes(searchLower) ||
-        (admin.correo?.toLowerCase() || '').includes(searchLower) ||
-        (admin.departamento?.toLowerCase() || '').includes(searchLower)
-      );
-    });
+    // legacy - sustituido por applyFiltersAndSearch
+    this.applyFiltersAndSearch();
   }
 
   /**
@@ -256,7 +246,7 @@ export class AdminAdmsPage implements OnInit {
    */
   onClearSearch(): void {
     // searchTerm ya está limpiado por el componente search-bar
-    this.applyFilters(); // Esto aplicará solo los filtros sin búsqueda
+    this.applyFiltersAndSearch(); // aplicar solo filtros
   }
 
   /**
@@ -272,8 +262,7 @@ export class AdminAdmsPage implements OnInit {
       });
     });
     
-    this.applyFilters();
-    console.log('Filtros activos:', this.getActiveFilters());
+  this.applyFiltersAndSearch();
   }
 
   /**
@@ -287,8 +276,7 @@ export class AdminAdmsPage implements OnInit {
       });
     });
     
-    this.applyFilters();
-    console.log('Todos los filtros limpiados');
+  this.applyFiltersAndSearch();
   }
 
   /**
@@ -310,42 +298,38 @@ export class AdminAdmsPage implements OnInit {
    * Aplica los filtros activos a los datos
    */
   private applyFilters(): void {
-    let data = [...this.allAdmins];
+    // Reutilizar el flujo unificado
+  this.applyFiltersAndSearch();
+  if (this.selectedSort) this.applySorting();
+  }
 
-    // Obtener todos los filtros activos de todos los grupos
+  /**
+   * Aplica filtros y búsqueda en un único flujo (AND entre filtros, búsqueda sobre campos relevantes)
+   */
+  private applyFiltersAndSearch(): void {
+    const term = this.searchTerm.toLowerCase().trim();
     const activeFilters = this.getActiveFilters();
 
-    if (activeFilters.length > 0) {
-      data = data.filter(admin => {
-        // Verificar si el administrador pasa TODOS los filtros activos (AND lógico)
-        return activeFilters.every(filter => {
-          // Filtros de departamento
-          if (filter.groupId === 'department') {
-            return admin.departamento === filter.value;
-          }
-          // Filtros de estado
-          if (filter.groupId === 'status') {
-            return admin.activo === filter.value;
-          }
+    this.filteredAdmins = this.allAdmins.filter(admin => {
+      if (activeFilters.length > 0) {
+        const ok = activeFilters.every(filter => {
+          if (filter.groupId === 'department') return admin.departamento === filter.value;
+          if (filter.groupId === 'status') return admin.activo === filter.value;
           return true;
         });
-      });
-    }
+        if (!ok) return false;
+      }
 
-    // Aplicar primero los filtros, luego la búsqueda
-    this.filteredAdmins = data;
+      if (term.length === 0) return true;
 
-    // Si hay un término de búsqueda, aplicarlo sobre los datos ya filtrados
-    if (this.searchTerm.trim()) {
-      this.performSearchOnFiltered();
-    }
-
-    console.log(`Filtros aplicados. Administradores mostrados: ${this.filteredAdmins.length} de ${this.allAdmins.length}`);
-
-    // Aplicar ordenamiento si hay uno seleccionado
-    if (this.selectedSort) {
-      this.applySorting();
-    }
+      return (
+        (admin.nombre?.toLowerCase() || '').includes(term) ||
+        (admin.apellidos?.toLowerCase() || '').includes(term) ||
+        (admin.alias?.toLowerCase() || '').includes(term) ||
+        (admin.correo?.toLowerCase() || '').includes(term) ||
+        (admin.departamento?.toLowerCase() || '').includes(term)
+      );
+    });
   }
 
   /**
@@ -364,20 +348,24 @@ export class AdminAdmsPage implements OnInit {
       return;
     }
 
+    const field = this.selectedSort.field as keyof AdminEV;
+    const dir = this.selectedSort.direction === 'asc' ? 1 : -1;
+
     this.filteredAdmins.sort((a, b) => {
-      const field = this.selectedSort!.field as keyof AdminEV;
-      let valueA = String(a[field]).toLowerCase();
-      let valueB = String(b[field]).toLowerCase();
+      const va = a[field];
+      const vb = b[field];
 
-      const comparison = valueA.localeCompare(valueB, 'es', {
-        numeric: true,
-        sensitivity: 'base'
-      });
+      // Si hay campos de fecha, intentar parsear a timestamp
+      if (field === ('fechaNacimiento' as keyof AdminEV) || field === ('fecha' as keyof AdminEV)) {
+        const ta = toTimestampFromString(String((a as any)[field])) ?? 0;
+        const tb = toTimestampFromString(String((b as any)[field])) ?? 0;
+        return (ta - tb) * dir;
+      }
 
-      return this.selectedSort!.direction === 'desc' ? -comparison : comparison;
+      return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
     });
 
-    console.log(`Ordenamiento aplicado: ${this.selectedSort.label}`);
+    // Ordenamiento aplicado
   }
 
   /**

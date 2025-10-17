@@ -6,7 +6,6 @@ import { AdminUsersPage } from './pages/ad-users/ad-users.component';
 import { AdminAdmsPage } from './pages/ad-admin/ad-admin.component';
 import { AdminCreatorsPage } from './pages/ad-creators/ad-creators.component';
 import { AdminAdmsAddPage } from './pages/ad-admin-add/ad-admin-add.component';
-import { AdminAdmsAddSuccessPage } from './pages/ad-admin-add-success/ad-admin-add-success.component';
 import { AdminCreatorsAddPage } from './pages/ad-creators-add/ad-creators-add.component';
 import { ContentPage } from './pages/content/content.page';
 import { UploadContentComponent } from './pages/upload-content/upload-content.component';
@@ -29,7 +28,6 @@ export const routes: Routes = [
   { path: 'ad-creators', component: AdminCreatorsPage },
   { path: 'ad-admin-add', component: AdminAdmsAddPage },
   { path: 'ad-creators-add', component: AdminCreatorsAddPage },
-  { path: 'ad-admin-add-success', component: AdminAdmsAddSuccessPage },
 	{ path: 'content', component: ContentPage },
    { path: 'upload-content', component: UploadContentComponent },
     { path: 'content-creator', component: ContentCreatorComponent },

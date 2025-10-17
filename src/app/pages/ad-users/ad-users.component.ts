@@ -7,6 +7,9 @@ import { SearchBarComponent } from '../../shared/search-bar/search-bar.component
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { UserService, UserEV } from '../../core/services/user.service';
+import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
+import { of } from 'rxjs';
+import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 
@@ -108,35 +111,31 @@ export class AdminUsersPage implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.userService.listarUsuarios().subscribe({
-      next: (data) => {
-        this.usuarios = data;
-        this.totalUsuarios = data.length;
-        
-        // Transformar UserEV a User para compatibilidad con filtros/búsqueda
-        this.allUsers = this.transformarUsuarios(data);
-        this.filteredUsers = [...this.allUsers];
-        
-        this.isLoading = false;
-        console.log(`Usuarios cargados: ${this.usuarios.length}`);
-
-  // No hay cálculo dinámico de pageSize — no hay nada que recalcular aquí.
-      },
-      error: (err) => {
-        console.error('Error al cargar usuarios:', err);
-        
-        // Mantener arrays vacíos cuando hay error
-        this.usuarios = [];
-        this.allUsers = [];
-        this.filteredUsers = [];
-        this.totalUsuarios = 0;
-        
-        this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
-        this.isLoading = false;
-        
-  // No hay cálculo dinámico de pageSize — no hay nada que recalcular aquí.
-      }
-    });
+    this.userService.listarUsuarios()
+      .pipe(
+        tap((data: UserEV[]) => {
+          this.usuarios = data;
+          this.totalUsuarios = data.length;
+          this.allUsers = this.transformarUsuarios(data);
+          this.filteredUsers = [...this.allUsers];
+        }),
+        catchError((err: any) => {
+          // Error manejado: dejar estado consistente
+          // Mantener arrays vacíos cuando hay error
+          this.usuarios = [];
+          this.allUsers = [];
+          this.filteredUsers = [];
+          this.totalUsuarios = 0;
+          this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
+          // Devolver observable vacío para completar el flujo limpiamente
+          return of([] as UserEV[]);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+          // carga finalizada
+        })
+      )
+      .subscribe();
   }
 
   /**
@@ -150,7 +149,8 @@ export class AdminUsersPage implements OnInit {
       lastName: usuario.apellidos,
       alias: `@${usuario.alias}`,
       email: usuario.correo,
-      birthDate: this.formatearFecha(usuario.fechaNacimiento),
+      // Guardamos la fecha como string formateado para mostrar, pero en ordenamiento usamos timestamp
+      birthDate: formatDateIsoToDDMMYYYY(usuario.fechaNacimiento),
       role: usuario.esVip ? 'VIP' : 'Estándar',
       status: usuario.activo ? 'activo' : 'bloqueado'
     }));
@@ -159,15 +159,9 @@ export class AdminUsersPage implements OnInit {
   /**
    * Formatea fecha de YYYY-MM-DD a DD/MM/YYYY
    */
+  // Mantengo el método por compatibilidad con plantillas que puedan referenciarlo.
   formatearFecha(fecha: string): string {
-    if (!fecha) return '-';
-
-    const date = new Date(fecha);
-    const dia = date.getDate().toString().padStart(2, '0');
-    const mes = (date.getMonth() + 1).toString().padStart(2, '0');
-    const anio = date.getFullYear();
-
-    return `${dia}/${mes}/${anio}`;
+    return formatDateIsoToDDMMYYYY(fecha);
   }
 
   // ======================================== 
@@ -237,21 +231,32 @@ export class AdminUsersPage implements OnInit {
   }
 
   /**
-   * Realiza la búsqueda filtrada sobre los datos ya filtrados
+   * Aplica búsqueda y filtros en un único flujo (reduce ramas y duplicación)
    */
-  private performSearchOnFiltered(): void {
-    if (!this.searchTerm.trim()) {
-      return;
-    }
+  private applyFiltersAndSearch(): void {
+    const term = this.searchTerm.toLowerCase().trim();
 
-    const searchLower = this.searchTerm.toLowerCase().trim();
-    
-    this.filteredUsers = this.filteredUsers.filter(user => {
+    const activeFilters = this.getActiveFilters();
+
+    this.filteredUsers = this.allUsers.filter(user => {
+      // Si hay filtros activos, cada filtro debe cumplirse (AND)
+      if (activeFilters.length > 0) {
+        const okFilters = activeFilters.every(filter => {
+          if (filter.groupId === 'role') return user.role === filter.value;
+          if (filter.groupId === 'status') return user.status === filter.value;
+          return true;
+        });
+        if (!okFilters) return false;
+      }
+
+      // Búsqueda (si hay término)
+      if (term.length === 0) return true;
+
       return (
-        user.name.toLowerCase().includes(searchLower) ||
-        user.lastName.toLowerCase().includes(searchLower) ||
-        user.alias.toLowerCase().includes(searchLower) ||
-        user.email.toLowerCase().includes(searchLower)
+        user.name.toLowerCase().includes(term) ||
+        user.lastName.toLowerCase().includes(term) ||
+        user.alias.toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term)
       );
     });
   }
@@ -261,7 +266,7 @@ export class AdminUsersPage implements OnInit {
    */
   onClearSearch(): void {
     this.searchTerm = '';
-    this.applyFilters(); // Esto aplicará solo los filtros sin búsqueda
+    this.applyFiltersAndSearch(); // aplicar solo filtros
   }
 
   /**
@@ -284,8 +289,7 @@ export class AdminUsersPage implements OnInit {
       });
     });
     
-    this.applyFilters();
-    console.log('Filtros activos:', this.getActiveFilters());
+  this.applyFiltersAndSearch();
   }
 
   /**
@@ -299,8 +303,7 @@ export class AdminUsersPage implements OnInit {
       });
     });
     
-    this.applyFilters();
-    console.log('Todos los filtros limpiados');
+  this.applyFiltersAndSearch();
   }
 
   /**
@@ -322,45 +325,10 @@ export class AdminUsersPage implements OnInit {
    * Aplica los filtros activos a los datos
    */
   private applyFilters(): void {
-    let data = [...this.allUsers];
-    
-    // Obtener todos los filtros activos de todos los grupos
-    const activeFilters = this.getActiveFilters();
-    
-    if (activeFilters.length > 0) {
-      data = data.filter(user => {
-        // Verificar si el usuario pasa TODOS los filtros activos (AND lógico)
-        return activeFilters.every(filter => {
-          // Filtros de rol (Tipo)
-          if (filter.groupId === 'role') {
-            return user.role === filter.value;
-          }
-          // Filtros de estado
-          if (filter.groupId === 'status') {
-            return user.status === filter.value;
-          }
-          return true;
-        });
-      });
-    }
-    
-    // Aplicar primero los filtros, luego la búsqueda
-    this.filteredUsers = data;
-    
-    // Si hay un término de búsqueda, aplicarlo sobre los datos ya filtrados
-    if (this.searchTerm.trim()) {
-      this.performSearchOnFiltered();
-    }
-    
-    // Aplicar ordenamiento si hay uno seleccionado
-    if (this.selectedSort) {
-      this.applySorting();
-    }
-    
-    // Resetear a la primera página cuando cambian los filtros
-    this.currentPage = 1;
-    
-    console.log(`Filtros aplicados. Usuarios mostrados: ${this.filteredUsers.length} de ${this.allUsers.length}`);
+    // Reusar el flujo unificado
+  this.applyFiltersAndSearch();
+  if (this.selectedSort) this.applySorting();
+  this.currentPage = 1;
   }
 
   /**
@@ -444,7 +412,6 @@ export class AdminUsersPage implements OnInit {
   onSortChange(event: SortEvent): void {
     this.selectedSort = event.option;
     this.applySorting();
-    console.log('Ordenando por:', event.field, event.direction);
   }
 
   /**
@@ -454,38 +421,21 @@ export class AdminUsersPage implements OnInit {
     if (!this.selectedSort) {
       return;
     }
+    const field = this.selectedSort.field as keyof User;
+    const dir = this.selectedSort.direction === 'asc' ? 1 : -1;
 
     this.filteredUsers.sort((a, b) => {
-      const field = this.selectedSort!.field as keyof User;
-      let valueA = a[field];
-      let valueB = b[field];
+      const va = a[field];
+      const vb = b[field];
 
-      // Manejo especial para fechas
+      // Si es fecha, convertir a timestamp usando helper (acepta DD/MM/YYYY o ISO)
       if (field === 'birthDate') {
-        // Convertir formato DD/MM/YYYY a Date para comparar
-        const valueAStr = String(valueA);
-        const valueBStr = String(valueB);
-        const [dayA, monthA, yearA] = valueAStr.split('/');
-        const [dayB, monthB, yearB] = valueBStr.split('/');
-        const dateA = new Date(parseInt(yearA), parseInt(monthA) - 1, parseInt(dayA));
-        const dateB = new Date(parseInt(yearB), parseInt(monthB) - 1, parseInt(dayB));
-        
-        if (this.selectedSort!.direction === 'asc') {
-          return dateA.getTime() - dateB.getTime();
-        } else {
-          return dateB.getTime() - dateA.getTime();
-        }
+        const ta = toTimestampFromString(String(va)) ?? 0;
+        const tb = toTimestampFromString(String(vb)) ?? 0;
+        return (ta - tb) * dir;
       }
 
-      // Ordenamiento alfabético para otros campos
-      const valueALower = String(valueA).toLowerCase();
-      const valueBLower = String(valueB).toLowerCase();
-
-      if (this.selectedSort!.direction === 'asc') {
-        return valueALower.localeCompare(valueBLower);
-      } else {
-        return valueBLower.localeCompare(valueALower);
-      }
+      return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
     });
   }
 
@@ -550,17 +500,8 @@ export class AdminUsersPage implements OnInit {
    * Edita un usuario
    */
   editarUsuario(id: string): void {
-    console.log('Editar usuario:', id);
     // Implementación pendiente: navegar a la página de edición
     // this.router.navigate(['/ad-users/edit', id]);
-  }
-
-  /**
-   * Elimina un usuario
-   */
-  eliminarUsuario(id: string): void {
-    console.log('Eliminar usuario:', id);
-    // Implementación pendiente: mostrar diálogo de confirmación y eliminar
   }
 
 }

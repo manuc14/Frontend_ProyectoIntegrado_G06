@@ -7,6 +7,9 @@ import { SearchBarComponent } from '../../shared/search-bar/search-bar.component
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { CreatorService, CreatorEC } from '../../core/services/creator.service';
+import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
+import { of } from 'rxjs';
+import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 
@@ -99,30 +102,24 @@ export class AdminCreatorsPage implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.creatorService.listarCreadores().subscribe({
-      next: (data) => {
-        // Usar datos directamente de la BD sin transformación
-        this.allCreators = data;
-        this.filteredCreators = [...this.allCreators];
-
-        this.isLoading = false;
-        console.log(`Creadores cargados: ${this.allCreators.length}`);
-
-  // No hay cálculo dinámico de pageSize — no hay nada que recalcular aquí.
-      },
-      error: (err) => {
-        console.error('Error al cargar creadores:', err);
-
-        // Mantener arrays vacíos cuando hay error
-        this.allCreators = [];
-        this.filteredCreators = [];
-
-        this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
-        this.isLoading = false;
-
-  // No hay cálculo dinámico de pageSize — no hay nada que recalcular aquí.
-      }
-    });
+    this.creatorService.listarCreadores()
+      .pipe(
+        tap((data: CreatorEC[]) => {
+          this.allCreators = data.map(d => ({ ...d, fechaNacimientoFormatted: formatDateIsoToDDMMYYYY((d as any).fechaNacimiento) } as CreatorEC));
+          this.filteredCreators = [...this.allCreators];
+        }),
+        catchError((err: any) => {
+          // Error manejado: dejar arrays vacíos y mensaje
+          this.allCreators = [];
+          this.filteredCreators = [];
+          this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
+          return of([] as CreatorEC[]);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe();
   }
 
   // ========================================
@@ -210,12 +207,10 @@ export class AdminCreatorsPage implements OnInit {
   }
 
   editarCreador(id: string): void {
-    console.log('Editar creador:', id);
     // Implementación pendiente: navegar a la página de edición
   }
 
   eliminarCreador(id: string): void {
-    console.log('Eliminar creador:', id);
     // Implementación pendiente: mostrar diálogo de confirmación y eliminar
   }
 
@@ -228,7 +223,7 @@ export class AdminCreatorsPage implements OnInit {
    */
   onSearch(searchTerm: string): void {
     // searchTerm ya está actualizado por ngModel
-    this.applyFilters(); // Esto aplicará filtros y luego la búsqueda
+    this.applyFiltersAndSearch();
   }
 
   /**
@@ -236,7 +231,7 @@ export class AdminCreatorsPage implements OnInit {
    */
   onSearchTermChange(searchTerm: string): void {
     this.searchTerm = searchTerm;
-    this.applyFilters();
+    this.applyFiltersAndSearch();
   }
 
   /**
@@ -244,7 +239,7 @@ export class AdminCreatorsPage implements OnInit {
    */
   onClearSearch(): void {
     // searchTerm ya está limpiado por el componente search-bar
-    this.applyFilters(); // Esto aplicará solo los filtros sin búsqueda
+    this.applyFiltersAndSearch(); // aplicar solo filtros
   }
 
   /**
@@ -260,8 +255,7 @@ export class AdminCreatorsPage implements OnInit {
       });
     });
 
-    this.applyFilters();
-    console.log('Filtros activos:', this.getActiveFilters());
+  this.applyFiltersAndSearch();
   }
 
   /**
@@ -275,8 +269,7 @@ export class AdminCreatorsPage implements OnInit {
       });
     });
 
-    this.applyFilters();
-    console.log('Todos los filtros limpiados');
+  this.applyFiltersAndSearch();
   }
 
   /**
@@ -298,45 +291,39 @@ export class AdminCreatorsPage implements OnInit {
    * Aplica los filtros activos a los datos
    */
   private applyFilters(): void {
-    let data = [...this.allCreators];
+  // Reusar el flujo unificado
+  this.applyFiltersAndSearch();
+  this.currentPage = 1;
+  if (this.selectedSort) this.applySorting();
+  }
 
-    // Obtener todos los filtros activos de todos los grupos
+  /**
+   * Aplica filtros y búsqueda en un único flujo (reduce complejidad)
+   */
+  private applyFiltersAndSearch(): void {
+    const term = this.searchTerm.toLowerCase().trim();
     const activeFilters = this.getActiveFilters();
 
-    if (activeFilters.length > 0) {
-      data = data.filter(creator => {
-        // Verificar si el creador pasa TODOS los filtros activos (AND lógico)
-        return activeFilters.every(filter => {
-          // Filtros de categoría
-          if (filter.groupId === 'category') {
-            return creator.especialidad === filter.value;
-          }
-          // Filtros de estado
-          if (filter.groupId === 'status') {
-            return creator.activo === filter.value;
-          }
+    this.filteredCreators = this.allCreators.filter(creator => {
+      if (activeFilters.length > 0) {
+        const ok = activeFilters.every(filter => {
+          if (filter.groupId === 'category') return creator.especialidad === filter.value;
+          if (filter.groupId === 'status') return creator.activo === filter.value;
           return true;
         });
-      });
-    }
+        if (!ok) return false;
+      }
 
-    // Aplicar primero los filtros, luego la búsqueda
-    this.filteredCreators = data;
+      if (term.length === 0) return true;
 
-    // Si hay un término de búsqueda, aplicarlo sobre los datos ya filtrados
-    if (this.searchTerm.trim()) {
-      this.performSearchOnFiltered();
-    }
-
-    console.log(`Filtros aplicados. Creadores mostrados: ${this.filteredCreators.length} de ${this.allCreators.length}`);
-
-    // Resetear paginación cuando cambian los filtros
-    this.currentPage = 1;
-
-    // Aplicar ordenamiento si hay uno seleccionado
-    if (this.selectedSort) {
-      this.applySorting();
-    }
+      return (
+        (creator.nombre?.toLowerCase() || '').includes(term) ||
+        (creator.apellidos?.toLowerCase() || '').includes(term) ||
+        (creator.alias?.toLowerCase() || '').includes(term) ||
+        (creator.correo?.toLowerCase() || '').includes(term) ||
+        (creator.especialidad?.toLowerCase() || '').includes(term)
+      );
+    });
   }
 
   /**
@@ -379,27 +366,30 @@ export class AdminCreatorsPage implements OnInit {
     if (!this.selectedSort) {
       return;
     }
+    const field = this.selectedSort.field as keyof CreatorEC;
+    const dir = this.selectedSort.direction === 'asc' ? 1 : -1;
 
     this.filteredCreators.sort((a, b) => {
-      const field = this.selectedSort!.field as keyof CreatorEC;
-      let valueA = String(a[field]).toLowerCase();
-      let valueB = String(b[field]).toLowerCase();
+      let va = (a[field] as any) ?? '';
+      let vb = (b[field] as any) ?? '';
 
-      // Limpiar el alias para ordenamiento (quitar @)
+      // Normalizar alias
       if (field === 'alias') {
-        valueA = valueA.replace('@', '');
-        valueB = valueB.replace('@', '');
+        va = String(va).replace('@', '');
+        vb = String(vb).replace('@', '');
       }
 
-      const comparison = valueA.localeCompare(valueB, 'es', {
-        numeric: true,
-        sensitivity: 'base'
-      });
+      // Si fuera fecha, intentar comparar por timestamp
+      if (field === ('fechaNacimiento' as keyof CreatorEC) || field === ('fecha' as keyof CreatorEC)) {
+        const ta = toTimestampFromString(String((a as any)[field])) ?? 0;
+        const tb = toTimestampFromString(String((b as any)[field])) ?? 0;
+        return (ta - tb) * dir;
+      }
 
-      return this.selectedSort!.direction === 'desc' ? -comparison : comparison;
+      return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
     });
 
-    console.log(`Ordenamiento aplicado: ${this.selectedSort.label}`);
+    // Ordenamiento aplicado
   }
 
   // ========================================
