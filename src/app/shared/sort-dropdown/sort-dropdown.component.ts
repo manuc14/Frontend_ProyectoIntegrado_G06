@@ -36,14 +36,16 @@ export class SortDropdownComponent {
   /**
    * Abre/cierra el dropdown
    */
-  toggleDropdown(): void {
+  toggleDropdown(event: Event): void {
+    event.stopPropagation();
     this.isOpen = !this.isOpen;
   }
 
   /**
    * Selecciona una opción de ordenamiento
    */
-  selectSort(option: SortOption): void {
+  selectSort(event: Event, option: SortOption): void {
+    event.stopPropagation();
     this.selectedSort = option;
     this.isOpen = false;
     

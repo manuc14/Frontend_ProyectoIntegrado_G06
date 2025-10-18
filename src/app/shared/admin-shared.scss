@@ -1043,7 +1043,7 @@ $table-grid-gap: 16px;
 // Media queries para hacer la tabla más responsive
 @media (max-width: 1200px) {
   // Ajustar columnas para pantallas medianas
-  $table-grid-columns-medium: minmax(50px, 0.7fr) minmax(70px, 1fr) minmax(80px, 1.2fr) minmax(70px, 1fr) minmax(120px, 2fr) minmax(90px, 1.3fr) minmax(70px, 1fr) minmax(60px, 0.8fr) minmax(60px, 0.8fr) minmax(60px, 0.8fr);
+  $table-grid-columns-medium: minmax(50px, 0.7fr) minmax(85px, 1.2fr) minmax(95px, 1.4fr) minmax(140px, 2.3fr) minmax(105px, 1.6fr) minmax(70px, 1fr) minmax(60px, 0.8fr) minmax(60px, 0.8fr) minmax(60px, 0.8fr);
 
   .background5,
   .horizontal-border,
@@ -1067,13 +1067,12 @@ $table-grid-gap: 16px;
   .background5,
   .horizontal-border,
   .horizontal-border2 {
-    grid-template-columns: minmax(40px, 0.6fr) minmax(60px, 1fr) minmax(80px, 1.5fr) minmax(100px, 2fr) minmax(60px, 1fr) minmax(50px, 0.8fr) minmax(50px, 0.8fr);
+    grid-template-columns: minmax(40px, 0.6fr) minmax(70px, 1.1fr) minmax(85px, 1.4fr) minmax(120px, 2.2fr) minmax(70px, 1.1fr) minmax(50px, 0.8fr) minmax(50px, 0.8fr);
     gap: 8px;
 
-    // Ocultar columnas de Alias, Fecha de nacimiento y Editar en móviles
-    > div:nth-child(4), // Alias
-    > div:nth-child(6), // Fecha de nacimiento
-    > div:nth-child(9) { // Editar
+    // Ocultar columnas menos importantes en móviles: Fecha nacimiento y Editar
+    > div:nth-child(5), // Fecha de nacimiento
+    > div:nth-child(7) { // Editar
       display: none;
     }
   }

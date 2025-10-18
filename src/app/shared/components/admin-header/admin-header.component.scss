@@ -1,10 +1,9 @@
+@use '../../admin-mixins' as *;
+
 :host {
   display: block;
   width: 100%;
 }
-
-@import '../../admin-mixins.scss';
-@import '../../admin-shared.scss';
 
 /* Ensure header occupies the full width and uses the shared header styles */
 

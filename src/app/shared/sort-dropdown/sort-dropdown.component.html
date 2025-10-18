@@ -5,7 +5,7 @@
     class="sort-button"
     [@buttonHover]
     [@buttonPress]
-    (click)="toggleDropdown()"
+    (click)="toggleDropdown($event)"
     [class.active]="isOpen"
     [attr.aria-label]="'Ordenar contenido'"
     [attr.aria-expanded]="isOpen">
@@ -58,7 +58,7 @@
         class="dropdown-option"
         *ngFor="let option of sortOptions"
         [class.selected]="selectedSort?.id === option.id"
-        (click)="selectSort(option)"
+        (click)="selectSort($event, option)"
         role="menuitem"
         [attr.aria-pressed]="selectedSort?.id === option.id">
         

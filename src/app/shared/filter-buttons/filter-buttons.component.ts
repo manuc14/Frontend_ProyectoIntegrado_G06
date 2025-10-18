@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 // Interfaz para definir un filtro
@@ -30,6 +30,8 @@ export class FilterButtonsComponent {
   @Output() filterChange = new EventEmitter<{ filterId: string; value: any; active: boolean; group: string }>();
   @Output() clearAll = new EventEmitter<void>();
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   /**
    * Maneja el clic en un botón de filtro
    */
@@ -48,6 +50,7 @@ export class FilterButtonsComponent {
     
     // Actualizar el estado del filtro clickeado
     filter.active = newActiveState;
+    this.cdr.detectChanges();
     
     // Emitir el evento
     this.filterChange.emit({
@@ -68,6 +71,7 @@ export class FilterButtonsComponent {
         filter.active = false;
       });
     });
+    this.cdr.detectChanges();
     
     // Emitir evento de limpiar
     this.clearAll.emit();

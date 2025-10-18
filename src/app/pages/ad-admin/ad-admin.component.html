@@ -53,7 +53,6 @@
             <div class="container2"><div class="table-header-text">Foto</div></div>
             <div class="container2"><div class="table-header-text">Nombre</div></div>
             <div class="container2"><div class="table-header-text">Apellidos</div></div>
-            <div class="container2"><div class="table-header-text">Alias</div></div>
             <div class="container2"><div class="table-header-text">Email</div></div>
             <div class="container2"><div class="table-header-text">Departamento</div></div>
             <div class="container2"><div class="table-header-text">Estado</div></div>
@@ -74,7 +73,7 @@
 
             <!-- Lista dinámica de administradores -->
             <div
-              *ngFor="let admin of adminsPaginados; let i = index; trackBy: trackByAdminId"
+              *ngFor="let admin of adminsPaginados; let i = index; trackBy: trackByItemId"
               class="horizontal-border"
               [class.horizontal-border2]="i > 0">
               <div class="container13">
@@ -86,7 +85,6 @@
               </div>
               <div class="container2"><div class="table-cell-text">{{ admin.nombre }}</div></div>
               <div class="container2"><div class="table-cell-text">{{ admin.apellidos }}</div></div>
-              <div class="container2"><div class="table-cell-text">&#64;{{ admin.alias }}</div></div>
               <div class="container14"><div class="table-cell-text">{{ admin.correo }}</div></div>
               <div class="container2"><div class="table-cell-text">{{ admin.departamento }}</div></div>
               <div class="container15">

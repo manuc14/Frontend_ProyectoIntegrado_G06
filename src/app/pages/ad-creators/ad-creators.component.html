@@ -62,7 +62,7 @@
               {{ error }}
             </div>
             <button
-              (click)="cargarCreadores()"
+              (click)="loadData()"
               style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'NimbusSans-Medium', sans-serif; font-size: 14px;">
               Reintentar
             </button>
@@ -98,7 +98,7 @@
 
               <!-- Lista dinámica de creadores -->
               <div
-                *ngFor="let creator of creadoresPaginados; let i = index; trackBy: trackByCreatorId"
+                *ngFor="let creator of creadoresPaginados; let i = index; trackBy: trackByItemId"
                 class="horizontal-border"
                 [class.horizontal-border2]="i > 0">
 

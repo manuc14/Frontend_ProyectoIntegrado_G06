@@ -1,20 +1,18 @@
-import {Component, HostListener, OnInit} from '@angular/core';
+import {Component, HostListener} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {Router} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
-import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
+import { SortDropdownComponent, SortOption } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { AdminService, AdminEV } from '../../core/services/admin.service';
 import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
-import { getActiveFilters, filterAndSearch, applySorting } from '../../core/utils/list-utils';
 import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
-
-// Interfaz eliminada - ahora usamos AdminEV directamente de la BD
+import { AdminListBase } from '../../core/base/admin-list.base';
 
 @Component({
   selector: 'app-adadmin',
@@ -24,28 +22,7 @@ import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/adm
   styleUrl: './ad-admin.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
 })
-export class AdminAdmsPage implements OnInit {
-
-  sidebarVisible = false;
-  searchTerm = '';
-
-  // Estados para carga y errores
-  isLoading = true;
-  error: string | null = null;
-
-  // Propiedades para ordenamiento - actualizadas para AdminEV
-  sortOptions: SortOption[] = [
-    { id: 'name-asc', label: 'Nombre A-Z', field: 'nombre', direction: 'asc' },
-    { id: 'name-desc', label: 'Nombre Z-A', field: 'nombre', direction: 'desc' },
-    { id: 'lastName-asc', label: 'Apellido A-Z', field: 'apellidos', direction: 'asc' },
-    { id: 'lastName-desc', label: 'Apellido Z-A', field: 'apellidos', direction: 'desc' },
-    { id: 'alias-asc', label: 'Alias A-Z', field: 'alias', direction: 'asc' },
-    { id: 'alias-desc', label: 'Alias Z-A', field: 'alias', direction: 'desc' },
-    { id: 'department-asc', label: 'Departamento A-Z', field: 'departamento', direction: 'asc' },
-    { id: 'department-desc', label: 'Departamento Z-A', field: 'departamento', direction: 'desc' }
-  ];
-
-  selectedSort: SortOption | null = null;
+export class AdminAdmsPage extends AdminListBase<AdminEV> {
 
   // Configuración de filtros como grupos para administradores
   filterGroups: FilterGroup[] = [
@@ -72,47 +49,36 @@ export class AdminAdmsPage implements OnInit {
     }
   ];
 
-  // Arrays de datos - INTEGRACIÓN DIRECTA CON BD
-  allAdmins: AdminEV[] = []; // Datos de la BD (sin transformación)
-  filteredAdmins: AdminEV[] = []; // Lista filtrada/buscada/ordenada
-
-  // Para paginación (fijo)
-  currentPage = 1;
-  pageSize = 5; // Fijo para simplificar
-  totalAdmins = 0;
+  // Propiedades para ordenamiento - actualizadas para AdminEV
+  sortOptions: SortOption[] = [
+    { id: 'name-asc', label: 'Nombre A-Z', field: 'nombre', direction: 'asc' },
+    { id: 'name-desc', label: 'Nombre Z-A', field: 'nombre', direction: 'desc' },
+    { id: 'lastName-asc', label: 'Apellido A-Z', field: 'apellidos', direction: 'asc' },
+    { id: 'lastName-desc', label: 'Apellido Z-A', field: 'apellidos', direction: 'desc' },
+    { id: 'department-asc', label: 'Departamento A-Z', field: 'departamento', direction: 'asc' },
+    { id: 'department-desc', label: 'Departamento Z-A', field: 'departamento', direction: 'desc' }
+  ];
 
   constructor(
-    private router: Router,
+    protected override router: Router,
     private adminService: AdminService
-  ) {}
-
-  ngOnInit(): void {
-    this.cargarAdministradores();
+  ) {
+    super(router);
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any): void {
-    if (event.target.innerWidth > 768) {
-      this.closeSidebar();
-    }
-      // pageSize es fijo; no se necesita recalcular
-  }
-
-  cargarAdministradores(): void {
+  loadData(): void {
     this.isLoading = true;
     this.error = null;
 
     this.adminService.listarAdministradores()
       .pipe(
         tap((data: AdminEV[]) => {
-          this.allAdmins = data.map(d => ({ ...d, fechaNacimientoFormatted: formatDateIsoToDDMMYYYY((d as any).fechaNacimiento) } as AdminEV));
-          this.totalAdmins = data.length;
-          this.filteredAdmins = [...this.allAdmins];
+          this.allItems = data.map(d => ({ ...d, fechaNacimientoFormatted: formatDateIsoToDDMMYYYY((d as any).fechaNacimiento), fullName: `${d.nombre} ${d.apellidos}` } as AdminEV));
+          this.totalItems = data.length;
+          this.filteredItems = [...this.allItems];
         }),
         catchError((err: any) => {
-          // Error manejado: dejar estado y mensaje de error
           this.error = 'Error al cargar los administradores. Por favor, intente nuevamente.';
-          // Devolver observable vacío para completar
           return of([] as AdminEV[]);
         }),
         finalize(() => {
@@ -122,41 +88,45 @@ export class AdminAdmsPage implements OnInit {
       .subscribe();
   }
 
-  toggleSidebar(): void {
-    this.sidebarVisible = !this.sidebarVisible;
+  getSearchFields(): string[] {
+    return ['nombre', 'apellidos', 'correo', 'departamento', 'fullName'];
   }
 
-  closeSidebar(): void {
-    this.sidebarVisible = false;
+  getFilterPredicate(item: AdminEV, filter: any): boolean {
+    if (filter.groupId === 'department') return item.departamento === filter.value;
+    if (filter.groupId === 'status') return item.activo === filter.value;
+    return true;
   }
 
-  navigateToUsers(): void {
-    this.closeSidebar();
-    this.router.navigate(['/ad-users']);
+  getSortValue(item: AdminEV, field: string): any {
+    return toTimestampFromString(String((item as any)[field])) ?? 0;
   }
 
-  navigateToAdmins(): void {
+  getItemId(item: AdminEV): string {
+    return item.id;
+  }
+
+  getEntityName(): string {
+    return 'administradores';
+  }
+
+  getCurrentRoute(): string {
+    return '/ad-admin';
+  }
+
+  // Override para navegación específica
+  override navigateToAdmins(): void {
     this.closeSidebar();
     window.location.reload();
   }
 
-  navigateToCreators(): void {
-    this.closeSidebar();
-    this.router.navigate(['/ad-creators']);
-  }
-
-  /**
-   * Maneja eventos de navegación emitidos por el componente lateral
-   * - cierra la barra lateral y navega a la ruta correspondiente
-   */
-  handleNav(event: string): void {
+  override handleNav(event: string): void {
     this.closeSidebar();
     switch (event) {
       case 'users':
         this.router.navigate(['/ad-users']);
         break;
       case 'admins':
-        // ya en administradores — refrescar
         window.location.reload();
         break;
       case 'creators':
@@ -179,204 +149,45 @@ export class AdminAdmsPage implements OnInit {
     // Implementación pendiente: mostrar diálogo de confirmación y eliminar
   }
 
-  // Getters para paginación
+  // Getters para compatibilidad con template
   get adminsPaginados(): AdminEV[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    return this.filteredAdmins.slice(start, end);
+    return this.itemsPaginados;
   }
 
-  get totalPaginas(): number {
-    return Math.ceil(this.filteredAdmins.length / this.pageSize);
+  get filteredAdmins(): AdminEV[] {
+    return this.filteredItems;
   }
 
-  get rangoMostrado(): string {
-    if (this.filteredAdmins.length === 0) {
-      return '0 de 0';
+  get allAdmins(): AdminEV[] {
+    return this.allItems;
+  }
+
+  override get totalPaginas(): number {
+    return super.totalPaginas;
+  }
+
+  override get rangoMostrado(): string {
+    return super.rangoMostrado;
+  }
+
+  // Use base class trackByItemId (inherited)
+
+  override getNoResultsMessage(): string {
+    return super.getNoResultsMessage();
+  }
+
+  override getClearButtonText(): string {
+    return super.getClearButtonText();
+  }
+
+  override clearSearchAndFilters(): void {
+    super.clearSearchAndFilters();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any): void {
+    if (event.target.innerWidth > 768) {
+      this.closeSidebar();
     }
-    const start = (this.currentPage - 1) * this.pageSize + 1;
-    const end = Math.min(this.currentPage * this.pageSize, this.filteredAdmins.length);
-    return `${start}–${end} de ${this.filteredAdmins.length}`;
-  }
-
-  paginaAnterior(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-    }
-  }
-
-  paginaSiguiente(): void {
-    if (this.currentPage < this.totalPaginas) {
-      this.currentPage++;
-    }
-  }
-
-  /**
-   * Ejecuta la búsqueda de administradores - Evento del SearchBar component
-   */
-  onSearch(searchTerm: string): void {
-    // searchTerm ya está actualizado por ngModel
-    this.applyFiltersAndSearch();
-  }
-
-  /**
-   * Maneja cambios en el término de búsqueda
-   */
-  onSearchTermChange(searchTerm: string): void {
-    this.searchTerm = searchTerm;
-    this.applyFiltersAndSearch();
-  }
-
-  /**
-   * Realiza la búsqueda filtrada (método legacy, ahora usa applyFilters)
-   */
-  private performSearch(): void {
-    this.applyFilters();
-  }
-
-  /**
-   * Realiza la búsqueda filtrada sobre los datos ya filtrados
-   */
-  private performSearchOnFiltered(): void {
-    // legacy - sustituido por applyFiltersAndSearch
-    this.applyFiltersAndSearch();
-  }
-
-  /**
-   * Limpia la búsqueda - Evento del SearchBar component
-   */
-  onClearSearch(): void {
-    // searchTerm ya está limpiado por el componente search-bar
-    this.applyFiltersAndSearch(); // aplicar solo filtros
-  }
-
-  /**
-   * Maneja el cambio de filtros
-   */
-  onFilterChange(event: { filterId: string; value: any; active: boolean; group: string }): void {
-    // Encontrar y actualizar el filtro en la configuración
-    this.filterGroups.forEach(group => {
-      group.filters.forEach(filter => {
-        if (filter.id === event.filterId) {
-          filter.active = event.active;
-        }
-      });
-    });
-    
-  this.applyFiltersAndSearch();
-  }
-
-  /**
-   * Limpia todos los filtros
-   */
-  onClearAllFilters(): void {
-    // Desactivar todos los filtros
-    this.filterGroups.forEach(group => {
-      group.filters.forEach(filter => {
-        filter.active = false;
-      });
-    });
-    
-  this.applyFiltersAndSearch();
-  }
-
-  /**
-   * Obtiene los filtros activos para debugging
-   */
-  private getActiveFilters(): any[] {
-    return getActiveFilters(this.filterGroups);
-  }
-
-  /**
-   * Aplica los filtros activos a los datos
-   */
-  private applyFilters(): void {
-    // Reutilizar el flujo unificado
-  this.filteredAdmins = filterAndSearch(this.allAdmins, getActiveFilters(this.filterGroups), this.searchTerm, ['nombre','apellidos','alias','correo','departamento'], (item, filter) => {
-    if (filter.groupId === 'department') return item.departamento === filter.value;
-    if (filter.groupId === 'status') return item.activo === filter.value;
-    return true;
-  });
-  if (this.selectedSort) this.filteredAdmins = applySorting(this.filteredAdmins, this.selectedSort, (v:any) => toTimestampFromString(String(v)) ?? 0);
-  }
-
-  /**
-   * Aplica filtros y búsqueda en un único flujo (AND entre filtros, búsqueda sobre campos relevantes)
-   */
-  private applyFiltersAndSearch(): void {
-    this.filteredAdmins = filterAndSearch(this.allAdmins, getActiveFilters(this.filterGroups), this.searchTerm, ['nombre','apellidos','alias','correo','departamento'], (item, filter) => {
-      if (filter.groupId === 'department') return item.departamento === filter.value;
-      if (filter.groupId === 'status') return item.activo === filter.value;
-      return true;
-    });
-  }
-
-  /**
-   * Maneja el cambio de ordenamiento
-   */
-  onSortChange(event: SortEvent): void {
-    this.selectedSort = event.option;
-    this.applySorting();
-  }
-
-  /**
-   * Aplica el ordenamiento seleccionado a los datos filtrados
-   */
-  private applySorting(): void {
-    if (!this.selectedSort) return;
-    this.filteredAdmins = applySorting(this.filteredAdmins, this.selectedSort, (v:any) => toTimestampFromString(String(v)) ?? 0);
-  }
-
-  /**
-   * TrackBy function para optimizar el *ngFor
-   */
-  trackByAdminId(index: number, admin: AdminEV): string {
-    return admin.id;
-  }
-
-  /**
-   * Obtiene el mensaje apropiado cuando no hay resultados
-   */
-  getNoResultsMessage(): string {
-    const activeFilters = this.getActiveFilters();
-    const hasSearch = this.searchTerm.trim().length > 0;
-    const hasFilters = activeFilters.length > 0;
-
-    if (hasSearch && hasFilters) {
-      return `No se encontraron administradores que coincidan con "${this.searchTerm}" y los filtros aplicados`;
-    } else if (hasSearch) {
-      return `No se encontraron administradores que coincidan con "${this.searchTerm}"`;
-    } else if (hasFilters) {
-      const filterDescriptions = activeFilters.map(filter => filter.label).join(', ');
-      return `No se encontraron administradores con los filtros: ${filterDescriptions}`;
-    } else {
-      return 'No hay administradores disponibles';
-    }
-  }
-
-  /**
-   * Obtiene el texto del botón para limpiar
-   */
-  getClearButtonText(): string {
-    const hasSearch = this.searchTerm.trim().length > 0;
-    const hasFilters = this.getActiveFilters().length > 0;
-
-    if (hasSearch && hasFilters) {
-      return 'Limpiar búsqueda y filtros';
-    } else if (hasSearch) {
-      return 'Limpiar búsqueda';
-    } else if (hasFilters) {
-      return 'Limpiar filtros';
-    } else {
-      return 'Mostrar todos los administradores';
-    }
-  }
-
-  /**
-   * Limpia tanto búsqueda como filtros
-   */
-  clearSearchAndFilters(): void {
-    this.searchTerm = '';
-    this.onClearAllFilters();
   }
 }
