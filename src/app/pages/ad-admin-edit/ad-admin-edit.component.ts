@@ -1,11 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import {AdminService, BackendErrorResponse} from '../../core/services/admin.service';
-import { buttonHover, buttonPress, fadeIn } from '../../core/animations/animations';
+import { AdminService, BackendErrorResponse } from '../../core/services/admin.service';
+import { fadeIn } from '../../core/animations/animations';
+import { ModalHeaderComponent } from '../../shared/modal-header/modal-header.component';
+import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
+import { AvatarSelectorComponent } from '../../shared/avatar-selector/avatar-selector.component';
+import { InputFieldComponent } from '../../shared/input-field/input-field.component';
+import { PasswordFieldComponent } from '../../shared/password-field/password-field.component';
+import { ConfirmPasswordFieldComponent } from '../../shared/confirm-password-field/confirm-password-field.component';
+import { SelectFieldComponent } from '../../shared/select-field/select-field.component';
+import { ToggleBlockButtonComponent } from '../../shared/toggle-block-button/toggle-block-button.component';
+import { FormActionsComponent } from '../../shared/form-actions/form-actions.component';
 
-// Interfaz para los datos del formulario de edición
 interface AdminEditData {
   nombre: string;
   apellidos: string;
@@ -21,16 +29,25 @@ interface AdminEditData {
 @Component({
   selector: 'app-ad-admin-edit',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ModalHeaderComponent,
+    ErrorContainerComponent,
+    AvatarSelectorComponent,
+    InputFieldComponent,
+    PasswordFieldComponent,
+    ConfirmPasswordFieldComponent,
+    SelectFieldComponent,
+    ToggleBlockButtonComponent,
+    FormActionsComponent
+  ],
   templateUrl: './ad-admin-edit.component.html',
   styleUrl: './ad-admin-edit.component.scss',
-  animations: [buttonHover, buttonPress, fadeIn]
+  animations: [fadeIn]
 })
 export class AdminAdmsEditPage implements OnInit {
-  // ID del administrador a editar
   adminId: string = '';
-
-  // Datos del formulario
   adminData: AdminEditData = {
     nombre: '',
     apellidos: '',
@@ -42,7 +59,6 @@ export class AdminAdmsEditPage implements OnInit {
     foto: '',
     activo: true
   };
-
   originalData: AdminEditData = {
     nombre: '',
     apellidos: '',
@@ -54,7 +70,6 @@ export class AdminAdmsEditPage implements OnInit {
     foto: '',
     activo: true
   };
-
   availableAvatars: string[] = [
     'assets/admin/user1.png',
     'assets/admin/user2.png',
@@ -65,17 +80,14 @@ export class AdminAdmsEditPage implements OnInit {
   ];
   selectedAvatar: string = '';
   defaultAvatar: string = 'assets/admin/usuarios_negro.png';
-
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
   isSaving: boolean = false;
   isLoading: boolean = true;
   error: string | null = null;
-
   passwordMismatch: boolean = false;
   nombreTooLong: boolean = false;
   apellidosTooLong: boolean = false;
-
   passwordStrength = {
     hasMinLength: false,
     hasUpperCase: false,
@@ -91,37 +103,26 @@ export class AdminAdmsEditPage implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Obtener el ID del administrador desde la ruta
     this.adminId = this.route.snapshot.paramMap.get('id') || '';
-
     if (!this.adminId) {
       console.error('No se proporcionó ID de administrador');
       this.router.navigate(['/ad-admin']);
       return;
     }
-
-    // Cargar los datos del administrador
     this.cargarDatosAdministrador();
   }
 
-  /**
-   * Carga los datos del administrador desde el backend
-   */
   private cargarDatosAdministrador(): void {
     this.isLoading = true;
     this.error = null;
-
     this.adminService.listarAdministradores().subscribe({
       next: (admins) => {
         const admin = admins.find(a => a.id === this.adminId);
-
         if (!admin) {
           this.error = 'Administrador no encontrado';
           this.router.navigate(['/ad-admin']);
           return;
         }
-
-        // Mapear datos del backend al formulario
         this.adminData = {
           nombre: admin.nombre || '',
           apellidos: admin.apellidos || '',
@@ -133,13 +134,8 @@ export class AdminAdmsEditPage implements OnInit {
           foto: admin.foto || '',
           activo: admin.activo
         };
-
-        // Configurar avatar
         this.selectedAvatar = this.getAdminPhoto(admin.foto);
-
-        // Guardar datos originales para comparación
         this.originalData = JSON.parse(JSON.stringify(this.adminData));
-
         this.isLoading = false;
       },
       error: (err) => {
@@ -150,38 +146,23 @@ export class AdminAdmsEditPage implements OnInit {
     });
   }
 
-  /**
-   * Selecciona un avatar de la galería
-   */
   selectAvatar(avatar: string): void {
     this.selectedAvatar = avatar;
     this.adminData.foto = avatar;
   }
 
-  /**
-   * Alterna la visibilidad de la contraseña
-   */
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
-  /**
-   * Alterna la visibilidad de la confirmación de contraseña
-   */
   toggleConfirmPasswordVisibility(): void {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
-  /**
-   * Alterna el estado activo/bloqueado del administrador
-   */
   toggleBloquear(): void {
     this.adminData.activo = !this.adminData.activo;
   }
 
-  /**
-   * Valida que las contraseñas coincidan
-   */
   validatePasswordMatch(): void {
     if (this.adminData.contrasena.trim() !== '' || this.adminData.confirmarContrasena.trim() !== '') {
       this.passwordMismatch = this.adminData.contrasena !== this.adminData.confirmarContrasena;
@@ -190,25 +171,15 @@ export class AdminAdmsEditPage implements OnInit {
     }
   }
 
-  /**
-   * Valida la longitud del nombre
-   */
   validateNombreLength(): void {
     this.nombreTooLong = this.adminData.nombre.length > 20;
   }
 
-  /**
-   * Valida la longitud de los apellidos
-   */
   validateApellidosLength(): void {
     this.apellidosTooLong = this.adminData.apellidos.length > 20;
   }
 
-  /**
-   * Verifica si hay cambios en el formulario
-   */
   hasChanges(): boolean {
-    // Comparar todos los campos relevantes
     const dataChanged =
       this.adminData.nombre !== this.originalData.nombre ||
       this.adminData.apellidos !== this.originalData.apellidos ||
@@ -217,12 +188,9 @@ export class AdminAdmsEditPage implements OnInit {
       this.adminData.departamento !== this.originalData.departamento ||
       this.adminData.foto !== this.originalData.foto ||
       this.adminData.activo !== this.originalData.activo;
-
-    // También considerar si se ha ingresado una nueva contraseña
     const passwordChanged =
       this.adminData.contrasena.trim() !== '' ||
       this.adminData.confirmarContrasena.trim() !== '';
-
     return dataChanged || passwordChanged;
   }
 
@@ -262,26 +230,15 @@ export class AdminAdmsEditPage implements OnInit {
     return '';
   }
 
-  /**
-   * Guarda los cambios realizados
-   */
-  /**
-   * Guarda los cambios realizados
-   */
   onGuardarCambios(): void {
     if (this.isSaving) return;
-
-    // Validar datos
     const validacion = this.validarDatos();
     if (!validacion.valido) {
       this.error = validacion.mensaje;
       return;
     }
-
     this.isSaving = true;
     this.error = null;
-
-    // Preparar datos para enviar al backend
     const updateData: any = {
       nombre: this.adminData.nombre.trim(),
       apellidos: this.adminData.apellidos.trim(),
@@ -291,57 +248,35 @@ export class AdminAdmsEditPage implements OnInit {
       foto: this.selectedAvatar,
       activo: this.adminData.activo
     };
-
-    // Solo incluir contraseña si se modificó
     if (this.adminData.contrasena.trim() !== '') {
       updateData.contrasena = this.adminData.contrasena;
       updateData.confirmarContrasena = this.adminData.confirmarContrasena;
     }
-
-    // Llamar al servicio para actualizar
     this.adminService.editarAdministrador(this.adminId, updateData).subscribe({
       next: (response) => {
         console.log('Administrador actualizado exitosamente:', response);
-
-        // Actualizar datos originales
         this.originalData = JSON.parse(JSON.stringify(this.adminData));
         this.originalData.foto = this.selectedAvatar;
-
-        // Limpiar contraseñas después de guardar
         this.adminData.contrasena = '';
         this.adminData.confirmarContrasena = '';
-
         this.isSaving = false;
-
-        // Mostrar mensaje de éxito
         alert('Cambios guardados exitosamente');
-
-        // Volver a la lista de administradores
         this.router.navigate(['/ad-admin']);
       },
       error: (err: BackendErrorResponse) => {
         console.error('Error al actualizar administrador:', err);
-
-        // Construir mensaje de error detallado
         let errorMessage = err.message || 'Error al guardar los cambios';
-
-        // Si hay errores de validación, incluirlos en el mensaje
         if (err.errors && err.errors.length > 0) {
           errorMessage += '\nDetalles:\n' + err.errors.map(e => `- ${e.message}`).join('\n');
         } else if (err.details) {
-          // Manejar detalles adicionales si los hay
           errorMessage += '\nDetalles: ' + JSON.stringify(err.details);
         }
-
         this.error = errorMessage;
         this.isSaving = false;
       }
     });
   }
 
-  /**
-   * Cancela la edición y vuelve a la lista
-   */
   onCancelar(): void {
     if (this.hasChanges()) {
       const confirmar = confirm(
@@ -354,37 +289,22 @@ export class AdminAdmsEditPage implements OnInit {
     this.router.navigate(['/ad-admin']);
   }
 
-  /**
-   * Cierra la ventana de edición
-   */
   onCerrar(): void {
     this.onCancelar();
   }
 
-  /**
-   * Obtiene la ruta de la foto del administrador o la foto por defecto
-   */
   getAdminPhoto(foto: string | undefined | null): string {
-    // Si no hay foto o está vacía, devolver la foto por defecto
     if (!foto || foto.trim() === '') {
       return this.defaultAvatar;
     }
-
-    // Si la foto no incluye la ruta completa, agregarla
     if (!foto.startsWith('assets/')) {
       return `assets/admin/${foto}`;
     }
-
-    // Devolver la foto tal cual si ya tiene la ruta completa
     return foto;
   }
 
-  /**
-   * Valida la fortaleza de la contraseña
-   */
   validatePasswordStrength(): void {
     const pwd = this.adminData.contrasena;
-
     this.passwordStrength = {
       hasMinLength: pwd.length >= 8,
       hasUpperCase: /[A-Z]/.test(pwd),
@@ -394,9 +314,6 @@ export class AdminAdmsEditPage implements OnInit {
     };
   }
 
-  /**
-   * Obtiene los requisitos faltantes de la contraseña
-   */
   get passwordRequirements(): string[] {
     const requirements: string[] = [];
     if (!this.passwordStrength.hasMinLength) requirements.push('Mínimo 8 caracteres');
@@ -407,19 +324,11 @@ export class AdminAdmsEditPage implements OnInit {
     return requirements;
   }
 
-  /**
-   * Verifica si la contraseña cumple todos los requisitos
-   */
   get isPasswordStrong(): boolean {
     return this.passwordStrength.hasMinLength &&
       this.passwordStrength.hasUpperCase &&
       this.passwordStrength.hasLowerCase &&
       this.passwordStrength.hasNumber &&
       this.passwordStrength.hasSpecialChar;
-  }
-
-  handleImageError(event: Event): void {
-    const imgElement = event.target as HTMLImageElement;
-    imgElement.src = 'assets/admin/default.png';
   }
 }

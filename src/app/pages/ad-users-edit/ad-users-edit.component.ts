@@ -1,11 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UserService, BackendErrorResponse } from '../../core/services/user.service';
-import { buttonHover, buttonPress, fadeIn } from '../../core/animations/animations';
+import { fadeIn } from '../../core/animations/animations';
+import { ModalHeaderComponent } from '../../shared/modal-header/modal-header.component';
+import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
+import { AvatarSelectorComponent } from '../../shared/avatar-selector/avatar-selector.component';
+import { InputFieldComponent } from '../../shared/input-field/input-field.component';
+import { ToggleBlockButtonComponent } from '../../shared/toggle-block-button/toggle-block-button.component';
+import { FormActionsComponent } from '../../shared/form-actions/form-actions.component';
+import { DateFieldComponent } from '../../shared/date-field/date-field.component';
 
-// Interfaz para los datos del formulario de edición
 interface UserEditData {
   nombre: string;
   apellidos: string;
@@ -18,14 +24,23 @@ interface UserEditData {
 @Component({
   selector: 'app-ad-users-edit',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ModalHeaderComponent,
+    ErrorContainerComponent,
+    AvatarSelectorComponent,
+    InputFieldComponent,
+    ToggleBlockButtonComponent,
+    FormActionsComponent,
+    DateFieldComponent
+  ],
   templateUrl: './ad-users-edit.component.html',
   styleUrl: './ad-users-edit.component.scss',
-  animations: [buttonHover, buttonPress, fadeIn]
+  animations: [fadeIn]
 })
 export class AdminUsersEditPage implements OnInit {
   userId: string = '';
-
   userData: UserEditData = {
     nombre: '',
     apellidos: '',
@@ -34,7 +49,6 @@ export class AdminUsersEditPage implements OnInit {
     foto: '',
     activo: true
   };
-
   originalData: UserEditData = {
     nombre: '',
     apellidos: '',
@@ -43,7 +57,6 @@ export class AdminUsersEditPage implements OnInit {
     foto: '',
     activo: true
   };
-
   availableAvatars: string[] = [
     'assets/admin/user1.png',
     'assets/admin/user2.png',
@@ -53,12 +66,10 @@ export class AdminUsersEditPage implements OnInit {
     'assets/admin/admin_default.png'
   ];
   selectedAvatar: string = 'assets/admin/default.png';
-  defaultAvatar: string = 'assets/admin/default.png';
-
+  defaultAvatar: string = 'assets/admin/usuarios_negro.png';
   isSaving: boolean = false;
   isLoading: boolean = true;
   error: string | null = null;
-
   nombreTooLong: boolean = false;
   apellidosTooLong: boolean = false;
   aliasTooLong: boolean = false;
@@ -74,13 +85,11 @@ export class AdminUsersEditPage implements OnInit {
   ngOnInit(): void {
     (async () => {
       this.userId = this.route.snapshot.paramMap.get('id') || '';
-
       if (!this.userId) {
         console.error('No se proporcionó ID de usuario');
-        this.router.navigate(['/ad-users']);
+        await this.router.navigate(['/ad-users']);
         return;
       }
-
       this.cargarDatosUsuario();
     })();
   }
@@ -88,17 +97,14 @@ export class AdminUsersEditPage implements OnInit {
   private cargarDatosUsuario(): void {
     this.isLoading = true;
     this.error = null;
-
     this.userService.listarUsuarios().subscribe({
       next: (users) => {
         const user = users.find(u => u.id === this.userId);
-
         if (!user) {
           this.error = 'Usuario no encontrado';
           this.router.navigate(['/ad-users']);
           return;
         }
-
         this.userData = {
           nombre: user.nombre || '',
           apellidos: user.apellidos || '',
@@ -107,7 +113,6 @@ export class AdminUsersEditPage implements OnInit {
           foto: user.foto || '',
           activo: user.activo
         };
-
         this.selectedAvatar = this.getUserPhoto(user.foto);
         this.originalData = JSON.parse(JSON.stringify(this.userData));
         this.isLoading = false;
@@ -189,7 +194,6 @@ export class AdminUsersEditPage implements OnInit {
       }
       return null;
     };
-
     const result = validateField(
       this.userData.nombre, this.originalData.nombre,
       () => this.validateNombreLength(),
@@ -199,7 +203,6 @@ export class AdminUsersEditPage implements OnInit {
       'El nombre no puede superar 20 caracteres'
     );
     if (result) return result;
-
     const result2 = validateField(
       this.userData.apellidos, this.originalData.apellidos,
       () => this.validateApellidosLength(),
@@ -209,7 +212,6 @@ export class AdminUsersEditPage implements OnInit {
       'Los apellidos no pueden superar 20 caracteres'
     );
     if (result2) return result2;
-
     const result3 = validateField(
       this.userData.alias, this.originalData.alias,
       () => this.validateAliasLength(),
@@ -219,7 +221,6 @@ export class AdminUsersEditPage implements OnInit {
       'El alias no puede superar 20 caracteres'
     );
     if (result3) return result3;
-
     const result4 = validateField(
       this.userData.fechaNacimiento, this.originalData.fechaNacimiento,
       () => this.validateFechaNacimiento(),
@@ -229,7 +230,6 @@ export class AdminUsersEditPage implements OnInit {
       'El usuario debe tener al menos 4 años'
     );
     if (result4) return result4;
-
     return { valido: true, mensaje: '' };
   }
 
@@ -247,17 +247,13 @@ export class AdminUsersEditPage implements OnInit {
 
   onGuardarCambios(): void {
     if (this.isSaving) return;
-
     const validacion = this.validarDatos();
-
     if (!validacion.valido) {
       this.error = validacion.mensaje;
       return;
     }
-
     this.isSaving = true;
     this.error = null;
-
     const updateData: any = {
       nombre: this.userData.nombre.trim(),
       apellidos: this.userData.apellidos.trim(),
@@ -266,7 +262,6 @@ export class AdminUsersEditPage implements OnInit {
       foto: this.selectedAvatar,
       activo: this.userData.activo
     };
-
     this.userService.editarUsuario(this.userId, updateData).subscribe({
       next: (response) => {
         console.log('Usuario actualizado exitosamente:', response);
@@ -274,7 +269,6 @@ export class AdminUsersEditPage implements OnInit {
         this.originalData.foto = this.selectedAvatar;
         this.isSaving = false;
         alert('Cambios guardados exitosamente');
-
         this.router.navigate(['/ad-users']);
       },
       error: (err: BackendErrorResponse) => {
@@ -315,10 +309,5 @@ export class AdminUsersEditPage implements OnInit {
       return `assets/admin/${foto}`;
     }
     return foto;
-  }
-
-  handleImageError(event: Event): void {
-    const imgElement = event.target as HTMLImageElement;
-    imgElement.src = 'assets/admin/default.png';
   }
 }

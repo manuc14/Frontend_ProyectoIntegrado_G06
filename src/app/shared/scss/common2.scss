@@ -1,0 +1,8 @@
+@use '../../shared/scss/common3' as common3;
+
+.background-border9 {
+  &.error {
+    border-color: var(--destructive);
+    border-width: 2px;
+  }
+}

@@ -1,0 +1,13 @@
+<div class="container11">
+  <button class="border2" type="button" (click)="cancelar.emit()" [@buttonHover] [@buttonPress]>
+    <div class="text14">Cancelar</div>
+  </button>
+  <button class="background3" type="button" (click)="guardar.emit()" [@buttonHover] [@buttonPress] [disabled]="isSaving">
+    <div class="iconify-icon3">
+      <div class="svg4">
+        <img class="group3" ngSrc="assets/admin/guardar.svg" alt="icono guardar" height="18" width="19" />
+      </div>
+    </div>
+    <div class="text15">{{ isSaving ? 'Guardando...' : 'Guardar cambios' }}</div>
+  </button>
+</div>

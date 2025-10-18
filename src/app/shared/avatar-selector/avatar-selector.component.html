@@ -1,0 +1,40 @@
+<div class="container12">
+  <div class="text16">Selecciona una foto predeterminada:</div>
+</div>
+<div class="background-border">
+  <div class="container3">
+    <div class="text3">Selecciona una foto predeterminada:</div>
+  </div>
+  <div class="background-border2">
+    <img class="avatar" [ngSrc]="selectedAvatar" [alt]="'foto de ' + nombre" height="142" width="142" (error)="handleImageError($event)" />
+  </div>
+  <div class="container4">
+    <button
+      *ngFor="let avatar of availableAvatars; let i = index"
+      type="button"
+      [class]="'background-border' + (i + 3)"
+      [class.selected]="selectedAvatar === avatar"
+      (click)="selectAvatar(avatar)"
+      [@buttonHover]
+      [@buttonPress]>
+      <img
+        [class]="'avatar-' + (i + 1)"
+        [ngSrc]="avatar"
+        [alt]="'foto de usuario ' + (i + 1)"
+        height="64"
+        width="60"/>
+    </button>
+  </div>
+  <div class="container5">
+    <div class="iconify-icon2">
+      <div class="svg2">
+        <img class="group" ngSrc="assets/admin/info.svg" alt="icono info" height="18" width="18" />
+      </div>
+    </div>
+    <div class="text4">
+      Solo selección de fotos
+      <br />
+      predefinidas.
+    </div>
+  </div>
+</div>

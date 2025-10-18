@@ -1,190 +1,74 @@
 <div class="background" [@fadeIn]>
   <div class="overlay">
     <div class="background-border-shadow">
-      <div class="background-horizontal-border">
-        <div class="container">
-          <div class="text">Editar usuario</div>
-        </div>
-        <button class="border" type="button" (click)="onCerrar()" [@buttonHover] [@buttonPress]>
-          <div class="iconify-icon">
-            <img class="svg" ngSrc="assets/admin/salir.svg" alt="icono salir" height="18" width="19" />
-          </div>
-          <div class="text2">Cerrar</div>
-        </button>
-      </div>
+      <app-modal-header [titulo]="'Editar usuario'" (cerrar)="onCerrar()"></app-modal-header>
 
-      <!-- Contenedor de errores -->
-      <div class="error-container" *ngIf="error">
-        <div class="error-message" style="white-space: pre-line;">
-          {{ error }}
-        </div>
-      </div>
+      <app-error-container [error]="error"></app-error-container>
 
       <div class="container2">
-        <div class="container12">
-          <div class="text5">Selecciona una foto predeterminada:</div>
-        </div>
-        <!-- Sección de avatares -->
-        <div class="background-border">
-          <div class="container3">
-            <div class="text3">Selecciona una foto predeterminada:</div>
-          </div>
-          <div class="background-border2">
-            <img class="avatar" [ngSrc]="selectedAvatar" [alt]="'foto de ' + userData.nombre" height="142" width="142" (error)="handleImageError($event)"/>
-          </div>
-          <div class="container3">
-            <div class="text3">Selecciona una foto predeterminada</div>
-          </div>
-          <div class="container4">
-            <button
-              *ngFor="let avatar of availableAvatars; let i = index"
-              type="button"
-              [class]="'background-border' + (i + 3)"
-              [class.selected]="selectedAvatar === avatar"
-              (click)="selectAvatar(avatar)"
-              [@buttonHover]
-              [@buttonPress]>
-              <img
-                [class]="'avatar-' + (i + 1)"
-                [ngSrc]="avatar"
-                [alt]="'foto de usuario ' + (i + 1)"
-                height="64"
-                width="60"/>
-            </button>
-          </div>
-          <div class="container5">
-            <div class="iconify-icon2">
-              <div class="svg2">
-                <img class="group" ngSrc="assets/admin/info.svg" alt="icono info" height="18" width="18" />
-              </div>
-            </div>
-            <div class="text4">
-              Solo selección de fotos
-              <br />
-              predefinidas.
-            </div>
-          </div>
-        </div>
+        <app-avatar-selector
+          [availableAvatars]="availableAvatars"
+          [selectedAvatar]="selectedAvatar"
+          [nombre]="userData.nombre"
+          (avatarSelected)="selectAvatar($event)">
+        </app-avatar-selector>
 
-        <!-- Formulario de campos -->
         <div class="container6">
           <div class="container7">
-            <!-- Campo Nombre -->
-            <div class="container8">
-              <div class="container9">
-                <div class="text5">Nombre</div>
-              </div>
-              <div class="background-border9" [class.error]="nombreTooLong">
-                <input
-                  type="text"
-                  class="input-field"
-                  [(ngModel)]="userData.nombre"
-                  (input)="validateNombreLength()"
-                  placeholder="Nombre"
-                  required
-                />
-              </div>
-              <div class="error-message" *ngIf="nombreTooLong">
-                El nombre no puede superar 20 caracteres
-              </div>
-            </div>
+            <app-input-field
+              label="Nombre"
+              [value]="userData.nombre"
+              (valueChange)="userData.nombre = $event"
+              (input)="validateNombreLength()"
+              placeholder="Nombre"
+              errorMessage="El nombre no puede superar 20 caracteres"
+              [tooLong]="nombreTooLong"
+              [required]="true"
+              (tooLongChange)="nombreTooLong = $event">
+            </app-input-field>
 
-            <!-- Campo Apellidos -->
-            <div class="container8">
-              <div class="container9">
-                <div class="text6">Apellidos</div>
-              </div>
-              <div class="background-border10" [class.error]="apellidosTooLong">
-                <input
-                  type="text"
-                  class="input-field"
-                  [(ngModel)]="userData.apellidos"
-                  (input)="validateApellidosLength()"
-                  placeholder="Apellidos"
-                  required
-                />
-              </div>
-              <div class="error-message" *ngIf="apellidosTooLong">
-                Los apellidos no pueden superar 20 caracteres
-              </div>
-            </div>
+            <app-input-field
+              label="Apellidos"
+              [value]="userData.apellidos"
+              (valueChange)="userData.apellidos = $event"
+              (input)="validateApellidosLength()"
+              placeholder="Apellidos"
+              errorMessage="Los apellidos no pueden superar 20 caracteres"
+              [tooLong]="apellidosTooLong"
+              [required]="true"
+              (tooLongChange)="apellidosTooLong = $event">
+            </app-input-field>
           </div>
 
-          <!-- Campo Alias -->
-          <div class="container8">
-            <div class="container9">
-              <div class="text7">Alias</div>
-            </div>
-            <div class="background-border9" [class.error]="aliasTooLong">
-              <input
-                type="text"
-                class="input-field"
-                [(ngModel)]="userData.alias"
-                (input)="validateAliasLength()"
-                placeholder="Alias"
-                required
-              />
-            </div>
-            <div class="error-message" *ngIf="aliasTooLong">
-              El alias no puede superar 20 caracteres
-            </div>
-          </div>
+          <app-input-field
+            label="Alias"
+            [value]="userData.alias"
+            (valueChange)="userData.alias = $event"
+            (input)="validateAliasLength()"
+            placeholder="Alias"
+            errorMessage="El alias no puede superar 20 caracteres"
+            [tooLong]="aliasTooLong"
+            [required]="true"
+            (tooLongChange)="aliasTooLong = $event">
+          </app-input-field>
 
-          <!-- Campo Fecha de Nacimiento -->
-          <div class="container8">
-            <div class="container9">
-              <div class="text7">Fecha de Nacimiento</div>
-            </div>
-            <div class="background-border9" [class.error]="fechaInvalid || edadInvalid">
-              <input
-                type="date"
-                class="input-field"
-                [(ngModel)]="userData.fechaNacimiento"
-                (input)="validateFechaNacimiento()"
-                required
-              />
-            </div>
-            <div class="error-message" *ngIf="fechaInvalid">
-              La fecha no es válida
-            </div>
-            <div class="error-message" *ngIf="edadInvalid">
-              El usuario debe tener al menos 4 años
-            </div>
-          </div>
-
+          <app-date-field
+            label="Fecha de Nacimiento"
+            [value]="userData.fechaNacimiento"
+            (valueChange)="userData.fechaNacimiento = $event"
+            (input)="validateFechaNacimiento()"
+            [fechaInvalid]="fechaInvalid"
+            (fechaInvalidChange)="fechaInvalid = $event"
+            [edadInvalid]="edadInvalid"
+            (edadInvalidChange)="edadInvalid = $event"
+            [required]="true">
+          </app-date-field>
         </div>
       </div>
 
       <div class="horizontal-border">
-        <button
-          type="button"
-          [class]="userData.activo ? 'btn-block' : 'btn-activate'"
-          (click)="toggleBloquear()">
-          <div class="svg4">
-            <img
-              [class]="userData.activo ? 'group2' : 'group3'"
-              [ngSrc]="userData.activo ? 'assets/admin/bloquear.svg' : 'assets/admin/activo.svg'"
-              [alt]="userData.activo ? 'icono bloquear' : 'icono activar'"
-              height="15"
-              width="14"/>
-          </div>
-          <div [class]="userData.activo ? 'text-block' : 'text-activate'">
-            {{ userData.activo ? 'Bloquear' : 'Activar' }}
-          </div>
-        </button>
-        <div class="container11">
-          <button class="border2" type="button" (click)="onCancelar()" [@buttonHover] [@buttonPress]>
-            <div class="text14">Cancelar</div>
-          </button>
-          <button class="background3" type="button" (click)="onGuardarCambios()" [@buttonHover] [@buttonPress] [disabled]="isSaving">
-            <div class="iconify-icon3">
-              <div class="svg4">
-                <img class="group3" ngSrc="assets/admin/guardar.svg" alt="icono guardar" height="18" width="19" />
-              </div>
-            </div>
-            <div class="text15">{{ isSaving ? 'Guardando...' : 'Guardar cambios' }}</div>
-          </button>
-        </div>
+        <app-toggle-block-button [activo]="userData.activo" (toggle)="toggleBloquear()"></app-toggle-block-button>
+        <app-form-actions [isSaving]="isSaving" (cancelar)="onCancelar()" (guardar)="onGuardarCambios()"></app-form-actions>
       </div>
     </div>
   </div>

@@ -1,332 +1,127 @@
 <div class="background" [@fadeIn]>
   <div class="overlay">
     <div class="background-border-shadow">
-      <div class="background-horizontal-border">
-        <div class="container">
-          <div class="text">Editar creador de contenido</div>
-        </div>
-        <button class="border" type="button" (click)="onCerrar()" [@buttonHover] [@buttonPress]>
-          <div class="iconify-icon">
-            <img class="svg" ngSrc="assets/admin/salir.svg" alt="icono salir" height="18" width="19" />
-          </div>
-          <div class="text2">Cerrar</div>
-        </button>
-      </div>
+      <app-modal-header [titulo]="'Editar creador de contenido'" (cerrar)="onCerrar()"></app-modal-header>
 
-      <!-- Contenedor de errores -->
-      <div class="error-container" *ngIf="error">
-        <div class="error-message" style="white-space: pre-line;">
-          {{ error }}
-        </div>
-      </div>
+      <app-error-container [error]="error"></app-error-container>
 
       <div class="container2">
-        <div class="container12">
-          <div class="text5">Selecciona una foto predeterminada:</div>
-        </div>
-        <!-- Sección de avatares -->
-        <div class="background-border">
-          <div class="container3">
-            <div class="text3">Selecciona una foto predeterminada:</div>
-          </div>
-          <div class="background-border2">
-            <img class="avatar" [ngSrc]="selectedAvatar" [alt]="'foto de ' + creatorData.nombre" height="142" width="142" (error)="handleImageError($event)"/>
-          </div>
-          <div class="container3">
-            <div class="text3">Selecciona una foto predeterminada</div>
-          </div>
-          <div class="container4">
-            <button
-              *ngFor="let avatar of availableAvatars; let i = index"
-              type="button"
-              [class]="'background-border' + (i + 3)"
-              [class.selected]="selectedAvatar === avatar"
-              (click)="selectAvatar(avatar)"
-              [@buttonHover]
-              [@buttonPress]>
-              <img
-                [class]="'avatar-' + (i + 1)"
-                [ngSrc]="avatar"
-                [alt]="'foto de usuario ' + (i + 1)"
-                height="64"
-                width="60"/>
-            </button>
-          </div>
-          <div class="container5">
-            <div class="iconify-icon2">
-              <div class="svg2">
-                <img class="group" ngSrc="assets/admin/info.svg" alt="icono info" height="18" width="18" />
-              </div>
-            </div>
-            <div class="text4">
-              Solo selección de fotos
-              <br />
-              predefinidas.
-            </div>
-          </div>
-        </div>
+        <app-avatar-selector
+          [availableAvatars]="availableAvatars"
+          [selectedAvatar]="selectedAvatar"
+          [nombre]="creatorData.nombre"
+          (avatarSelected)="selectAvatar($event)">
+        </app-avatar-selector>
 
-        <!-- Formulario de campos -->
         <div class="container6">
           <div class="container7">
-            <!-- Campo Nombre -->
-            <div class="container8">
-              <div class="container9">
-                <div class="text5">Nombre</div>
-              </div>
-              <div class="background-border9" [class.error]="nombreTooLong">
-                <input
-                  type="text"
-                  class="input-field"
-                  [(ngModel)]="creatorData.nombre"
-                  (input)="validateNombreLength()"
-                  placeholder="Nombre"
-                  required
-                />
-              </div>
-              <div class="error-message" *ngIf="nombreTooLong">
-                El nombre no puede superar 20 caracteres
-              </div>
-            </div>
+            <app-input-field
+              label="Nombre"
+              [value]="creatorData.nombre"
+              (valueChange)="creatorData.nombre = $event"
+              (input)="validateNombreLength()"
+              placeholder="Nombre"
+              errorMessage="El nombre no puede superar 20 caracteres"
+              [tooLong]="nombreTooLong"
+              [required]="true"
+              (tooLongChange)="nombreTooLong = $event">
+            </app-input-field>
 
-            <!-- Campo Apellidos -->
-            <div class="container8">
-              <div class="container9">
-                <div class="text6">Apellidos</div>
-              </div>
-              <div class="background-border10" [class.error]="apellidosTooLong">
-                <input
-                  type="text"
-                  class="input-field"
-                  [(ngModel)]="creatorData.apellidos"
-                  (input)="validateApellidosLength()"
-                  placeholder="Apellidos"
-                  required
-                />
-              </div>
-              <div class="error-message" *ngIf="apellidosTooLong">
-                Los apellidos no pueden superar 20 caracteres
-              </div>
-            </div>
+            <app-input-field
+              label="Apellidos"
+              [value]="creatorData.apellidos"
+              (valueChange)="creatorData.apellidos = $event"
+              (input)="validateApellidosLength()"
+              placeholder="Apellidos"
+              errorMessage="Los apellidos no pueden superar 20 caracteres"
+              [tooLong]="apellidosTooLong"
+              [required]="true"
+              (tooLongChange)="apellidosTooLong = $event">
+            </app-input-field>
           </div>
 
-          <!-- Campo Correo -->
-          <div class="container8">
-            <div class="container9">
-              <div class="text7">Correo</div>
-            </div>
-            <div class="background-border9" [class.error]="correoInvalid">
-              <input
-                type="email"
-                class="input-field"
-                [(ngModel)]="creatorData.correo"
-                (input)="validateCorreo()"
-                placeholder="Correo"
-                required
-              />
-            </div>
-            <div class="error-message" *ngIf="correoInvalid">
-              El formato del correo no es válido
-            </div>
-          </div>
+          <app-input-field
+            label="Correo"
+            type="email"
+            [value]="creatorData.correo"
+            (valueChange)="creatorData.correo = $event"
+            (input)="validateCorreo()"
+            placeholder="Correo"
+            errorMessage="El formato del correo no es válido"
+            [tooLong]="correoInvalid"
+            [required]="true"
+            (tooLongChange)="correoInvalid = $event">
+          </app-input-field>
 
-          <!-- Campo Alias -->
-          <div class="container8">
-            <div class="container9">
-              <div class="text7">Alias</div>
-            </div>
-            <div class="background-border9" [class.error]="aliasTooLong">
-              <input
-                type="text"
-                class="input-field"
-                [(ngModel)]="creatorData.alias"
-                (input)="validateAliasLength()"
-                placeholder="Alias"
-                required
-              />
-            </div>
-            <div class="error-message" *ngIf="aliasTooLong">
-              El alias no puede superar 20 caracteres
-            </div>
-          </div>
+          <app-input-field
+            label="Alias"
+            [value]="creatorData.alias"
+            (valueChange)="creatorData.alias = $event"
+            (input)="validateAliasLength()"
+            placeholder="Alias"
+            errorMessage="El alias no puede superar 20 caracteres"
+            [tooLong]="aliasTooLong"
+            [required]="true"
+            (tooLongChange)="aliasTooLong = $event">
+          </app-input-field>
 
-          <!-- Campo Descripción -->
-          <div class="container8">
-            <div class="container9">
-              <div class="text7">Descripción</div>
-            </div>
-            <div class="background-border9" [class.error]="descripcionTooLong">
-              <textarea
-                class="input-field"
-                [(ngModel)]="creatorData.descripcion"
-                (input)="validateDescripcionLength()"
-                placeholder="Descripción"
-                rows="3"
-              ></textarea>
-            </div>
-            <div class="error-message" *ngIf="descripcionTooLong">
-              La descripción no puede superar 200 caracteres
-            </div>
-          </div>
+          <app-textarea-field
+            label="Descripción"
+            [value]="creatorData.descripcion"
+            (valueChange)="creatorData.descripcion = $event"
+            (input)="validateDescripcionLength()"
+            placeholder="Descripción"
+            errorMessage="La descripción no puede superar 200 caracteres"
+            [tooLong]="descripcionTooLong"
+            (tooLongChange)="descripcionTooLong = $event">
+          </app-textarea-field>
 
-          <!-- Campo Especialidad -->
-          <div class="container8">
-            <div class="container9">
-              <div class="text12">Especialidad</div>
-            </div>
-            <div class="background-border9">
-              <select class="input-field select-field" [(ngModel)]="creatorData.especialidad">
-                <option value="Lifestyle">Lifestyle</option>
-                <option value="Tecnología">Tecnología</option>
-                <option value="Cocina">Cocina</option>
-                <option value="Deportes">Deportes</option>
-                <option value="Arte">Arte</option>
-              </select>
-            </div>
-          </div>
+          <app-select-field
+            label="Especialidad"
+            [value]="creatorData.especialidad"
+            (valueChange)="creatorData.especialidad = $event">
+            <option value="Lifestyle">Lifestyle</option>
+            <option value="Tecnología">Tecnología</option>
+            <option value="Cocina">Cocina</option>
+            <option value="Deportes">Deportes</option>
+            <option value="Arte">Arte</option>
+          </app-select-field>
 
-          <!-- Campo Tipo de Contenido -->
           <div class="container8">
             <div class="container9">
               <div class="text7">Tipo de Contenido</div>
             </div>
-            <div class="tipo-contenido-buttons">
-              <button
-                type="button"
-                [class.selected]="isTipoContenidoSelected('video')"
-                (click)="selectTipoContenido('VIDEO')"
-                [@buttonHover]
-                [@buttonPress]>
-                Vídeo
-              </button>
-              <button
-                type="button"
-                [class.selected]="isTipoContenidoSelected('audio')"
-                (click)="selectTipoContenido('AUDIO')"
-                [@buttonHover]
-                [@buttonPress]>
-                Audio
-              </button>
-            </div>
+            <app-tipo-contenido-buttons
+              [value]="creatorData.tipoContenido"
+              (valueChange)="creatorData.tipoContenido = $event">
+            </app-tipo-contenido-buttons>
           </div>
 
-          <!-- Campo Contraseña -->
-          <div class="container8">
-            <div class="container9">
-              <div class="text7">Contraseña</div>
-            </div>
-            <div class="background-border9">
-              <input
-                [type]="showPassword ? 'text' : 'password'"
-                class="input-field"
-                [(ngModel)]="creatorData.contrasena"
-                (input)="validatePasswordStrength()"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                class="toggle-password"
-                (click)="togglePasswordVisibility()"
-                [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path *ngIf="!showPassword" d="M12 5C7 5 2.73 8.11 1 12.5 2.73 16.89 7 20 12 20s9.27-3.11 11-7.5C21.27 8.11 17 5 12 5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" [attr.stroke]="'var(--foreground)'" stroke-width="2"/>
-                  <path *ngIf="showPassword" d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.804 11.804 0 0 0 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" [attr.stroke]="'var(--foreground)'" stroke-width="2"/>
-                </svg>
-              </button>
-            </div>
+          <app-password-field
+            [value]="creatorData.contrasena"
+            (valueChange)="creatorData.contrasena = $event"
+            [showPassword]="showPassword"
+            (visibilityToggle)="togglePasswordVisibility()"
+            (input)="validatePasswordStrength()"
+            [passwordRequirements]="passwordRequirements"
+            [isPasswordStrong]="isPasswordStrong"
+            [error]="creatorData.contrasena.trim() !== '' && !isPasswordStrong">
+          </app-password-field>
 
-            <!-- Requisitos de contraseña -->
-            <div class="password-requirements" *ngIf="creatorData.contrasena.trim() !== '' && !isPasswordStrong">
-              <div class="requirements-list">
-                <div class="requirement-item" *ngFor="let req of passwordRequirements">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="7" cy="7" r="6" stroke="var(--destructive)" stroke-width="1.5"/>
-                    <path d="M7 4v4M7 10h.01" stroke="var(--destructive)" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                  <span>{{ req }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="password-success" *ngIf="creatorData.contrasena.trim() !== '' && isPasswordStrong">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="7" cy="7" r="6" stroke="var(--success)" stroke-width="1.5"/>
-                <path d="M4 7l2 2 4-4" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span>Contraseña válida</span>
-            </div>
-          </div>
-
-          <!-- Campo Repetir contraseña -->
-          <div class="container8">
-            <div class="container9">
-              <div class="text10">Repetir contraseña</div>
-            </div>
-            <div class="background-border9" [class.error]="passwordMismatch">
-              <input
-                [type]="showConfirmPassword ? 'text' : 'password'"
-                class="input-field"
-                [(ngModel)]="creatorData.confirmarContrasena"
-                (blur)="validatePasswordMatch()"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                class="toggle-password"
-                (click)="toggleConfirmPasswordVisibility()"
-                [attr.aria-label]="showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path *ngIf="!showConfirmPassword" d="M12 5C7 5 2.73 8.11 1 12.5 2.73 16.89 7 20 12 20s9.27-3.11 11-7.5C21.27 8.11 17 5 12 5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" [attr.stroke]="'var(--foreground)'" stroke-width="2"/>
-                  <path *ngIf="showConfirmPassword" d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.804 11.804 0 0 0 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" [attr.stroke]="'var(--foreground)'" stroke-width="2"/>
-                </svg>
-              </button>
-            </div>
-            <div class="error-message" *ngIf="passwordMismatch">
-              Las contraseñas no coinciden
-            </div>
-            <div class="container10" *ngIf="!passwordMismatch">
-              <div class="iconify-icon2">
-                <div class="svg2">
-                  <img class="group" ngSrc="assets/admin/info.svg" alt="icono info" height="18" width="18" />
-                </div>
-              </div>
-              <div class="text11">Repite la contraseña para confirmar.</div>
-            </div>
-          </div>
-
+          <app-confirm-password-field
+            [confirmValue]="creatorData.confirmarContrasena"
+            (confirmValueChange)="creatorData.confirmarContrasena = $event"
+            [showConfirmPassword]="showConfirmPassword"
+            [passwordMismatch]="passwordMismatch"
+            (visibilityToggle)="toggleConfirmPasswordVisibility()"
+            (blur)="validatePasswordMatch()">
+          </app-confirm-password-field>
         </div>
       </div>
 
       <div class="horizontal-border">
-        <button
-          type="button"
-          [class]="creatorData.activo ? 'btn-block' : 'btn-activate'"
-          (click)="toggleBloquear()">
-          <div class="svg4">
-            <img
-              [class]="creatorData.activo ? 'group2' : 'group3'"
-              [ngSrc]="creatorData.activo ? 'assets/admin/bloquear.svg' : 'assets/admin/activo.svg'"
-              [alt]="creatorData.activo ? 'icono bloquear' : 'icono activar'"
-              height="15"
-              width="14"/>
-          </div>
-          <div [class]="creatorData.activo ? 'text-block' : 'text-activate'">
-            {{ creatorData.activo ? 'Bloquear' : 'Activar' }}
-          </div>
-        </button>
-        <div class="container11">
-          <button class="border2" type="button" (click)="onCancelar()" [@buttonHover] [@buttonPress]>
-            <div class="text14">Cancelar</div>
-          </button>
-          <button class="background3" type="button" (click)="onGuardarCambios()" [@buttonHover] [@buttonPress] [disabled]="isSaving">
-            <div class="iconify-icon3">
-              <div class="svg4">
-                <img class="group3" ngSrc="assets/admin/guardar.svg" alt="icono guardar" height="18" width="19" />
-              </div>
-            </div>
-            <div class="text15">{{ isSaving ? 'Guardando...' : 'Guardar cambios' }}</div>
-          </button>
-        </div>
+        <app-toggle-block-button [activo]="creatorData.activo" (toggle)="toggleBloquear()"></app-toggle-block-button>
+        <app-form-actions [isSaving]="isSaving" (cancelar)="onCancelar()" (guardar)="onGuardarCambios()"></app-form-actions>
       </div>
     </div>
   </div>

@@ -1,11 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CreatorService, BackendErrorResponse } from '../../core/services/creator.service';
-import { buttonHover, buttonPress, fadeIn } from '../../core/animations/animations';
+import { fadeIn } from '../../core/animations/animations';
+import { ModalHeaderComponent } from '../../shared/modal-header/modal-header.component';
+import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
+import { AvatarSelectorComponent } from '../../shared/avatar-selector/avatar-selector.component';
+import { InputFieldComponent } from '../../shared/input-field/input-field.component';
+import { PasswordFieldComponent } from '../../shared/password-field/password-field.component';
+import { ConfirmPasswordFieldComponent } from '../../shared/confirm-password-field/confirm-password-field.component';
+import { TextAreaFieldComponent } from '../../shared/textarea-field/textarea-field.component';
+import { SelectFieldComponent } from '../../shared/select-field/select-field.component';
+import { ToggleBlockButtonComponent } from '../../shared/toggle-block-button/toggle-block-button.component';
+import { FormActionsComponent } from '../../shared/form-actions/form-actions.component';
+import { TipoContenidoButtonsComponent } from '../../shared/tipo-contenido-buttons/tipo-contenido-buttons.component';
 
-// Interfaz para los datos del formulario de edición
 interface CreatorEditData {
   nombre: string;
   apellidos: string;
@@ -23,14 +33,27 @@ interface CreatorEditData {
 @Component({
   selector: 'app-ad-creators-edit',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ModalHeaderComponent,
+    ErrorContainerComponent,
+    AvatarSelectorComponent,
+    InputFieldComponent,
+    PasswordFieldComponent,
+    ConfirmPasswordFieldComponent,
+    TextAreaFieldComponent,
+    SelectFieldComponent,
+    ToggleBlockButtonComponent,
+    FormActionsComponent,
+    TipoContenidoButtonsComponent
+  ],
   templateUrl: './ad-creators-edit.component.html',
   styleUrl: './ad-creators-edit.component.scss',
-  animations: [buttonHover, buttonPress, fadeIn]
+  animations: [fadeIn]
 })
 export class AdminCreatorsEditPage implements OnInit {
   creatorId: string = '';
-
   creatorData: CreatorEditData = {
     nombre: '',
     apellidos: '',
@@ -44,7 +67,6 @@ export class AdminCreatorsEditPage implements OnInit {
     activo: true,
     tipoContenido: 'VIDEO'
   };
-
   originalData: CreatorEditData = {
     nombre: '',
     apellidos: '',
@@ -58,7 +80,6 @@ export class AdminCreatorsEditPage implements OnInit {
     activo: true,
     tipoContenido: 'VIDEO'
   };
-
   availableAvatars: string[] = [
     'assets/admin/user1.png',
     'assets/admin/user2.png',
@@ -69,13 +90,11 @@ export class AdminCreatorsEditPage implements OnInit {
   ];
   selectedAvatar: string = '';
   defaultAvatar: string = 'assets/admin/usuarios_negro.png';
-
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
   isSaving: boolean = false;
   isLoading: boolean = true;
   error: string | null = null;
-
   passwordMismatch: boolean = false;
   nombreTooLong: boolean = false;
   apellidosTooLong: boolean = false;
@@ -83,7 +102,6 @@ export class AdminCreatorsEditPage implements OnInit {
   descripcionTooLong: boolean = false;
   especialidadTooLong: boolean = false;
   correoInvalid: boolean = false;
-
   passwordStrength = {
     hasMinLength: false,
     hasUpperCase: false,
@@ -101,13 +119,11 @@ export class AdminCreatorsEditPage implements OnInit {
   ngOnInit(): void {
     (async () => {
       this.creatorId = this.route.snapshot.paramMap.get('id') || '';
-
       if (!this.creatorId) {
         console.error('No se proporcionó ID de creador');
-        this.router.navigate(['/ad-creators']);
+        await this.router.navigate(['/ad-creators']);
         return;
       }
-
       this.cargarDatosCreador();
     })();
   }
@@ -115,50 +131,37 @@ export class AdminCreatorsEditPage implements OnInit {
   private cargarDatosCreador(): void {
     this.isLoading = true;
     this.error = null;
-
     this.creatorService.listarCreadores().subscribe({
       next: (creators) => {
         const creator = creators.find(a => a.id === this.creatorId);
-
         if (!creator) {
           this.error = 'Creador no encontrado';
           this.router.navigate(['/ad-creators']);
           return;
         }
-
-      this.creatorData = {
-        nombre: creator.nombre || '',
-        apellidos: creator.apellidos || '',
-        correo: creator.correo || '',
-        alias: creator.alias || '',
-        descripcion: creator.descripcion || '',
-        especialidad: creator.especialidad || '',
-        contrasena: '',
-        confirmarContrasena: '',
-        foto: creator.foto || '',
-        activo: creator.activo,
-        tipoContenido: this.normalizeTipoContenido(creator.tipoContenido)
-      };
-
-      this.selectedAvatar = this.getCreatorPhoto(creator.foto);
-      this.originalData = JSON.parse(JSON.stringify(this.creatorData));
-      this.isLoading = false;
-    },
+        this.creatorData = {
+          nombre: creator.nombre || '',
+          apellidos: creator.apellidos || '',
+          correo: creator.correo || '',
+          alias: creator.alias || '',
+          descripcion: creator.descripcion || '',
+          especialidad: creator.especialidad || '',
+          contrasena: '',
+          confirmarContrasena: '',
+          foto: creator.foto || '',
+          activo: creator.activo,
+          tipoContenido: this.normalizeTipoContenido(creator.tipoContenido)
+        };
+        this.selectedAvatar = this.getCreatorPhoto(creator.foto);
+        this.originalData = JSON.parse(JSON.stringify(this.creatorData));
+        this.isLoading = false;
+      },
       error: (err) => {
         console.error('Error al cargar creador:', err);
         this.error = 'Error al cargar los datos del creador';
         this.isLoading = false;
       }
     });
-  }
-
-  selectAvatar(avatar: string): void {
-    this.selectedAvatar = avatar;
-    this.creatorData.foto = avatar;
-  }
-
-  selectTipoContenido(tipo: string): void {
-    this.creatorData.tipoContenido = tipo.toUpperCase();
   }
 
   private readonly DEFAULT_TIPO = 'VIDEO';
@@ -174,13 +177,9 @@ export class AdminCreatorsEditPage implements OnInit {
     return normalized.includes(this.AUDIO_KEY) ? 'AUDIO' : this.DEFAULT_TIPO;
   }
 
-  isTipoContenidoSelected(tipo: string): boolean {
-    const normalized = this.creatorData.tipoContenido
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '');
-    return normalized.includes(tipo.toLowerCase());
+  selectAvatar(avatar: string): void {
+    this.selectedAvatar = avatar;
+    this.creatorData.foto = avatar;
   }
 
   togglePasswordVisibility(): void {
@@ -239,11 +238,9 @@ export class AdminCreatorsEditPage implements OnInit {
       this.creatorData.foto !== this.originalData.foto ||
       this.creatorData.activo !== this.originalData.activo ||
       this.creatorData.tipoContenido !== this.originalData.tipoContenido;
-
     const passwordChanged =
       this.creatorData.contrasena.trim() !== '' ||
       this.creatorData.confirmarContrasena.trim() !== '';
-
     return dataChanged || passwordChanged;
   }
 
@@ -254,7 +251,6 @@ export class AdminCreatorsEditPage implements OnInit {
     this.validateDescripcionLength();
     this.validateEspecialidadLength();
     this.validateCorreo();
-
     if (!this.isNombreValid()) return { valido: false, mensaje: 'El nombre es obligatorio' };
     if (this.nombreTooLong) return { valido: false, mensaje: 'El nombre no puede superar 20 caracteres' };
     if (!this.isApellidosValid()) return { valido: false, mensaje: 'Los apellidos son obligatorios' };
@@ -318,18 +314,14 @@ export class AdminCreatorsEditPage implements OnInit {
 
   onGuardarCambios(): void {
     if (this.isSaving) return;
-
     const validacion = this.validarDatos();
     const normalizedTipoContenido = this.normalizeTipoContenido(this.creatorData.tipoContenido);
-
     if (!validacion.valido) {
       this.error = validacion.mensaje;
       return;
     }
-
     this.isSaving = true;
     this.error = null;
-
     const updateData: any = {
       nombre: this.creatorData.nombre.trim(),
       apellidos: this.creatorData.apellidos.trim(),
@@ -341,12 +333,10 @@ export class AdminCreatorsEditPage implements OnInit {
       activo: this.creatorData.activo,
       tipoContenido: normalizedTipoContenido
     };
-
     if (this.creatorData.contrasena.trim() !== '') {
       updateData.contrasena = this.creatorData.contrasena;
       updateData.confirmarContrasena = this.creatorData.confirmarContrasena;
     }
-
     this.creatorService.editarCreador(this.creatorId, updateData).subscribe({
       next: (response) => {
         console.log('Creador actualizado exitosamente:', response);
@@ -357,7 +347,6 @@ export class AdminCreatorsEditPage implements OnInit {
         this.creatorData.confirmarContrasena = '';
         this.isSaving = false;
         alert('Cambios guardados exitosamente');
-
         this.router.navigate(['/ad-creators']);
       },
       error: (err: BackendErrorResponse) => {
@@ -374,7 +363,7 @@ export class AdminCreatorsEditPage implements OnInit {
     });
   }
 
-onCancelar(): void {
+  onCancelar(): void {
     if (this.hasChanges()) {
       const confirmar = confirm(
         '¿Estás seguro de que deseas cancelar? Los cambios no guardados se perderán.'
@@ -427,10 +416,5 @@ onCancelar(): void {
       this.passwordStrength.hasLowerCase &&
       this.passwordStrength.hasNumber &&
       this.passwordStrength.hasSpecialChar;
-  }
-
-  handleImageError(event: Event): void {
-    const imgElement = event.target as HTMLImageElement;
-    imgElement.src = 'assets/admin/default.png';
   }
 }
