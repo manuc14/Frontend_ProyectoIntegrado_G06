@@ -1,9 +1,9 @@
-import {Component, HostListener, OnInit, ViewChild, ElementRef, AfterViewInit} from '@angular/core';
+import {Component, HostListener, OnInit, AfterViewInit} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {Router} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
-import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
+import { SearchBarComponent } from '../../shared/search-bar';
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { AdminService, AdminEV } from '../../core/services/admin.service';
@@ -17,7 +17,6 @@ import { AdminService, AdminEV } from '../../core/services/admin.service';
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
 })
 export class AdminAdmsPage implements OnInit, AfterViewInit {
-  @ViewChild('tableContainer') tableContainer!: ElementRef;
   sidebarVisible = false;
   searchTerm = '';
 
@@ -188,7 +187,7 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     if (!admin) return;
 
     const confirmar = confirm(
-      `¿Estás seguro de que deseas eliminar al administrador ${admin.nombre} ${admin.apellidos}?\n\nEsta acción no se puede deshacer.`
+      `Esta seguro de borrar el administrador ${admin.nombre} ${admin.apellidos}? Esta acción no se puede deshacer.`
     );
 
     if (!confirmar) return;
@@ -239,18 +238,22 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     }
   }
 
+  /*
   onSearch(searchTerm: string): void {
     this.applyFilters();
   }
+  */
 
   onSearchTermChange(searchTerm: string): void {
     this.searchTerm = searchTerm;
     this.applyFilters();
   }
 
+  /*
   private performSearch(): void {
     this.applyFilters();
   }
+  */
 
   private performSearchOnFiltered(): void {
     if (!this.searchTerm.trim()) {
@@ -424,4 +427,10 @@ export class AdminAdmsPage implements OnInit, AfterViewInit {
     // Devolver la foto tal cual si ya tiene la ruta completa
     return foto;
   }
+
+  handleImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = 'assets/admin/default.png';
+  }
+
 }

@@ -38,18 +38,6 @@
                     alt="vista previa"
                     style="width: 56px; height: 56px; border-radius: 48px; object-fit: cover; position: absolute;"/>
                 </div>
-                <input
-                  type="file"
-                  id="fileInput"
-                  accept="image/*"
-                  (change)="onFileSelected($event)"
-                  style="display: none;">
-                <button class="border2" type="button" (click)="triggerFileInput()" [@buttonHover] [@buttonPress]>
-                  <div class="iconify-icon">
-                    <img class="svg3" ngSrc="assets/admin/img_subir.svg" alt="subir foto" height="18" width="18"/>
-                  </div>
-                  <div class="subir-imagen">Subir imagen</div>
-                </button>
                 <button class="border3" type="button" (click)="openAvatarModal()" [@buttonHover] [@buttonPress]>
                   <div class="container5">
                     <div class="iconify-icon2">
@@ -192,12 +180,14 @@
   </div>
 
   <!-- Modal de avatares predefinidos -->
-  <div *ngIf="showAvatarModal"
-       style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
-       (click)="closeAvatarModal()"
-       [@fadeIn]>
-    <div style="background: white; border-radius: 16px; width: 90%; max-width: 500px; overflow: hidden; display: flex; flex-direction: column;"
-         (click)="$event.stopPropagation()">
+  <button *ngIf="showAvatarModal"
+          style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; border: none; padding: 0; cursor: pointer;"
+          (click)="closeAvatarModal()"
+          onKeyDown="if(event.key === 'Enter' || event.key === ' ') { closeAvatarModal(); }"
+          onKeyUp="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); }"
+          onKeyPress="if(event.key === 'Enter' || event.key === ' ') { closeAvatarModal(); }"
+          [@fadeIn]>
+    <div style="background: white; border-radius: 16px; width: 90%; max-width: 500px; overflow: hidden; display: flex; flex-direction: column;">
       <div style="padding: 20px; border-bottom: 1px solid #eaedf2; display: flex; justify-content: space-between; align-items: center;">
         <h3 style="color: #0f172a; font-family: 'NimbusSans-Bold', sans-serif; font-size: 18px; font-weight: 700; margin: 0;">Selecciona un avatar</h3>
         <button type="button" (click)="closeAvatarModal()" style="background: transparent; border: none; cursor: pointer; padding: 4px;">
@@ -205,14 +195,18 @@
         </button>
       </div>
       <div style="padding: 30px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-        <div
+        <button
           *ngFor="let avatar of availableAvatars"
           class="avatar-item"
           [class.avatar-selected]="selectedAvatar === avatar"
-          (click)="selectPredefinedAvatar(avatar)">
+          (click)="selectPredefinedAvatar(avatar)"
+          tabindex="0"
+          onKeyDown="if(event.key === 'Enter' || event.key === ' ') { selectPredefinedAvatar(avatar); }"
+          onKeyUp="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); }"
+          onKeyPress="if(event.key === 'Enter' || event.key === ' ') { selectPredefinedAvatar(avatar); }">
           <img [src]="avatar" alt="avatar predefinido" width="100" height="100" style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover;"/>
-        </div>
+        </button>
       </div>
     </div>
-  </div>
+  </button>
 </div>

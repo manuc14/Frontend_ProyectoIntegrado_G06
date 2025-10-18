@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import {ValidationError} from './admin.service';
 
 /*
  * Interfaz para el usuario devuelto por el endpoint ad-user
@@ -18,6 +19,13 @@ export interface UserEV {
   fechaNacimiento: string;
   activo: boolean;
   foto?: string;
+}
+
+export interface BackendErrorResponse {
+  message: string;
+  details?: any;
+  validationErrorCount?: number;
+  errors?: ValidationError[];
 }
 
 /*
@@ -80,7 +88,7 @@ export class UserService {
     };
   }
 
-  /** 
+  /**
    * Obtiene la lista completa de usuarios para administración.
    * Endpoint: GET /ad-user
    * Incluye manejo de errores centralizado.
@@ -88,6 +96,36 @@ export class UserService {
   listarUsuarios(): Observable<UserEV[]> {
     return this.http.get<UserEV[]>(`${this.base}/ad-user`).pipe(
       catchError(this.handleError('listar usuarios', 'No se pudieron cargar los usuarios'))
+    );
+  }
+
+  /**
+   * Crea un nuevo usuario.
+   * Endpoint: POST /ad-user/crear
+   */
+  crearUsuario(formData: FormData): Observable<any> {
+    return this.http.post(`${this.base}/ad-user/crear`, formData).pipe(
+      catchError(this.handleError('crear usuario', 'No se pudo crear el usuario'))
+    );
+  }
+
+  /**
+   * Edita un usuario existente.
+   * Endpoint: PUT /ad-user/editar/{id}
+   */
+  editarUsuario(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.base}/ad-user/editar/${id}`, data).pipe(
+      catchError(this.handleError('editar usuario', 'No se pudo editar el usuario'))
+    );
+  }
+
+  /**
+   * Elimina un usuario.
+   * Endpoint: DELETE /ad-user/eliminar/{id}
+   */
+  eliminarUsuario(id: string): Observable<any> {
+    return this.http.delete(`${this.base}/ad-user/eliminar/${id}`).pipe(
+      catchError(this.handleError('eliminar usuario', 'No se pudo eliminar el usuario'))
     );
   }
 }

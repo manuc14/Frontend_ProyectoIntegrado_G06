@@ -972,15 +972,15 @@ $table-grid-gap: 16px;
   align-self: stretch;
   @include flex-container(column, 0, center, center);
   flex: 1;
-  
+
   .no-results-content {
     @include flex-container(column, 16px, center, center);
-    
+
     p {
       @include text-base(#6b7280, 16px, 500);
       margin: 0;
     }
-    
+
     .clear-search-btn {
       background: #2563eb;
       color: #ffffff;
@@ -992,7 +992,7 @@ $table-grid-gap: 16px;
       cursor: pointer;
       transition: background-color 0.2s ease;
       font-family: "NimbusSans-Medium", sans-serif;
-      
+
       &:hover {
         background: #1d4ed8;
       }

@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import {ValidationError} from './admin.service';
 
 /*
  * Interfaz para el creador devuelto por el endpoint ad-creator
@@ -19,6 +20,13 @@ export interface CreatorEC {
   tipoContenido: string;
   activo: boolean;
   foto?: string;
+}
+
+export interface BackendErrorResponse {
+  message: string;
+  details?: any;
+  validationErrorCount?: number;
+  errors?: ValidationError[];
 }
 
 /*
@@ -118,7 +126,7 @@ export class CreatorService {
    */
   eliminarCreador(id: string): Observable<any> {
     return this.http.delete(`${this.base}/ad-creator/eliminar/${id}`).pipe(
-      catchError(this.handleError('eliminar creador', 'No se pudo eliminar el creador'))
+      catchError(this.handleError('eliminar creador'))
     );
   }
 }

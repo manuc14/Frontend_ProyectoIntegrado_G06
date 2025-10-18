@@ -448,21 +448,17 @@
   flex-shrink: 0;
   position: relative;
   width: 100%;
-  
+
   // El search-bar ocupa todo el espacio disponible
   app-search-bar {
     flex: 1;
   }
-  
+
   // El sort-dropdown mantiene su tamaño
   app-sort-dropdown {
     flex-shrink: 0;
   }
 }
-
-// ========================================
-// ESTILOS LEGACY (MANTENIDOS PARA RETROCOMPATIBILIDAD)
-// ========================================
 
 .container9 {
   @include flex-container(row, 8px, center, flex-start);
@@ -526,7 +522,7 @@
       font-family: "NimbusSans-Medium", sans-serif;
       font-size: 14px;
       color: var(--foreground);
-      
+
       &::placeholder {
         color: var(--muted-foreground);
         font-size: 14px;
@@ -534,7 +530,7 @@
 
       @media (max-width: 768px) {
         font-size: 16px;
-        
+
         &::placeholder {
           font-size: 16px;
         }
@@ -569,15 +565,15 @@
   align-self: stretch;
   @include flex-container(column, 0, center, center);
   flex: 1;
-  
+
   .no-results-content {
     @include flex-container(column, 16px, center, center);
-    
+
     p {
       @include text-base(var(--muted-foreground), 16px, 500);
       margin: 0;
     }
-    
+
     .clear-search-btn {
       @include button-base;
       background: var(--primary);
@@ -587,7 +583,7 @@
       font-size: 14px;
       font-weight: 500;
       transition: background-color 0.2s ease;
-      
+
       &:hover {
         background: color-mix(in srgb, var(--primary) 85%, black);
       }
@@ -1034,18 +1030,18 @@ $table-grid-gap: 16px;
 @media (max-width: 1200px) {
   // Ajustar columnas para pantallas medianas
   $table-grid-columns-medium: minmax(50px, 0.7fr) minmax(70px, 1fr) minmax(80px, 1.2fr) minmax(70px, 1fr) minmax(120px, 2fr) minmax(90px, 1.3fr) minmax(70px, 1fr) minmax(60px, 0.8fr) minmax(60px, 0.8fr) minmax(60px, 0.8fr);
-  
+
   .background5,
   .horizontal-border,
   .horizontal-border2 {
     grid-template-columns: $table-grid-columns-medium;
     gap: 12px;
   }
-  
+
   .background5 {
     padding: 10px 12px;
   }
-  
+
   .horizontal-border,
   .horizontal-border2 {
     padding: 12px;
@@ -1059,24 +1055,24 @@ $table-grid-gap: 16px;
   .horizontal-border2 {
     grid-template-columns: minmax(40px, 0.6fr) minmax(60px, 1fr) minmax(80px, 1.5fr) minmax(100px, 2fr) minmax(60px, 1fr) minmax(50px, 0.8fr) minmax(50px, 0.8fr);
     gap: 8px;
-    
+
     // Ocultar columnas de Alias, Fecha de nacimiento y Editar en móviles
     > div:nth-child(4), // Alias
-    > div:nth-child(6), // Fecha de nacimiento  
+    > div:nth-child(6), // Fecha de nacimiento
     > div:nth-child(9) { // Editar
       display: none;
     }
   }
-  
+
   .background5 {
     padding: 8px 10px;
   }
-  
+
   .horizontal-border,
   .horizontal-border2 {
     padding: 10px;
   }
-  
+
   // Ajustar el scroll en móviles
   .container12 {
     &::-webkit-scrollbar {
@@ -1092,7 +1088,7 @@ $table-grid-gap: 16px;
   .horizontal-border2 {
     grid-template-columns: minmax(35px, 0.5fr) minmax(50px, 1fr) minmax(80px, 2fr) minmax(60px, 1fr) minmax(45px, 0.7fr);
     gap: 6px;
-    
+
     // Mostrar solo: Foto, Nombre, Email, Estado, Eliminar
     > div:nth-child(3), // Apellidos
     > div:nth-child(4), // Alias
@@ -1102,11 +1098,11 @@ $table-grid-gap: 16px;
       display: none;
     }
   }
-  
+
   .background5 {
     padding: 6px 8px;
   }
-  
+
   .horizontal-border,
   .horizontal-border2 {
     padding: 8px;

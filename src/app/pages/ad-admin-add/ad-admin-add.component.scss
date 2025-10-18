@@ -458,25 +458,26 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed !important;
 }
+
 .avatar-item {
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 3px solid transparent;
   border-radius: 12px;
-  padding: 8px;
+  padding: 0;
   transition: all 0.2s ease;
+  overflow: hidden;
+  aspect-ratio: 1;
 
   &:hover {
     border-color: #2563eb;
-    background: #eff6ff;
+    transform: scale(1.05);
   }
 
   &.avatar-selected {
     border-color: #2563eb;
-    background: #dbeafe;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
   }
 }
-
-// Añadir al final del archivo SCSS existente
 
 // ========================================
 // MENSAJES DE ERROR Y VALIDACIÓN
@@ -528,27 +529,4 @@ button:disabled {
 
 .requirement-text {
   color: #991b1b;
-}
-
-// ========================================
-// MODAL DE AVATARES MEJORADO
-// ========================================
-.avatar-item {
-  cursor: pointer;
-  border: 3px solid transparent;
-  border-radius: 12px;
-  padding: 0;
-  transition: all 0.2s ease;
-  overflow: hidden;
-  aspect-ratio: 1;
-
-  &:hover {
-    border-color: #2563eb;
-    transform: scale(1.05);
-  }
-
-  &.avatar-selected {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-  }
 }

@@ -33,7 +33,7 @@
     </div>
 
     <div class="container">
-      <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="29" width="29"/>
+      <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="64" width="60"/>
       <div class="background2">
         <div class="text2">Cerrar sesión</div>
       </div>
@@ -109,16 +109,16 @@
           (filterChange)="onFilterChange($event)"
           (clearAll)="onClearAllFilters()">
         </app-filter-buttons>
-        
+
         <div class="search-section">
-          <app-search-bar 
+          <app-search-bar
             [(ngModel)]="searchTerm"
             (ngModelChange)="onSearchTermChange($event)"
             placeholder="Buscar por nombre, email, alias, categoría…"
             ariaLabel="Campo de búsqueda de creadores"
             (clear)="onClearSearch()">
           </app-search-bar>
-          
+
           <!-- Dropdown de ordenamiento -->
           <app-sort-dropdown
             [sortOptions]="sortOptions"
@@ -185,46 +185,19 @@
                 <!-- Foto -->
                 <div class="container14">
                   <img
-                    [ngSrc]="creator.foto ? 'assets/admin/' + creator.foto : 'assets/admin/admin_default.png'"
+                    [ngSrc]="getCreatorPhoto(creator.foto)"
                     [alt]="'foto de ' + creator.nombre"
                     height="28"
                     width="28"
-                    priority/>
+                    (error)="handleImageError($event)"/>
                 </div>
 
-                <!-- Nombre -->
-                <div class="container2">
-                  <div class="text21">{{ creator.nombre }}</div>
-                </div>
-
-                <!-- Apellidos -->
-                <div class="container2">
-                  <div class="text22">{{ creator.apellidos }}</div>
-                </div>
-
-                <!-- Email -->
-                <div class="container15">
-                  <div class="text23">{{ creator.correo }}</div>
-                </div>
-
-                <!-- Alias -->
-                <div class="container2">
-                  <div class="text24">&#64;{{ creator.alias }}</div>
-                </div>
-
-                <!-- Categoría -->
-                <div class="background7">
-                  <div class="text25">{{ creator.especialidad }}</div>
-                </div>
-
-                <!-- Tipo de contenido -->
-                <div class="container16">
-                  <div class="background-border3">
-                    <div class="video-text">{{ creator.tipoContenido === 'VIDEO' ? 'Vídeo' : 'Audio' }}</div>
-                  </div>
-                </div>
-
-                <!-- Estado (Activo/Bloqueado) -->
+                <div class="container2"><div class="text21">{{ creator.nombre }}</div></div>
+                <div class="container2"><div class="text22">{{ creator.apellidos }}</div></div>
+                <div class="container15"><div class="text23">{{ creator.correo }}</div></div>
+                <div class="container2"><div class="text24">&#64;{{ creator.alias }}</div></div>
+                <div class="background7"><div class="text25">{{ creator.especialidad }}</div></div>
+                <div class="container16"><div class="background-border3"><div class="video-text">{{ creator.tipoContenido === 'VIDEO' ? 'Vídeo' : 'Audio' }}</div></div></div>
                 <div class="container17">
                   <div class="background-border4">
                     <img
@@ -235,29 +208,37 @@
                       width="19"/>
                   </div>
                 </div>
-
-                <!-- Botón Editar -->
                 <div class="container18">
-                  <div class="background8" (click)="editarCreador(creator.id)" style="cursor: pointer;">
-                    <img
-                      class="svg7"
-                      ngSrc="assets/admin/editar.svg"
-                      alt="editar creador"
-                      height="18"
-                      width="18"/>
+                  <div class="container18">
+                    <button class="background8"
+                         (click)="editarCreador(creator.id)"
+                         style="cursor: pointer;"
+                         tabindex="0"
+                         (keydown)="onEditKeyDown($event, creator.id)"
+                         (keyup)="onEditKeyUp($event)">
+                      <img
+                        class="svg7"
+                        ngSrc="assets/admin/editar.svg"
+                        alt="editar creador"
+                        height="18"
+                        width="18"/>
+                    </button>
                   </div>
                 </div>
-
-                <!-- Botón Eliminar -->
                 <div class="container18">
-                  <div class="background9" (click)="eliminarCreador(creator.id)" style="cursor: pointer;">
+                  <button class="background9"
+                       (click)="eliminarCreador(creator.id)"
+                       style="cursor: pointer;"
+                       tabindex="0"
+                       (keydown)="onDeleteKeyDown($event, creator.id)"
+                       (keyup)="onDeleteKeyUp($event)">
                     <img
                       class="svg8"
                       ngSrc="assets/admin/eliminar.svg"
                       alt="eliminar creador"
                       height="18"
                       width="18"/>
-                  </div>
+                  </button>
                 </div>
               </div>
 
@@ -278,32 +259,38 @@
             <div class="text47">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container22">
-            <div
+            <button
               class="border"
               [@buttonHover]
               [@buttonPress]
               (click)="paginaAnterior()"
               [style.opacity]="currentPage === 1 ? '0.5' : '1'"
               [style.cursor]="currentPage === 1 ? 'not-allowed' : 'pointer'"
-              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'">
+              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'"
+              tabindex="0"
+              (keydown)="onPagePreviousKeyDown($event)"
+              (keyup)="onPagePreviousKeyUp($event)">
               <div class="iconify-icon4">
                 <img class="svg19" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text48">Anterior</div>
-            </div>
-            <div
+            </button>
+            <button
               class="border2"
               [@buttonHover]
               [@buttonPress]
               (click)="paginaSiguiente()"
               [style.opacity]="currentPage === totalPaginas ? '0.5' : '1'"
               [style.cursor]="currentPage === totalPaginas ? 'not-allowed' : 'pointer'"
-              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'">
+              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'"
+              tabindex="0"
+              (keydown)="onPageNextKeyDown($event)"
+              (keyup)="onPageNextKeyUp($event)">
               <div class="text49">Siguiente</div>
               <div class="iconify-icon5">
                 <img class="svg20" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

@@ -33,8 +33,7 @@
     </div>
 
     <div class="container">
-      <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="29"
-           width="29"/>
+      <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="64" width="60">
       <div class="background2">
         <div class="text2">Cerrar sesión</div>
       </div>
@@ -164,7 +163,8 @@
                   [ngSrc]="getAdminPhoto(admin.foto)"
                   [alt]="'foto de ' + admin.nombre"
                   height="28"
-                  width="28"/>
+                  width="28"
+                  (error)="handleImageError($event)"/>
               </div>
               <div class="container2"><div class="text20">{{ admin.nombre }}</div></div>
               <div class="container2"><div class="text21">{{ admin.apellidos }}</div></div>
@@ -186,7 +186,7 @@
                   class="background-border4"
                   (click)="editarAdministrador(admin.id)"
                   [attr.aria-label]="'Editar ' + admin.nombre">
-                  <img src="assets/admin/editar.svg" alt="editar administrador" height="18" width="18"/>
+                  <img ngSrc="assets/admin/editar.svg" alt="editar administrador" height="18" width="18"/>
                 </button>
               </div>
               <div class="container16">
@@ -195,10 +195,10 @@
                   class="background7"
                   (click)="eliminarAdministrador(admin.id)"
                   [attr.aria-label]="'Eliminar ' + admin.nombre">
-                  <img src="assets/admin/eliminar.svg" alt="eliminar administrador" height="18" width="18"/>
+                  <img ngSrc="assets/admin/eliminar.svg" alt="eliminar administrador" height="18" width="18"/>
                 </button>
               </div>
-          </div>
+            </div>
           </div>
         </div>
       </div>
@@ -209,18 +209,18 @@
             <div class="text44">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container19">
-            <div class="border" [@buttonHover] [@buttonPress] (click)="paginaAnterior()">
+            <button class="border" [@buttonHover] [@buttonPress] (click)="paginaAnterior()" onKeyDown="if(event.key === 'Enter' || event.key === ' ') { paginaAnterior(); }" onKeyUp="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); }" onKeyPress="if(event.key === 'Enter' || event.key === ' ') { paginaAnterior(); }">
               <div class="iconify-icon4">
                 <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text45">Anterior</div>
-            </div>
-            <div class="border2" [@buttonHover] [@buttonPress] (click)="paginaSiguiente()">
+            </button>
+            <button class="border2" [@buttonHover] [@buttonPress] (click)="paginaSiguiente()" onKeyDown="if(event.key === 'Enter' || event.key === ' ') { paginaSiguiente(); }" onKeyUp="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); }" onKeyPress="if(event.key === 'Enter' || event.key === ' ') { paginaSiguiente(); }">
               <div class="text46">Siguiente</div>
               <div class="iconify-icon5">
                 <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

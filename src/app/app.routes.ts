@@ -10,13 +10,11 @@ import { AdminUsersEditPage } from './pages/ad-users-edit/ad-users-edit.componen
 // Administración de Administradores
 import { AdminAdmsPage } from './pages/ad-admin/ad-admin.component';
 import { AdminAdmsAddPage } from './pages/ad-admin-add/ad-admin-add.component';
-import { AdminAdmsAddSuccessPage } from './pages/ad-admin-add-success/ad-admin-add-success.component';
 import { AdminAdmsEditPage } from './pages/ad-admin-edit/ad-admin-edit.component';
 
 // Administración de Creadores de Contenido
 import { AdminCreatorsPage } from './pages/ad-creators/ad-creators.component';
 import { AdminCreatorsAddPage } from './pages/ad-creators-add/ad-creators-add.component';
-import { AdminCreatorsAddSuccessPage } from './pages/ad-creators-add-success/ad-creators-add-success.component';
 import { AdminCreatorsEditPage } from './pages/ad-creators-edit/ad-creators-edit.component';
 
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
@@ -36,17 +34,15 @@ export const routes: Routes = [
 	{ path: 'verify-code', component: VerifyCodePage },
 
 	{ path: 'ad-users', component: AdminUsersPage },
-  { path: 'ad-users-edit', component: AdminUsersEditPage },
+  { path: 'ad-users-edit/:id', component: AdminUsersEditPage },
 
   { path: 'ad-admin', component: AdminAdmsPage },
   { path: 'ad-admin-add', component: AdminAdmsAddPage },
-  { path: 'ad-admin-add-success', component: AdminAdmsAddSuccessPage },
   { path: 'ad-admin-edit/:id', component: AdminAdmsEditPage },
 
   { path: 'ad-creators', component: AdminCreatorsPage },
   { path: 'ad-creators-add', component: AdminCreatorsAddPage },
-  { path: 'ad-creators-add-success', component: AdminCreatorsAddSuccessPage },
-  { path: 'ad-creators-edit', component: AdminCreatorsEditPage },
+  { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage },
 
 	{ path: 'content', component: ContentPage },
 	{ path: 'catalog', component: CatalogPage },

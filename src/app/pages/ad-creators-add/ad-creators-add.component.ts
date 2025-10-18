@@ -35,10 +35,12 @@ export class AdminCreatorsAddPage implements OnInit {
 
   showAvatarModal = false;
   availableAvatars: string[] = [
-    'assets/admin/predef1.png',
-    'assets/admin/predef2.png',
-    'assets/admin/predef3.png',
-    'assets/admin/predef4.png'
+    'assets/admin/user1.png',
+    'assets/admin/user2.png',
+    'assets/admin/user3.png',
+    'assets/admin/user4.png',
+    'assets/admin/user5.png',
+    'assets/admin/admin_default.png',
   ];
 
   isLoadingAvatars = false;
@@ -83,18 +85,26 @@ export class AdminCreatorsAddPage implements OnInit {
     });
   }
 
+  private readonly MIN_PASSWORD_LENGTH = 8;
+
   checkPasswordStrength(password: string): void {
+    if (!password) {
+      this.passwordStrength = { hasMinLength: false, hasUpperCase: false, hasLowerCase: false, hasNumber: false, hasSpecialChar: false };
+      return;
+    }
+
+    const pwd = password;
     this.passwordStrength = {
-      hasMinLength: password.length >= 8,
-      hasUpperCase: /[A-Z]/.test(password),
-      hasLowerCase: /[a-z]/.test(password),
-      hasNumber: /[0-9]/.test(password),
-      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      hasMinLength: pwd.length >= this.MIN_PASSWORD_LENGTH,
+      hasUpperCase: /[A-Z]/.test(pwd),
+      hasLowerCase: /[a-z]/.test(pwd),
+      hasNumber: /\d/.test(pwd),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(pwd)
     };
   }
 
   get isPasswordValid(): boolean {
-    return Object.values(this.passwordStrength).every(v => v === true);
+    return Object.values(this.passwordStrength).every(v => v);
   }
 
   get passwordRequirements(): string[] {
@@ -132,40 +142,6 @@ export class AdminCreatorsAddPage implements OnInit {
     });
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-
-      if (!file.type.startsWith('image/')) {
-        this.errorMessage = 'Por favor, selecciona un archivo de imagen válido.';
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        this.errorMessage = 'La imagen no debe superar los 5MB.';
-        return;
-      }
-
-      this.selectedFile = file;
-      this.selectedAvatar = null;
-
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.previewUrl = e.target.result;
-        this.isDefaultIcon = false;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  triggerFileInput(): void {
-    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
-    }
-  }
-
   openAvatarModal(): void {
     this.showAvatarModal = true;
   }
@@ -198,7 +174,7 @@ export class AdminCreatorsAddPage implements OnInit {
 
   shouldShowError(fieldName: string): boolean {
     const field = this.creatorForm.get(fieldName);
-    return this.formSubmitted && field !== null && field.invalid;
+    return !!field && this.formSubmitted && field.invalid;
   }
 
   onSubmit(): void {
@@ -294,4 +270,43 @@ export class AdminCreatorsAddPage implements OnInit {
       this.router.navigate(['/ad-creators']);
     }
   }
+
+  handleKeyDown(event: KeyboardEvent, action: () => void) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      action();
+    }
+  }
+
+  handleKeyUp(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+    }
+  }
+
+  onCloseAvatarModalKeyDown(event: KeyboardEvent) {
+    this.handleKeyDown(event, () => this.closeAvatarModal());
+  }
+
+  onCloseAvatarModalKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
+
+  onInnerModalKeyDown(event: KeyboardEvent) {
+    this.handleKeyDown(event, () => event.stopPropagation());
+  }
+
+  onInnerModalKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
+
+  onSelectAvatarKeyDown(event: KeyboardEvent, avatar: string) {
+    this.handleKeyDown(event, () => this.selectPredefinedAvatar(avatar));
+  }
+
+  onSelectAvatarKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
+
+
 }

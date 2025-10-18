@@ -33,8 +33,7 @@
     </div>
 
     <div class="container">
-      <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="29"
-           width="29"/>
+      <img class="admin" ngSrc="assets/admin/admin_default.png" alt="foto de usuario actual" height="64" width="60"/>
       <div class="background2">
         <div class="text2">Cerrar sesión</div>
       </div>
@@ -104,16 +103,16 @@
           (filterChange)="onFilterChange($event)"
           (clearAll)="onClearAllFilters()">
         </app-filter-buttons>
-        
+
         <div class="search-section">
-          <app-search-bar 
+          <app-search-bar
             [searchTerm]="searchTerm"
             placeholder="Buscar por nombre, email, alias…"
             ariaLabel="Campo de búsqueda de usuarios"
             (search)="onSearch($event)"
             (clear)="onClearSearch()">
           </app-search-bar>
-          
+
           <!-- Componente de ordenamiento -->
           <app-sort-dropdown
             [sortOptions]="sortOptions"
@@ -155,11 +154,12 @@
               class="horizontal-border"
               [class.horizontal-border2]="i > 0">
               <div class="container13">
-                <img 
-                  [ngSrc]="user.photo" 
-                  [alt]="'foto de ' + user.name" 
-                  height="28" 
-                  width="28"/>
+                <img
+                  [ngSrc]="getUserPhoto(user.photo)"
+                  [alt]="'foto de ' + user.name"
+                  height="28"
+                  width="28"
+                  (error)="handleImageError($event)"/>
               </div>
               <div class="container2"><div class="text20">{{ user.name }}</div></div>
               <div class="container2"><div class="text21">{{ user.lastName }}</div></div>
@@ -167,12 +167,12 @@
               <div class="container14"><div class="text23">{{ user.email }}</div></div>
               <div class="container2"><div class="text24">{{ user.birthDate }}</div></div>
               <div class="container15">
-                <div 
-                  class="background6" 
+                <div
+                  class="background6"
                   [class.background8]="user.role === 'Estándar'"
                   [class.background6]="user.role === 'VIP'">
-                  <div 
-                    class="vip" 
+                  <div
+                    class="vip"
                     [class.est-ndar]="user.role === 'Estándar'">
                     {{ user.role }}
                   </div>
@@ -180,30 +180,35 @@
               </div>
               <div class="container15">
                 <div class="background-border3">
-                  <img 
-                    [ngSrc]="'assets/admin/' + (user.status === 'activo' ? 'activo' : 'bloqueado') + '.svg'" 
-                    [alt]="'estado ' + user.status" 
-                    height="18" 
+                  <img
+                    [ngSrc]="'assets/admin/' + (user.status === 'activo' ? 'activo' : 'bloqueado') + '.svg'"
+                    [alt]="'estado ' + user.status"
+                    height="18"
                     width="19"/>
                 </div>
               </div>
               <div class="container16">
-                <div class="background-border4">
-                  <img 
-                    class="svg6" 
-                    ngSrc="assets/admin/editar.svg" 
-                    alt="editar usuario" 
-                    height="18" 
+                <button class="background-border4"
+                     (click)="editarUsuario(user.id)"
+                     style="cursor: pointer;"
+                     tabindex="0"
+                     (keydown)="onEditUserKeyDown($event, user.id)"
+                     (keyup)="onEditUserKeyUp($event)">
+                  <img
+                    class="svg6"
+                    ngSrc="assets/admin/editar.svg"
+                    alt="editar usuario"
+                    height="18"
                     width="19"/>
-                </div>
+                </button>
               </div>
               <div class="container16">
                 <div class="background7">
-                  <img 
-                    class="svg7" 
-                    ngSrc="assets/admin/eliminar.svg" 
-                    alt="eliminar usuario" 
-                    height="18" 
+                  <img
+                    class="svg7"
+                    ngSrc="assets/admin/eliminar.svg"
+                    alt="eliminar usuario"
+                    height="18"
                     width="19"/>
                 </div>
               </div>
@@ -218,33 +223,39 @@
             <div class="text42">Mostrando {{ rangoMostrado }}</div>
           </div>
           <div class="container19">
-            <div 
-              class="border" 
-              [@buttonHover] 
+            <button
+              class="border"
+              [@buttonHover]
               [@buttonPress]
               (click)="paginaAnterior()"
               [style.opacity]="currentPage === 1 ? '0.5' : '1'"
               [style.cursor]="currentPage === 1 ? 'not-allowed' : 'pointer'"
-              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'">
+              [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'"
+              tabindex="0"
+              (keydown)="onPagePreviousKeyDown($event)"
+              (keyup)="onPagePreviousKeyUp($event)">
               <div class="iconify-icon3">
                 <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text43">Anterior</div>
-            </div>
-            <div 
-              class="border2" 
-              [@buttonHover] 
+            </button>
+            <button
+              class="border2"
+              [@buttonHover]
               [@buttonPress]
               (click)="paginaSiguiente()"
               [style.opacity]="currentPage === totalPaginas ? '0.5' : '1'"
               [style.cursor]="currentPage === totalPaginas ? 'not-allowed' : 'pointer'"
-              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'">
+              [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'"
+              tabindex="0"
+              (keydown)="onPageNextKeyDown($event)"
+              (keyup)="onPageNextKeyUp($event)">
               <div class="text44">Siguiente</div>
               <div class="iconify-icon4">
                 <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18"
                      width="18"/>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@ import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
-import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
+import { SearchBarComponent } from '../../shared/search-bar';
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { CreatorService, CreatorEC } from '../../core/services/creator.service';
@@ -239,12 +239,31 @@ export class AdminCreatorsPage implements OnInit, AfterViewInit {
 
   editarCreador(id: string): void {
     console.log('Editar creador:', id);
-    // TODO: Implementar navegación a página de edición
+    this.router.navigate(['/ad-creators-edit', id]);
   }
 
   eliminarCreador(id: string): void {
-    console.log('Eliminar creador:', id);
-    // TODO: Implementar diálogo de confirmación y eliminación
+    const admin = this.allCreators.find(a => a.id === id);
+    if (!admin) return;
+
+    const confirmar = confirm(
+      `Esta seguro de borrar el creador de contenido ${admin.nombre} ${admin.apellidos}? Esta acción no se puede deshacer.`
+    );
+
+    if (!confirmar) return;
+
+    this.creatorService.eliminarCreador(id).subscribe({
+      next: () => {
+        console.log('Creador eliminado exitosamente');
+        // Recargar la lista
+        this.cargarCreadores();
+        alert('Creador eliminado exitosamente');
+      },
+      error: (err) => {
+        console.error('Error al eliminar creador:', err);
+        alert('Error al eliminar el creador: ' + (err.message || 'Error desconocido'));
+      }
+    });
   }
 
   // ========================================
@@ -487,11 +506,85 @@ export class AdminCreatorsPage implements OnInit, AfterViewInit {
     this.onClearAllFilters();
   }
 
+  /**
+   * Obtiene la ruta de la foto del creador o la foto por defecto
+   */
+  getCreatorPhoto(foto: string | undefined | null): string {
+    if (!foto || foto.trim() === '') {
+      return 'assets/admin/default.png';
+    }
+
+    if (!foto.startsWith('assets/')) {
+      return `assets/admin/${foto}`;
+    }
+
+    return foto;
+  }
+
   @HostListener('window:resize', ['$event'])
   onResize(event: any): void {
     if (event.target.innerWidth > 768) {
       this.closeSidebar();
     }
     this.calcularPageSize();
+  }
+
+  handleImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = 'assets/admin/default.png';
+  }
+
+  handleKeyDown(event: KeyboardEvent, action: () => void) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      action();
+    }
+  }
+
+  handleKeyUp(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+    }
+  }
+
+// Usage in the component
+  onEditKeyDown(event: KeyboardEvent, id: string) {
+    this.handleKeyDown(event, () => this.editarCreador(id));
+  }
+
+  onDeleteKeyDown(event: KeyboardEvent, id: string) {
+    this.handleKeyDown(event, () => this.eliminarCreador(id));
+  }
+
+  onEditKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
+
+  onDeleteKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
+
+  onPagePreviousKeyDown(event: KeyboardEvent) {
+    this.handleKeyDown(event, () => {
+      if (this.currentPage > 1) {
+        this.paginaAnterior();
+      }
+    });
+  }
+
+  onPagePreviousKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
+
+  onPageNextKeyDown(event: KeyboardEvent) {
+    this.handleKeyDown(event, () => {
+      if (this.currentPage < this.totalPaginas) {
+        this.paginaSiguiente();
+      }
+    });
+  }
+
+  onPageNextKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
   }
 }

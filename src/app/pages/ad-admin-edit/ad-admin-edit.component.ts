@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import {AdminService, AdminEV, BackendErrorResponse} from '../../core/services/admin.service';
+import {AdminService, BackendErrorResponse} from '../../core/services/admin.service';
 import { buttonHover, buttonPress, fadeIn } from '../../core/animations/animations';
 
 // Interfaz para los datos del formulario de edición
@@ -43,7 +43,6 @@ export class AdminAdmsEditPage implements OnInit {
     activo: true
   };
 
-  // Datos originales para detectar cambios
   originalData: AdminEditData = {
     nombre: '',
     apellidos: '',
@@ -56,7 +55,6 @@ export class AdminAdmsEditPage implements OnInit {
     activo: true
   };
 
-  // Gestión de avatares
   availableAvatars: string[] = [
     'assets/admin/user1.png',
     'assets/admin/user2.png',
@@ -68,14 +66,12 @@ export class AdminAdmsEditPage implements OnInit {
   selectedAvatar: string = '';
   defaultAvatar: string = 'assets/admin/usuarios_negro.png';
 
-  // Estados de UI
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
   isSaving: boolean = false;
   isLoading: boolean = true;
   error: string | null = null;
 
-  // Nuevas propiedades para validaciones proactivas
   passwordMismatch: boolean = false;
   nombreTooLong: boolean = false;
   apellidosTooLong: boolean = false;
@@ -230,70 +226,40 @@ export class AdminAdmsEditPage implements OnInit {
     return dataChanged || passwordChanged;
   }
 
-  /**
-   * Valida los datos del formulario
-   */
   private validarDatos(): { valido: boolean; mensaje: string } {
-    // Validaciones básicas
-    if (!this.adminData.nombre.trim()) {
-      return { valido: false, mensaje: 'El nombre es obligatorio' };
+    if (!this.adminData.nombre.trim() || this.adminData.nombre.length > 20) {
+      return { valido: false, mensaje: this.adminData.nombre.trim() ? 'El nombre no puede superar 20 caracteres' : 'El nombre es obligatorio' };
     }
-
-    if (this.adminData.nombre.length > 20) {
-      return { valido: false, mensaje: 'El nombre no puede superar 20 caracteres' };
+    if (!this.adminData.apellidos.trim() || this.adminData.apellidos.length > 20) {
+      return { valido: false, mensaje: this.adminData.apellidos.trim() ? 'Los apellidos no pueden superar 20 caracteres' : 'Los apellidos son obligatorios' };
     }
-
-    if (!this.adminData.apellidos.trim()) {
-      return { valido: false, mensaje: 'Los apellidos son obligatorios' };
+    if (!this.adminData.correo.trim() || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.adminData.correo)) {
+      return { valido: false, mensaje: this.adminData.correo.trim() ? 'El formato del correo no es válido' : 'El correo es obligatorio' };
     }
-
-    if (this.adminData.apellidos.length > 20) {
-      return { valido: false, mensaje: 'Los apellidos no pueden superar 20 caracteres' };
-    }
-
-    if (!this.adminData.correo.trim()) {
-      return { valido: false, mensaje: 'El correo es obligatorio' };
-    }
-
-    // Validar formato de email básico
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.adminData.correo)) {
-      return { valido: false, mensaje: 'El formato del correo no es válido' };
-    }
-
     if (!this.adminData.departamento) {
       return { valido: false, mensaje: 'El departamento es obligatorio' };
     }
-
-    // Si se ingresó contraseña, validarla
-    if (this.adminData.contrasena.trim() !== '') {
-      // Validar longitud mínima
-      if (this.adminData.contrasena.length < 8) {
-        return { valido: false, mensaje: 'La contraseña debe tener al menos 8 caracteres' };
-      }
-
-      // Validar mayúscula
-      if (!/[A-Z]/.test(this.adminData.contrasena)) {
-        return { valido: false, mensaje: 'La contraseña debe incluir al menos una mayúscula' };
-      }
-
-      // Validar número
-      if (!/\d/.test(this.adminData.contrasena)) {
-        return { valido: false, mensaje: 'La contraseña debe incluir al menos un número' };
-      }
-
-      // Validar que no empiece con mayúscula
-      if (/^[A-Z]/.test(this.adminData.contrasena)) {
-        return { valido: false, mensaje: 'La contraseña no puede comenzar con mayúscula' };
-      }
-
-      // Validar que las contraseñas coincidan
-      if (this.adminData.contrasena !== this.adminData.confirmarContrasena) {
-        return { valido: false, mensaje: 'Las contraseñas no coinciden' };
-      }
+    if (this.adminData.contrasena.trim() !== '' && !this.validarContrasena()) {
+      return { valido: false, mensaje: this.obtenerMensajeErrorContrasena() };
     }
-
     return { valido: true, mensaje: '' };
+  }
+
+  private validarContrasena(): boolean {
+    return this.adminData.contrasena.length >= 8 &&
+      /[A-Z]/.test(this.adminData.contrasena) &&
+      /\d/.test(this.adminData.contrasena) &&
+      !/^[A-Z]/.test(this.adminData.contrasena) &&
+      this.adminData.contrasena === this.adminData.confirmarContrasena;
+  }
+
+  private obtenerMensajeErrorContrasena(): string {
+    if (this.adminData.contrasena.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    if (!/[A-Z]/.test(this.adminData.contrasena)) return 'La contraseña debe incluir al menos una mayúscula';
+    if (!/\d/.test(this.adminData.contrasena)) return 'La contraseña debe incluir al menos un número';
+    if (/^[A-Z]/.test(this.adminData.contrasena)) return 'La contraseña no puede comenzar con mayúscula';
+    if (this.adminData.contrasena !== this.adminData.confirmarContrasena) return 'Las contraseñas no coinciden';
+    return '';
   }
 
   /**
@@ -450,5 +416,10 @@ export class AdminAdmsEditPage implements OnInit {
       this.passwordStrength.hasLowerCase &&
       this.passwordStrength.hasNumber &&
       this.passwordStrength.hasSpecialChar;
+  }
+
+  handleImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = 'assets/admin/default.png';
   }
 }

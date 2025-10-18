@@ -25,21 +25,20 @@ export class AdminAdmsAddPage implements OnInit {
 
   departamentos = [
     'Operaciones',
-    'Seguridad',
     'Marketing',
-    'Soporte',
-    'Recursos Humanos',
     'Finanzas',
-    'Desarrollo',
-    'Legal'
+    'Recursos Humanos',
+    'Soporte'
   ];
 
   showAvatarModal = false;
   availableAvatars: string[] = [
-    'assets/admin/predef1.png',
-    'assets/admin/predef2.png',
-    'assets/admin/predef3.png',
-    'assets/admin/predef4.png'
+    'assets/admin/user1.png',
+    'assets/admin/user2.png',
+    'assets/admin/user3.png',
+    'assets/admin/user4.png',
+    'assets/admin/user5.png',
+    'assets/admin/admin_default.png',
   ];
 
   isLoadingAvatars = false;
@@ -85,17 +84,20 @@ export class AdminAdmsAddPage implements OnInit {
   }
 
   checkPasswordStrength(password: string): void {
+    // Default to empty string if password is null or undefined
+    const safePassword = password || '';
+
     this.passwordStrength = {
-      hasMinLength: password.length >= 8,
-      hasUpperCase: /[A-Z]/.test(password),
-      hasLowerCase: /[a-z]/.test(password),
-      hasNumber: /[0-9]/.test(password),
-      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      hasMinLength: safePassword.length >= 8,
+      hasUpperCase: /[A-Z]/.test(safePassword),
+      hasLowerCase: /[a-z]/.test(safePassword),
+      hasNumber: /\d/.test(safePassword),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(safePassword)
     };
   }
 
   get isPasswordValid(): boolean {
-    return Object.values(this.passwordStrength).every(v => v === true);
+    return Object.values(this.passwordStrength).every(v => v);
   }
 
   get passwordRequirements(): string[] {
@@ -133,40 +135,6 @@ export class AdminAdmsAddPage implements OnInit {
     });
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-
-      if (!file.type.startsWith('image/')) {
-        this.errorMessage = 'Por favor, selecciona un archivo de imagen válido.';
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        this.errorMessage = 'La imagen no debe superar los 5MB.';
-        return;
-      }
-
-      this.selectedFile = file;
-      this.selectedAvatar = null;
-
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.previewUrl = e.target.result;
-        this.isDefaultIcon = false;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  triggerFileInput(): void {
-    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
-    }
-  }
-
   openAvatarModal(): void {
     this.showAvatarModal = true;
   }
@@ -185,7 +153,7 @@ export class AdminAdmsAddPage implements OnInit {
 
   shouldShowError(fieldName: string): boolean {
     const field = this.adminForm.get(fieldName);
-    return this.formSubmitted && field !== null && field.invalid;
+    return !!field && this.formSubmitted && field.invalid;
   }
 
   // src/app/pages/ad-admin-add/ad-admin-add.component.ts

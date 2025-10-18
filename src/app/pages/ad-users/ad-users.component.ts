@@ -3,7 +3,7 @@ import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
-import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
+import { SearchBarComponent } from '../../shared/search-bar';
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { UserService, UserEV } from '../../core/services/user.service';
@@ -34,11 +34,11 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
 
   sidebarVisible = false;
   searchTerm = '';
-  
+
   // Estados para carga y errores (de la rama de tu compañero)
   isLoading = true;
   error: string | null = null;
-  
+
   // Configuración de filtros como grupos
   filterGroups: FilterGroup[] = [
     {
@@ -74,7 +74,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
   ];
 
   selectedSort: SortOption | null = null;
-  
+
   // Arrays de datos - INTEGRACIÓN CON BD
   usuarios: UserEV[] = []; // Datos originales de la BD
   allUsers: User[] = []; // Datos transformados para compatibilidad
@@ -141,7 +141,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     console.log(`Altura disponible: ${availableHeight}px, Filas por página: ${this.pageSize}`);
   }
 
-  // ======================================== 
+  // ========================================
   // MÉTODOS DE CARGA DE DATOS
   // ========================================
 
@@ -156,11 +156,11 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
       next: (data) => {
         this.usuarios = data;
         this.totalUsuarios = data.length;
-        
+
         // Transformar UserEV a User para compatibilidad con filtros/búsqueda
         this.allUsers = this.transformarUsuarios(data);
         this.filteredUsers = [...this.allUsers];
-        
+
         this.isLoading = false;
         console.log(`Usuarios cargados: ${this.usuarios.length}`);
 
@@ -169,16 +169,16 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Error al cargar usuarios:', err);
-        
+
         // Mantener arrays vacíos cuando hay error
         this.usuarios = [];
         this.allUsers = [];
         this.filteredUsers = [];
         this.totalUsuarios = 0;
-        
+
         this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
         this.isLoading = false;
-        
+
         // Recalcular pageSize incluso con error para mantener UI consistente
         setTimeout(() => this.calcularPageSize(), 100);
       }
@@ -191,7 +191,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
   private transformarUsuarios(usuarios: UserEV[]): User[] {
     return usuarios.map(usuario => ({
       id: usuario.id,
-      photo: usuario.foto ? `assets/admin/${usuario.foto}` : 'assets/admin/admin_default.png',
+      photo: usuario.foto ? `${usuario.foto}` : 'assets/admin/admin_default.png',
       name: usuario.nombre,
       lastName: usuario.apellidos,
       alias: `@${usuario.alias}`,
@@ -216,7 +216,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     return `${dia}/${mes}/${anio}`;
   }
 
-  // ======================================== 
+  // ========================================
   // MÉTODOS DE NAVEGACIÓN
   // ========================================
 
@@ -251,7 +251,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     this.calcularPageSize();
   }
 
-  // ======================================== 
+  // ========================================
   // MÉTODOS DE BÚSQUEDA Y FILTROS (MANTENER)
   // ========================================
 
@@ -272,7 +272,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     }
 
     const searchLower = this.searchTerm.toLowerCase().trim();
-    
+
     this.filteredUsers = this.filteredUsers.filter(user => {
       return (
         user.name.toLowerCase().includes(searchLower) ||
@@ -310,7 +310,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
         }
       });
     });
-    
+
     this.applyFilters();
     console.log('Filtros activos:', this.getActiveFilters());
   }
@@ -325,7 +325,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
         filter.active = false;
       });
     });
-    
+
     this.applyFilters();
     console.log('Todos los filtros limpiados');
   }
@@ -350,10 +350,10 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
    */
   private applyFilters(): void {
     let data = [...this.allUsers];
-    
+
     // Obtener todos los filtros activos de todos los grupos
     const activeFilters = this.getActiveFilters();
-    
+
     if (activeFilters.length > 0) {
       data = data.filter(user => {
         // Verificar si el usuario pasa TODOS los filtros activos (AND lógico)
@@ -370,23 +370,23 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
         });
       });
     }
-    
+
     // Aplicar primero los filtros, luego la búsqueda
     this.filteredUsers = data;
-    
+
     // Si hay un término de búsqueda, aplicarlo sobre los datos ya filtrados
     if (this.searchTerm.trim()) {
       this.performSearchOnFiltered();
     }
-    
+
     // Aplicar ordenamiento si hay uno seleccionado
     if (this.selectedSort) {
       this.applySorting();
     }
-    
+
     // Resetear a la primera página cuando cambian los filtros
     this.currentPage = 1;
-    
+
     console.log(`Filtros aplicados. Usuarios mostrados: ${this.filteredUsers.length} de ${this.allUsers.length}`);
   }
 
@@ -405,12 +405,12 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     if (this.error) {
       return this.error;
     }
-    
+
     // Si está cargando, no mostrar mensaje
     if (this.isLoading) {
       return '';
     }
-    
+
     const activeFilters = this.getActiveFilters();
     const hasSearch = this.searchTerm.trim().length > 0;
     const hasFilters = activeFilters.length > 0;
@@ -435,7 +435,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     if (this.error) {
       return 'Reintentar conexión';
     }
-    
+
     const hasSearch = this.searchTerm.trim().length > 0;
     const hasFilters = this.getActiveFilters().length > 0;
 
@@ -459,7 +459,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
       this.cargarUsuarios();
       return;
     }
-    
+
     // Si no hay error, limpiar búsqueda y filtros
     this.searchTerm = '';
     this.onClearAllFilters();
@@ -496,7 +496,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
         const [dayB, monthB, yearB] = valueBStr.split('/');
         const dateA = new Date(parseInt(yearA), parseInt(monthA) - 1, parseInt(dayA));
         const dateB = new Date(parseInt(yearB), parseInt(monthB) - 1, parseInt(dayB));
-        
+
         if (this.selectedSort!.direction === 'asc') {
           return dateA.getTime() - dateB.getTime();
         } else {
@@ -516,7 +516,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
     });
   }
 
-  // ======================================== 
+  // ========================================
   // MÉTODOS DE PAGINACIÓN Y OTROS
   // ========================================
 
@@ -578,8 +578,7 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
    */
   editarUsuario(id: string): void {
     console.log('Editar usuario:', id);
-    // TODO: Implementar navegación a página de edición
-    // this.router.navigate(['/ad-users/edit', id]);
+    this.router.navigate(['/ad-users-edit', id]);
   }
 
   /**
@@ -587,7 +586,70 @@ export class AdminUsersPage implements OnInit, AfterViewInit {
    */
   eliminarUsuario(id: string): void {
     console.log('Eliminar usuario:', id);
-    // TODO: Implementar diálogo de confirmación y eliminación
   }
 
+  /**
+   * Obtiene la ruta de la foto del usuario o la foto por defecto
+   */
+  getUserPhoto(foto: string | undefined | null): string {
+    if (!foto || foto.trim() === '') {
+      return 'assets/admin/default.png';
+    }
+
+    if (!foto.startsWith('assets/')) {
+      return `assets/admin/${foto}`;
+    }
+
+    return foto;
+  }
+
+  handleImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = 'assets/admin/default.png';
+  }
+
+  handleKeyDown(event: KeyboardEvent, action: () => void) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      action();
+    }
+  }
+
+  handleKeyUp(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+    }
+  }
+
+  onEditUserKeyDown(event: KeyboardEvent, id: string) {
+    this.handleKeyDown(event, () => this.editarUsuario(id));
+  }
+
+  onEditUserKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
+
+  onPagePreviousKeyDown(event: KeyboardEvent) {
+    this.handleKeyDown(event, () => {
+      if (this.currentPage > 1) {
+        this.paginaAnterior();
+      }
+    });
+  }
+
+  onPagePreviousKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
+
+  onPageNextKeyDown(event: KeyboardEvent) {
+    this.handleKeyDown(event, () => {
+      if (this.currentPage < this.totalPaginas) {
+        this.paginaSiguiente();
+      }
+    });
+  }
+
+  onPageNextKeyUp(event: KeyboardEvent) {
+    this.handleKeyUp(event);
+  }
 }
