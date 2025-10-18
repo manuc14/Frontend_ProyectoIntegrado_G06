@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { extractApiErrorMessage } from '../utils/error-utils';
 import { environment } from '../../../environments/environment';
 
 /*
@@ -41,10 +42,8 @@ export class AdminService {
     return (error: HttpErrorResponse): Observable<never> => {
       let adminMessage = 'Se ha producido un error inesperado. Inténtelo de nuevo más tarde.';
 
-      // Si el backend envía un mensaje de error personalizado, usarlo
-      if (error.error && typeof error.error === 'object' && error.error.message) {
-        adminMessage = error.error.message;
-      }
+      const e = extractApiErrorMessage(error);
+      if (e?.message) adminMessage = e.message;
 
       console.error(`Error en ${operation}:`, error);
       return throwError(() => new Error(adminMessage));

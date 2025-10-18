@@ -489,7 +489,7 @@ export class UploadContentComponent implements OnInit, AfterViewInit {
 
   private buildPayload(): any {
     // Priorizar miniatura local sobre la seleccionada del backend
-    const thumbnailUrl = this.localThumbnailUrl || this.selectedThumbnailUrl;
+    const thumbnailUrl = this.localThumbnailUrl ?? this.selectedThumbnailUrl;
     
     return {
       titulo: this.title,

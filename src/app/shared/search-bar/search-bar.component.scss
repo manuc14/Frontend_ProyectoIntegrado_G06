@@ -1,29 +1,4 @@
-// ========================================
-// MIXINS REUTILIZABLES
-// ========================================
-
-@mixin flex-container($direction: row, $gap: 0, $align: flex-start, $justify: flex-start) {
-  display: flex;
-  flex-direction: $direction;
-  gap: $gap;
-  align-items: $align;
-  justify-content: $justify;
-}
-
-@mixin icon-size($size: 18px) {
-  width: $size;
-  height: $size;
-  flex-shrink: 0;
-  overflow: visible;
-}
-
-@mixin button-base {
-  border: none;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-  position: relative;
-}
+@import '../admin-mixins.scss';
 
 // ========================================
 // COMPONENTE SEARCH BAR

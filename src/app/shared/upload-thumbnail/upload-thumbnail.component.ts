@@ -159,7 +159,7 @@ export class UploadThumbnailComponent {
    * Getters públicos para acceso desde el componente padre
    */
   public get currentState(): ThumbnailUploadState {
-    return this.thumbnailData?.state || 'idle';
+    return this.thumbnailData?.state ?? 'idle';
   }
 
   public get uploadedUrl(): string | undefined {

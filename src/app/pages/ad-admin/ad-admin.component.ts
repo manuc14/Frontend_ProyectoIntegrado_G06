@@ -8,6 +8,7 @@ import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { AdminService, AdminEV } from '../../core/services/admin.service';
 import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
+import { getActiveFilters, filterAndSearch, applySorting } from '../../core/utils/list-utils';
 import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
@@ -283,15 +284,7 @@ export class AdminAdmsPage implements OnInit {
    * Obtiene los filtros activos para debugging
    */
   private getActiveFilters(): any[] {
-    const activeFilters: any[] = [];
-    this.filterGroups.forEach(group => {
-      group.filters.forEach(filter => {
-        if (filter.active) {
-          activeFilters.push({ ...filter, groupId: group.id });
-        }
-      });
-    });
-    return activeFilters;
+    return getActiveFilters(this.filterGroups);
   }
 
   /**
@@ -299,36 +292,22 @@ export class AdminAdmsPage implements OnInit {
    */
   private applyFilters(): void {
     // Reutilizar el flujo unificado
-  this.applyFiltersAndSearch();
-  if (this.selectedSort) this.applySorting();
+  this.filteredAdmins = filterAndSearch(this.allAdmins, getActiveFilters(this.filterGroups), this.searchTerm, ['nombre','apellidos','alias','correo','departamento'], (item, filter) => {
+    if (filter.groupId === 'department') return item.departamento === filter.value;
+    if (filter.groupId === 'status') return item.activo === filter.value;
+    return true;
+  });
+  if (this.selectedSort) this.filteredAdmins = applySorting(this.filteredAdmins, this.selectedSort, (v:any) => toTimestampFromString(String(v)) ?? 0);
   }
 
   /**
    * Aplica filtros y búsqueda en un único flujo (AND entre filtros, búsqueda sobre campos relevantes)
    */
   private applyFiltersAndSearch(): void {
-    const term = this.searchTerm.toLowerCase().trim();
-    const activeFilters = this.getActiveFilters();
-
-    this.filteredAdmins = this.allAdmins.filter(admin => {
-      if (activeFilters.length > 0) {
-        const ok = activeFilters.every(filter => {
-          if (filter.groupId === 'department') return admin.departamento === filter.value;
-          if (filter.groupId === 'status') return admin.activo === filter.value;
-          return true;
-        });
-        if (!ok) return false;
-      }
-
-      if (term.length === 0) return true;
-
-      return (
-        (admin.nombre?.toLowerCase() || '').includes(term) ||
-        (admin.apellidos?.toLowerCase() || '').includes(term) ||
-        (admin.alias?.toLowerCase() || '').includes(term) ||
-        (admin.correo?.toLowerCase() || '').includes(term) ||
-        (admin.departamento?.toLowerCase() || '').includes(term)
-      );
+    this.filteredAdmins = filterAndSearch(this.allAdmins, getActiveFilters(this.filterGroups), this.searchTerm, ['nombre','apellidos','alias','correo','departamento'], (item, filter) => {
+      if (filter.groupId === 'department') return item.departamento === filter.value;
+      if (filter.groupId === 'status') return item.activo === filter.value;
+      return true;
     });
   }
 
@@ -344,28 +323,8 @@ export class AdminAdmsPage implements OnInit {
    * Aplica el ordenamiento seleccionado a los datos filtrados
    */
   private applySorting(): void {
-    if (!this.selectedSort) {
-      return;
-    }
-
-    const field = this.selectedSort.field as keyof AdminEV;
-    const dir = this.selectedSort.direction === 'asc' ? 1 : -1;
-
-    this.filteredAdmins.sort((a, b) => {
-      const va = a[field];
-      const vb = b[field];
-
-      // Si hay campos de fecha, intentar parsear a timestamp
-      if (field === ('fechaNacimiento' as keyof AdminEV) || field === ('fecha' as keyof AdminEV)) {
-        const ta = toTimestampFromString(String((a as any)[field])) ?? 0;
-        const tb = toTimestampFromString(String((b as any)[field])) ?? 0;
-        return (ta - tb) * dir;
-      }
-
-      return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
-    });
-
-    // Ordenamiento aplicado
+    if (!this.selectedSort) return;
+    this.filteredAdmins = applySorting(this.filteredAdmins, this.selectedSort, (v:any) => toTimestampFromString(String(v)) ?? 0);
   }
 
   /**

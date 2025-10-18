@@ -8,6 +8,7 @@ import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { CreatorService, CreatorEC } from '../../core/services/creator.service';
 import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
+import { getActiveFilters, filterAndSearch, applySorting } from '../../core/utils/list-utils';
 import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
@@ -276,15 +277,7 @@ export class AdminCreatorsPage implements OnInit {
    * Obtiene los filtros activos para debugging
    */
   private getActiveFilters(): any[] {
-    const activeFilters: any[] = [];
-    this.filterGroups.forEach(group => {
-      group.filters.forEach(filter => {
-        if (filter.active) {
-          activeFilters.push({ ...filter, groupId: group.id });
-        }
-      });
-    });
-    return activeFilters;
+    return getActiveFilters(this.filterGroups);
   }
 
   /**
@@ -292,37 +285,23 @@ export class AdminCreatorsPage implements OnInit {
    */
   private applyFilters(): void {
   // Reusar el flujo unificado
-  this.applyFiltersAndSearch();
+  this.filteredCreators = filterAndSearch(this.allCreators, getActiveFilters(this.filterGroups), this.searchTerm, ['nombre','apellidos','alias','correo','especialidad'], (item, filter) => {
+    if (filter.groupId === 'category') return item.especialidad === filter.value;
+    if (filter.groupId === 'status') return item.activo === filter.value;
+    return true;
+  });
   this.currentPage = 1;
-  if (this.selectedSort) this.applySorting();
+  if (this.selectedSort) this.filteredCreators = applySorting(this.filteredCreators, this.selectedSort, (v:any) => toTimestampFromString(String(v)) ?? 0);
   }
 
   /**
    * Aplica filtros y búsqueda en un único flujo (reduce complejidad)
    */
   private applyFiltersAndSearch(): void {
-    const term = this.searchTerm.toLowerCase().trim();
-    const activeFilters = this.getActiveFilters();
-
-    this.filteredCreators = this.allCreators.filter(creator => {
-      if (activeFilters.length > 0) {
-        const ok = activeFilters.every(filter => {
-          if (filter.groupId === 'category') return creator.especialidad === filter.value;
-          if (filter.groupId === 'status') return creator.activo === filter.value;
-          return true;
-        });
-        if (!ok) return false;
-      }
-
-      if (term.length === 0) return true;
-
-      return (
-        (creator.nombre?.toLowerCase() || '').includes(term) ||
-        (creator.apellidos?.toLowerCase() || '').includes(term) ||
-        (creator.alias?.toLowerCase() || '').includes(term) ||
-        (creator.correo?.toLowerCase() || '').includes(term) ||
-        (creator.especialidad?.toLowerCase() || '').includes(term)
-      );
+    this.filteredCreators = filterAndSearch(this.allCreators, getActiveFilters(this.filterGroups), this.searchTerm, ['nombre','apellidos','alias','correo','especialidad'], (item, filter) => {
+      if (filter.groupId === 'category') return item.especialidad === filter.value;
+      if (filter.groupId === 'status') return item.activo === filter.value;
+      return true;
     });
   }
 
@@ -363,33 +342,12 @@ export class AdminCreatorsPage implements OnInit {
    * Aplica el ordenamiento seleccionado a los datos filtrados
    */
   private applySorting(): void {
-    if (!this.selectedSort) {
-      return;
+    if (!this.selectedSort) return;
+    // alias normalization handled by comparator via localeCompare; pre-process for alias field
+    if (this.selectedSort.field === 'alias') {
+      this.filteredCreators = this.filteredCreators.map(c => ({ ...c, alias: String(c.alias).replace('@','') }));
     }
-    const field = this.selectedSort.field as keyof CreatorEC;
-    const dir = this.selectedSort.direction === 'asc' ? 1 : -1;
-
-    this.filteredCreators.sort((a, b) => {
-      let va = (a[field] as any) ?? '';
-      let vb = (b[field] as any) ?? '';
-
-      // Normalizar alias
-      if (field === 'alias') {
-        va = String(va).replace('@', '');
-        vb = String(vb).replace('@', '');
-      }
-
-      // Si fuera fecha, intentar comparar por timestamp
-      if (field === ('fechaNacimiento' as keyof CreatorEC) || field === ('fecha' as keyof CreatorEC)) {
-        const ta = toTimestampFromString(String((a as any)[field])) ?? 0;
-        const tb = toTimestampFromString(String((b as any)[field])) ?? 0;
-        return (ta - tb) * dir;
-      }
-
-      return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
-    });
-
-    // Ordenamiento aplicado
+    this.filteredCreators = applySorting(this.filteredCreators, this.selectedSort, (v:any) => toTimestampFromString(String(v)) ?? 0);
   }
 
   // ========================================

@@ -8,6 +8,7 @@ import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons
 import { SortDropdownComponent, SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { UserService, UserEV } from '../../core/services/user.service';
 import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
+import { getActiveFilters, filterAndSearch, applySorting } from '../../core/utils/list-utils';
 import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
@@ -234,30 +235,10 @@ export class AdminUsersPage implements OnInit {
    * Aplica búsqueda y filtros en un único flujo (reduce ramas y duplicación)
    */
   private applyFiltersAndSearch(): void {
-    const term = this.searchTerm.toLowerCase().trim();
-
-    const activeFilters = this.getActiveFilters();
-
-    this.filteredUsers = this.allUsers.filter(user => {
-      // Si hay filtros activos, cada filtro debe cumplirse (AND)
-      if (activeFilters.length > 0) {
-        const okFilters = activeFilters.every(filter => {
-          if (filter.groupId === 'role') return user.role === filter.value;
-          if (filter.groupId === 'status') return user.status === filter.value;
-          return true;
-        });
-        if (!okFilters) return false;
-      }
-
-      // Búsqueda (si hay término)
-      if (term.length === 0) return true;
-
-      return (
-        user.name.toLowerCase().includes(term) ||
-        user.lastName.toLowerCase().includes(term) ||
-        user.alias.toLowerCase().includes(term) ||
-        user.email.toLowerCase().includes(term)
-      );
+    this.filteredUsers = filterAndSearch(this.allUsers, getActiveFilters(this.filterGroups), this.searchTerm, ['name','lastName','alias','email'], (item, filter) => {
+      if (filter.groupId === 'role') return item.role === filter.value;
+      if (filter.groupId === 'status') return item.status === filter.value;
+      return true;
     });
   }
 
@@ -421,22 +402,7 @@ export class AdminUsersPage implements OnInit {
     if (!this.selectedSort) {
       return;
     }
-    const field = this.selectedSort.field as keyof User;
-    const dir = this.selectedSort.direction === 'asc' ? 1 : -1;
-
-    this.filteredUsers.sort((a, b) => {
-      const va = a[field];
-      const vb = b[field];
-
-      // Si es fecha, convertir a timestamp usando helper (acepta DD/MM/YYYY o ISO)
-      if (field === 'birthDate') {
-        const ta = toTimestampFromString(String(va)) ?? 0;
-        const tb = toTimestampFromString(String(vb)) ?? 0;
-        return (ta - tb) * dir;
-      }
-
-      return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
-    });
+    this.filteredUsers = applySorting(this.filteredUsers, this.selectedSort, (v:any) => toTimestampFromString(String(v)) ?? 0);
   }
 
   // ======================================== 
