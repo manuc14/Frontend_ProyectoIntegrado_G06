@@ -6,9 +6,6 @@
    VARIABLES DE COLOR - NUEVA PALETA
    -------------------------------------------------------------------------- */
 
-@use 'app/shared/admin-tokens' as *;
-@use 'app/shared/admin-shared' as *;
-
 :root {
   /* Colores principales */
   --background: #eef1f6;
@@ -72,8 +69,6 @@ a, button, input, select, h1, h2, h3, h4, h5, * {
     -webkit-font-smoothing: antialiased;
     color-scheme: light;
 }
-
-/* Include shared admin styles globally to avoid duplicating them in component styles */
 
 /* Reset de elementos de lista */
 menu, ol, ul {
