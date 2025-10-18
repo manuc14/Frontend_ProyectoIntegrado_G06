@@ -11,6 +11,7 @@ import { InputFieldComponent } from '../../shared/input-field/input-field.compon
 import { ToggleBlockButtonComponent } from '../../shared/toggle-block-button/toggle-block-button.component';
 import { FormActionsComponent } from '../../shared/form-actions/form-actions.component';
 import { DateFieldComponent } from '../../shared/date-field/date-field.component';
+import {BaseEditService} from '../../shared/base-edit/base-edit.service';
 
 interface UserEditData {
   nombre: string;
@@ -79,7 +80,8 @@ export class AdminUsersEditPage implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private userService: UserService
+    private userService: UserService,
+    private baseEditService: BaseEditService
   ) {}
 
   ngOnInit(): void {
@@ -273,13 +275,7 @@ export class AdminUsersEditPage implements OnInit {
       },
       error: (err: BackendErrorResponse) => {
         console.error('Error al actualizar usuario:', err);
-        let errorMessage = err.message || 'Error al guardar los cambios';
-        if (err.errors && err.errors.length > 0) {
-          errorMessage += '\nDetalles:\n' + err.errors.map(e => `- ${e.message}`).join('\n');
-        } else if (err.details) {
-          errorMessage += '\nDetalles: ' + JSON.stringify(err.details);
-        }
-        this.error = errorMessage;
+        this.error = this.baseEditService.handleError(err);
         this.isSaving = false;
       }
     });

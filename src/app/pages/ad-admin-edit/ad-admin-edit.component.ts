@@ -13,6 +13,7 @@ import { ConfirmPasswordFieldComponent } from '../../shared/confirm-password-fie
 import { SelectFieldComponent } from '../../shared/select-field/select-field.component';
 import { ToggleBlockButtonComponent } from '../../shared/toggle-block-button/toggle-block-button.component';
 import { FormActionsComponent } from '../../shared/form-actions/form-actions.component';
+import { BaseEditService } from '../../shared/base-edit/base-edit.service';
 
 interface AdminEditData {
   nombre: string;
@@ -99,7 +100,8 @@ export class AdminAdmsEditPage implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private adminService: AdminService
+    private adminService: AdminService,
+    private baseEditService: BaseEditService
   ) {}
 
   ngOnInit(): void {
@@ -265,13 +267,7 @@ export class AdminAdmsEditPage implements OnInit {
       },
       error: (err: BackendErrorResponse) => {
         console.error('Error al actualizar administrador:', err);
-        let errorMessage = err.message || 'Error al guardar los cambios';
-        if (err.errors && err.errors.length > 0) {
-          errorMessage += '\nDetalles:\n' + err.errors.map(e => `- ${e.message}`).join('\n');
-        } else if (err.details) {
-          errorMessage += '\nDetalles: ' + JSON.stringify(err.details);
-        }
-        this.error = errorMessage;
+        this.error = this.baseEditService.handleError(err);
         this.isSaving = false;
       }
     });
@@ -315,13 +311,7 @@ export class AdminAdmsEditPage implements OnInit {
   }
 
   get passwordRequirements(): string[] {
-    const requirements: string[] = [];
-    if (!this.passwordStrength.hasMinLength) requirements.push('Mínimo 8 caracteres');
-    if (!this.passwordStrength.hasUpperCase) requirements.push('Al menos una mayúscula');
-    if (!this.passwordStrength.hasLowerCase) requirements.push('Al menos una minúscula');
-    if (!this.passwordStrength.hasNumber) requirements.push('Al menos un dígito');
-    if (!this.passwordStrength.hasSpecialChar) requirements.push('Al menos un carácter especial');
-    return requirements;
+    return this.baseEditService.getPasswordRequirements(this.passwordStrength);
   }
 
   get isPasswordStrong(): boolean {

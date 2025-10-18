@@ -153,7 +153,7 @@ export class ApiService {
     };
   }
 
-  /** 
+  /**
    * Obtiene las secciones de contenido para la página principal.
    * Incluye fallback vacío cuando se usan mocks para desarrollo.
    */
@@ -169,7 +169,7 @@ export class ApiService {
     );
   }
 
-  /** 
+  /**
    * Registra un nuevo usuario en el sistema.
    * Devuelve la respuesta HTTP completa para leer códigos de estado.
    */
@@ -177,7 +177,7 @@ export class ApiService {
     return this.http.post<RegisterResponse>(`${this.base}/auth/register`, body, { observe: 'response' });
   }
 
-  /** 
+  /**
    * Autentica usuario y devuelve datos de sesión.
    * Incluye información de perfil y token para requests posteriores.
    */
@@ -188,7 +188,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Obtiene la lista de avatares predefinidos disponibles.
    * Devuelve la respuesta completa con avatares y avatar por defecto.
    * Si falla, propaga el error para que el componente pueda manejarlo.
@@ -199,7 +199,7 @@ export class ApiService {
     );
   }
 
-  /** 
+  /**
    * Construye la URL completa para un avatar dado su ruta relativa.
    * El proxy redirige /resources/* al backend automáticamente.
    */
@@ -207,7 +207,7 @@ export class ApiService {
     return relativePath;
   }
 
-  /** 
+  /**
    * Solicita el restablecimiento de contraseña enviando un código al email.
    * Primer paso del flujo de recuperación de contraseña.
    */
@@ -215,7 +215,7 @@ export class ApiService {
     return this.http.post<ForgotPasswordResponse>(`${this.base}/auth/forgot-password`, { email });
   }
 
-  /** 
+  /**
    * Verifica el código de restablecimiento usando el token.
    * Segundo paso del flujo de recuperación de contraseña.
    */
@@ -226,7 +226,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Establece nueva contraseña usando el token verificado.
    * Tercer paso del flujo de recuperación de contraseña.
    */
@@ -234,7 +234,7 @@ export class ApiService {
     return this.http.post<ResetPasswordResponse>(`${this.base}/auth/reset-password?token=${token}`, { newPassword, repetirPassword })
   }
 
-  /** 
+  /**
    * Reenvía el código de restablecimiento usando el token actual.
    * Permite reenviar el código sin generar un nuevo token.
    */
@@ -245,7 +245,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Verifica el código de verificación de usuario usando el token de verificación.
    * Utiliza el endpoint POST /api/auth/verify?token={token} con el código en el body.
    */
@@ -256,7 +256,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Reenvía un nuevo código de verificación usando el token actual.
    * Utiliza el endpoint POST /api/auth/resend-code?token={token}.
    */
@@ -267,7 +267,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Valida un token de reset de contraseña antes de mostrar la pantalla.
    * Verifica si la sesión existe y si el código fue validado.
    */
@@ -275,7 +275,7 @@ export class ApiService {
     return this.http.get<ResetTokenValidationResponse>(`${this.base}/auth/validate-reset-token?token=${token}`);
   }
 
-  /** 
+  /**
    * Valida un token de verificación de email antes de mostrar la pantalla.
    * Verifica si la sesión existe y si el código fue validado.
    */
