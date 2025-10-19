@@ -1,12 +1,12 @@
 import {Component, HostListener} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {Router} from '@angular/router';
+import {Router, ActivatedRoute} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption } from '../../shared/sort-dropdown/sort-dropdown.component';
-import { UserService, UserEV } from '../../core/services/user.service';
+import { AdminEntityService, UserEV } from '../../core/services/admin-entity.service';
 import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
 import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
@@ -77,9 +77,20 @@ export class AdminUsersPage extends AdminListBase<User> {
 
   constructor(
     protected override router: Router,
-    private userService: UserService
+    private userService: AdminEntityService,
+    private route: ActivatedRoute
   ) {
     super(router);
+  }
+
+  override ngOnInit(): void {
+    // Verificar que haya token en sessionStorage
+    const storedToken = sessionStorage.getItem('authToken');
+    if (!storedToken) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.loadData();
   }
 
   loadData(): void {
@@ -235,7 +246,10 @@ export class AdminUsersPage extends AdminListBase<User> {
   }
 
   editarUsuario(id: string): void {
-    // Navegar a la página de edición de usuarios pasando el id
     this.router.navigate(['/ad-users-edit', id]);
+  }
+
+  addNewUser(): void {
+    this.router.navigate(['/ad-users-add']);
   }
 }

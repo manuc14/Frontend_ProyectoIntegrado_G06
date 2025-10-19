@@ -51,7 +51,19 @@ export class AdminSidebarComponent implements OnInit {
   }
 
   goTo(route: string) {
-    this.navigate.emit(route);
+    switch (route) {
+      case 'users':
+        this.router.navigate(['/ad-users']);
+        break;
+      case 'admins':
+        this.router.navigate(['/ad-admin']);
+        break;
+      case 'creators':
+        this.router.navigate(['/ad-creators']);
+        break;
+      default:
+        break;
+    }
   }
 
 }

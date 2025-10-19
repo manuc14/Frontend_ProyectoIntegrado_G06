@@ -7,6 +7,11 @@ import { extractApiErrorMessage } from '../utils/error-utils';
  * Convierte errores técnicos en mensajes amigables para el usuario
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  // No interceptar errores para login, dejar que api.service lo maneje
+  if (req.url.includes('/auth/login')) {
+    return next(req);
+  }
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let userMessage = 'Ha ocurrido un error inesperado';

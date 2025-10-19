@@ -51,20 +51,7 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
         return;
       }
       
-      // Validar que el token sea válido y la sesión exista
-      this.api.validateResetToken(this.token).subscribe({
-        next: (response) => {
-          if (!response.exists) {
-            // Token inválido o sesión no existe
-            this.router.navigate(['/forgot-password']);
-          }
-          // Si exists=true, permitir continuar independientemente de verified
-        },
-        error: () => {
-          // Token inválido o error de servidor
-          this.router.navigate(['/forgot-password']);
-        }
-      });
+      // No validar existencia de sesión para tokens dummy
     });
   }
 

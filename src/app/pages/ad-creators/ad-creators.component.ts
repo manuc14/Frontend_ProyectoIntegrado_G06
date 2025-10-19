@@ -1,12 +1,12 @@
 import {Component, HostListener} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {Router} from '@angular/router';
+import {Router, ActivatedRoute} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption } from '../../shared/sort-dropdown/sort-dropdown.component';
-import { CreatorService, CreatorEC } from '../../core/services/creator.service';
+import { AdminEntityService, CreatorEC } from '../../core/services/admin-entity.service';
 import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
 import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
@@ -67,9 +67,20 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
 
   constructor(
     protected override router: Router,
-    private creatorService: CreatorService
+    private creatorService: AdminEntityService,
+    private route: ActivatedRoute
   ) {
     super(router);
+  }
+
+  override ngOnInit(): void {
+    // Verificar que haya token en sessionStorage
+    const storedToken = sessionStorage.getItem('authToken');
+    if (!storedToken) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.loadData();
   }
 
   loadData(): void {
@@ -79,6 +90,7 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
     this.creatorService.listarCreadores()
       .pipe(
         tap((data: CreatorEC[]) => {
+          console.log('Creadores recibidos del backend:', data);
           this.allItems = data.map(d => ({ ...d, fechaNacimientoFormatted: formatDateIsoToDDMMYYYY((d as any).fechaNacimiento), fullName: `${d.nombre} ${d.apellidos}` } as CreatorEC));
           this.filteredItems = [...this.allItems];
         }),
@@ -152,7 +164,6 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
   }
 
   editarCreador(id: string): void {
-    // Navegar a la página de edición de creadores pasando el id
     this.router.navigate(['/ad-creators-edit', id]);
   }
 

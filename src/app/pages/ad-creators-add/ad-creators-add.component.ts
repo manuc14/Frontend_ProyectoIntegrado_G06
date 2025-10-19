@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { AdminEntityFormComponent } from '../../shared/components/admin-entity-form/admin-entity-form.component';
-import { CreatorService } from '../../core/services/creator.service';
+import { AdminEntityService } from '../../core/services/admin-entity.service';
 
 @Component({
   selector: 'app-adcreatorsadd',
@@ -12,10 +12,10 @@ import { CreatorService } from '../../core/services/creator.service';
       [service]="creatorService"
       title="Añadir creador de contenido"
       backRoute="/ad-creators"
-      successRoute="/ad-creators-add-success">
+      successRoute="/ad-creators">
     </app-admin-entity-form>
   `
 })
 export class AdminCreatorsAddPage {
-  constructor(public creatorService: CreatorService) {}
+  constructor(public creatorService: AdminEntityService) {}
 }

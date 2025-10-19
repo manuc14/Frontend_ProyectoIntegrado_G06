@@ -5,9 +5,15 @@ import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { UploadThumbnailComponent } from '../../shared/upload-thumbnail/upload-thumbnail.component';
 import { ApiService } from '../../core/services/api.service';
-import { UploadAudioService } from '../../core/services/upload-audio.service';
+import { UploadService } from '../../core/services/upload.service';
 import { lastValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
+
+// Interfaces para respuestas del backend
+interface ThumbnailsResponse {
+  thumbnails: string[];
+  defaultThumbnail: string;
+}
 
 @Component({
   selector: 'app-upload-content',
@@ -22,7 +28,7 @@ export class UploadContentComponent implements OnInit, AfterViewInit {
   constructor(
     private api: ApiService, 
     private router: Router,
-    private uploadAudioService: UploadAudioService
+    private uploadAudioService: UploadService
   ) {}
   // form model
   title = '';
@@ -585,7 +591,7 @@ export class UploadContentComponent implements OnInit, AfterViewInit {
     this.loadingThumbnails = true;
     this.thumbnailLoadError = false;
     this.api.getThumbnails().subscribe({
-      next: (response) => {
+      next: (response: ThumbnailsResponse) => {
         // La API devuelve un objeto con la lista de miniaturas y la miniatura por defecto
         this.thumbnails = response?.thumbnails || [];
         this.defaultThumbnail = response?.defaultThumbnail || '';
@@ -593,7 +599,7 @@ export class UploadContentComponent implements OnInit, AfterViewInit {
         // Actualizar la URL seleccionada con la miniatura por defecto
         this.selectedThumbnailUrl = this.defaultThumbnail ? this.getThumbnailUrl(this.defaultThumbnail) : null;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error al cargar miniaturas:', error);
         // Mostrar mensaje de error y configurar miniatura por defecto vacía
         this.loadingThumbnails = false;

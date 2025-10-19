@@ -18,7 +18,7 @@ export interface RegisterRequest {
   password: string;
   repetirPassword: string;
   esVip: boolean;
-  foto: string; // Ruta del avatar seleccionado (ej: "/avatars/avatar1.png")
+  foto?: string; // Ruta del avatar seleccionado (ej: "/avatars/avatar1.png"), opcional para usar el por defecto
   activo: boolean;
 }
 
@@ -110,41 +110,63 @@ export class ApiService {
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = defaultMessage;
+      let userMessage = '';
 
-      // Si el backend envía un mensaje de error personalizado, usarlo
-      if (error.error && typeof error.error === 'object' && error.error.message) {
-        userMessage = error.error.message;
-      } else {
-        // Mensajes amigables basados en códigos de estado HTTP
-        switch (error.status) {
-          case 400:
-            userMessage = 'Los datos enviados no son válidos. Por favor, verifica la información.';
-            break;
-          case 401:
-            userMessage = 'No tienes autorización para realizar esta acción.';
-            break;
-          case 403:
-            userMessage = 'No tienes permisos para acceder a este recurso.';
-            break;
-          case 404:
-            userMessage = 'El servicio solicitado no está disponible en este momento.';
-            break;
-          case 409:
-            userMessage = 'Ya existe un registro con esta información.';
-            break;
-          case 500:
-            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
-            break;
-          case 503:
-            userMessage = 'El servicio no está disponible temporalmente.';
-            break;
-          default:
-            if (error.status === 0) {
-              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
+      // Intentar extraer mensaje del backend
+      if (error.error) {
+        if (typeof error.error === 'string') {
+          // Intentar parsear como JSON
+          try {
+            const parsed = JSON.parse(error.error);
+            if (parsed.message) {
+              userMessage = parsed.message;
+            } else if (parsed.error) {
+              userMessage = parsed.error;
             } else {
-              userMessage = defaultMessage;
+              userMessage = error.error; // usar el string como mensaje
             }
+          } catch {
+            userMessage = error.error; // no es JSON, usar como string
+          }
+        } else if (typeof error.error === 'object' && error.error.message) {
+          userMessage = error.error.message;
+        }
+      }
+
+      // Si no hay mensaje del backend, usar mensajes por status
+      if (!userMessage) {
+        if (operation === 'inicio de sesión') {
+          userMessage = defaultMessage;
+        } else {
+          switch (error.status) {
+            case 400:
+              userMessage = 'Los datos enviados no son válidos. Por favor, verifica la información.';
+              break;
+            case 403:
+              userMessage = 'No tienes permisos para acceder a este recurso.';
+              break;
+            case 404:
+              userMessage = 'El servicio solicitado no está disponible en este momento.';
+              break;
+            case 409:
+              userMessage = 'Ya existe un registro con esta información.';
+              break;
+            case 429:
+              userMessage = 'Demasiadas solicitudes. Por favor, espera un momento antes de intentar de nuevo.';
+              break;
+            case 500:
+              userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
+              break;
+            case 503:
+              userMessage = 'El servicio no está disponible temporalmente.';
+              break;
+            default:
+              if (error.status === 0) {
+                userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
+              } else {
+                userMessage = defaultMessage;
+              }
+          }
         }
       }
 
@@ -281,6 +303,38 @@ export class ApiService {
    */
   validateVerificationToken(token: string): Observable<VerificationTokenValidationResponse> {
     return this.http.get<VerificationTokenValidationResponse>(`${this.base}/auth/validate-verification-token?token=${token}`);
+  }
+
+  /**
+   * Obtiene la lista de miniaturas disponibles del backend
+   */
+  getThumbnails(): Observable<{thumbnails: string[], defaultThumbnail: string}> {
+    return this.http.get<{thumbnails: string[], defaultThumbnail: string}>(`${this.base}/thumbnails`)
+      .pipe(
+        catchError(this.handleError('obtener miniaturas', 'No se pudieron cargar las miniaturas'))
+      );
+  }
+
+  /**
+   * Crea nuevo contenido en el backend
+   */
+  createContent(payload: any): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.post(`${this.base}/content`, payload, { headers })
+      .pipe(
+        catchError(this.handleError('crear contenido', 'No se pudo crear el contenido'))
+      );
+  }
+
+  /**
+   * Obtiene la URL completa para una miniatura
+   */
+  getFullThumbnailUrl(relativePath: string): string {
+    if (relativePath.startsWith('http')) {
+      return relativePath;
+    }
+    const cleanPath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+    return `${this.base.replace('/api', '')}${cleanPath}`;
   }
 }
 

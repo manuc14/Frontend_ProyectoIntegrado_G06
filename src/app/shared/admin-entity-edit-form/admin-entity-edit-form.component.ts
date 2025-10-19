@@ -2,9 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AdminService, BackendErrorResponse } from '../../core/services/admin.service';
-import { CreatorService, BackendErrorResponse as CreatorBackendErrorResponse } from '../../core/services/creator.service';
-import { UserService, BackendErrorResponse as UserBackendErrorResponse } from '../../core/services/user.service';
+import { AdminEntityService, BackendErrorResponse, AdminEV, UserEV, CreatorEC } from '../../core/services/admin-entity.service';
 import { ApiService } from '../../core/services/api.service';
 import { fadeIn } from '../../core/animations/animations';
 import { ModalHeaderComponent } from '../modal-header/modal-header.component';
@@ -159,14 +157,23 @@ export class AdminEntityEditFormComponent implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private adminService: AdminService,
-    private creatorService: CreatorService,
-    private userService: UserService,
+    private adminEntityService: AdminEntityService,
     private baseEditService: BaseEditService,
     private api: ApiService
   ) {}
 
   ngOnInit(): void {
+    // Verificar que haya token en sessionStorage
+    const storedToken = sessionStorage.getItem('authToken');
+    if (!storedToken) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    // Continuar con la inicialización
+    this.initializeEntity();
+  }
+
+  private initializeEntity(): void {
     if (!this.entityId) {
       this.entityId = this.route.snapshot.paramMap.get('id') || '';
       if (!this.entityId) {
@@ -263,8 +270,8 @@ export class AdminEntityEditFormComponent implements OnInit {
     this.isLoading = true;
     switch (this.entityType) {
       case 'admin':
-        this.adminService.listarAdministradores().subscribe({
-          next: (admins) => {
+        this.adminEntityService.listarAdministradores().subscribe({
+          next: (admins: AdminEV[]) => {
             const admin = admins.find(a => a.id === this.entityId);
             if (!admin) {
               this.error = 'Administrador no encontrado';
@@ -285,7 +292,7 @@ export class AdminEntityEditFormComponent implements OnInit {
             this.originalData = { ...this.entityData };
             this.isLoading = false;
           },
-          error: (err) => {
+          error: (err: any) => {
             console.error('Error loading admin:', err);
             this.error = this.baseEditService.handleError(err);
             this.isLoading = false;
@@ -293,8 +300,8 @@ export class AdminEntityEditFormComponent implements OnInit {
         });
         break;
       case 'creator':
-        this.creatorService.listarCreadores().subscribe({
-          next: (creators) => {
+        this.adminEntityService.listarCreadores().subscribe({
+          next: (creators: CreatorEC[]) => {
             const creator = creators.find(c => c.id === this.entityId);
             if (!creator) {
               this.error = 'Creador no encontrado';
@@ -317,7 +324,7 @@ export class AdminEntityEditFormComponent implements OnInit {
             this.originalData = { ...this.entityData };
             this.isLoading = false;
           },
-          error: (err) => {
+          error: (err: any) => {
             console.error('Error loading creator:', err);
             this.error = this.baseEditService.handleError(err);
             this.isLoading = false;
@@ -325,8 +332,8 @@ export class AdminEntityEditFormComponent implements OnInit {
         });
         break;
       case 'user':
-        this.userService.listarUsuarios().subscribe({
-          next: (users) => {
+        this.adminEntityService.listarUsuarios().subscribe({
+          next: (users: UserEV[]) => {
             const user = users.find(u => u.id === this.entityId);
             if (!user) {
               this.error = 'Usuario no encontrado';
@@ -344,7 +351,7 @@ export class AdminEntityEditFormComponent implements OnInit {
             this.originalData = { ...this.entityData };
             this.isLoading = false;
           },
-          error: (err) => {
+          error: (err: any) => {
             console.error('Error loading user:', err);
             this.error = this.baseEditService.handleError(err);
             this.isLoading = false;
@@ -421,7 +428,7 @@ export class AdminEntityEditFormComponent implements OnInit {
 
     switch (this.entityType) {
       case 'admin':
-        this.adminService.editarAdministrador(this.entityId, changes).subscribe({
+        this.adminEntityService.editarAdministrador(this.entityId, changes).subscribe({
           next: () => {
             this.originalData = { ...this.entityData };
             this.isSaving = false;
@@ -434,26 +441,26 @@ export class AdminEntityEditFormComponent implements OnInit {
         });
         break;
       case 'creator':
-        this.creatorService.editarCreador(this.entityId, changes).subscribe({
+        this.adminEntityService.editarCreador(this.entityId, changes).subscribe({
           next: () => {
             this.originalData = { ...this.entityData };
             this.isSaving = false;
             this.navigateBack();
           },
-          error: (err: CreatorBackendErrorResponse) => {
+          error: (err: BackendErrorResponse) => {
             this.error = this.baseEditService.handleError(err);
             this.isSaving = false;
           }
         });
         break;
       case 'user':
-        this.userService.editarUsuario(this.entityId, changes).subscribe({
+        this.adminEntityService.editarUsuario(this.entityId, changes).subscribe({
           next: () => {
             this.originalData = { ...this.entityData };
             this.isSaving = false;
             this.navigateBack();
           },
-          error: (err: UserBackendErrorResponse) => {
+          error: (err: BackendErrorResponse) => {
             this.error = this.baseEditService.handleError(err);
             this.isSaving = false;
           }
@@ -464,11 +471,41 @@ export class AdminEntityEditFormComponent implements OnInit {
 
   private getChanges(): any {
     const changes: any = {};
+
+    // Incluir siempre los campos principales para cada tipo de entidad (excepto activo, que solo si cambió)
+    switch (this.entityType) {
+      case 'admin':
+        changes.nombre = this.entityData.nombre;
+        changes.apellidos = this.entityData.apellidos;
+        changes.departamento = (this.entityData as AdminEntityData).departamento;
+        changes.alias = this.entityData.alias;
+        changes.correo = (this.entityData as AdminEntityData).correo;
+        break;
+      case 'creator':
+        changes.nombre = this.entityData.nombre;
+        changes.apellidos = this.entityData.apellidos;
+        changes.descripcion = (this.entityData as CreatorEntityData).descripcion;
+        changes.especialidad = (this.entityData as CreatorEntityData).especialidad;
+        changes.alias = this.entityData.alias;
+        changes.correo = (this.entityData as CreatorEntityData).correo;
+        changes.tipoContenido = (this.entityData as CreatorEntityData).tipoContenido;
+        break;
+      case 'user':
+        changes.nombre = this.entityData.nombre;
+        changes.apellidos = this.entityData.apellidos;
+        changes.fechaNacimiento = (this.entityData as UserEntityData).fechaNacimiento;
+        changes.alias = this.entityData.alias;
+        break;
+    }
+
+    // Agregar campos adicionales que han cambiado
     for (const key in this.entityData) {
       if ((this.entityData as any)[key] !== (this.originalData as any)[key]) {
         changes[key] = (this.entityData as any)[key];
       }
     }
+
+    console.log('Changes to send:', changes);
     return changes;
   }
 

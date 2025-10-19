@@ -191,13 +191,16 @@ export class RegisterComponent {
     const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
     
     // Extraer solo el nombre del archivo del avatar seleccionado
-    let fotoNombre = '';
+    let fotoNombre = ''; // cadena vacía para usar el avatar por defecto del backend
     if (v.fotoElegida) {
       // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
-      fotoNombre = v.fotoElegida.split('/').pop() ?? '';
+      const extracted = v.fotoElegida.split('/').pop();
+      if (extracted && extracted.trim().length > 0) {
+        fotoNombre = extracted;
+      }
     }
 
-    const payload = {
+    const payload: any = {
       nombre: v.nombre!,
       apellidos: v.apellidos!,
       email: v.email!,
@@ -206,9 +209,13 @@ export class RegisterComponent {
       password: v.password!,
       repetirPassword: v.repeatPassword!,
       esVip: isVip,
-      foto: fotoNombre, // Solo el nombre del archivo (ej: "avatar1.png")
       activo: false,
     };
+
+    // Solo incluir foto si se ha seleccionado un avatar y no es el por defecto
+    if (fotoNombre && fotoNombre !== 'default-avatar.png') {
+      payload.foto = fotoNombre;
+    }
 
     this.bannerKind = null;
     this.bannerText = '';
@@ -277,7 +284,7 @@ export class RegisterComponent {
             };
             const msgJoin = applyBackendDetails(this.form, details, fieldMap);
             this.bannerKind = 'error';
-            this.bannerText = (message ? message + '\n' : '') + msgJoin;
+            this.bannerText = msgJoin;
             this.triggerShakeError();
             return;
           }

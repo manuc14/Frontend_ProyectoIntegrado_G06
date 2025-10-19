@@ -97,17 +97,12 @@ export class LoginComponent {
           const tipo = res.user?.tipo || '';
           // Mapeo de tipos del backend a rutas de la app
           let target: string = '/catalog';
-          if (/admin/i.test(tipo)) target = '/admin-home';
+          if (/admin/i.test(tipo)) target = '/ad-users';
           else if (/creador/i.test(tipo)) target = '/content';
-
-          // Agregar token a la URL como parámetro de consulta
-          const navigationExtras = {
-            queryParams: { token: res.token }
-          };
 
           // Redirigir después de un breve delay para mostrar el mensaje de éxito
           setTimeout(() => {
-            this.router.navigate([target], navigationExtras);
+            this.router.navigate([target]);
           }, 1000);
         },
         error: (err) => {

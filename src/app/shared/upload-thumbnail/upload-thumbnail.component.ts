@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UploadThumbnailService, ThumbnailUploadResponse } from '../../core/services/upload-thumbnail.service';
+import { UploadService, UploadResponse } from '../../core/services/upload.service';
 
 /**
  * Estados posibles del componente de subida de miniaturas
@@ -41,7 +41,7 @@ export class UploadThumbnailComponent {
   @Output() uploadStateChanged = new EventEmitter<ThumbnailUploadState>();
   @Output() successMessageChanged = new EventEmitter<boolean>();
 
-  constructor(private uploadThumbnailService: UploadThumbnailService) {}
+  constructor(private uploadThumbnailService: UploadService) {}
 
   /**
    * Método principal que recibe el archivo seleccionado desde upload-content
@@ -80,7 +80,7 @@ export class UploadThumbnailComponent {
 
     // Llamar al servicio
     this.uploadThumbnailService.uploadThumbnail(this.thumbnailData.file).subscribe({
-      next: (response: ThumbnailUploadResponse) => {
+      next: (response: UploadResponse) => {
         this.handleUploadSuccess(response);
       },
       error: (error: Error) => {
@@ -93,7 +93,7 @@ export class UploadThumbnailComponent {
    * Maneja el éxito de la subida
    * @param response Respuesta del backend
    */
-  private handleUploadSuccess(response: ThumbnailUploadResponse): void {
+  private handleUploadSuccess(response: UploadResponse): void {
     if (!this.thumbnailData) return;
 
     console.log('Miniatura subida exitosamente:', response);

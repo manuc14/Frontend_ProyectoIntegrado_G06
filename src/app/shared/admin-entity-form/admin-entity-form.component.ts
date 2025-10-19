@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
-import { AdminService } from '../../core/services/admin.service';
-import { CreatorService } from '../../core/services/creator.service';
+import { AdminEntityService } from '../../core/services/admin-entity.service';
 import { ApiService } from '../../core/services/api.service';
 import { matchPasswordsValidator, passwordPolicyValidator } from '../../core/validators/form.validators';
 import { applyBackendDetails, clearBackendErrors } from '../../core/utils/error-mapper';
@@ -69,8 +68,7 @@ export class AdminEntityFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private adminService: AdminService,
-    private creatorService: CreatorService,
+    private adminEntityService: AdminEntityService,
     private apiService: ApiService
   ) {}
 
@@ -203,7 +201,7 @@ export class AdminEntityFormComponent implements OnInit {
       formData.append('admin', new Blob([JSON.stringify(basePayload)], { type: 'application/json' }));
       if (this.selectedFile) formData.append('foto', this.selectedFile, this.selectedFile.name);
       this.isSubmitting = true; this.form.disable();
-      serviceObs = this.adminService.crearAdministrador(formData);
+      serviceObs = this.adminEntityService.crearAdministrador(formData);
     } else {
       basePayload.especialidad = v.especialidad;
       basePayload.tipoContenido = v.tipoContenido;
@@ -211,7 +209,7 @@ export class AdminEntityFormComponent implements OnInit {
       formData.append('creador', new Blob([JSON.stringify(basePayload)], { type: 'application/json' }));
       if (this.selectedFile) formData.append('foto', this.selectedFile, this.selectedFile.name);
       this.isSubmitting = true; this.form.disable();
-      serviceObs = this.creatorService.crearCreador(formData);
+      serviceObs = this.adminEntityService.crearCreador(formData);
     }
 
     serviceObs

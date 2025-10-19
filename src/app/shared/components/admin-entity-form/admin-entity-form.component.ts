@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../core/animations/animations';
 import { ApiService } from '../../../core/services/api.service';
 import { AvatarsResponseDto } from '../../../core/models/media.models';
@@ -107,6 +107,7 @@ export class AdminEntityFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     public apiService: ApiService
   ) {
     // Crear form con campos comunes
@@ -129,6 +130,17 @@ export class AdminEntityFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Verificar que haya token en sessionStorage
+    const storedToken = sessionStorage.getItem('authToken');
+    if (!storedToken) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    // Continuar con la inicialización
+    this.initializeForm();
+  }
+
+  private initializeForm(): void {
     this.cargarAvatares();
 
     // Escuchar cambios en el campo de contraseña

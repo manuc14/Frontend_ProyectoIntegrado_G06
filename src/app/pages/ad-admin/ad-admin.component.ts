@@ -1,12 +1,12 @@
 import {Component, HostListener} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {Router} from '@angular/router';
+import {Router, ActivatedRoute} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { FilterButtonsComponent, FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortDropdownComponent, SortOption } from '../../shared/sort-dropdown/sort-dropdown.component';
-import { AdminService, AdminEV } from '../../core/services/admin.service';
+import { AdminEntityService, AdminEV } from '../../core/services/admin-entity.service';
 import { formatDateIsoToDDMMYYYY, toTimestampFromString } from '../../core/utils/date-utils';
 import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
@@ -65,9 +65,20 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
 
   constructor(
     protected override router: Router,
-    private adminService: AdminService
+    private adminService: AdminEntityService,
+    private route: ActivatedRoute
   ) {
     super(router);
+  }
+
+  override ngOnInit(): void {
+    // Verificar que haya token en sessionStorage
+    const storedToken = sessionStorage.getItem('authToken');
+    if (!storedToken) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.loadData();
   }
 
   loadData(): void {
@@ -146,7 +157,6 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
   }
 
   editarAdministrador(id: string): void {
-    // Navegar a la página de edición de administradores pasando el id
     this.router.navigate(['/ad-admin-edit', id]);
   }
 
@@ -170,10 +180,8 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
             this.error = (resp && (resp.message || resp.error)) || 'No se pudo eliminar el administrador. Intenta de nuevo.';
             return;
           }
-          // Eliminar del array local para actualizar vista inmediatamente
-          this.allItems = this.allItems.filter(a => a.id !== id);
-          this.filteredItems = this.filteredItems.filter(a => a.id !== id);
-          this.totalItems = Math.max(0, this.totalItems - 1);
+          // Recargar la lista para mostrar cambios
+          this.loadData();
           alert('Administrador eliminado correctamente.');
         },
         error: (err) => {
