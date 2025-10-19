@@ -1,0 +1,17 @@
+<div class="container8">
+  <div class="container9">
+    <div class="text7">{{ label }}</div>
+  </div>
+  <div class="background-border9" [class.error]="tooLong">
+    <textarea
+      class="input-field"
+      [(ngModel)]="value"
+      (input)="onInput()"
+      [placeholder]="placeholder"
+      rows="3"
+    ></textarea>
+  </div>
+  <div class="error-message" *ngIf="tooLong">
+    {{ errorMessage }}
+  </div>
+</div>

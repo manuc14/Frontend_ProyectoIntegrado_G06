@@ -1,0 +1,40 @@
+@use '../../shared/scss/mixins' as mixins;
+
+.tipo-contenido-buttons {
+  @include mixins.flex-container(row, 8px, stretch, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+
+  button {
+    @include mixins.button-base;
+    flex: 1;
+    background: var(--card);
+    border-radius: 12px;
+    border-style: solid;
+    border-color: var(--border);
+    border-width: 1px;
+    padding: 12px 13px 13px 13px;
+    color: var(--foreground);
+    font-family: "NimbusSans-Medium", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--primary) 10%, var(--card));
+    }
+
+    &.selected {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+      border-width: 2px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    gap: 8px;
+  }
+}

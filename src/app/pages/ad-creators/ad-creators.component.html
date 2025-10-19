@@ -14,7 +14,7 @@
           </div>
           <button class="background9" type="button" (click)="addNewCreator()">
             <div class="iconify-icon2">
-              <img class="group4" ngSrc="assets/admin/add.svg" alt="icono añadir" height="18" width="18"/>
+              <img class="group4" src="assets/admin/add.svg" alt="icono añadir" height="18" width="18"/>
             </div>
             <div class="text4">Añadir creador</div>
           </button>
@@ -105,7 +105,7 @@
                 <!-- Foto -->
                 <div class="container13">
                   <img
-                    [ngSrc]="creator.foto ? 'assets/admin/' + creator.foto : 'assets/admin/admin_default.png'"
+                    [src]="creator.foto ? 'assets/admin/' + creator.foto : 'assets/admin/admin_default.png'"
                     [alt]="'foto de ' + creator.nombre"
                     height="28"
                     width="28"
@@ -151,7 +151,7 @@
                   <div class="background-border3">
                     <img
                       class="svg6"
-                      [ngSrc]="creator.activo ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'"
+                      [src]="creator.activo ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'"
                       [alt]="creator.activo ? 'estado activo' : 'estado bloqueado'"
                       height="18"
                       width="19"/>
@@ -163,7 +163,7 @@
                   <button type="button" class="background-border4" (click)="editarCreador(creator.id)" style="cursor: pointer;">
                     <img
                       class="svg7"
-                      ngSrc="assets/admin/editar.svg"
+                      src="assets/admin/editar.svg"
                       alt="editar creador"
                       height="18"
                       width="18"/>
@@ -175,7 +175,7 @@
                   <button type="button" class="background7" (click)="eliminarCreador(creator.id)" style="cursor: pointer;">
                     <img
                       class="svg8"
-                      ngSrc="assets/admin/eliminar.svg"
+                      src="assets/admin/eliminar.svg"
                       alt="eliminar creador"
                       height="18"
                       width="18"/>
@@ -209,7 +209,7 @@
               [style.cursor]="currentPage === 1 ? 'not-allowed' : 'pointer'"
               [style.pointer-events]="currentPage === 1 ? 'none' : 'auto'">
               <div class="iconify-icon4">
-                <img class="svg19" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
+                <img class="svg19" src="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text48">Anterior</div>
             </button>
@@ -223,7 +223,7 @@
               [style.pointer-events]="currentPage === totalPaginas ? 'none' : 'auto'">
               <div class="text49">Siguiente</div>
               <div class="iconify-icon5">
-                <img class="svg20" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
+                <img class="svg20" src="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
               </div>
             </button>
           </div>

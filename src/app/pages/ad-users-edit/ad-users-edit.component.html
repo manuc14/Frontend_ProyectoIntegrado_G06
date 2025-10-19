@@ -1,0 +1,75 @@
+<div class="background" [@fadeIn]>
+  <div class="overlay">
+    <div class="background-border-shadow">
+      <app-modal-header [titulo]="'Editar usuario'" (cerrar)="onCerrar()"></app-modal-header>
+
+      <app-error-container [error]="error"></app-error-container>
+
+      <div class="container2">
+        <app-avatar-selector
+          [availableAvatars]="availableAvatars"
+          [selectedAvatar]="selectedAvatar"
+          [nombre]="userData.nombre"
+          (avatarSelected)="selectAvatar($event)">
+        </app-avatar-selector>
+
+        <div class="container6">
+          <div class="container7">
+            <app-input-field
+              label="Nombre"
+              [value]="userData.nombre"
+              (valueChange)="userData.nombre = $event"
+              (input)="validateNombreLength()"
+              placeholder="Nombre"
+              errorMessage="El nombre no puede superar 20 caracteres"
+              [tooLong]="nombreTooLong"
+              [required]="true"
+              (tooLongChange)="nombreTooLong = $event">
+            </app-input-field>
+
+            <app-input-field
+              label="Apellidos"
+              [value]="userData.apellidos"
+              (valueChange)="userData.apellidos = $event"
+              (input)="validateApellidosLength()"
+              placeholder="Apellidos"
+              errorMessage="Los apellidos no pueden superar 20 caracteres"
+              [tooLong]="apellidosTooLong"
+              [required]="true"
+              (tooLongChange)="apellidosTooLong = $event">
+            </app-input-field>
+          </div>
+
+          <app-input-field
+            label="Alias"
+            [value]="userData.alias"
+            (valueChange)="userData.alias = $event"
+            (input)="validateAliasLength()"
+            placeholder="Alias"
+            errorMessage="El alias no puede superar 20 caracteres"
+            [tooLong]="aliasTooLong"
+            [required]="true"
+            (tooLongChange)="aliasTooLong = $event">
+          </app-input-field>
+
+          <app-date-field
+            label="Fecha de Nacimiento"
+            [value]="userData.fechaNacimiento"
+            (valueChange)="userData.fechaNacimiento = $event"
+            (input)="validateFechaNacimiento()"
+            [fechaInvalid]="fechaInvalid"
+            (fechaInvalidChange)="fechaInvalid = $event"
+            [edadInvalid]="edadInvalid"
+            (edadInvalidChange)="edadInvalid = $event"
+            [required]="true">
+          </app-date-field>
+        </div>
+      </div>
+
+      <div class="horizontal-border">
+        <app-toggle-block-button [activo]="userData.activo" (toggle)="toggleBloquear()"></app-toggle-block-button>
+        <app-form-actions [isSaving]="isSaving" (cancelar)="onCancelar()" (guardar)="onGuardarCambios()"></app-form-actions>
+      </div>
+    </div>
+  </div>
+</div>

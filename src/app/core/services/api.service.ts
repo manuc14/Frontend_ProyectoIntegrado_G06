@@ -3,8 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { extractApiErrorMessage } from '../utils/error-utils';
-import { SectionDto, AvatarsResponseDto, ThumbnailsResponseDto } from '../models/media.models';
+import { SectionDto, AvatarsResponseDto } from '../models/media.models';
 
 /*
  * Interfaz para la petición de registro de usuario
@@ -111,17 +110,50 @@ export class ApiService {
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = 'Se ha producido un error inesperado. Inténtelo de nuevo más tarde.';
+      let userMessage = defaultMessage;
 
-      const e = extractApiErrorMessage(error);
-      if (e?.message) userMessage = e.message;
+      // Si el backend envía un mensaje de error personalizado, usarlo
+      if (error.error && typeof error.error === 'object' && error.error.message) {
+        userMessage = error.error.message;
+      } else {
+        // Mensajes amigables basados en códigos de estado HTTP
+        switch (error.status) {
+          case 400:
+            userMessage = 'Los datos enviados no son válidos. Por favor, verifica la información.';
+            break;
+          case 401:
+            userMessage = 'No tienes autorización para realizar esta acción.';
+            break;
+          case 403:
+            userMessage = 'No tienes permisos para acceder a este recurso.';
+            break;
+          case 404:
+            userMessage = 'El servicio solicitado no está disponible en este momento.';
+            break;
+          case 409:
+            userMessage = 'Ya existe un registro con esta información.';
+            break;
+          case 500:
+            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
+            break;
+          case 503:
+            userMessage = 'El servicio no está disponible temporalmente.';
+            break;
+          default:
+            if (error.status === 0) {
+              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
+            } else {
+              userMessage = defaultMessage;
+            }
+        }
+      }
 
       console.error(`Error en ${operation}:`, error);
       return throwError(() => new Error(userMessage));
     };
   }
 
-  /** 
+  /**
    * Obtiene las secciones de contenido para la página principal.
    * Incluye fallback vacío cuando se usan mocks para desarrollo.
    */
@@ -137,7 +169,7 @@ export class ApiService {
     );
   }
 
-  /** 
+  /**
    * Registra un nuevo usuario en el sistema.
    * Devuelve la respuesta HTTP completa para leer códigos de estado.
    */
@@ -145,7 +177,7 @@ export class ApiService {
     return this.http.post<RegisterResponse>(`${this.base}/auth/register`, body, { observe: 'response' });
   }
 
-  /** 
+  /**
    * Autentica usuario y devuelve datos de sesión.
    * Incluye información de perfil y token para requests posteriores.
    */
@@ -156,7 +188,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Obtiene la lista de avatares predefinidos disponibles.
    * Devuelve la respuesta completa con avatares y avatar por defecto.
    * Si falla, propaga el error para que el componente pueda manejarlo.
@@ -167,7 +199,7 @@ export class ApiService {
     );
   }
 
-  /** 
+  /**
    * Construye la URL completa para un avatar dado su ruta relativa.
    * El proxy redirige /resources/* al backend automáticamente.
    */
@@ -176,24 +208,6 @@ export class ApiService {
   }
 
   /**
-   * Obtiene la lista de miniaturas predefinidas disponibles.
-   * Incluye las rutas de las miniaturas y la miniatura por defecto.
-   */
-  getThumbnails(): Observable<ThumbnailsResponseDto> {
-    return this.http.get<ThumbnailsResponseDto>(`${this.resourceBase}/thumbnails`).pipe(
-      catchError(this.handleError('carga de miniaturas', 'No se pudieron cargar las miniaturas disponibles'))
-    );
-  }
-
-  /** 
-   * Construye la URL completa para una miniatura dada su ruta relativa.
-   * El proxy redirige /resources/* al backend automáticamente.
-   */
-  getFullThumbnailUrl(relativePath: string): string {
-    return relativePath;
-  }
-
-  /** 
    * Solicita el restablecimiento de contraseña enviando un código al email.
    * Primer paso del flujo de recuperación de contraseña.
    */
@@ -201,7 +215,7 @@ export class ApiService {
     return this.http.post<ForgotPasswordResponse>(`${this.base}/auth/forgot-password`, { email });
   }
 
-  /** 
+  /**
    * Verifica el código de restablecimiento usando el token.
    * Segundo paso del flujo de recuperación de contraseña.
    */
@@ -212,7 +226,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Establece nueva contraseña usando el token verificado.
    * Tercer paso del flujo de recuperación de contraseña.
    */
@@ -220,7 +234,7 @@ export class ApiService {
     return this.http.post<ResetPasswordResponse>(`${this.base}/auth/reset-password?token=${token}`, { newPassword, repetirPassword })
   }
 
-  /** 
+  /**
    * Reenvía el código de restablecimiento usando el token actual.
    * Permite reenviar el código sin generar un nuevo token.
    */
@@ -231,7 +245,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Verifica el código de verificación de usuario usando el token de verificación.
    * Utiliza el endpoint POST /api/auth/verify?token={token} con el código en el body.
    */
@@ -242,7 +256,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Reenvía un nuevo código de verificación usando el token actual.
    * Utiliza el endpoint POST /api/auth/resend-code?token={token}.
    */
@@ -253,7 +267,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Valida un token de reset de contraseña antes de mostrar la pantalla.
    * Verifica si la sesión existe y si el código fue validado.
    */
@@ -261,31 +275,13 @@ export class ApiService {
     return this.http.get<ResetTokenValidationResponse>(`${this.base}/auth/validate-reset-token?token=${token}`);
   }
 
-  /** 
+  /**
    * Valida un token de verificación de email antes de mostrar la pantalla.
    * Verifica si la sesión existe y si el código fue validado.
    */
   validateVerificationToken(token: string): Observable<VerificationTokenValidationResponse> {
     return this.http.get<VerificationTokenValidationResponse>(`${this.base}/auth/validate-verification-token?token=${token}`);
   }
-
-  /**
-   * Sube un archivo de audio al backend y devuelve la URL del archivo subido.
-   * Utiliza multipart/form-data para enviar el archivo.
-   */
-  // NOTE: Audio upload is handled by UploadAudioService. Keeping this method here caused
-  // duplication of responsibilities. Use UploadAudioService.uploadAudio(file) instead.
-
-  /**
-   * Crea un nuevo contenido en el backend.
-   * Espera un objeto con los campos del formulario y devuelve la respuesta del servidor.
-   */
-  createContent(body: any) {
-    return this.http.post<{message?: string, id?: string}>(`${this.base}/contenidos`, body).pipe(
-      catchError(this.handleError('crear contenido', 'No se pudo crear el contenido'))
-    );
-  }
-
 }
 
 /*

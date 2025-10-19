@@ -9,7 +9,7 @@
           </div>
           <button class="border" type="button" (click)="goBack()" [@buttonHover] [@buttonPress]>
             <div class="iconify-icon">
-              <img class="svg" ngSrc="assets/admin/salir.svg" alt="icono salir" height="18" width="19"/>
+              <img class="svg" src="assets/admin/salir.svg" alt="icono salir" height="18" width="19"/>
             </div>
             <div class="text2">Cerrar</div>
           </button>
@@ -29,14 +29,14 @@
               <div class="container6">
                 <div class="background3">
                   <div class="svg3" *ngIf="isDefaultIcon">
-                    <img class="group" ngSrc="assets/admin/foto_upload.svg" alt="usuario por defecto" height="18" width="18"/>
+                    <img class="group" src="assets/admin/foto_upload.svg" alt="usuario por defecto" height="18" width="18"/>
                   </div>
                   <img *ngIf="!isDefaultIcon" [src]="previewUrl" alt="vista previa" style="width: 56px; height: 56px; border-radius: 48px; object-fit: cover; position: absolute;"/>
                 </div>
                 <input type="file" id="fileInput" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
                 <button class="border2" type="button" (click)="triggerFileInput()" [@buttonHover] [@buttonPress]>
                   <div class="iconify-icon">
-                    <img class="svg2" ngSrc="assets/admin/img_subir.svg" alt="subir foto" height="18" width="18"/>
+                    <img class="svg2" src="assets/admin/img_subir.svg" alt="subir foto" height="18" width="18"/>
                   </div>
                   <div class="subir-imagen">Subir imagen</div>
                 </button>
@@ -139,7 +139,7 @@
                 </select>
               </div>
               <div class="iconify-icon2">
-                <img class="svg4" ngSrc="assets/admin/desplegable.svg" alt="desplegable" height="18" width="19"/>
+                <img class="svg4" src="assets/admin/desplegable.svg" alt="desplegable" height="18" width="19"/>
               </div>
             </div>
           </div>
@@ -157,7 +157,7 @@
                   </select>
                 </div>
                 <div class="iconify-icon2">
-                  <img class="svg4" ngSrc="assets/admin/desplegable.svg" alt="desplegable" height="18" width="19"/>
+                  <img class="svg4" src="assets/admin/desplegable.svg" alt="desplegable" height="18" width="19"/>
                 </div>
               </div>
             </div>
@@ -169,13 +169,13 @@
               <div class="container10" [class.error-border]="shouldShowError('tipoContenido')">
                 <button class="background-border3" type="button" (click)="setTipoContenido('audio')" [@buttonHover] [@buttonPress] [class.selected]="form.get('tipoContenido')?.value === 'audio'">
                   <div class="iconify-icon2">
-                    <img class="svg5" ngSrc="assets/admin/tipo_creador.svg" alt="selector audio" height="14" width="14"/>
+                    <img class="svg5" src="assets/admin/tipo_creador.svg" alt="selector audio" height="14" width="14"/>
                   </div>
                   <div class="audio">Audio</div>
                 </button>
                 <button class="background-border3" type="button" (click)="setTipoContenido('video')" [@buttonHover] [@buttonPress] [class.selected]="form.get('tipoContenido')?.value === 'video'">
                   <div class="iconify-icon2">
-                    <img class="svg6" ngSrc="assets/admin/tipo_creador.svg" alt="selector video" height="14" width="14"/>
+                    <img class="svg6" src="assets/admin/tipo_creador.svg" alt="selector video" height="14" width="14"/>
                   </div>
                   <div class="video">Video</div>
                 </button>
@@ -199,13 +199,13 @@
         <div class="horizontal-border2">
           <button class="background10" type="button" (click)="goBack()" [@buttonHover] [@buttonPress] [disabled]="isSubmitting">
             <div class="iconify-icon">
-              <img class="svg5" ngSrc="assets/admin/eliminar.svg" alt="icono cancelar" height="18" width="19"/>
+              <img class="svg5" src="assets/admin/eliminar.svg" alt="icono cancelar" height="18" width="19"/>
             </div>
             <div class="text12">Cancelar</div>
           </button>
           <button class="background11" type="submit" [@buttonHover] [@buttonPress] [disabled]="form.invalid || isSubmitting">
             <div class="iconify-icon3">
-              <img class="svg6" ngSrc="assets/admin/tick.svg" alt="icono crear" height="18" width="19"/>
+              <img class="svg6" src="assets/admin/tick.svg" alt="icono crear" height="18" width="19"/>
             </div>
             <div class="text13">{{ isSubmitting ? (entityType==='admin' ? 'Creando...' : 'Creando...') : (entityType==='admin' ? 'Crear administrador' : 'Crear creador') }}</div>
           </button>

@@ -14,7 +14,7 @@
           </div>
           <button class="background9" type="button" (click)="addNewAdmin()">
             <div class="iconify-icon2">
-              <img class="group4" ngSrc="assets/admin/add.svg" alt="icono añadir" height="18" width="18"/>
+              <img class="group4" src="assets/admin/add.svg" alt="icono añadir" height="18" width="18"/>
             </div>
             <div class="text4">Añadir administrador</div>
           </button>
@@ -78,7 +78,7 @@
               [class.horizontal-border2]="i > 0">
               <div class="container13">
                 <img
-                  [ngSrc]="admin.foto ? 'assets/admin/' + admin.foto : 'assets/admin/admin_default.png'"
+                  [src]="admin.foto ? 'assets/admin/' + admin.foto : 'assets/admin/admin_default.png'"
                   [alt]="'foto de ' + admin.nombre"
                   height="28"
                   width="28"/>
@@ -90,7 +90,7 @@
               <div class="container15">
                 <div class="background-border3">
                   <img
-                    [ngSrc]="admin.activo ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'"
+                    [src]="admin.activo ? 'assets/admin/activo.svg' : 'assets/admin/bloqueado.svg'"
                     [alt]="admin.activo ? 'estado activo' : 'estado bloqueado'"
                     height="18"
                     width="19"/>
@@ -136,7 +136,7 @@
               type="button"
               aria-label="Ir a la página anterior">
               <div class="iconify-icon4">
-                <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
+                <img class="svg18" src="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text45">Anterior</div>
             </button>
@@ -152,7 +152,7 @@
               aria-label="Ir a la página siguiente">
               <div class="text46">Siguiente</div>
               <div class="iconify-icon5">
-                <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
+                <img class="svg19" src="assets/admin/siguiente.svg" alt="icono siguiente" height="18" width="18"/>
               </div>
             </button>
           </div>

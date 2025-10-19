@@ -20,6 +20,19 @@ export interface AdminEV {
   foto?: string;
 }
 
+// Tipos compartidos utilizados por otros servicios y componentes del panel de administración
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface BackendErrorResponse {
+  message: string;
+  details?: any;
+  validationErrorCount?: number;
+  errors?: ValidationError[];
+}
+
 /*
  * AdminService
  * Servicio para la gestión de administradores.

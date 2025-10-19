@@ -2,14 +2,15 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { extractApiErrorMessage } from '../utils/error-utils';
 import { environment } from '../../../environments/environment';
+import {ValidationError} from './admin.service';
 
 /*
  * Interfaz para el creador devuelto por el endpoint ad-creator
  * Contiene toda la información de administración de creadores de contenido
  */
 export interface CreatorEC {
+  descripcion: string;
   id: string;
   nombre: string;
   apellidos: string;
@@ -19,6 +20,13 @@ export interface CreatorEC {
   tipoContenido: string;
   activo: boolean;
   foto?: string;
+}
+
+export interface BackendErrorResponse {
+  message: string;
+  details?: any;
+  validationErrorCount?: number;
+  errors?: ValidationError[];
 }
 
 /*
@@ -41,10 +49,40 @@ export class CreatorService {
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = 'Se ha producido un error inesperado. Inténtelo de nuevo más tarde.';
+      let userMessage = defaultMessage;
 
-      const e = extractApiErrorMessage(error);
-      if (e?.message) userMessage = e.message;
+      // Si el backend envía un mensaje de error personalizado, usarlo
+      if (error.error && typeof error.error === 'object' && error.error.message) {
+        userMessage = error.error.message;
+      } else {
+        // Mensajes amigables basados en códigos de estado HTTP
+        switch (error.status) {
+          case 400:
+            userMessage = 'Los datos solicitados no son válidos.';
+            break;
+          case 401:
+            userMessage = 'No tienes autorización para acceder a esta información.';
+            break;
+          case 403:
+            userMessage = 'No tienes permisos para ver los creadores.';
+            break;
+          case 404:
+            userMessage = 'El servicio de creadores no está disponible en este momento.';
+            break;
+          case 500:
+            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
+            break;
+          case 503:
+            userMessage = 'El servicio de creadores no está disponible temporalmente.';
+            break;
+          default:
+            if (error.status === 0) {
+              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
+            } else {
+              userMessage = defaultMessage;
+            }
+        }
+      }
 
       console.error(`Error en ${operation}:`, error);
       return throwError(() => new Error(userMessage));
@@ -88,7 +126,7 @@ export class CreatorService {
    */
   eliminarCreador(id: string): Observable<any> {
     return this.http.delete(`${this.base}/ad-creator/eliminar/${id}`).pipe(
-      catchError(this.handleError('eliminar creador', 'No se pudo eliminar el creador'))
+      catchError(this.handleError('eliminar creador'))
     );
   }
 }

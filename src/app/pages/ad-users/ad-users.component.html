@@ -74,7 +74,7 @@
               [class.horizontal-border2]="i > 0">
               <div class="container13">
                 <img 
-                  [ngSrc]="user.photo" 
+                  [src]="user.photo" 
                   [alt]="'foto de ' + user.name" 
                   height="28" 
                   width="28"/>
@@ -99,21 +99,21 @@
               <div class="container15">
                 <div class="background-border3">
                   <img 
-                    [ngSrc]="'assets/admin/' + (user.status === 'activo' ? 'activo' : 'bloqueado') + '.svg'" 
+                    [src]="'assets/admin/' + (user.status === 'activo' ? 'activo' : 'bloqueado') + '.svg'" 
                     [alt]="'estado ' + user.status" 
                     height="18" 
                     width="19"/>
                 </div>
               </div>
               <div class="container16">
-                <div class="background-border4">
+                <button type="button" class="background-border4" (click)="editarUsuario(user.id)" [attr.aria-label]="'Editar ' + user.name">
                   <img 
                     class="svg6" 
-                    ngSrc="assets/admin/editar.svg" 
+                    src="assets/admin/editar.svg" 
                     alt="editar usuario" 
                     height="18" 
                     width="19"/>
-                </div>
+                </button>
               </div>
               <!-- Botón Eliminar eliminado por solicitud -->
             </div>
@@ -138,7 +138,7 @@
               type="button"
               [attr.aria-label]="'Ir a la página anterior'">
               <div class="iconify-icon3">
-                <img class="svg18" ngSrc="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
+                <img class="svg18" src="assets/admin/anterior.svg" alt="icono anterior" height="18" width="19"/>
               </div>
               <div class="text43">Anterior</div>
             </button>
@@ -154,7 +154,7 @@
               [attr.aria-label]="'Ir a la página siguiente'">
               <div class="text44">Siguiente</div>
               <div class="iconify-icon4">
-                <img class="svg19" ngSrc="assets/admin/siguiente.svg" alt="icono siguiente" height="18"
+                <img class="svg19" src="assets/admin/siguiente.svg" alt="icono siguiente" height="18"
                      width="18"/>
               </div>
             </button>

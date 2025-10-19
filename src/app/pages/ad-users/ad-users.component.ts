@@ -1,5 +1,5 @@
 import {Component, HostListener} from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
@@ -31,7 +31,7 @@ interface User {
 @Component({
   selector: 'app-adusers',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
   templateUrl: './ad-users.component.html',
   styleUrl: './ad-users.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
@@ -235,6 +235,7 @@ export class AdminUsersPage extends AdminListBase<User> {
   }
 
   editarUsuario(id: string): void {
-    // Implementación pendiente: navegar a la página de edición
+    // Navegar a la página de edición de usuarios pasando el id
+    this.router.navigate(['/ad-users-edit', id]);
   }
 }

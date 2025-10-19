@@ -2,8 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { extractApiErrorMessage } from '../utils/error-utils';
 import { environment } from '../../../environments/environment';
+import {ValidationError} from './admin.service';
 
 /*
  * Interfaz para el usuario devuelto por el endpoint ad-user
@@ -19,6 +19,13 @@ export interface UserEV {
   fechaNacimiento: string;
   activo: boolean;
   foto?: string;
+}
+
+export interface BackendErrorResponse {
+  message: string;
+  details?: any;
+  validationErrorCount?: number;
+  errors?: ValidationError[];
 }
 
 /*
@@ -41,17 +48,47 @@ export class UserService {
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = 'Se ha producido un error inesperado. Inténtelo de nuevo más tarde.';
+      let userMessage = defaultMessage;
 
-      const e = extractApiErrorMessage(error);
-      if (e?.message) userMessage = e.message;
+      // Si el backend envía un mensaje de error personalizado, usarlo
+      if (error.error && typeof error.error === 'object' && error.error.message) {
+        userMessage = error.error.message;
+      } else {
+        // Mensajes amigables basados en códigos de estado HTTP
+        switch (error.status) {
+          case 400:
+            userMessage = 'Los datos solicitados no son válidos.';
+            break;
+          case 401:
+            userMessage = 'No tienes autorización para acceder a esta información.';
+            break;
+          case 403:
+            userMessage = 'No tienes permisos para ver los usuarios.';
+            break;
+          case 404:
+            userMessage = 'El servicio de usuarios no está disponible en este momento.';
+            break;
+          case 500:
+            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
+            break;
+          case 503:
+            userMessage = 'El servicio de usuarios no está disponible temporalmente.';
+            break;
+          default:
+            if (error.status === 0) {
+              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
+            } else {
+              userMessage = defaultMessage;
+            }
+        }
+      }
 
       console.error(`Error en ${operation}:`, error);
       return throwError(() => new Error(userMessage));
     };
   }
 
-  /** 
+  /**
    * Obtiene la lista completa de usuarios para administración.
    * Endpoint: GET /ad-user
    * Incluye manejo de errores centralizado.
@@ -59,6 +96,36 @@ export class UserService {
   listarUsuarios(): Observable<UserEV[]> {
     return this.http.get<UserEV[]>(`${this.base}/ad-user`).pipe(
       catchError(this.handleError('listar usuarios', 'No se pudieron cargar los usuarios'))
+    );
+  }
+
+  /**
+   * Crea un nuevo usuario.
+   * Endpoint: POST /ad-user/crear
+   */
+  crearUsuario(formData: FormData): Observable<any> {
+    return this.http.post(`${this.base}/ad-user/crear`, formData).pipe(
+      catchError(this.handleError('crear usuario', 'No se pudo crear el usuario'))
+    );
+  }
+
+  /**
+   * Edita un usuario existente.
+   * Endpoint: PUT /ad-user/editar/{id}
+   */
+  editarUsuario(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.base}/ad-user/editar/${id}`, data).pipe(
+      catchError(this.handleError('editar usuario', 'No se pudo editar el usuario'))
+    );
+  }
+
+  /**
+   * Elimina un usuario.
+   * Endpoint: DELETE /ad-user/eliminar/{id}
+   */
+  eliminarUsuario(id: string): Observable<any> {
+    return this.http.delete(`${this.base}/ad-user/eliminar/${id}`).pipe(
+      catchError(this.handleError('eliminar usuario', 'No se pudo eliminar el usuario'))
     );
   }
 }

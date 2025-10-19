@@ -1,0 +1,82 @@
+@use '../../shared/scss/mixins' as mixins;
+
+.container11 {
+  @include mixins.flex-container(row, 8px, center, flex-start);
+  flex-shrink: 0;
+  position: relative;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    @include mixins.flex-container(column, 8px, stretch, flex-start);
+  }
+}
+
+.border2 {
+  @include mixins.button-base;
+  border-radius: 12px;
+  border-style: solid;
+  border-color: var(--border);
+  border-width: 1px;
+  padding: 10px 11px 11px 11px;
+  @include mixins.flex-container(column, 0, center, flex-start);
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--foreground) 5%, transparent);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+.text14 {
+  @include mixins.text-base(var(--foreground), 14px, 500);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.background3 {
+  @include mixins.button-base;
+  background: var(--primary);
+  border-radius: 12px;
+  padding: 11px 15px;
+  @include mixins.flex-container(row, 8px, center, center);
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--primary) 85%, black);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+.iconify-icon3 {
+  @include mixins.flex-container(row, 0, center, center);
+  position: relative;
+}
+
+.svg4 {
+  @include mixins.icon-size(14px);
+  position: relative;
+}
+
+.group3 {
+  @include mixins.icon-size(14px);
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.text15 {
+  @include mixins.text-base(var(--primary-foreground), 14px, 500);
+  white-space: nowrap;
+}

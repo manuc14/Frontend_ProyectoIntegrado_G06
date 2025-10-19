@@ -1,5 +1,5 @@
 import {Component, HostListener} from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
@@ -17,12 +17,15 @@ import { AdminListBase } from '../../core/base/admin-list.base';
 @Component({
   selector: 'app-adcreators',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
   templateUrl: './ad-creators.component.html',
   styleUrl: './ad-creators.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
 })
 export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
+
+  // Estado para operaciones de guardado/eliminación
+  isSaving: boolean = false;
 
   // Configuración de filtros como grupos para creadores
   filterGroups: FilterGroup[] = [
@@ -148,11 +151,38 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
   }
 
   editarCreador(id: string): void {
-    // Implementación pendiente: navegar a la página de edición
+    // Navegar a la página de edición de creadores pasando el id
+    this.router.navigate(['/ad-creators-edit', id]);
   }
 
   eliminarCreador(id: string): void {
-    // Implementación pendiente: mostrar diálogo de confirmación y eliminar
+    const confirmar = confirm('¿Estás seguro de que deseas eliminar la cuenta? Esta acción no se puede deshacer.');
+    if (!confirmar) return;
+    this.isSaving = true;
+    this.creatorService.eliminarCreador(id)
+      .pipe(finalize(() => { this.isSaving = false; }))
+      .subscribe({
+        next: (resp: any) => {
+          const respHasError = resp && (
+            resp.error ||
+            resp.success === false ||
+            resp.ok === false ||
+            (typeof resp.message === 'string' && /error|fail|no se|no encontrado|not found/i.test(resp.message))
+          );
+          if (respHasError) {
+            console.error('Backend responded with error while deleting creator:', resp);
+            this.error = (resp && (resp.message || resp.error)) || 'No se pudo eliminar el creador. Intenta de nuevo.';
+            return;
+          }
+          this.allItems = this.allItems.filter(c => c.id !== id);
+          this.filteredItems = this.filteredItems.filter(c => c.id !== id);
+          alert('Creador eliminado correctamente.');
+        },
+        error: (err) => {
+          console.error('Error al eliminar creador:', err);
+          this.error = 'No se pudo eliminar el creador. Intenta de nuevo.';
+        }
+      });
   }
 
   // Getters para compatibilidad con template

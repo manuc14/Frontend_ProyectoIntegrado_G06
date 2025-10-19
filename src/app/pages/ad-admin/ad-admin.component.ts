@@ -1,5 +1,5 @@
 import {Component, HostListener} from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {Router} from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../core/animations/animations';
@@ -17,12 +17,15 @@ import { AdminListBase } from '../../core/base/admin-list.base';
 @Component({
   selector: 'app-adadmin',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
   templateUrl: './ad-admin.component.html',
   styleUrl: './ad-admin.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
 })
 export class AdminAdmsPage extends AdminListBase<AdminEV> {
+
+  // Estado para operaciones de guardado/eliminación
+  isSaving: boolean = false;
 
   // Configuración de filtros como grupos para administradores
   filterGroups: FilterGroup[] = [
@@ -142,11 +145,41 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
   }
 
   editarAdministrador(id: string): void {
-    // Implementación pendiente: navegar a la página de edición
+    // Navegar a la página de edición de administradores pasando el id
+    this.router.navigate(['/ad-admin-edit', id]);
   }
 
   eliminarAdministrador(id: string): void {
-    // Implementación pendiente: mostrar diálogo de confirmación y eliminar
+    const confirmar = confirm('¿Estás seguro de que deseas eliminar la cuenta? Esta acción no se puede deshacer.');
+    if (!confirmar) return;
+    this.isSaving = true;
+    this.adminService.eliminarAdministrador(id)
+      .pipe(finalize(() => { this.isSaving = false; }))
+      .subscribe({
+        next: (resp: any) => {
+          // Manejo defensivo: detectar indicios de fallo en la respuesta incluso con 2xx
+          const respHasError = resp && (
+            resp.error ||
+            resp.success === false ||
+            resp.ok === false ||
+            (typeof resp.message === 'string' && /error|fail|no se|no encontrado|no encontrado|not found/i.test(resp.message))
+          );
+          if (respHasError) {
+            console.error('Backend responded with error while deleting admin:', resp);
+            this.error = (resp && (resp.message || resp.error)) || 'No se pudo eliminar el administrador. Intenta de nuevo.';
+            return;
+          }
+          // Eliminar del array local para actualizar vista inmediatamente
+          this.allItems = this.allItems.filter(a => a.id !== id);
+          this.filteredItems = this.filteredItems.filter(a => a.id !== id);
+          this.totalItems = Math.max(0, this.totalItems - 1);
+          alert('Administrador eliminado correctamente.');
+        },
+        error: (err) => {
+          console.error('Error al eliminar administrador:', err);
+          this.error = 'No se pudo eliminar el administrador. Intenta de nuevo.';
+        }
+      });
   }
 
   // Getters para compatibilidad con template

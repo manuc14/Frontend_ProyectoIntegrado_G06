@@ -1,0 +1,10 @@
+<div class="container8">
+  <div class="container9">
+    <div class="text12">{{ label }}</div>
+  </div>
+  <div class="background-border9">
+    <select class="input-field select-field" [(ngModel)]="value" (change)="onChange()">
+      <ng-content></ng-content>
+    </select>
+  </div>
+</div>

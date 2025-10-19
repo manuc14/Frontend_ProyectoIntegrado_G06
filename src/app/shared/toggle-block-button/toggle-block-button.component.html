@@ -1,0 +1,16 @@
+<button
+  type="button"
+  [class]="activo ? 'btn-block' : 'btn-activate'"
+  (click)="toggle.emit()">
+  <div class="svg4">
+    <img
+      [class]="activo ? 'group2' : 'group3'"
+      [src]="activo ? 'assets/admin/bloquear.svg' : 'assets/admin/activo.svg'"
+      [alt]="activo ? 'icono bloquear' : 'icono activar'"
+      height="15"
+      width="14"/>
+  </div>
+  <div [class]="activo ? 'text-block' : 'text-activate'">
+    {{ activo ? 'Bloquear' : 'Activar' }}
+  </div>
+</button>

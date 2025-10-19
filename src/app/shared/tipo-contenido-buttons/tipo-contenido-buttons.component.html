@@ -1,0 +1,18 @@
+<div class="tipo-contenido-buttons">
+  <button
+    type="button"
+    [class.selected]="isTipoContenidoSelected('video')"
+    (click)="selectTipoContenido('VIDEO')"
+    [@buttonHover]
+    [@buttonPress]>
+    Vídeo
+  </button>
+  <button
+    type="button"
+    [class.selected]="isTipoContenidoSelected('audio')"
+    (click)="selectTipoContenido('AUDIO')"
+    [@buttonHover]
+    [@buttonPress]>
+    Audio
+  </button>
+</div>
