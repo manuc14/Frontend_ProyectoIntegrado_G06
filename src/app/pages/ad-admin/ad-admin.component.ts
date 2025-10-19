@@ -12,12 +12,13 @@ import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
+import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
 
 @Component({
   selector: 'app-adadmin',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent, ErrorContainerComponent],
   templateUrl: './ad-admin.component.html',
   styleUrl: './ad-admin.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]

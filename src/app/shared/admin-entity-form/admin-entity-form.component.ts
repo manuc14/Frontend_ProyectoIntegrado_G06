@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
@@ -16,7 +16,7 @@ export type EntityType = 'admin' | 'creator';
 @Component({
   selector: 'app-admin-entity-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './admin-entity-form.component.html',
   styleUrls: ['./admin-entity-form.component.scss'],
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]

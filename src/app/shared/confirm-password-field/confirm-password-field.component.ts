@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-confirm-password-field',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './confirm-password-field.component.html',
   styleUrl: './confirm-password-field.component.scss'
 })

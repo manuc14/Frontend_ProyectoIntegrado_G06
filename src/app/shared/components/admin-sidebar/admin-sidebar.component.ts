@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output, Input, OnInit } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { buttonHover, buttonPress } from '../../../core/animations/animations';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -7,7 +7,7 @@ import { filter } from 'rxjs/operators';
 @Component({
   selector: 'app-admin-sidebar',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage],
+  imports: [CommonModule],
   templateUrl: './admin-sidebar.component.html',
   styleUrls: ['./admin-sidebar.component.scss']
   ,

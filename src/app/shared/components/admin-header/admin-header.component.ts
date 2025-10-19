@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { slideInFromTop } from '../../../core/animations/animations';
 
 @Component({
   selector: 'app-admin-header',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage],
+  imports: [CommonModule],
   templateUrl: './admin-header.component.html',
   styleUrls: ['./admin-header.component.scss']
   ,
