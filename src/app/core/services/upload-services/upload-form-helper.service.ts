@@ -145,35 +145,9 @@ export class UploadFormHelperService {
       return false;
     }
     // Run the same sequence as the central validator but without calling it
-    const basic = this.validateBasicFields(model);
-    if (!basic.isValid) {
-      const missingAgain = this.formErrorManager.collectFieldErrors(model);
-      this.formErrorManager.assignMissing(component, missingAgain);
-      if (basic.fieldErrors) this.formErrorManager.setErrors(component, basic.fieldErrors as Record<string, string>);
-      component.formError = basic.message ?? 'Formulario inválido';
-      component.isUploading = false;
-      return false;
-    }
-
-    const typeCheck = this.validateTypeSpecific(model);
-    if (!typeCheck.isValid) {
-      const missingAgain = this.formErrorManager.collectFieldErrors(model);
-      this.formErrorManager.assignMissing(component, missingAgain);
-      if (typeCheck.fieldErrors) this.formErrorManager.setErrors(component, typeCheck.fieldErrors as Record<string, string>);
-      component.formError = typeCheck.message ?? 'Formulario inválido';
-      component.isUploading = false;
-      return false;
-    }
-
-    const required = this.validateRequired(model);
-    if (!required.isValid) {
-      const missingAgain = this.formErrorManager.collectFieldErrors(model);
-      this.formErrorManager.assignMissing(component, missingAgain);
-      if (required.fieldErrors) this.formErrorManager.setErrors(component, required.fieldErrors as Record<string, string>);
-      component.formError = required.message ?? 'Formulario inválido';
-      component.isUploading = false;
-      return false;
-    }
+    if (!this.performValidation(component, model, this.validateBasicFields(model), 'Formulario inválido')) return false;
+    if (!this.performValidation(component, model, this.validateTypeSpecific(model), 'Formulario inválido')) return false;
+    if (!this.performValidation(component, model, this.validateRequired(model), 'Formulario inválido')) return false;
 
     // Final checks: fecha and URL
     if (model.fechaExpiracion && !this.orchestrator.validarFecha(model.fechaExpiracion)) {
@@ -187,6 +161,18 @@ export class UploadFormHelperService {
     if (model.type === 'video' && !this.validateUrl(model.url)) {
       this.formErrorManager.setErrors(component, { urlError: 'La URL debe empezar por http:// o https://' });
       component.formError = 'URL del video inválida';
+      component.isUploading = false;
+      return false;
+    }
+    return true;
+  }
+
+  private performValidation(component: UploadContentComponent, model: UploadFormModel, result: ValidationResult, defaultMessage: string): boolean {
+    if (!result.isValid) {
+      const missingAgain = this.formErrorManager.collectFieldErrors(model);
+      this.formErrorManager.assignMissing(component, missingAgain);
+      if (result.fieldErrors) this.formErrorManager.setErrors(component, result.fieldErrors as Record<string, string>);
+      component.formError = result.message ?? defaultMessage;
       component.isUploading = false;
       return false;
     }

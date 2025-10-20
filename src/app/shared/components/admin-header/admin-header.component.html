@@ -22,8 +22,12 @@
   </div>
 
   <div class="container">
-    <img class="admin" src="assets/admin/admin_default.png" alt="foto de usuario actual" height="29" width="29"/>
-    <div class="background2">
+    <img
+      [src]="getAvatarUrl()"
+      [alt]="'avatar de ' + (currentUser?.nombre || 'usuario')"
+      height="29"
+      width="29"/>
+    <div class="background2" (click)="logout()" (keydown.enter)="logout()" style="cursor: pointer;">
       <div class="text2">Cerrar sesión</div>
     </div>
   </div>

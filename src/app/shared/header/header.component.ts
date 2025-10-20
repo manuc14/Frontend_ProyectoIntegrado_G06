@@ -1,8 +1,9 @@
-import { Component, inject, HostListener, ElementRef, AfterViewInit, Renderer2, OnDestroy } from '@angular/core';
+import { Component, inject, HostListener, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { navActiveState, navHover, fadeIn } from '../../core/animations/animations';
+import { BackendUser, ApiService } from '../../core/services/api.service';
 
 /*
  * HeaderComponent
@@ -18,14 +19,17 @@ import { navActiveState, navHover, fadeIn } from '../../core/animations/animatio
   styleUrl: './header.component.scss',
   animations: [navActiveState, navHover, fadeIn]
 })
-export class HeaderComponent implements AfterViewInit, OnDestroy {
+export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
   private router = inject(Router);
   private elementRef = inject(ElementRef);
   private renderer = inject(Renderer2);
+  private apiService = inject(ApiService);
   currentRoute = '';
   isMenuOpen = false;
   hasScrolled = false; // Una vez que se hace scroll, se mantiene true
   isHomePage = false; // Para detectar si estamos en home
+  isLoggedIn = false;
+  currentUser: BackendUser | null = null;
 
   constructor() {
     // Obtener la ruta inicial
@@ -44,6 +48,10 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
       });
   }
 
+  ngOnInit() {
+    this.checkSession();
+  }
+
   ngAfterViewInit() {
     // Configurar estado inicial después de que la vista se inicialice
     setTimeout(() => {
@@ -55,6 +63,50 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     // Limpiar las clases del body al destruir el componente
     this.renderer.removeClass(document.body, 'home-page');
     this.renderer.removeClass(document.body, 'other-page');
+  }
+
+  /**
+   * Verifica si hay una sesión activa
+   */
+  private checkSession() {
+    const token = sessionStorage.getItem('authToken');
+    const userData = sessionStorage.getItem('currentUser');
+    this.isLoggedIn = !!(token && userData);
+    if (this.isLoggedIn && userData) {
+      try {
+        this.currentUser = JSON.parse(userData);
+      } catch (error) {
+        console.error('Error parsing current user data:', error);
+        this.isLoggedIn = false;
+        this.currentUser = null;
+      }
+    } else {
+      this.currentUser = null;
+    }
+  }
+
+  /**
+   * Obtiene la URL del avatar del usuario
+   */
+  getAvatarUrl(): string {
+    if (this.currentUser?.foto) {
+      const avatarPath = this.currentUser.foto.startsWith('/avatars/')
+        ? this.currentUser.foto
+        : `/avatars/${this.currentUser.foto}`;
+      return this.apiService.getFullAvatarUrl(avatarPath);
+    }
+    return 'assets/admin/admin_default.png'; // O un default general
+  }
+
+  /**
+   * Cierra la sesión del usuario
+   */
+  logout() {
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('currentUser');
+    this.isLoggedIn = false;
+    this.currentUser = null;
+    this.router.navigate(['/login']);
   }
 
   /**

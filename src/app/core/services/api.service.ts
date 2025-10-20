@@ -51,9 +51,13 @@ export interface BackendUser {
   apellidos: string;
   nombreCompleto: string;
   foto: string;
-  tipo: string; // e.g., 'USUARIO_EV', 'ADMINISTRADOR', 'EDITOR_CONTENIDO'
+  tipo: string; // e.g., 'USUARIO_EV', 'ADMINISTRADOR', 'EDITOR_CONTENIDO', 'CREADOR'
   activo: boolean;
   fechaCreacion: string;
+  alias?: string;
+  descripcion?: string;
+  especialidad?: string;
+  tipoContenido?: string; // 'audio' | 'video'
 }
 
 /*
@@ -196,7 +200,16 @@ export class ApiService {
    * El proxy redirige /resources/* al backend automáticamente.
    */
   getFullAvatarUrl(relativePath: string): string {
-    return relativePath;
+    // Si la ruta ya incluye /resources/, devolver tal cual
+    if (relativePath.startsWith('/resources/')) {
+      return relativePath;
+    }
+    // Si la ruta es relativa (ej: /avatars/avatar1.png), agregar /resources/
+    if (relativePath.startsWith('/')) {
+      return `${this.resourceBase}${relativePath}`;
+    }
+    // Si es solo el nombre del archivo, construir la ruta completa
+    return `${this.resourceBase}/avatars/${relativePath}`;
   }
 
   /**

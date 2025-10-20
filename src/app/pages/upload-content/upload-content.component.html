@@ -1,4 +1,4 @@
-<app-header />
+<app-content-creator-header />
 
 <main class="upload-page">
   <div class="container">
@@ -85,23 +85,6 @@
       <div class="right-column">
         <section class="form-section">
           <div class="form-field">
-            <span class="field-label">Tipo de archivo <span class="required">*</span></span>
-            <div class="radio-group" [class.error-border]="typeError && submitted">
-              <label class="radio-option">
-                <input type="radio" name="type" (change)="onTypeChange('video')" 
-                       [checked]="type==='video'" />
-                <span>Video</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="type" (change)="onTypeChange('audio')" 
-                       [checked]="type==='audio'" />
-                <span>Audio</span>
-              </label>
-            </div>
-            <small class="field-error" *ngIf="typeError && submitted" aria-live="polite">{{ typeError }}</small>
-          </div>
-
-          <div class="form-field">
             <span class="field-label">Contenido VIP <span class="required">*</span></span>
             <div class="radio-group" [class.error-border]="vipError && submitted">
               <label class="radio-option">
@@ -116,58 +99,51 @@
             <small class="field-error" *ngIf="vipError && submitted" aria-live="polite">{{ vipError }}</small>
           </div>
 
-          <label>
-            <span>URL (solo video) <span class="required">*</span></span>
+          <label *ngIf="type === 'video'">
+            <span>URL <span class="required">*</span></span>
             <input id="url" name="url" type="text" [(ngModel)]="url" placeholder="https://example.com/video.mp4"
-              [disabled]="type === 'audio'" 
-              [class.disabled-field]="type === 'audio'"
-              [class.error]="(urlError && type === 'video') || (urlError && submitted)"
+              [class.error]="urlError && submitted"
               (input)="onUrlInput($event)"
-              (blur)="validarUrl()"
-              title="Este campo está disponible solo cuando se selecciona 'Video'" />
-            <small class="field-error" *ngIf="urlError && (type === 'video' || submitted)" aria-live="polite">{{ urlError }}</small>
+              (blur)="validarUrl()" />
+            <small class="field-error" *ngIf="urlError && submitted" aria-live="polite">{{ urlError }}</small>
           </label>
 
-          <div class="form-field">
-            <span class="field-label">Archivo (solo audio) <span class="required">*</span></span>
-            <div class="file-upload-area" [class.disabled-field]="type !== 'audio'" [class.error-border]="fileError && submitted && type === 'audio'">
+          <div class="form-field" *ngIf="type === 'audio'">
+            <span class="field-label">Archivo <span class="required">*</span></span>
+            <div class="file-upload-area" [class.error-border]="fileError && submitted">
               <input type="file" (change)="onFileSelected($event)" 
-                     [disabled]="type !== 'audio' || audioUploading"
-                     [accept]="type === 'audio' ? 'audio/*' : '*'"
-                     title="Este campo está disponible solo cuando se selecciona 'Audio'" />
+                     [disabled]="audioUploading"
+                     accept="audio/*" />
               <div class="upload-placeholder">
-                <p *ngIf="type === ''">Selecciona primero el tipo de archivo (Video o Audio)</p>
-                <p *ngIf="type === 'video'">Para videos, utiliza el campo URL de arriba</p>
-                
                 <!-- Estado normal - sin archivo -->
-                <p *ngIf="type === 'audio' && !file && !audioFileValidationError">
+                <p *ngIf="!file && !audioFileValidationError">
                   Arrastra y suelta un archivo de audio aquí o haz click para seleccionar
                   <br><small class="format-hint">Formatos de audio: MP3, WAV, AAC, OGG, FLAC (máx. 1MB)</small>
                 </p>
                 
                 <!-- Error de validación de archivo -->
-                <p *ngIf="type === 'audio' && audioFileValidationError" class="upload-status error">
+                <p *ngIf="audioFileValidationError" class="upload-status error">
                   ⚠️ {{ audioFileValidationError }}
                 </p>
                 
                 <!-- Archivo seleccionado pero no subido -->
-                <p *ngIf="type === 'audio' && file && !audioUrl && !audioFileValidationError" class="upload-status selected">
+                <p *ngIf="file && !audioUrl && !audioFileValidationError" class="upload-status selected">
                   📁 Archivo seleccionado: {{ file.name }}
                   <br><small>Se subirá al guardar el contenido</small>
                 </p>
                 
                 <!-- Archivo subido exitosamente -->
-                <p *ngIf="type === 'audio' && audioUrl && file" class="upload-status success">
+                <p *ngIf="audioUrl && file" class="upload-status success">
                   ✓ Archivo subido correctamente: {{ file.name }}
                 </p>
                 
                 <!-- Estado de error de subida -->
-                <p *ngIf="type === 'audio' && audioUploadError" class="upload-status error">
+                <p *ngIf="audioUploadError" class="upload-status error">
                   ⚠️ {{ audioUploadError }}
                 </p>
               </div>
             </div>
-            <small class="field-error" *ngIf="fileError && submitted && type === 'audio'" aria-live="polite">{{ fileError }}</small>
+            <small class="field-error" *ngIf="fileError && submitted" aria-live="polite">{{ fileError }}</small>
           </div>
 
           <div class="form-field">
@@ -209,23 +185,35 @@
             </label>
           </div>
 
-          <div class="form-row">
+          <!-- Video fields row -->
+          <div class="form-row" *ngIf="type === 'video'">
             <label>
               <span>Resolución <span class="required">*</span></span>
-              <select name="resolution" [(ngModel)]="resolution" 
-                      [disabled]="type === 'audio'"
-                      [class.disabled-field]="type === 'audio'"
-                      [class.error]="resolutionError && submitted && type === 'video'"
-                      (change)="onResolutionChange()"
-                      title="Este campo está disponible solo cuando se selecciona 'Video'">
+              <select name="resolution" [(ngModel)]="resolution"
+                      [class.error]="resolutionError && submitted"
+                      (change)="onResolutionChange()">
                 <option value="">Seleccionar</option>
                 <option value="1080p">1080p</option>
                 <option value="720p">720p</option>
                 <option value="480p">480p</option>
               </select>
-              <small class="field-error" *ngIf="resolutionError && submitted && type === 'video'" aria-live="polite">{{ resolutionError }}</small>
+              <small class="field-error" *ngIf="resolutionError && submitted" aria-live="polite">{{ resolutionError }}</small>
             </label>
 
+            <label>
+              <span>Restricción de edad <span class="required">*</span></span>
+              <select name="ageRestriction" [(ngModel)]="ageRestriction" [class.error]="ageRestrictionError && submitted" (change)="onAgeRestrictionChange()">
+                <option value="">Seleccionar</option>
+                <option value="+7">+7</option>
+                <option value="+13">+13</option>
+                <option value="+18">+18</option>
+              </select>
+              <small class="field-error" *ngIf="ageRestrictionError && submitted" aria-live="polite">{{ ageRestrictionError }}</small>
+            </label>
+          </div>
+
+          <!-- Audio fields -->
+          <div *ngIf="type === 'audio'">
             <label>
               <span>Restricción de edad <span class="required">*</span></span>
               <select name="ageRestriction" [(ngModel)]="ageRestriction" [class.error]="ageRestrictionError && submitted" (change)="onAgeRestrictionChange()">

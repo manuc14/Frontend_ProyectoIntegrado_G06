@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FooterComponent } from '../../shared/footer/footer.component';
+import { ContentCreatorHeaderComponent } from '../../shared/components/content-creator-header/content-creator-header.component';
 import { Router } from '@angular/router';
 
 interface ContentList {
@@ -20,7 +21,7 @@ interface RecentEdit {
 @Component({
   selector: 'app-content-creator',
   standalone: true,
-  imports: [CommonModule,FooterComponent],
+  imports: [CommonModule, FooterComponent, ContentCreatorHeaderComponent],
   templateUrl: './content-creator.component.html',
   styleUrls: ['./content-creator.component.scss']
 })

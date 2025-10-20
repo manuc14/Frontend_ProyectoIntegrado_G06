@@ -1,30 +1,29 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
-import { ApiService } from '../../core/services/api.service';
+import { ContentCreatorHeaderComponent } from '../../shared/components/content-creator-header/content-creator-header.component';
+import { ApiService, BackendUser } from '../../core/services/api.service';
 import { UploadValidatorService, UploadFormModel } from '../../core/services/upload-services/upload-validator.service';
 import { UploadFormHelperService } from '../../core/services/upload-services/upload-form-helper.service';
 import { ToastService } from '../../core/services/upload-services/toast.service';
 import { FieldClearService } from '../../core/services/upload-services/field-clear.service';
 import { extractErrorMessage } from '../../core/utils/error-utils';
 import { UPLOAD_LIMITS } from '../../core/constants/form-limits';
- 
 
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-upload-content',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent ],
+  imports: [CommonModule, FormsModule, FooterComponent, ContentCreatorHeaderComponent],
   templateUrl: './upload-content.component.html',
   styleUrls: ['./upload-content.component.scss']
 })
 export class UploadContentComponent implements OnInit {
   constructor(
     private api: ApiService,
-    @Inject(Router) private router: Router,
+    private router: Router,
     private validator: UploadValidatorService,
     private formHelper: UploadFormHelperService,
     private toast: ToastService,
@@ -33,6 +32,9 @@ export class UploadContentComponent implements OnInit {
 
   // Constants for template access
   readonly UPLOAD_LIMITS = UPLOAD_LIMITS;
+
+  // Current user
+  currentUser: BackendUser | null = null;
 
   // form model
   title = '';
@@ -311,7 +313,24 @@ export class UploadContentComponent implements OnInit {
     const mm = String(t.getMonth() + 1).padStart(2, '0');
     const dd = String(t.getDate()).padStart(2, '0');
     this.minDate = `${yyyy}-${mm}-${dd}`;
+    
+    // Load current user
+    this.loadCurrentUser();
+    
     this.loadThumbnails();
+  }
+
+  private loadCurrentUser(): void {
+    const userData = sessionStorage.getItem('currentUser');
+    if (userData) {
+      this.currentUser = JSON.parse(userData);
+      // Set type based on tipoContenido
+      if (this.currentUser?.tipoContenido) {
+        this.type = this.currentUser.tipoContenido as 'video' | 'audio';
+        // Trigger the type change logic
+        this.onTypeChange(this.type);
+      }
+    }
   }
 
   private showThumbnailSuccessToast(): void {

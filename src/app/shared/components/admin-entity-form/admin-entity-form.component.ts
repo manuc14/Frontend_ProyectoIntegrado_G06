@@ -24,7 +24,6 @@ export class AdminEntityFormComponent implements OnInit {
   @Input() successRoute: string = '';
 
   entityForm!: FormGroup;
-  selectedFile: File | null = null;
   selectedAvatar: string | null = null;
   previewUrl: string = 'assets/admin/foto_upload.svg';
   isDefaultIcon: boolean = true;
@@ -35,7 +34,7 @@ export class AdminEntityFormComponent implements OnInit {
   }
 
   get photoLabel(): string {
-    return this.isPhotoRequired ? 'Foto *' : 'Foto (opcional)';
+    return this.isPhotoRequired ? 'Avatar *' : 'Avatar (opcional)';
   }
 
   get submitButtonText(): string {
@@ -218,7 +217,6 @@ export class AdminEntityFormComponent implements OnInit {
 
   selectPredefinedAvatar(avatar: string): void {
     this.selectedAvatar = avatar;
-    this.selectedFile = null;
     this.previewUrl = avatar;
     this.isDefaultIcon = false;
     this.closeAvatarModal();
@@ -242,20 +240,25 @@ export class AdminEntityFormComponent implements OnInit {
     if (!this.validateForm()) return;
 
     this.isSubmitting = true;
-    const formData = this.prepareFormData();
+    const entityData = this.prepareEntityData();
 
     const createMethod = this.entityType === 'admin' ? 'crearAdministrador' : 'crearCreador';
 
-    this.service[createMethod](formData).subscribe({
+    this.service[createMethod](entityData).subscribe({
       next: (response: any) => this.handleSuccess(response),
       error: (error: any) => this.handleError(error)
     });
   }
 
   private validatePhoto(): boolean {
-    if (this.isPhotoRequired && !this.selectedFile && !this.selectedAvatar) {
-      this.errorMessage = 'La foto es obligatoria para los creadores de contenido.';
-      return false;
+    if (this.isPhotoRequired) {
+      // Para creadores, se requiere seleccionar un avatar predefinido
+      const hasAvatar = this.selectedAvatar !== null && this.selectedAvatar !== '';
+
+      if (!hasAvatar) {
+        this.errorMessage = 'Debe seleccionar un avatar predefinido para los creadores de contenido.';
+        return false;
+      }
     }
     return true;
   }
@@ -276,43 +279,29 @@ export class AdminEntityFormComponent implements OnInit {
     return true;
   }
 
-  private prepareFormData(): FormData {
-    const formData = new FormData();
-    const entityData = this.prepareEntityData();
-    formData.append(this.entityType === 'admin' ? 'admin' : 'creador', new Blob([JSON.stringify(entityData)], { type: 'application/json' }));
-
-    if (this.selectedFile) {
-      formData.append('foto', this.selectedFile, this.selectedFile.name);
-    }
-
-    return formData;
-  }
-
   private prepareEntityData(): any {
-    let avatarPath = null;
-
+    // UNIFICADO: Todos los tipos SOLO usan avatares predefinidos
+    // Se envía el nombre del avatar en JSON (igual que registro)
+    let fotoNombre = '';
     if (this.selectedAvatar) {
-      if (this.entityType === 'creator') {
-        avatarPath = this.selectedAvatar.startsWith('avatars/')
-          ? this.selectedAvatar
-          : 'avatars/' + this.selectedAvatar.split('/').pop();
-      } else {
-        avatarPath = this.selectedAvatar || null;
-      }
+      fotoNombre = this.selectedAvatar.split('/').pop() ?? '';
     }
+
+    let entityData: any;
 
     if (this.entityType === 'admin') {
-      return {
+      entityData = {
         nombre: this.entityForm.get('nombre')?.value.trim(),
         apellidos: this.entityForm.get('apellidos')?.value.trim(),
         correo: this.entityForm.get('email')?.value.trim(),
         contrasena: this.entityForm.get('password')?.value,
         confirmarContrasena: this.entityForm.get('repetirPassword')?.value,
         departamento: this.entityForm.get('departamento')?.value,
-        avatarPath: avatarPath
+        foto: fotoNombre // Nombre del avatar predefinido (igual que registro)
       };
     } else {
-      return {
+      // Para creadores, igual que registro: nombre del avatar en JSON
+      entityData = {
         nombre: this.entityForm.get('nombre')?.value.trim(),
         apellidos: this.entityForm.get('apellidos')?.value.trim(),
         correo: this.entityForm.get('email')?.value.trim(),
@@ -322,9 +311,11 @@ export class AdminEntityFormComponent implements OnInit {
         especialidad: this.entityForm.get('especialidad')?.value,
         tipoContenido: this.entityForm.get('tipoContenido')?.value,
         descripcion: this.entityForm.get('descripcion')?.value?.trim() || '',
-        avatarPath: avatarPath
+        foto: fotoNombre // Nombre del avatar predefinido (igual que registro)
       };
     }
+
+    return entityData;
   }
 
   private handleSuccess(response: any): void {

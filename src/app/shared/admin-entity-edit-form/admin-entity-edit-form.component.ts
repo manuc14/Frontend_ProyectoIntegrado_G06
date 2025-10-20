@@ -15,7 +15,6 @@ import { TextAreaFieldComponent } from '../textarea-field/textarea-field.compone
 import { SelectFieldComponent } from '../select-field/select-field.component';
 import { ToggleBlockButtonComponent } from '../toggle-block-button/toggle-block-button.component';
 import { FormActionsComponent } from '../form-actions/form-actions.component';
-import { TipoContenidoButtonsComponent } from '../tipo-contenido-buttons/tipo-contenido-buttons.component';
 import { DateFieldComponent } from '../date-field/date-field.component';
 import { BaseEditService } from '../base-edit/base-edit.service';
 import { PasswordValidators } from '../../core/validators/form.validators';
@@ -68,7 +67,6 @@ type EntityData = AdminEntityData | CreatorEntityData | UserEntityData;
     SelectFieldComponent,
     ToggleBlockButtonComponent,
     FormActionsComponent,
-    TipoContenidoButtonsComponent,
     DateFieldComponent
   ],
   templateUrl: './admin-entity-edit-form.component.html',
@@ -472,14 +470,13 @@ export class AdminEntityEditFormComponent implements OnInit {
   private getChanges(): any {
     const changes: any = {};
 
-    // Incluir siempre los campos principales para cada tipo de entidad (excepto activo, que solo si cambió)
+    // Incluir siempre los campos obligatorios para cada tipo de entidad
     switch (this.entityType) {
       case 'admin':
         changes.nombre = this.entityData.nombre;
         changes.apellidos = this.entityData.apellidos;
         changes.departamento = (this.entityData as AdminEntityData).departamento;
-        changes.alias = this.entityData.alias;
-        changes.correo = (this.entityData as AdminEntityData).correo;
+        changes.activo = this.entityData.activo;
         break;
       case 'creator':
         changes.nombre = this.entityData.nombre;
@@ -487,14 +484,13 @@ export class AdminEntityEditFormComponent implements OnInit {
         changes.descripcion = (this.entityData as CreatorEntityData).descripcion;
         changes.especialidad = (this.entityData as CreatorEntityData).especialidad;
         changes.alias = this.entityData.alias;
-        changes.correo = (this.entityData as CreatorEntityData).correo;
-        changes.tipoContenido = (this.entityData as CreatorEntityData).tipoContenido;
+        changes.activo = this.entityData.activo;
         break;
       case 'user':
         changes.nombre = this.entityData.nombre;
         changes.apellidos = this.entityData.apellidos;
         changes.fechaNacimiento = (this.entityData as UserEntityData).fechaNacimiento;
-        changes.alias = this.entityData.alias;
+        changes.activo = this.entityData.activo;
         break;
     }
 
@@ -505,7 +501,6 @@ export class AdminEntityEditFormComponent implements OnInit {
       }
     }
 
-    console.log('Changes to send:', changes);
     return changes;
   }
 

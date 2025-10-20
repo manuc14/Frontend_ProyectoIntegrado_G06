@@ -94,6 +94,11 @@ export class LoginComponent {
             sessionStorage.setItem('authToken', res.token);
           }
 
+          // Guardar información del usuario en sessionStorage
+          if (res.user) {
+            sessionStorage.setItem('currentUser', JSON.stringify(res.user));
+          }
+
           const tipo = res.user?.tipo || '';
           // Mapeo de tipos del backend a rutas de la app
           let target: string = '/catalog';

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UploadService, UploadResponse } from '../../core/services/upload.service';
+import { UploadService, UploadResponse } from '../../core/services/upload-services/upload.service';
 
 /**
  * Estados posibles del componente de subida de miniaturas

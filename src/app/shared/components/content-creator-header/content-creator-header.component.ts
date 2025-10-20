@@ -1,28 +1,37 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { slideInFromTop } from '../../../core/animations/animations';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { BackendUser, ApiService } from '../../../core/services/api.service';
-import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-admin-header',
+  selector: 'app-content-creator-header',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './admin-header.component.html',
-  styleUrls: ['./admin-header.component.scss']
-  ,
-  animations: [slideInFromTop]
+  templateUrl: './content-creator-header.component.html',
+  styleUrls: ['./content-creator-header.component.scss']
 })
-export class AdminHeaderComponent implements OnInit {
-  @Input() sidebarVisible = false;
-  @Output() toggleSidebar = new EventEmitter<void>();
+export class ContentCreatorHeaderComponent implements OnInit {
 
   currentUser: BackendUser | null = null;
+  isOnUploadPage = false;
 
-  constructor(private router: Router, private apiService: ApiService) {}
+  constructor(private router: Router, private activatedRoute: ActivatedRoute, private apiService: ApiService) {}
 
   ngOnInit() {
     this.loadCurrentUser();
+    this.checkCurrentRoute();
+    
+    // Suscribirse a cambios de ruta
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.checkCurrentRoute();
+    });
+  }
+
+  private checkCurrentRoute() {
+    this.isOnUploadPage = this.router.url === '/upload-content';
   }
 
   private loadCurrentUser() {
@@ -47,8 +56,8 @@ export class AdminHeaderComponent implements OnInit {
     return 'assets/admin/admin_default.png';
   }
 
-  onToggle() {
-    this.toggleSidebar.emit();
+  navigateToUpload() {
+    this.router.navigate(['/upload-content']);
   }
 
   logout() {

@@ -108,8 +108,8 @@
                 <!-- Foto -->
                 <div class="container13">
                   <img
-                    [src]="creator.foto ? 'assets/admin/' + creator.foto : 'assets/admin/admin_default.png'"
-                    [alt]="'foto de ' + creator.nombre"
+                    [src]="creator.foto || 'assets/admin/admin_default.png'"
+                    [alt]="'avatar de ' + creator.nombre"
                     height="28"
                     width="28"
                     priority/>

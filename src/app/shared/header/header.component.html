@@ -39,25 +39,33 @@
 
   <!-- Acciones visibles solo en móvil dentro del menú -->
   <nav id="primary-nav" class="container2" role="navigation" aria-label="Navegación principal">
-    <a class="link3 only-mobile" routerLink="/login" [@navHover]> 
-      <div class="text6">Iniciar Sesión</div> 
-    </a>
-    <a class="link4 only-mobile" routerLink="/signup" [@navHover]> 
-      <div class="text6">Registrarse</div> 
-    </a>
+    <ng-container *ngIf="!isLoggedIn">
+      <a class="link3 only-mobile" routerLink="/login" [@navHover]> 
+        <div class="text6">Iniciar Sesión</div> 
+      </a>
+      <a class="link4 only-mobile" routerLink="/signup" [@navHover]> 
+        <div class="text6">Registrarse</div> 
+      </a>
+    </ng-container>
   </nav>
 
   <div class="container actions only-desktop">
-    <a class="link3" routerLink="/login" [@navHover]> 
-      <div class="text6">Iniciar Sesión</div> 
-    </a>
-    <a class="link4" routerLink="/signup" [@navHover]>
-      <div class="iconify-icon">
-        <div class="svg2">
-          <img class="group" src="assets/icons/user-plus.svg" alt="signup" />
+    <ng-container *ngIf="!isLoggedIn">
+      <a class="link3" routerLink="/login" [@navHover]> 
+        <div class="text6">Iniciar Sesión</div> 
+      </a>
+      <a class="link4" routerLink="/signup" [@navHover]>
+        <div class="iconify-icon">
+          <div class="svg2">
+            <img class="group" src="assets/icons/user-plus.svg" alt="signup" />
+          </div>
         </div>
-      </div>
-      <div class="text7">Registrarse</div>
-    </a>
+        <div class="text7">Registrarse</div>
+      </a>
+    </ng-container>
+    <ng-container *ngIf="isLoggedIn">
+      <img [src]="getAvatarUrl()" alt="Avatar" class="avatar-desktop" />
+      <button class="logout-desktop" (click)="logout()" (keydown.enter)="logout()" tabindex="0">Cerrar sesión</button>
+    </ng-container>
   </div>
 </header>

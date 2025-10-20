@@ -12,7 +12,7 @@ export class FormErrorManagerService {
     if (!target || !errors) return;
     for (const k of Object.keys(errors)) {
       try {
-        (target as any)[k] = (errors as any)[k];
+        target[k] = (errors as any)[k];
       } catch {}
     }
   }

@@ -40,30 +40,6 @@
             </app-input-field>
           </div>
 
-          <app-input-field
-            label="Alias"
-            [value]="entityData.alias"
-            (valueChange)="entityData.alias = $event"
-            (input)="validateForm()"
-            placeholder="Alias"
-            errorMessage="El alias no puede superar 20 caracteres"
-            [tooLong]="aliasTooLong"
-            [required]="true"
-            (tooLongChange)="aliasTooLong = $event">
-          </app-input-field>
-
-          <!-- Campos específicos para admin y creator -->
-          <ng-container *ngIf="isAdmin(entityData) || isCreator(entityData)">
-            <app-input-field
-              label="Correo"
-              type="email"
-              [value]="$any(entityData).correo"
-              (valueChange)="$any(entityData).correo = $event"
-              placeholder="Correo"
-              [required]="true">
-            </app-input-field>
-          </ng-container>
-
           <!-- Campos específicos para creator -->
           <ng-container *ngIf="isCreator(entityData)">
             <app-textarea-field
@@ -90,16 +66,6 @@
               <option value="Ciencia">Ciencia</option>
               <option value="Viajes">Viajes</option>
             </app-select-field>
-
-            <div class="container8">
-              <div class="container9">
-                <div class="text7">Tipo de Contenido</div>
-              </div>
-              <app-tipo-contenido-buttons
-                [value]="$any(entityData).tipoContenido"
-                (valueChange)="onTipoContenidoChanged($event)">
-              </app-tipo-contenido-buttons>
-            </div>
           </ng-container>
 
           <!-- Campo específico para admin -->
