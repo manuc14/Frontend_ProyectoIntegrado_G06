@@ -35,11 +35,14 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
       label: 'Categoría',
       mutuallyExclusive: true,
       filters: [
-        { id: 'lifestyle', label: 'Lifestyle', value: 'Lifestyle', active: false },
+        { id: 'musica', label: 'Música', value: 'Música', active: false },
+        { id: 'educacion', label: 'Educación', value: 'Educación', active: false },
         { id: 'tecnologia', label: 'Tecnología', value: 'Tecnología', active: false },
         { id: 'cocina', label: 'Cocina', value: 'Cocina', active: false },
         { id: 'deportes', label: 'Deportes', value: 'Deportes', active: false },
-        { id: 'arte', label: 'Arte', value: 'Arte', active: false }
+        { id: 'arte', label: 'Arte', value: 'Arte', active: false },
+        { id: 'ciencia', label: 'Ciencia', value: 'Ciencia', active: false },
+        { id: 'viajes', label: 'Viajes', value: 'Viajes', active: false }
       ]
     },
     {
@@ -121,7 +124,12 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
     if (field === 'alias') {
       return String(item.alias).replace('@', '');
     }
-    return toTimestampFromString(String((item as any)[field])) ?? 0;
+    // Para campos que podrían ser fechas, intentar convertir a timestamp
+    if (field === 'fechaNacimiento' || field === 'fechaNacimientoFormatted') {
+      return toTimestampFromString(String((item as any)[field])) ?? 0;
+    }
+    // Para otros campos, devolver como string
+    return String((item as any)[field] ?? '');
   }
 
   getItemId(item: CreatorEC): string {

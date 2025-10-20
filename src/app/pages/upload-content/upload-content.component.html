@@ -18,7 +18,7 @@
                    placeholder="Introduce el título" maxlength="50" 
                    [class.error]="titleError && submitted" />
             <div class="char-count">{{ titleCount }} / {{ UPLOAD_LIMITS.titleLimit }}</div>
-            <small class="field-error" *ngIf="titleError && submitted" aria-live="polite">{{ titleError }}</small>
+            <div class="field-error" *ngIf="titleError && submitted" aria-live="polite">{{ titleError }}</div>
           </label>
 
           <label>
@@ -96,7 +96,7 @@
                 <span>No</span>
               </label>
             </div>
-            <small class="field-error" *ngIf="vipError && submitted" aria-live="polite">{{ vipError }}</small>
+            <div class="field-error" *ngIf="vipError && submitted" aria-live="polite">{{ vipError }}</div>
           </div>
 
           <label *ngIf="type === 'video'">
@@ -105,7 +105,7 @@
               [class.error]="urlError && submitted"
               (input)="onUrlInput($event)"
               (blur)="validarUrl()" />
-            <small class="field-error" *ngIf="urlError && submitted" aria-live="polite">{{ urlError }}</small>
+            <div class="field-error" *ngIf="urlError && submitted" aria-live="polite">{{ urlError }}</div>
           </label>
 
           <div class="form-field" *ngIf="type === 'audio'">
@@ -143,7 +143,7 @@
                 </p>
               </div>
             </div>
-            <small class="field-error" *ngIf="fileError && submitted" aria-live="polite">{{ fileError }}</small>
+            <div class="field-error" *ngIf="fileError && submitted" aria-live="polite">{{ fileError }}</div>
           </div>
 
           <div class="form-field">
@@ -171,7 +171,7 @@
               <span>Duración (minutos) <span class="required">*</span></span>
               <input type="number" name="duration" [(ngModel)]="duration" placeholder="Minutos" min="1" 
                      [class.error]="durationError && submitted" (input)="onDurationChange()" />
-              <small class="field-error" *ngIf="durationError && submitted" aria-live="polite">{{ durationError }}</small>
+              <div class="field-error" *ngIf="durationError && submitted" aria-live="polite">{{ durationError }}</div>
             </label>
 
             <label>
@@ -181,7 +181,7 @@
                 <option value="Publico">Publico</option>
                 <option value="Privado">Privado</option>
               </select>
-              <small class="field-error" *ngIf="estadoError && submitted" aria-live="polite">{{ estadoError }}</small>
+              <div class="field-error" *ngIf="estadoError && submitted" aria-live="polite">{{ estadoError }}</div>
             </label>
           </div>
 
@@ -197,7 +197,7 @@
                 <option value="720p">720p</option>
                 <option value="480p">480p</option>
               </select>
-              <small class="field-error" *ngIf="resolutionError && submitted" aria-live="polite">{{ resolutionError }}</small>
+              <div class="field-error" *ngIf="resolutionError && submitted" aria-live="polite">{{ resolutionError }}</div>
             </label>
 
             <label>
@@ -208,7 +208,7 @@
                 <option value="+13">+13</option>
                 <option value="+18">+18</option>
               </select>
-              <small class="field-error" *ngIf="ageRestrictionError && submitted" aria-live="polite">{{ ageRestrictionError }}</small>
+              <div class="field-error" *ngIf="ageRestrictionError && submitted" aria-live="polite">{{ ageRestrictionError }}</div>
             </label>
           </div>
 
@@ -222,7 +222,7 @@
                 <option value="+13">+13</option>
                 <option value="+18">+18</option>
               </select>
-              <small class="field-error" *ngIf="ageRestrictionError && submitted" aria-live="polite">{{ ageRestrictionError }}</small>
+              <div class="field-error" *ngIf="ageRestrictionError && submitted" aria-live="polite">{{ ageRestrictionError }}</div>
             </label>
           </div>
 
@@ -233,7 +233,7 @@
       [min]="minDate" (ngModelChange)="validarFecha()" />
     <input type="text" name="fechaManual" placeholder="AAAA-MM-DD" [(ngModel)]="fechaExpiracion" (ngModelChange)="validarFecha()" />
             </div>
-            <small class="field-error" *ngIf="fechaError" aria-live="polite">{{ fechaError }}</small>
+            <div class="field-error" *ngIf="fechaError" aria-live="polite">{{ fechaError }}</div>
           </label>
         </section>
       </div>

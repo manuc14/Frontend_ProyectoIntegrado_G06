@@ -155,7 +155,8 @@ export class AdminUsersPage extends AdminListBase<User> {
     if (field === 'birthDate') {
       return toTimestampFromString(item.birthDate);
     }
-    return (item as any)[field];
+    // Para otros campos, devolver como string
+    return String((item as any)[field] ?? '');
   }
 
   getItemId(item: User): string {

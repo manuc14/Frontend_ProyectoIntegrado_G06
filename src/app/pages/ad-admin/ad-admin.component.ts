@@ -137,7 +137,12 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
   }
 
   getSortValue(item: AdminEV, field: string): any {
-    return toTimestampFromString(String((item as any)[field])) ?? 0;
+    // Para campos que podrían ser fechas, intentar convertir a timestamp
+    if (field === 'fechaNacimiento' || field === 'fechaNacimientoFormatted') {
+      return toTimestampFromString(String((item as any)[field])) ?? 0;
+    }
+    // Para otros campos, devolver como string
+    return String((item as any)[field] ?? '');
   }
 
   getItemId(item: AdminEV): string {

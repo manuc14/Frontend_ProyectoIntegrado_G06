@@ -41,23 +41,22 @@ export function filterAndSearch(items: any[], activeFilters: any[], searchTerm: 
 }
 
 /**
- * Generic sorting helper. If a dateParseFn is provided, it will be used to compare date-like fields.
+ * Generic sorting helper. Takes a function to get the sort value from each item.
  */
-export function applySorting(items: any[], sortOption: any, dateParseFn?: (val: any) => number): any[] {
+export function applySorting(items: any[], sortOption: any, getSortValueFn: (item: any) => any): any[] {
   if (!sortOption) return items;
-  const field = sortOption.field;
   const dir = sortOption.direction === 'asc' ? 1 : -1;
 
   return (items || []).sort((a: any, b: any) => {
-  const va = a[field] ?? '';
-  const vb = b[field] ?? '';
+    const va = getSortValueFn(a) ?? '';
+    const vb = getSortValueFn(b) ?? '';
 
-    if (dateParseFn) {
-      const ta = dateParseFn(va) ?? 0;
-      const tb = dateParseFn(vb) ?? 0;
-      return (ta - tb) * dir;
+    // If both are numbers, compare numerically
+    if (typeof va === 'number' && typeof vb === 'number') {
+      return (va - vb) * dir;
     }
 
+    // Otherwise, compare as strings
     return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
   });
 }

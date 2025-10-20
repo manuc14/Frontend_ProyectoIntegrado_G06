@@ -274,7 +274,7 @@ export class RegisterComponent {
   /* Maneja errores generales del registro. */
   private handleGeneralError(message?: string): void {
     this.bannerKind = 'error';
-    this.bannerText = message ?? 'No se pudo crear la cuenta. Inténtelo de nuevo más tarde.';
+    this.bannerText = message ?? 'Se ha producido un error. Inténtelo de nuevo más tarde.';
     this.triggerShakeError();
   }
 
@@ -285,11 +285,11 @@ export class RegisterComponent {
 
     const status = err?.originalError?.status || err?.status;
     const payload = err?.originalError?.error || err?.error || {};
-    const message: string | undefined = err?.message || payload?.message;
+    const backendMessage: string | undefined = payload?.message;
     const details: Array<{ field: string; message: string }>|undefined = payload?.details;
 
     if (status === 409) {
-      this.handleConflictError(message);
+      this.handleConflictError(backendMessage);
       return;
     }
 
@@ -298,7 +298,8 @@ export class RegisterComponent {
       return;
     }
 
-    this.handleGeneralError(message);
+    // Para otros errores, usar mensaje del backend si existe, sino mensaje por defecto
+    this.handleGeneralError(backendMessage);
     console.error('Error de registro', err);
   }
 

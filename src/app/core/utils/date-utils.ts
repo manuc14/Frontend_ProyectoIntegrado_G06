@@ -12,7 +12,18 @@ export function formatDateIsoToDDMMYYYY(dateInput: string | number | null | unde
 }
 
 export function toTimestampFromString(dateString: string | null | undefined): number | null {
-  if (!dateString) return null;
+  if (!dateString || dateString === '-') return null;
+  
+  // Si es formato DD/MM/YYYY, parsearlo manualmente
+  const ddmmyyyyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (ddmmyyyyMatch) {
+    const [, day, month, year] = ddmmyyyyMatch;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const t = date.getTime();
+    return isNaN(t) ? null : t;
+  }
+  
+  // Para otros formatos, usar Date constructor
   const date = new Date(dateString);
   const t = date.getTime();
   return isNaN(t) ? null : t;

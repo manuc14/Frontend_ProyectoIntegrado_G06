@@ -510,6 +510,14 @@ input[placeholder="Introduce el título"] {
   margin-bottom: 8px;
 }
 
+/* General field error style */
+.field-error {
+  color: #dc2626; /* more intense red */
+  font-size: 13px;
+  margin-top: -4px;
+  font-weight: 600;
+}
+
 /* Thumbnail upload warning style: amber warning, slightly smaller font like availability errors */
 .thumbnails-section .field-error {
   color: #b45309; /* amber-700 */
