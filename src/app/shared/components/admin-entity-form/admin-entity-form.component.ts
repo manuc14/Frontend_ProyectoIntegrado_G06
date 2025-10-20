@@ -109,6 +109,10 @@ export class AdminEntityFormComponent implements OnInit {
     private route: ActivatedRoute,
     public apiService: ApiService
   ) {
+    // Form will be created in ngOnInit after inputs are set
+  }
+
+  private createForm(): void {
     // Crear form con campos comunes
     const controls: any = {
       nombre: ['', [Validators.required, Validators.minLength(2)]],
@@ -128,7 +132,7 @@ export class AdminEntityFormComponent implements OnInit {
       controls['alias'] = ['', [Validators.required, Validators.minLength(2)]];
     }
 
-    this.entityForm = new FormGroup(controls);
+    this.entityForm = this.fb.group(controls);
     this.entityForm.setValidators(this.passwordMatchValidator);
   }
 
@@ -139,6 +143,8 @@ export class AdminEntityFormComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+    // Crear form con campos comunes
+    this.createForm();
     // Continuar con la inicialización
     this.initializeForm();
   }

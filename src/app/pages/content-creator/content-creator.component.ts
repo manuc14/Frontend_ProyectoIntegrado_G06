@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ContentCreatorHeaderComponent } from '../../shared/components/content-creator-header/content-creator-header.component';
@@ -151,5 +151,22 @@ export class ContentCreatorComponent implements OnInit {
    */
   createPublication(): void {
     alert('Funcionalidad de crear publicación en desarrollo');
+  }
+
+  /**
+   * Cierra la sesión del usuario
+   */
+  logout(): void {
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('currentUser');
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * Escucha el evento de navegación hacia atrás del navegador
+   */
+  @HostListener('window:popstate', ['$event'])
+  onPopState(event: PopStateEvent): void {
+    this.logout();
   }
 }

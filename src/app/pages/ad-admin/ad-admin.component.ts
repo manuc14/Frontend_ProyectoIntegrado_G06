@@ -14,6 +14,7 @@ import { AdminHeaderComponent } from '../../shared/components/admin-header/admin
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
+import { BackendUser } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-adadmin',
@@ -27,6 +28,9 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
 
   // Estado para operaciones de guardado/eliminación
   isSaving: boolean = false;
+
+  // Usuario actual
+  currentUser: BackendUser | null = null;
 
   // Configuración de filtros como grupos para administradores
   filterGroups: FilterGroup[] = [
@@ -78,6 +82,18 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
       this.router.navigate(['/login']);
       return;
     }
+
+    // Cargar usuario actual
+    const userData = sessionStorage.getItem('currentUser');
+    if (userData) {
+      try {
+        this.currentUser = JSON.parse(userData);
+      } catch (e) {
+        console.error('Error parsing currentUser:', e);
+        this.currentUser = null;
+      }
+    }
+
     this.loadData();
   }
 
@@ -88,8 +104,15 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
     this.adminService.listarAdministradores()
       .pipe(
         tap((data: AdminEV[]) => {
-          this.allItems = data.map(d => ({ ...d, fechaNacimientoFormatted: formatDateIsoToDDMMYYYY((d as any).fechaNacimiento), fullName: `${d.nombre} ${d.apellidos}` } as AdminEV));
-          this.totalItems = data.length;
+          let admins = data.map(d => ({ ...d, fechaNacimientoFormatted: formatDateIsoToDDMMYYYY((d as any).fechaNacimiento), fullName: `${d.nombre} ${d.apellidos}` } as AdminEV));
+
+          // Filtrar para excluir el perfil propio
+          if (this.currentUser) {
+            admins = admins.filter(admin => admin.id !== this.currentUser!.id);
+          }
+
+          this.allItems = admins;
+          this.totalItems = admins.length;
           this.filteredItems = [...this.allItems];
         }),
         catchError((err: any) => {

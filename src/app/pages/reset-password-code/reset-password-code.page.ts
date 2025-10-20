@@ -76,6 +76,18 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
     this.hasError = false;
     this.buttonState = 'pressed';
 
+    // Si es un dummy token, simular error inmediatamente sin llamar al backend
+    if (this.isDummyToken(this.token)) {
+      this.errorMessage = 'Código incorrecto.';
+      this.hasError = true;
+      this.isVerifying = false;
+      this.buttonState = 'normal';
+      this.triggerShakeError();
+      // Limpiar inputs en caso de error
+      this.clearCodeInputs();
+      return;
+    }
+
     this.api.verifyResetToken(this.token, this.code).subscribe({
       next: (response) => {
         // Navegar al tercer paso con el token
@@ -111,6 +123,19 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
     this.errorMessage = '';
     this.successMessage = '';
     this.hasError = false;
+
+    // Si es un dummy token (generado para emails no registrados), simular éxito sin llamar al backend
+    if (this.isDummyToken(this.token)) {
+      this.successMessage = 'Código reenviado correctamente';
+      this.hasError = false;
+      // Limpiar inputs después de reenviar
+      this.clearCodeInputs();
+      
+      // Iniciar countdown de 60 segundos
+      this.startResendCountdown();
+      this.isResending = false;
+      return;
+    }
 
     this.api.resendResetCode(this.token).subscribe({
       next: (response) => {
@@ -168,5 +193,13 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
    */
   triggerShakeError(): void {
     this.shakeForm = !this.shakeForm;
+  }
+
+  /**
+   * Verifica si el token es un dummy token generado para emails no registrados
+   */
+  private isDummyToken(token: string): boolean {
+    // Los dummy tokens tienen el formato: 32chars-50chars
+    return token.includes('-') && token.length > 32;
   }
 }

@@ -288,6 +288,7 @@ export class AdminEntityEditFormComponent implements OnInit {
               activo: admin.activo ?? true
             } as AdminEntityData;
             this.originalData = { ...this.entityData };
+            this.selectedAvatar = this.entityData.foto || '';
             this.isLoading = false;
           },
           error: (err: any) => {
@@ -320,6 +321,7 @@ export class AdminEntityEditFormComponent implements OnInit {
               tipoContenido: creator.tipoContenido ?? 'VIDEO'
             } as CreatorEntityData;
             this.originalData = { ...this.entityData };
+            this.selectedAvatar = this.entityData.foto || '';
             this.isLoading = false;
           },
           error: (err: any) => {
@@ -347,6 +349,7 @@ export class AdminEntityEditFormComponent implements OnInit {
               activo: user.activo ?? true
             } as UserEntityData;
             this.originalData = { ...this.entityData };
+            this.selectedAvatar = this.entityData.foto || '';
             this.isLoading = false;
           },
           error: (err: any) => {
