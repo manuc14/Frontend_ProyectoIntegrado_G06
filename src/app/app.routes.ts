@@ -18,7 +18,8 @@ import { AdminCreatorsAddPage } from './pages/ad-creators-add/ad-creators-add.co
 import { AdminCreatorsEditPage } from './pages/ad-creators-edit/ad-creators-edit.component';
 
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
-import { ContentPage } from './pages/content/content.page';
+import { ContentCreatorComponent } from './pages/content-creator/content-creator.component';
+import { UploadContentComponent } from './pages/upload-content/upload-content.component';
 import { CatalogPage } from './pages/catalog/catalog.page';
 import { VerifyEmailPage } from './pages/verify-email/verify-email.page';
 import { VerifyCodePage } from './pages/verify-code/verify-code.page';
@@ -44,7 +45,9 @@ export const routes: Routes = [
   { path: 'ad-creators-add', component: AdminCreatorsAddPage },
   { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage },
 
-	{ path: 'content', component: ContentPage },
+	{ path: 'content-creator', component: ContentCreatorComponent },
+	{ path: 'upload-content', component: UploadContentComponent },
+	
 	{ path: 'catalog', component: CatalogPage },
 	{ path: 'forgot-password', component: ForgotPasswordPage },
 	{ path: 'reset-password-code', component: ResetPasswordCodePage },

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../core/animations/animations';
 import { ApiService } from '../../../core/services/api.service';
@@ -23,7 +23,7 @@ export class AdminEntityFormComponent implements OnInit {
   @Input() backRoute: string = '';
   @Input() successRoute: string = '';
 
-  entityForm: FormGroup;
+  entityForm!: FormGroup;
   selectedFile: File | null = null;
   selectedAvatar: string | null = null;
   previewUrl: string = 'assets/admin/foto_upload.svg';
@@ -111,22 +111,26 @@ export class AdminEntityFormComponent implements OnInit {
     public apiService: ApiService
   ) {
     // Crear form con campos comunes
-    this.entityForm = this.fb.group({
+    const controls: any = {
       nombre: ['', [Validators.required, Validators.minLength(2)]],
       apellidos: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       repetirPassword: ['', [Validators.required]],
-      // Campo alias solo para creators
-      ...(this.entityType === 'creator' && { alias: ['', [Validators.required, Validators.minLength(2)]] }),
       // Campos específicos
       departamento: [this.entityType === 'admin' ? 'Operaciones' : null],
       especialidad: [this.entityType === 'creator' ? 'Música' : null],
       tipoContenido: [this.entityType === 'creator' ? '' : null, this.entityType === 'creator' ? Validators.required : null],
       descripcion: ['']
-    }, {
-      validators: this.passwordMatchValidator
-    });
+    };
+
+    // Campo alias solo para creators
+    if (this.entityType === 'creator') {
+      controls['alias'] = ['', [Validators.required, Validators.minLength(2)]];
+    }
+
+    this.entityForm = new FormGroup(controls);
+    this.entityForm.setValidators(this.passwordMatchValidator);
   }
 
   ngOnInit(): void {
@@ -176,7 +180,8 @@ export class AdminEntityFormComponent implements OnInit {
     return requirements;
   }
 
-  passwordMatchValidator(form: FormGroup) {
+  passwordMatchValidator(control: AbstractControl) {
+    const form = control as FormGroup;
     const password = form.get('password');
     const repetirPassword = form.get('repetirPassword');
 

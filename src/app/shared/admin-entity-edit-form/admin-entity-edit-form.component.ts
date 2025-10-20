@@ -175,7 +175,7 @@ export class AdminEntityEditFormComponent implements OnInit {
 
   private initializeEntity(): void {
     if (!this.entityId) {
-      this.entityId = this.route.snapshot.paramMap.get('id') || '';
+      this.entityId = this.route.snapshot.paramMap.get('id') ?? '';
       if (!this.entityId) {
         console.error('No se proporcionó ID de entidad');
         this.navigateBack();
@@ -279,14 +279,14 @@ export class AdminEntityEditFormComponent implements OnInit {
               return;
             }
             this.entityData = {
-              nombre: admin.nombre || '',
-              apellidos: admin.apellidos || '',
-              alias: admin.alias || '',
-              correo: admin.correo || '',
-              departamento: admin.departamento || '',
+              nombre: admin.nombre ?? '',
+              apellidos: admin.apellidos ?? '',
+              alias: admin.alias ?? '',
+              correo: admin.correo ?? '',
+              departamento: admin.departamento ?? '',
               contrasena: '',
               confirmarContrasena: '',
-              foto: admin.foto || '',
+              foto: admin.foto ?? '',
               activo: admin.activo ?? true
             } as AdminEntityData;
             this.originalData = { ...this.entityData };
@@ -309,17 +309,17 @@ export class AdminEntityEditFormComponent implements OnInit {
               return;
             }
             this.entityData = {
-              nombre: creator.nombre || '',
-              apellidos: creator.apellidos || '',
-              correo: creator.correo || '',
-              alias: creator.alias || '',
-              descripcion: creator.descripcion || '',
-              especialidad: creator.especialidad || '',
+              nombre: creator.nombre ?? '',
+              apellidos: creator.apellidos ?? '',
+              correo: creator.correo ?? '',
+              alias: creator.alias ?? '',
+              descripcion: creator.descripcion ?? '',
+              especialidad: creator.especialidad ?? '',
               contrasena: '',
               confirmarContrasena: '',
-              foto: creator.foto || '',
+              foto: creator.foto ?? '',
               activo: creator.activo ?? true,
-              tipoContenido: creator.tipoContenido || 'VIDEO'
+              tipoContenido: creator.tipoContenido ?? 'VIDEO'
             } as CreatorEntityData;
             this.originalData = { ...this.entityData };
             this.isLoading = false;
@@ -341,11 +341,11 @@ export class AdminEntityEditFormComponent implements OnInit {
               return;
             }
             this.entityData = {
-              nombre: user.nombre || '',
-              apellidos: user.apellidos || '',
-              alias: user.alias || '',
-              fechaNacimiento: user.fechaNacimiento || '',
-              foto: user.foto || '',
+              nombre: user.nombre ?? '',
+              apellidos: user.apellidos ?? '',
+              alias: user.alias ?? '',
+              fechaNacimiento: user.fechaNacimiento ?? '',
+              foto: user.foto ?? '',
               activo: user.activo ?? true
             } as UserEntityData;
             this.originalData = { ...this.entityData };
@@ -527,27 +527,27 @@ export class AdminEntityEditFormComponent implements OnInit {
 
   get contrasena(): string {
     if (this.isAdmin(this.entityData) || this.isCreator(this.entityData)) {
-      return (this.entityData as AdminEntityData | CreatorEntityData).contrasena;
+      return this.entityData.contrasena;
     }
     return '';
   }
 
   set contrasena(value: string) {
     if (this.isAdmin(this.entityData) || this.isCreator(this.entityData)) {
-      (this.entityData as AdminEntityData | CreatorEntityData).contrasena = value;
+      this.entityData.contrasena = value;
     }
   }
 
   get confirmarContrasena(): string {
     if (this.isAdmin(this.entityData) || this.isCreator(this.entityData)) {
-      return (this.entityData as AdminEntityData | CreatorEntityData).confirmarContrasena;
+      return this.entityData.confirmarContrasena;
     }
     return '';
   }
 
   set confirmarContrasena(value: string) {
     if (this.isAdmin(this.entityData) || this.isCreator(this.entityData)) {
-      (this.entityData as AdminEntityData | CreatorEntityData).confirmarContrasena = value;
+      this.entityData.confirmarContrasena = value;
     }
   }
 

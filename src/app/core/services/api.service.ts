@@ -105,69 +105,39 @@ export class ApiService {
   private resourceBase = environment.baseResourceUrl;
 
   /**
+   * Extrae el mensaje de usuario del error del backend.
+   */
+  private extractUserMessageFromError(error: any): string {
+    if (!error.error) return '';
+    if (typeof error.error === 'string') {
+      try {
+        const parsed = JSON.parse(error.error);
+        return parsed.message || parsed.error || error.error;
+      } catch {
+        return error.error;
+      }
+    } else if (typeof error.error === 'object' && error.error.message) {
+      return error.error.message;
+    }
+    return '';
+  }
+
+  /**
+   * Obtiene un mensaje genérico de error, independientemente del código de estado o la operación.
+   */
+  private getStatusMessage(status: number, operation: string, defaultMessage: string): string {
+    return 'Ha ocurrido un error inesperado. Por favor, intenta más tarde.';
+  }
+
+  /**
    * Maneja errores HTTP y devuelve mensajes amigables para el usuario.
    * Evita mostrar errores técnicos como "404 Not Found" al usuario.
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = '';
-
-      // Intentar extraer mensaje del backend
-      if (error.error) {
-        if (typeof error.error === 'string') {
-          // Intentar parsear como JSON
-          try {
-            const parsed = JSON.parse(error.error);
-            if (parsed.message) {
-              userMessage = parsed.message;
-            } else if (parsed.error) {
-              userMessage = parsed.error;
-            } else {
-              userMessage = error.error; // usar el string como mensaje
-            }
-          } catch {
-            userMessage = error.error; // no es JSON, usar como string
-          }
-        } else if (typeof error.error === 'object' && error.error.message) {
-          userMessage = error.error.message;
-        }
-      }
-
-      // Si no hay mensaje del backend, usar mensajes por status
+      let userMessage = this.extractUserMessageFromError(error);
       if (!userMessage) {
-        if (operation === 'inicio de sesión') {
-          userMessage = defaultMessage;
-        } else {
-          switch (error.status) {
-            case 400:
-              userMessage = 'Los datos enviados no son válidos. Por favor, verifica la información.';
-              break;
-            case 403:
-              userMessage = 'No tienes permisos para acceder a este recurso.';
-              break;
-            case 404:
-              userMessage = 'El servicio solicitado no está disponible en este momento.';
-              break;
-            case 409:
-              userMessage = 'Ya existe un registro con esta información.';
-              break;
-            case 429:
-              userMessage = 'Demasiadas solicitudes. Por favor, espera un momento antes de intentar de nuevo.';
-              break;
-            case 500:
-              userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
-              break;
-            case 503:
-              userMessage = 'El servicio no está disponible temporalmente.';
-              break;
-            default:
-              if (error.status === 0) {
-                userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
-              } else {
-                userMessage = defaultMessage;
-              }
-          }
-        }
+        userMessage = this.getStatusMessage(error.status, operation, defaultMessage);
       }
 
       console.error(`Error en ${operation}:`, error);
@@ -309,7 +279,7 @@ export class ApiService {
    * Obtiene la lista de miniaturas disponibles del backend
    */
   getThumbnails(): Observable<{thumbnails: string[], defaultThumbnail: string}> {
-    return this.http.get<{thumbnails: string[], defaultThumbnail: string}>(`${this.base}/thumbnails`)
+    return this.http.get<{thumbnails: string[], defaultThumbnail: string}>(`${this.resourceBase}/thumbnails`)
       .pipe(
         catchError(this.handleError('obtener miniaturas', 'No se pudieron cargar las miniaturas'))
       );
@@ -320,7 +290,7 @@ export class ApiService {
    */
   createContent(payload: any): Observable<any> {
     const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
-    return this.http.post(`${this.base}/content`, payload, { headers })
+    return this.http.post(`${this.base}/contenidos`, payload, { headers })
       .pipe(
         catchError(this.handleError('crear contenido', 'No se pudo crear el contenido'))
       );

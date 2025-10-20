@@ -48,7 +48,6 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
       if (!this.token) {
         // Si no hay token, redirigir al login
         this.router.navigate(['/login']);
-        return;
       }
       
       // No validar existencia de sesión para tokens dummy

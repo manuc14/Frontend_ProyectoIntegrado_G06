@@ -98,7 +98,7 @@ export class LoginComponent {
           // Mapeo de tipos del backend a rutas de la app
           let target: string = '/catalog';
           if (/admin/i.test(tipo)) target = '/ad-users';
-          else if (/creador/i.test(tipo)) target = '/content';
+          else if (/creador/i.test(tipo)) target = '/content-creator';
 
           // Redirigir después de un breve delay para mostrar el mensaje de éxito
           setTimeout(() => {

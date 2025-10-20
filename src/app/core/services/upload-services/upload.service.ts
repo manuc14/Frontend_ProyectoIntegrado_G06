@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 // Interfaces comunes para uploads
 export interface UploadResponse {
@@ -40,19 +40,22 @@ export class UploadService {
     audio: {
       endpoint: `${this.baseUrl}/uploads/audio`,
       validTypes: [
-        'audio/mpeg',     // .mp3
-        'audio/wav',      // .wav
-        'audio/wave',     // .wav (alternativo)
-        'audio/ogg',      // .ogg
-        'audio/mp4',      // .m4a
-        'audio/x-m4a'     // .m4a (alternativo)
+        'audio/mpeg',
+        'audio/mp3',
+        'audio/wav',
+        'audio/wave',
+        'audio/x-wav',
+        'audio/ogg',
+        'audio/aac',
+        'audio/flac',
+        'audio/webm'
       ],
-      validExtensions: ['.mp3', '.wav', '.ogg', '.m4a'],
-      maxSizeInBytes: 1024 * 1024, // 1 MB
+      validExtensions: ['.mp3', '.wav', '.ogg', '.aac', '.flac', '.webm'],
+      maxSizeInBytes: 1 * 1024 * 1024, // 1 MB
       errorMessages: {
-        invalidFile: 'El archivo debe ser de tipo audio (mp3, wav, ogg, m4a)',
-        tooLarge: 'El archivo no puede superar 1 MB',
-        unsupportedType: 'Tipo de archivo no soportado'
+        invalidFile: 'Formato de audio no válido (MP3, WAV, OGG, AAC, FLAC, WEBM)',
+        tooLarge: 'El archivo de audio no puede superar 1 MB',
+        unsupportedType: 'Tipo de archivo de audio no soportado'
       }
     },
     thumbnail: {
@@ -83,18 +86,10 @@ export class UploadService {
   uploadFile(file: File, type: keyof typeof this.uploadConfigs): Observable<UploadResponse> {
     const config = this.uploadConfigs[type];
 
-    // Validaciones básicas del archivo
-    if (!file) {
-      return throwError(() => new Error('No se ha seleccionado ningún archivo'));
-    }
-
-    if (!this.isValidFile(file, config)) {
-      return throwError(() => new Error(config.errorMessages.invalidFile));
-    }
-
-    // Validar tamaño máximo
-    if (file.size > config.maxSizeInBytes) {
-      return throwError(() => new Error(config.errorMessages.tooLarge));
+    // Validaciones básicas del archivo usando validateFile
+    const validation = this.validateFile(file, config);
+    if (!validation.ok) {
+      return throwError(() => new Error(validation.error));
     }
 
     // Crear FormData para enviar el archivo
@@ -109,24 +104,38 @@ export class UploadService {
   }
 
   /**
-   * Valida si el archivo es válido según la configuración
+   * Valida si el archivo es válido según la configuración (adaptado de UploadAudioService)
    * @param file Archivo a validar
    * @param config Configuración del tipo de archivo
-   * @returns true si es válido
+   * @returns { ok: boolean; error?: string }
    */
-  private isValidFile(file: File, config: UploadConfig): boolean {
-    // Verificar MIME type
-    const isMimeTypeValid = config.validTypes.includes(file.type);
+  private validateFile(file: File | null | undefined, config: UploadConfig): { ok: boolean; error?: string } {
+    if (!file) return { ok: false, error: 'Archivo inválido' };
 
-    // Verificar extensión del archivo
-    const fileName = file.name.toLowerCase();
-    const isExtensionValid = config.validExtensions.some(ext => fileName.endsWith(ext));
+    // Determinar el tipo de archivo basado en el config (audio o image)
+    const typePrefix = config.endpoint.includes('audio') ? 'audio' : 'image';
 
-    return isMimeTypeValid || isExtensionValid;
+    const handlers: Record<string, (f: File) => { ok: boolean; error?: string }> = {
+      audio: (f: File) => {
+        const isAudioMime = f.type.startsWith('audio/');
+        const allowed = config.validTypes.includes(f.type);
+        if (!isAudioMime || !allowed) return { ok: false, error: config.errorMessages.invalidFile };
+        if (f.size > config.maxSizeInBytes) return { ok: false, error: config.errorMessages.tooLarge };
+        return { ok: true };
+      },
+      image: (f: File) => {
+        if (!f.type.startsWith('image/') || !config.validTypes.includes(f.type)) return { ok: false, error: config.errorMessages.invalidFile };
+        if (f.size > config.maxSizeInBytes) return { ok: false, error: config.errorMessages.tooLarge };
+        return { ok: true };
+      }
+    };
+
+    const fn = handlers[typePrefix];
+    return fn ? fn(file) : { ok: true };
   }
 
   /**
-   * Maneja los errores de las peticiones HTTP
+   * Maneja los errores de las peticiones HTTP (mejorado con casos detallados)
    * @param error Error recibido
    * @param config Configuración del upload
    * @returns Observable con error formateado
@@ -218,5 +227,14 @@ export class UploadService {
 
   checkThumbnailExists(fileName: string): Observable<boolean> {
     return this.checkFileExists(fileName, 'thumbnail');
+  }
+
+  // Public validation methods
+  validateAudioFile(file: File): { ok: boolean; error?: string } {
+    return this.validateFile(file, this.uploadConfigs['audio']);
+  }
+
+  validateThumbnailFile(file: File): { ok: boolean; error?: string } {
+    return this.validateFile(file, this.uploadConfigs['thumbnail']);
   }
 }

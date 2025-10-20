@@ -15,8 +15,10 @@
           <label>
             <span>Título <span class="required tags-asterisk">*</span></span>
             <input type="text" [value]="title" (input)="onTitleInput($event)" 
-                   placeholder="Introduce el título" maxlength="50" />
-            <div class="char-count">{{ titleCount }} / {{ titleLimit }}</div>
+                   placeholder="Introduce el título" maxlength="50" 
+                   [class.error]="titleError && submitted" />
+            <div class="char-count">{{ titleCount }} / {{ UPLOAD_LIMITS.titleLimit }}</div>
+            <small class="field-error" *ngIf="titleError && submitted" aria-live="polite">{{ titleError }}</small>
           </label>
 
           <label>
@@ -24,7 +26,7 @@
             <textarea [value]="description" (input)="onDescriptionInput($event)" 
                       placeholder="Cuenta de qué va a ir lo que subes" 
                       maxlength="500" rows="4"></textarea>
-            <div class="char-count">{{ descCount }} / {{ descLimit }}</div>
+            <div class="char-count">{{ descCount }} / {{ UPLOAD_LIMITS.descLimit }}</div>
           </label>
 
           <div class="form-field">
@@ -53,9 +55,20 @@
                 </button>
 
                 <!-- custom upload slot -->
-                <label class="thumbnail-slot upload custom-upload">
+                <label class="thumbnail-slot upload custom-upload" [class.has-preview]="localThumbnailPreview">
                   <input type="file" accept="image/*" (change)="onThumbnailSelected($event)" />
-                  <div class="upload-content">
+                  
+                  <!-- Preview de miniatura local -->
+                  <div *ngIf="localThumbnailPreview" class="thumbnail-preview">
+                    <img [src]="localThumbnailPreview" alt="Vista previa de miniatura" />
+                    <div class="preview-overlay">
+                      <span class="preview-text">Vista previa</span>
+                      <button type="button" class="remove-preview" (click)="clearLocalThumbnail(); $event.stopPropagation()">×</button>
+                    </div>
+                  </div>
+                  
+                  <!-- Estado por defecto -->
+                  <div *ngIf="!localThumbnailPreview" class="upload-content">
                     <div class="plus">+</div>
                     <div class="upload-text">Subir miniatura</div>
                   </div>
@@ -63,14 +76,6 @@
               </div>
 
               <div class="field-info">Selecciona una miniatura sugerida o sube la tuya propia.</div>
-              
-              <!-- Componente de subida de miniatura local -->
-              <app-upload-thumbnail 
-                *ngIf="localThumbnailFile"
-                (thumbnailUploaded)="onLocalThumbnailUploaded($event)"
-                (thumbnailCleared)="onLocalThumbnailCleared()"
-                #uploadThumbnailComponent>
-              </app-upload-thumbnail>
             </div>
           </div>
         </section>
@@ -81,7 +86,7 @@
         <section class="form-section">
           <div class="form-field">
             <span class="field-label">Tipo de archivo <span class="required">*</span></span>
-            <div class="radio-group">
+            <div class="radio-group" [class.error-border]="typeError && submitted">
               <label class="radio-option">
                 <input type="radio" name="type" (change)="onTypeChange('video')" 
                        [checked]="type==='video'" />
@@ -93,20 +98,22 @@
                 <span>Audio</span>
               </label>
             </div>
+            <small class="field-error" *ngIf="typeError && submitted" aria-live="polite">{{ typeError }}</small>
           </div>
 
           <div class="form-field">
             <span class="field-label">Contenido VIP <span class="required">*</span></span>
-            <div class="radio-group">
+            <div class="radio-group" [class.error-border]="vipError && submitted">
               <label class="radio-option">
-                <input type="radio" name="vip" [(ngModel)]="vip" value="si" />
+                <input type="radio" name="vip" [(ngModel)]="vip" value="si" (change)="onVipChange()" />
                 <span>Sí</span>
               </label>
               <label class="radio-option">
-                <input type="radio" name="vip" [(ngModel)]="vip" value="no" />
+                <input type="radio" name="vip" [(ngModel)]="vip" value="no" (change)="onVipChange()" />
                 <span>No</span>
               </label>
             </div>
+            <small class="field-error" *ngIf="vipError && submitted" aria-live="polite">{{ vipError }}</small>
           </div>
 
           <label>
@@ -114,16 +121,16 @@
             <input id="url" name="url" type="text" [(ngModel)]="url" placeholder="https://example.com/video.mp4"
               [disabled]="type === 'audio'" 
               [class.disabled-field]="type === 'audio'"
-              [class.error]="urlError && type === 'video'"
-              (input)="validarUrl()"
+              [class.error]="(urlError && type === 'video') || (urlError && submitted)"
+              (input)="onUrlInput($event)"
               (blur)="validarUrl()"
               title="Este campo está disponible solo cuando se selecciona 'Video'" />
-            <small class="field-error" *ngIf="urlError && type === 'video'" aria-live="polite">{{ urlError }}</small>
+            <small class="field-error" *ngIf="urlError && (type === 'video' || submitted)" aria-live="polite">{{ urlError }}</small>
           </label>
 
           <div class="form-field">
             <span class="field-label">Archivo (solo audio) <span class="required">*</span></span>
-            <div class="file-upload-area" [class.disabled-field]="type !== 'audio'">
+            <div class="file-upload-area" [class.disabled-field]="type !== 'audio'" [class.error-border]="fileError && submitted && type === 'audio'">
               <input type="file" (change)="onFileSelected($event)" 
                      [disabled]="type !== 'audio' || audioUploading"
                      [accept]="type === 'audio' ? 'audio/*' : '*'"
@@ -133,32 +140,39 @@
                 <p *ngIf="type === 'video'">Para videos, utiliza el campo URL de arriba</p>
                 
                 <!-- Estado normal - sin archivo -->
-                <p *ngIf="type === 'audio' && !file && !audioUploading && !audioUrl">
+                <p *ngIf="type === 'audio' && !file && !audioFileValidationError">
                   Arrastra y suelta un archivo de audio aquí o haz click para seleccionar
+                  <br><small class="format-hint">Formatos de audio: MP3, WAV, AAC, OGG, FLAC (máx. 1MB)</small>
                 </p>
                 
-                <!-- Estado subiendo -->
-                <p *ngIf="type === 'audio' && audioUploading" class="upload-status uploading">
-                  <span class="spinner"></span>
-                  Subiendo archivo...
+                <!-- Error de validación de archivo -->
+                <p *ngIf="type === 'audio' && audioFileValidationError" class="upload-status error">
+                  ⚠️ {{ audioFileValidationError }}
                 </p>
                 
-                <!-- Estado exitoso -->
-                <p *ngIf="type === 'audio' && audioUrl && !audioUploading" class="upload-status success">
-                  ✓ Archivo subido correctamente: {{ file?.name }}
+                <!-- Archivo seleccionado pero no subido -->
+                <p *ngIf="type === 'audio' && file && !audioUrl && !audioFileValidationError" class="upload-status selected">
+                  📁 Archivo seleccionado: {{ file.name }}
+                  <br><small>Se subirá al guardar el contenido</small>
                 </p>
                 
-                <!-- Estado de error -->
+                <!-- Archivo subido exitosamente -->
+                <p *ngIf="type === 'audio' && audioUrl && file" class="upload-status success">
+                  ✓ Archivo subido correctamente: {{ file.name }}
+                </p>
+                
+                <!-- Estado de error de subida -->
                 <p *ngIf="type === 'audio' && audioUploadError" class="upload-status error">
                   ⚠️ {{ audioUploadError }}
                 </p>
               </div>
             </div>
+            <small class="field-error" *ngIf="fileError && submitted && type === 'audio'" aria-live="polite">{{ fileError }}</small>
           </div>
 
           <div class="form-field">
             <span class="field-label">Tags <span class="required tags-asterisk">*</span></span>
-            <div class="tags-container">
+            <div class="tags-container" [class.error-border]="tagsError && submitted">
               <div class="tags-display" *ngIf="tags.length > 0">
                 <span class="tag" *ngFor="let tag of tags; let i = index">
                   {{ tag }}
@@ -179,16 +193,19 @@
           <div class="form-row">
             <label>
               <span>Duración (minutos) <span class="required">*</span></span>
-              <input type="number" name="duration" [(ngModel)]="duration" placeholder="Minutos" min="1" />
+              <input type="number" name="duration" [(ngModel)]="duration" placeholder="Minutos" min="1" 
+                     [class.error]="durationError && submitted" (input)="onDurationChange()" />
+              <small class="field-error" *ngIf="durationError && submitted" aria-live="polite">{{ durationError }}</small>
             </label>
 
             <label>
               <span>Estado <span class="required">*</span></span>
-              <select name="estado" [(ngModel)]="estado">
+              <select name="estado" [(ngModel)]="estado" [class.error]="estadoError && submitted" (change)="onEstadoChange()">
                 <option value="">Seleccionar</option>
                 <option value="Publico">Publico</option>
                 <option value="Privado">Privado</option>
               </select>
+              <small class="field-error" *ngIf="estadoError && submitted" aria-live="polite">{{ estadoError }}</small>
             </label>
           </div>
 
@@ -198,22 +215,26 @@
               <select name="resolution" [(ngModel)]="resolution" 
                       [disabled]="type === 'audio'"
                       [class.disabled-field]="type === 'audio'"
+                      [class.error]="resolutionError && submitted && type === 'video'"
+                      (change)="onResolutionChange()"
                       title="Este campo está disponible solo cuando se selecciona 'Video'">
                 <option value="">Seleccionar</option>
                 <option value="1080p">1080p</option>
                 <option value="720p">720p</option>
                 <option value="480p">480p</option>
               </select>
+              <small class="field-error" *ngIf="resolutionError && submitted && type === 'video'" aria-live="polite">{{ resolutionError }}</small>
             </label>
 
             <label>
               <span>Restricción de edad <span class="required">*</span></span>
-              <select name="ageRestriction" [(ngModel)]="ageRestriction">
+              <select name="ageRestriction" [(ngModel)]="ageRestriction" [class.error]="ageRestrictionError && submitted" (change)="onAgeRestrictionChange()">
                 <option value="">Seleccionar</option>
                 <option value="+7">+7</option>
                 <option value="+13">+13</option>
                 <option value="+18">+18</option>
               </select>
+              <small class="field-error" *ngIf="ageRestrictionError && submitted" aria-live="polite">{{ ageRestrictionError }}</small>
             </label>
           </div>
 
@@ -231,8 +252,14 @@
 
       <!-- BUTTONS -->
       <div class="form-actions">
-         <button class="btn secondary" (click)="cancel()">Cancelar</button>
-         <button type="button" class="btn primary" (click)="upload()">Guardar contenido</button>
+         <button class="btn secondary" (click)="cancel()" [disabled]="isUploading">Cancelar</button>
+         <button type="button" class="btn primary" (click)="upload()" [disabled]="isUploading">
+           <span *ngIf="!isUploading">Guardar contenido</span>
+           <span *ngIf="isUploading" class="uploading-state">
+             <span class="spinner"></span>
+             Subiendo archivos...
+           </span>
+         </button>
       </div>
     </form>
   </div>
