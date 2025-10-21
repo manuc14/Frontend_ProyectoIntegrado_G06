@@ -15,9 +15,17 @@ import { FooterComponent } from '../../shared/footer/footer.component';
   imports: [CommonModule, HeaderComponent, FooterComponent],
   template: `
     <app-header />
-    <main class="page"><h2>Catálogo</h2></main>
-    <app-footer />
+    <main class="page">
+      <h2>Catálogo</h2>
+    </main>
+    <app-footer [fixed]="true" />
   `,
-  styles: [`.page{max-width:960px;margin:32px auto;padding:0 16px}`]
+  styles: [`
+    .page {
+      max-width: 960px;
+      margin: 32px auto;
+      padding: 0 16px 120px 16px;
+    }
+  `]
 })
 export class CatalogPage {}

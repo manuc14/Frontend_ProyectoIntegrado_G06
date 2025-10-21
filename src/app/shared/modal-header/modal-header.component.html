@@ -1,0 +1,11 @@
+<div class="background-horizontal-border">
+  <div class="container">
+    <div class="text">{{ titulo }}</div>
+  </div>
+  <button class="border" type="button" (click)="cerrar.emit()" [@buttonHover] [@buttonPress]>
+    <div class="iconify-icon">
+      <img class="svg" src="assets/admin/salir.svg" alt="icono salir" height="18" width="19" />
+    </div>
+    <div class="text2">Cerrar</div>
+  </button>
+</div>

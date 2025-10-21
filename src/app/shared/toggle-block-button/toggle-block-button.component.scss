@@ -1,0 +1,61 @@
+@use '../../shared/scss/mixins' as mixins;
+
+.btn-block {
+  @include mixins.button-base;
+  background: #f7e6e4;
+  border-radius: 12px;
+  padding: 12px 15px 12.5px 15px;
+  @include mixins.flex-container(row, 8px, center, flex-start);
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: color-mix(in srgb, #fbe5e3 90%, black);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.text-block {
+  @include mixins.text-base(#70251c, 14px, 500);
+  white-space: nowrap;
+}
+
+.btn-activate {
+  @include mixins.button-base;
+  background: #d5f3e5;
+  border-radius: 12px;
+  padding: 12px 15px 12.5px 15px;
+  @include mixins.flex-container(row, 8px, center, flex-start);
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: color-mix(in srgb, #d5f3e5 90%, black);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.text-activate {
+  @include mixins.text-base(#0a7a55, 14px, 500);
+  white-space: nowrap;
+}
+
+.svg4 {
+  @include mixins.icon-size(14px);
+  position: relative;
+}
+
+.group2,
+.group3 {
+  @include mixins.icon-size(14px);
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}

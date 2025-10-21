@@ -70,6 +70,22 @@ export class ForgotPasswordPage {
         this.form.enable();
         this.buttonState = 'normal';
         
+        // Verificar si el backend devolvió un token válido
+        if (!response.resetToken) {
+          // Tratar como si fuera un error (correo no registrado)
+          this.bannerKind = 'success';
+          this.bannerText = 'Se ha enviado un código de restablecimiento a tu email.';
+          
+          // Generar un dummy token
+          const dummyToken = this.generateDummyToken();
+          
+          // Navegar a reset-password-code con el dummy token
+          this.router.navigate(['/reset-password-code'], { 
+            queryParams: { token: dummyToken } 
+          });
+          return;
+        }
+        
         // Mostrar mensaje de éxito
         this.bannerKind = 'success';
         this.bannerText = response.message;
@@ -83,8 +99,18 @@ export class ForgotPasswordPage {
         this.loading = false;
         this.form.enable();
         this.buttonState = 'normal';
-        this.bannerKind = 'error';
-        this.bannerText = error.message || 'Error al enviar el código. Verifica tu email.';
+        
+        // Para no dar pistas a los atacantes, siempre mostrar éxito y crear un dummy token
+        this.bannerKind = 'success';
+        this.bannerText = 'Se ha enviado un código de restablecimiento a tu email.';
+        
+        // Generar un dummy token
+        const dummyToken = this.generateDummyToken();
+        
+        // Navegar a reset-password-code con el dummy token
+        this.router.navigate(['/reset-password-code'], { 
+          queryParams: { token: dummyToken } 
+        });
       }
     });
   }
@@ -113,5 +139,14 @@ export class ForgotPasswordPage {
    */
   getEmailFocusState(): string {
     return this.emailFocused ? 'focused' : 'normal';
+  }
+
+  /**
+   * Genera un dummy token para sesiones ficticias, similar al formato real
+   */
+  private generateDummyToken(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const randomString = (len: number) => Array.from({length: len}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    return randomString(32) + '-' + randomString(50);
   }
 }

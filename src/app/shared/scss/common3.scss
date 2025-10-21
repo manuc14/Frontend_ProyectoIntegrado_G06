@@ -1,0 +1,15 @@
+@use '../../shared/scss/mixins' as mixins;
+
+.background-border9 {
+  background: var(--card);
+  border-radius: 12px;
+  border-style: solid;
+  border-color: var(--border);
+  border-width: 1px;
+  padding: 12px 13px 13px 13px;
+  @include mixins.flex-container(row, 8px, center, flex-start);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+  transition: border-color 0.2s ease;
+}

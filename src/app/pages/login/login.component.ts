@@ -94,20 +94,20 @@ export class LoginComponent {
             sessionStorage.setItem('authToken', res.token);
           }
 
+          // Guardar información del usuario en sessionStorage
+          if (res.user) {
+            sessionStorage.setItem('currentUser', JSON.stringify(res.user));
+          }
+
           const tipo = res.user?.tipo || '';
           // Mapeo de tipos del backend a rutas de la app
           let target: string = '/catalog';
-          if (/admin/i.test(tipo)) target = '/admin-home';
-          else if (/creador/i.test(tipo)) target = '/content';
-
-          // Agregar token a la URL como parámetro de consulta
-          const navigationExtras = {
-            queryParams: { token: res.token }
-          };
+          if (/admin/i.test(tipo)) target = '/ad-users';
+          else if (/creador/i.test(tipo)) target = '/content-creator';
 
           // Redirigir después de un breve delay para mostrar el mensaje de éxito
           setTimeout(() => {
-            this.router.navigate([target], navigationExtras);
+            this.router.navigate([target]);
           }, 1000);
         },
         error: (err) => {

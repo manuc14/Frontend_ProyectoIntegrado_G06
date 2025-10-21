@@ -1,0 +1,61 @@
+@use '../../shared/scss/mixins' as mixins;
+
+.background-horizontal-border {
+  background: var(--muted);
+  border-style: solid;
+  border-color: var(--border);
+  border-width: 0 0 1px 0;
+  padding: 16px 16px 17px 16px;
+  @include mixins.flex-container(row, 0, center, space-between);
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.container {
+  padding: 2px 0 2px 0;
+  @include mixins.flex-container(column, 0, flex-start, flex-start);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.text {
+  @include mixins.text-base(var(--foreground), 18px, 600, "NimbusSans-SemiBold");
+  white-space: nowrap;
+}
+
+.border {
+  @include mixins.button-base;
+  border-radius: 12px;
+  border-style: solid;
+  border-color: var(--border);
+  border-width: 1px;
+  padding: 10px 11px 11px 11px;
+  @include mixins.flex-container(row, 6px, center, center);
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--foreground) 5%, transparent);
+  }
+
+  &:active {
+    background-color: color-mix(in srgb, var(--foreground) 10%, transparent);
+  }
+}
+
+.iconify-icon {
+  @include mixins.flex-container(row, 0, center, center);
+  @include mixins.icon-size(18px);
+  position: relative;
+}
+
+.svg {
+  @include mixins.icon-size(14px);
+  position: relative;
+  overflow: visible;
+}
+
+.text2 {
+  @include mixins.text-base(var(--foreground), 14px, 500);
+  white-space: nowrap;
+}

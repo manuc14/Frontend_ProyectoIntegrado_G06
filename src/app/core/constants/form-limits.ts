@@ -8,3 +8,9 @@ export const FORM_LIMITS = {
   passwordMax: 128,
   minAgeYears: 4,
 } as const;
+
+export const UPLOAD_LIMITS = {
+  titleLimit: 50,
+  descLimit: 500,
+
+} as const;

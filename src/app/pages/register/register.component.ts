@@ -145,6 +145,12 @@ export class RegisterComponent {
     return avatarPath.split('/').pop() ?? '';
   }
 
+  /* Determina si se debe mostrar la promoción VIP basada en la selección del usuario. */
+  private shouldShowVipPromo(v: any): boolean {
+    const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
+    return !isVip && !this.promptedVipOnce;
+  }
+
   /* Valida y decide si mostrar la promo VIP o continuar con el alta. */
   submit() {
     this.form.markAllAsTouched();
@@ -155,12 +161,8 @@ export class RegisterComponent {
 
     this.buttonState = 'pressed';
     
-    // Derive effective alias and photo
     const v = this.form.value;
-    // Normalize vip to boolean (radio can yield 'true'/'false' strings)
-    const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
-    // If user selected Standard and hasn't been prompted yet, show VIP promo
-    if (!isVip && !this.promptedVipOnce) {
+    if (this.shouldShowVipPromo(v)) {
       this.showVipPromo = true;
       this.buttonState = 'normal';
       return;
@@ -184,20 +186,20 @@ export class RegisterComponent {
     this.doRegister();
   }
 
-  /* Construye el payload final y envía la petición de registro al backend. */
-  private doRegister() {
-    const v = this.form.value;
+  /* Construye el payload final para el registro basado en los valores del formulario. */
+  private buildPayload(v: any): any {
     const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
     const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
     
-    // Extraer solo el nombre del archivo del avatar seleccionado
     let fotoNombre = '';
     if (v.fotoElegida) {
-      // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
-      fotoNombre = v.fotoElegida.split('/').pop() ?? '';
+      const extracted = v.fotoElegida.split('/').pop();
+      if (extracted && extracted.trim().length > 0) {
+        fotoNombre = extracted;
+      }
     }
 
-    const payload = {
+    const payload: any = {
       nombre: v.nombre!,
       apellidos: v.apellidos!,
       email: v.email!,
@@ -206,9 +208,105 @@ export class RegisterComponent {
       password: v.password!,
       repetirPassword: v.repeatPassword!,
       esVip: isVip,
-      foto: fotoNombre, // Solo el nombre del archivo (ej: "avatar1.png")
       activo: false,
     };
+
+    // Solo incluir foto si se ha seleccionado un avatar y no es el por defecto
+    if (fotoNombre && fotoNombre !== 'default-avatar.png') {
+      payload.foto = fotoNombre;
+    }
+
+    return payload;
+  }
+
+  /* Maneja la respuesta exitosa del registro (201/200). */
+  private handleSuccessResponse(res: HttpResponse<any>): void {
+    const status = res.status;
+    if (status === 201 || status === 200) {
+      const body: any = res.body || {};
+      const successMsg = (body?.message as string) || 'Usuario registrado correctamente';
+      const verificationToken = body?.verificationToken;
+      console.log('Registro OK', body);
+      this.bannerKind = 'success';
+      this.bannerText = successMsg;
+      
+      // Verificar que el backend envió el token
+      if (verificationToken) {
+        // Navega a verificación usando el token como query parameter estándar
+        this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
+      } else {
+        console.error('No se recibió verificationToken del backend');
+        this.bannerKind = 'error';
+        this.bannerText = 'Error en el proceso de registro. Intenta nuevamente.';
+      }
+      return;
+    }
+    // Status inesperado, tratar como error
+    this.bannerKind = 'error';
+    this.bannerText = 'No se pudo crear la cuenta.';
+  }
+
+  /* Maneja errores de conflicto (409 - email duplicado). */
+  private handleConflictError(message?: string): void {
+    this.form.get('email')?.setErrors({ ...(this.form.get('email')?.errors || {}), emailTaken: true });
+    this.bannerKind = 'error';
+    this.bannerText = message ?? 'El email ya está registrado.';
+    this.triggerShakeError();
+  }
+
+  /* Maneja errores de solicitud incorrecta (400 - validación backend). */
+  private handleBadRequestError(details: Array<{ field: string; message: string }>): void {
+    const fieldMap: Record<string, string> = {
+      repetirPassword: 'repeatPassword',
+      password: 'password',
+      email: 'email',
+      nombre: 'nombre',
+      apellidos: 'apellidos',
+      alias: 'alias',
+      fechaNacimiento: 'fechaNacimiento',
+    };
+    const msgJoin = applyBackendDetails(this.form, details, fieldMap);
+    this.bannerKind = 'error';
+    this.bannerText = msgJoin;
+    this.triggerShakeError();
+  }
+
+  /* Maneja errores generales del registro. */
+  private handleGeneralError(message?: string): void {
+    this.bannerKind = 'error';
+    this.bannerText = message ?? 'Se ha producido un error. Inténtelo de nuevo más tarde.';
+    this.triggerShakeError();
+  }
+
+  /* Maneja la respuesta de error del registro. */
+  private handleErrorResponse(err: any): void {
+    // Limpia errores previos de backend en controles relevantes
+    clearBackendErrors(this.form, ['email', 'password', 'repeatPassword', 'nombre', 'apellidos', 'alias', 'fechaNacimiento']);
+
+    const status = err?.originalError?.status || err?.status;
+    const payload = err?.originalError?.error || err?.error || {};
+    const backendMessage: string | undefined = payload?.message;
+    const details: Array<{ field: string; message: string }>|undefined = payload?.details;
+
+    if (status === 409) {
+      this.handleConflictError(backendMessage);
+      return;
+    }
+
+    if (status === 400 && Array.isArray(details) && details.length > 0) {
+      this.handleBadRequestError(details);
+      return;
+    }
+
+    // Para otros errores, usar mensaje del backend si existe, sino mensaje por defecto
+    this.handleGeneralError(backendMessage);
+    console.error('Error de registro', err);
+  }
+
+  /* Construye el payload final y envía la petición de registro al backend. */
+  private doRegister() {
+    const v = this.form.value;
+    const payload = this.buildPayload(v);
 
     this.bannerKind = null;
     this.bannerText = '';
@@ -222,71 +320,10 @@ export class RegisterComponent {
       }))
       .subscribe({
         next: (res: HttpResponse<any>) => {
-          const status = res.status;
-          if (status === 201 || status === 200) {
-            const body: any = res.body || {};
-            const successMsg = (body?.message as string) || 'Usuario registrado correctamente';
-            const verificationToken = body?.verificationToken;
-            console.log('Registro OK', body);
-            this.bannerKind = 'success';
-            this.bannerText = successMsg;
-            
-            // Verificar que el backend envió el token
-            if (verificationToken) {
-              // Navega a verificación usando el token como query parameter estándar
-              this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
-            } else {
-              console.error('No se recibió verificationToken del backend');
-              this.bannerKind = 'error';
-              this.bannerText = 'Error en el proceso de registro. Intenta nuevamente.';
-            }
-            return;
-          }
-          // Status inesperado, tratar como error
-          this.bannerKind = 'error';
-          this.bannerText = 'No se pudo crear la cuenta.';
+          this.handleSuccessResponse(res);
         },
         error: (err) => {
-          // Limpia errores previos de backend en controles relevantes
-          clearBackendErrors(this.form, ['email','password','repeatPassword','nombre','apellidos','alias','fechaNacimiento']);
-
-          const status = err?.originalError?.status || err?.status;
-          const payload = err?.originalError?.error || err?.error || {};
-          // Usar el mensaje procesado por el interceptor primero
-          const message: string | undefined = err?.message || payload?.message;
-          const details: Array<{ field: string; message: string }>|undefined = payload?.details;
-
-          if (status === 409) {
-            // Email duplicado
-            this.form.get('email')?.setErrors({ ...(this.form.get('email')?.errors||{}), emailTaken: true });
-            this.bannerKind = 'error';
-            this.bannerText = message ?? 'El email ya está registrado.';
-            this.triggerShakeError();
-            return;
-          }
-
-          if (status === 400 && Array.isArray(details) && details.length > 0) {
-            const fieldMap: Record<string,string> = {
-              repetirPassword: 'repeatPassword',
-              password: 'password',
-              email: 'email',
-              nombre: 'nombre',
-              apellidos: 'apellidos',
-              alias: 'alias',
-              fechaNacimiento: 'fechaNacimiento',
-            };
-            const msgJoin = applyBackendDetails(this.form, details, fieldMap);
-            this.bannerKind = 'error';
-            this.bannerText = (message ? message + '\n' : '') + msgJoin;
-            this.triggerShakeError();
-            return;
-          }
-
-          // Otros errores
-          this.bannerKind = 'error';
-          this.bannerText = message ?? 'No se pudo crear la cuenta. Inténtalo de nuevo.';
-          this.triggerShakeError();
-          console.error('Error de registro', err);
+          this.handleErrorResponse(err);
         },
       });
   }

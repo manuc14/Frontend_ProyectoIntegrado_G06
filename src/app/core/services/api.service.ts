@@ -18,7 +18,7 @@ export interface RegisterRequest {
   password: string;
   repetirPassword: string;
   esVip: boolean;
-  foto: string; // Ruta del avatar seleccionado (ej: "/avatars/avatar1.png")
+  foto?: string; // Ruta del avatar seleccionado (ej: "/avatars/avatar1.png"), opcional para usar el por defecto
   activo: boolean;
 }
 
@@ -51,9 +51,13 @@ export interface BackendUser {
   apellidos: string;
   nombreCompleto: string;
   foto: string;
-  tipo: string; // e.g., 'USUARIO_EV', 'ADMINISTRADOR', 'EDITOR_CONTENIDO'
+  tipo: string; // e.g., 'USUARIO_EV', 'ADMINISTRADOR', 'EDITOR_CONTENIDO', 'CREADOR'
   activo: boolean;
   fechaCreacion: string;
+  alias?: string;
+  descripcion?: string;
+  especialidad?: string;
+  tipoContenido?: string; // 'audio' | 'video'
 }
 
 /*
@@ -105,47 +109,39 @@ export class ApiService {
   private resourceBase = environment.baseResourceUrl;
 
   /**
+   * Extrae el mensaje de usuario del error del backend.
+   */
+  private extractUserMessageFromError(error: any): string {
+    if (!error.error) return '';
+    if (typeof error.error === 'string') {
+      try {
+        const parsed = JSON.parse(error.error);
+        return parsed.message || parsed.error || error.error;
+      } catch {
+        return error.error;
+      }
+    } else if (typeof error.error === 'object' && error.error.message) {
+      return error.error.message;
+    }
+    return '';
+  }
+
+  /**
+   * Obtiene un mensaje genérico de error, independientemente del código de estado o la operación.
+   */
+  private getStatusMessage(status: number, operation: string, defaultMessage: string): string {
+    return 'Ha ocurrido un error inesperado. Por favor, intenta más tarde.';
+  }
+
+  /**
    * Maneja errores HTTP y devuelve mensajes amigables para el usuario.
    * Evita mostrar errores técnicos como "404 Not Found" al usuario.
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = defaultMessage;
-
-      // Si el backend envía un mensaje de error personalizado, usarlo
-      if (error.error && typeof error.error === 'object' && error.error.message) {
-        userMessage = error.error.message;
-      } else {
-        // Mensajes amigables basados en códigos de estado HTTP
-        switch (error.status) {
-          case 400:
-            userMessage = 'Los datos enviados no son válidos. Por favor, verifica la información.';
-            break;
-          case 401:
-            userMessage = 'No tienes autorización para realizar esta acción.';
-            break;
-          case 403:
-            userMessage = 'No tienes permisos para acceder a este recurso.';
-            break;
-          case 404:
-            userMessage = 'El servicio solicitado no está disponible en este momento.';
-            break;
-          case 409:
-            userMessage = 'Ya existe un registro con esta información.';
-            break;
-          case 500:
-            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
-            break;
-          case 503:
-            userMessage = 'El servicio no está disponible temporalmente.';
-            break;
-          default:
-            if (error.status === 0) {
-              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
-            } else {
-              userMessage = defaultMessage;
-            }
-        }
+      let userMessage = this.extractUserMessageFromError(error);
+      if (!userMessage) {
+        userMessage = this.getStatusMessage(error.status, operation, defaultMessage);
       }
 
       console.error(`Error en ${operation}:`, error);
@@ -153,7 +149,7 @@ export class ApiService {
     };
   }
 
-  /** 
+  /**
    * Obtiene las secciones de contenido para la página principal.
    * Incluye fallback vacío cuando se usan mocks para desarrollo.
    */
@@ -169,7 +165,7 @@ export class ApiService {
     );
   }
 
-  /** 
+  /**
    * Registra un nuevo usuario en el sistema.
    * Devuelve la respuesta HTTP completa para leer códigos de estado.
    */
@@ -177,7 +173,7 @@ export class ApiService {
     return this.http.post<RegisterResponse>(`${this.base}/auth/register`, body, { observe: 'response' });
   }
 
-  /** 
+  /**
    * Autentica usuario y devuelve datos de sesión.
    * Incluye información de perfil y token para requests posteriores.
    */
@@ -188,7 +184,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Obtiene la lista de avatares predefinidos disponibles.
    * Devuelve la respuesta completa con avatares y avatar por defecto.
    * Si falla, propaga el error para que el componente pueda manejarlo.
@@ -199,15 +195,31 @@ export class ApiService {
     );
   }
 
-  /** 
+  /**
    * Construye la URL completa para un avatar dado su ruta relativa.
    * El proxy redirige /resources/* al backend automáticamente.
    */
   getFullAvatarUrl(relativePath: string): string {
-    return relativePath;
+    // Si la ruta ya incluye /resources/, devolver tal cual
+    if (relativePath.startsWith('/resources/')) {
+      return relativePath;
+    }
+    // Si la ruta es relativa (ej: /avatars/avatar1.png), agregar /resources/
+    if (relativePath.startsWith('/')) {
+      return `${this.resourceBase}${relativePath}`;
+    }
+    // Si es solo el nombre del archivo, construir la ruta completa
+    return `${this.resourceBase}/avatars/${relativePath}`;
   }
 
-  /** 
+  /**
+   * Obtiene la URL del avatar para una entidad, usando la imagen por defecto si no hay foto.
+   */
+  getAvatarUrl(foto?: string): string {
+    return foto ? this.getFullAvatarUrl(foto) : 'assets/admin/admin_default.png';
+  }
+
+  /**
    * Solicita el restablecimiento de contraseña enviando un código al email.
    * Primer paso del flujo de recuperación de contraseña.
    */
@@ -215,7 +227,7 @@ export class ApiService {
     return this.http.post<ForgotPasswordResponse>(`${this.base}/auth/forgot-password`, { email });
   }
 
-  /** 
+  /**
    * Verifica el código de restablecimiento usando el token.
    * Segundo paso del flujo de recuperación de contraseña.
    */
@@ -226,7 +238,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Establece nueva contraseña usando el token verificado.
    * Tercer paso del flujo de recuperación de contraseña.
    */
@@ -234,7 +246,7 @@ export class ApiService {
     return this.http.post<ResetPasswordResponse>(`${this.base}/auth/reset-password?token=${token}`, { newPassword, repetirPassword })
   }
 
-  /** 
+  /**
    * Reenvía el código de restablecimiento usando el token actual.
    * Permite reenviar el código sin generar un nuevo token.
    */
@@ -245,7 +257,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Verifica el código de verificación de usuario usando el token de verificación.
    * Utiliza el endpoint POST /api/auth/verify?token={token} con el código en el body.
    */
@@ -256,7 +268,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Reenvía un nuevo código de verificación usando el token actual.
    * Utiliza el endpoint POST /api/auth/resend-code?token={token}.
    */
@@ -267,7 +279,7 @@ export class ApiService {
       );
   }
 
-  /** 
+  /**
    * Valida un token de reset de contraseña antes de mostrar la pantalla.
    * Verifica si la sesión existe y si el código fue validado.
    */
@@ -275,12 +287,44 @@ export class ApiService {
     return this.http.get<ResetTokenValidationResponse>(`${this.base}/auth/validate-reset-token?token=${token}`);
   }
 
-  /** 
+  /**
    * Valida un token de verificación de email antes de mostrar la pantalla.
    * Verifica si la sesión existe y si el código fue validado.
    */
   validateVerificationToken(token: string): Observable<VerificationTokenValidationResponse> {
     return this.http.get<VerificationTokenValidationResponse>(`${this.base}/auth/validate-verification-token?token=${token}`);
+  }
+
+  /**
+   * Obtiene la lista de miniaturas disponibles del backend
+   */
+  getThumbnails(): Observable<{thumbnails: string[], defaultThumbnail: string}> {
+    return this.http.get<{thumbnails: string[], defaultThumbnail: string}>(`${this.resourceBase}/thumbnails`)
+      .pipe(
+        catchError(this.handleError('obtener miniaturas', 'No se pudieron cargar las miniaturas'))
+      );
+  }
+
+  /**
+   * Crea nuevo contenido en el backend
+   */
+  createContent(payload: any): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.post(`${this.base}/contenidos`, payload, { headers })
+      .pipe(
+        catchError(this.handleError('crear contenido', 'No se pudo crear el contenido'))
+      );
+  }
+
+  /**
+   * Obtiene la URL completa para una miniatura
+   */
+  getFullThumbnailUrl(relativePath: string): string {
+    if (relativePath.startsWith('http')) {
+      return relativePath;
+    }
+    const cleanPath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+    return `${this.base.replace('/api', '')}${cleanPath}`;
   }
 }
 

@@ -1,0 +1,135 @@
+<div class="background" [@fadeIn]>
+  <div class="overlay">
+    <div class="background-border-shadow">
+      <app-modal-header [titulo]="getTitle()" (cerrar)="onCerrar()"></app-modal-header>
+
+      <app-error-container [error]="error"></app-error-container>
+
+      <div class="container2">
+        <app-avatar-selector
+          [availableAvatars]="availableAvatars"
+          [selectedAvatar]="selectedAvatar"
+          [nombre]="entityData.nombre"
+          (avatarSelected)="onAvatarSelected($event)">
+        </app-avatar-selector>
+
+        <div class="container6">
+          <div class="container7">
+            <app-input-field
+              label="Nombre"
+              [value]="entityData.nombre"
+              (valueChange)="entityData.nombre = $event"
+              (input)="validateForm()"
+              placeholder="Nombre"
+              errorMessage="El nombre no puede superar 50 caracteres"
+              [tooLong]="nombreTooLong"
+              [required]="true"
+              (tooLongChange)="nombreTooLong = $event">
+            </app-input-field>
+
+            <app-input-field
+              label="Apellidos"
+              [value]="entityData.apellidos"
+              (valueChange)="entityData.apellidos = $event"
+              (input)="validateForm()"
+              placeholder="Apellidos"
+              errorMessage="Los apellidos no pueden superar 50 caracteres"
+              [tooLong]="apellidosTooLong"
+              [required]="true"
+              (tooLongChange)="apellidosTooLong = $event">
+            </app-input-field>
+          </div>
+
+          <!-- Campos específicos para creator -->
+          <ng-container *ngIf="isCreator(entityData)">
+            <app-textarea-field
+              label="Descripción"
+              [value]="$any(entityData).descripcion"
+              (valueChange)="$any(entityData).descripcion = $event"
+              (input)="validateForm()"
+              placeholder="Descripción"
+              errorMessage="La descripción no puede superar 500 caracteres"
+              [tooLong]="descripcionTooLong"
+              (tooLongChange)="descripcionTooLong = $event">
+            </app-textarea-field>
+
+            <app-select-field
+              label="Especialidad"
+              [value]="$any(entityData).especialidad"
+              (valueChange)="$any(entityData).especialidad = $event">
+              <option value="Música">Música</option>
+              <option value="Educación">Educación</option>
+              <option value="Tecnología">Tecnología</option>
+              <option value="Cocina">Cocina</option>
+              <option value="Deportes">Deportes</option>
+              <option value="Arte">Arte</option>
+              <option value="Ciencia">Ciencia</option>
+              <option value="Viajes">Viajes</option>
+            </app-select-field>
+          </ng-container>
+
+          <!-- Campo específico para admin -->
+          <ng-container *ngIf="isAdmin(entityData)">
+            <app-select-field
+              label="Departamento"
+              [value]="$any(entityData).departamento"
+              (valueChange)="$any(entityData).departamento = $event">
+              <option value="Operaciones">Operaciones</option>
+              <option value="Seguridad">Seguridad</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Soporte">Soporte</option>
+              <option value="Recursos Humanos">Recursos Humanos</option>
+              <option value="Finanzas">Finanzas</option>
+              <option value="Desarrollo">Desarrollo</option>
+              <option value="Legal">Legal</option>
+            </app-select-field>
+          </ng-container>
+
+          <!-- Campo específico para user -->
+          <ng-container *ngIf="isUser(entityData)">
+            <app-date-field
+              label="Fecha de Nacimiento"
+              [value]="$any(entityData).fechaNacimiento"
+              (valueChange)="$any(entityData).fechaNacimiento = $event"
+              (input)="validateForm()"
+              [fechaInvalid]="fechaInvalid"
+              (fechaInvalidChange)="fechaInvalid = $event"
+              [edadInvalid]="edadInvalid"
+              (edadInvalidChange)="edadInvalid = $event"
+              [required]="true">
+            </app-date-field>
+          </ng-container>
+
+          <!-- Campos de contraseña para admin y creator -->
+          <ng-container *ngIf="isAdmin(entityData) || isCreator(entityData)">
+            <app-password-field
+              [value]="contrasena"
+              (valueChange)="contrasena = $event"
+              [showPassword]="showPassword"
+              (visibilityToggle)="showPassword = !showPassword"
+              (input)="checkPasswordStrength()"
+              [passwordRequirements]="passwordRequirements"
+              [isPasswordStrong]="isPasswordStrong()"
+              [error]="contrasena.trim() !== '' && !isPasswordStrong()">
+            </app-password-field>
+
+            <app-confirm-password-field
+              [confirmValue]="confirmarContrasena"
+              (confirmValueChange)="confirmarContrasena = $event"
+              [showConfirmPassword]="showConfirmPassword"
+              [passwordMismatch]="passwordMismatch"
+              (visibilityToggle)="showConfirmPassword = !showConfirmPassword"
+              (input)="validateForm()"
+              (blur)="validateForm()">
+            </app-confirm-password-field>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="horizontal-border">
+        <app-toggle-block-button [activo]="entityData.activo" (toggle)="entityData.activo = !entityData.activo"></app-toggle-block-button>
+        <app-form-actions [isSaving]="isSaving" (cancelar)="cancel()" (guardar)="saveChanges()"></app-form-actions>
+      </div>
+    </div>
+  </div>
+</div>

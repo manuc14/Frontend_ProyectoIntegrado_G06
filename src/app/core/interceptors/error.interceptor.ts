@@ -1,18 +1,25 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
+import { extractErrorMessage } from '../utils/error-utils';
 
 /**
  * Interceptor global para manejo de errores HTTP
  * Convierte errores técnicos en mensajes amigables para el usuario
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  // No interceptar errores para login, dejar que api.service lo maneje
+  if (req.url.includes('/auth/login')) {
+    return next(req);
+  }
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let userMessage = 'Ha ocurrido un error inesperado';
 
-      // Si el backend envía un mensaje de error personalizado, usarlo
-      if (error.error && typeof error.error === 'object' && error.error.message) {
-        userMessage = error.error.message;
+      // Si backend provee mensaje estructurado, usarlo
+      const e = extractErrorMessage(error);
+      if (e) {
+        userMessage = e;
       } else {
         // Mensajes amigables basados en códigos de estado HTTP
         switch (error.status) {

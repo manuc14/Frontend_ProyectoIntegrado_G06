@@ -48,23 +48,9 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
       if (!this.token) {
         // Si no hay token, redirigir al login
         this.router.navigate(['/login']);
-        return;
       }
       
-      // Validar que el token sea válido y la sesión exista
-      this.api.validateResetToken(this.token).subscribe({
-        next: (response) => {
-          if (!response.exists) {
-            // Token inválido o sesión no existe
-            this.router.navigate(['/forgot-password']);
-          }
-          // Si exists=true, permitir continuar independientemente de verified
-        },
-        error: () => {
-          // Token inválido o error de servidor
-          this.router.navigate(['/forgot-password']);
-        }
-      });
+      // No validar existencia de sesión para tokens dummy
     });
   }
 
@@ -89,6 +75,18 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
     this.successMessage = '';
     this.hasError = false;
     this.buttonState = 'pressed';
+
+    // Si es un dummy token, simular error inmediatamente sin llamar al backend
+    if (this.isDummyToken(this.token)) {
+      this.errorMessage = 'Código incorrecto.';
+      this.hasError = true;
+      this.isVerifying = false;
+      this.buttonState = 'normal';
+      this.triggerShakeError();
+      // Limpiar inputs en caso de error
+      this.clearCodeInputs();
+      return;
+    }
 
     this.api.verifyResetToken(this.token, this.code).subscribe({
       next: (response) => {
@@ -125,6 +123,19 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
     this.errorMessage = '';
     this.successMessage = '';
     this.hasError = false;
+
+    // Si es un dummy token (generado para emails no registrados), simular éxito sin llamar al backend
+    if (this.isDummyToken(this.token)) {
+      this.successMessage = 'Código reenviado correctamente';
+      this.hasError = false;
+      // Limpiar inputs después de reenviar
+      this.clearCodeInputs();
+      
+      // Iniciar countdown de 60 segundos
+      this.startResendCountdown();
+      this.isResending = false;
+      return;
+    }
 
     this.api.resendResetCode(this.token).subscribe({
       next: (response) => {
@@ -182,5 +193,14 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
    */
   triggerShakeError(): void {
     this.shakeForm = !this.shakeForm;
+  }
+
+  /**
+   * Verifica si el token es un dummy token generado para emails no registrados
+   */
+  private isDummyToken(token: string): boolean {
+    // Los dummy tokens tienen el formato exacto: 32chars-50chars
+    const parts = token.split('-');
+    return parts.length === 2 && parts[0].length === 32 && parts[1].length === 50;
   }
 }
