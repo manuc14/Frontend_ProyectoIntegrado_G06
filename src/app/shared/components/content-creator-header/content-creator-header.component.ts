@@ -46,10 +46,10 @@ export class ContentCreatorHeaderComponent implements OnInit {
   }
 
   getAvatarUrl(): string {
-    if (this.currentUser?.foto) {
-        return this.currentUser.foto;
-    }
-    return 'assets/admin/admin_default.png';
+      if (this.currentUser?.foto) {
+        return this.apiService.getAvatarUrl(this.currentUser?.foto);
+      }
+      return 'assets/admin/admin_default.png';
   }
 
   navigateToUpload() {
