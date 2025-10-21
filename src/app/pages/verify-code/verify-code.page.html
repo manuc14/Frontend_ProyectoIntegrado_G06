@@ -8,10 +8,16 @@
         <div class="container5"><div class="text9">Escribe el código de 6 dígitos que enviamos a tu email</div></div>
         
         <!-- Mensajes de error y éxito -->
-        <div *ngIf="errorMessage && hasError" class="error-message">
+        <div 
+          class="field-error" 
+          *ngIf="errorMessage && hasError"
+        >
           {{ errorMessage }}
         </div>
-        <div *ngIf="successMessage && !hasError" class="success-message">
+        <div 
+          class="field-success" 
+          *ngIf="successMessage && !hasError"
+        >
           {{ successMessage }}
         </div>
         

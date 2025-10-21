@@ -123,7 +123,7 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
     this.api.resendVerificationCode(this.token()).subscribe({
       next: (response: any) => {
         console.log('Código reenviado:', response);
-        this.successMessage = 'Nuevo código enviado a tu email';
+        this.successMessage = response.message || 'Nuevo código enviado a tu email';
         this.hasError = false;
         // Limpiar inputs para el nuevo código
         this.clearCodeInputs();
