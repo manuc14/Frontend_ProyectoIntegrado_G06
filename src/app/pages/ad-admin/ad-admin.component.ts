@@ -259,18 +259,7 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
    * Obtiene la URL del avatar del administrador
    */
   getAvatarUrl(admin: AdminEV): string {
-    if (admin.foto) {
-      // Si foto contiene la ruta completa con /resources/, devolver tal cual
-      if (admin.foto.startsWith('/resources/')) {
-        return admin.foto;
-      }
-      // Si foto contiene solo el nombre del archivo, construir la ruta completa
-      const avatarPath = admin.foto.startsWith('/avatars/')
-        ? admin.foto
-        : `/avatars/${admin.foto}`;
-      return this.apiService.getFullAvatarUrl(avatarPath);
-    }
-    return 'assets/admin/admin_default.png';
+    return this.apiService.getAvatarUrl(admin.foto);
   }
 
   @HostListener('window:resize', ['$event'])

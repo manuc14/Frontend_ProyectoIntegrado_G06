@@ -128,7 +128,7 @@ export class AdminUsersPage extends AdminListBase<User> {
   private transformarUsuarios(usuarios: UserEV[]): User[] {
     return usuarios.map(usuario => ({
       id: usuario.id,
-      photo: usuario.foto ? this.getAvatarUrl(usuario.foto) : 'assets/admin/admin_default.png',
+      photo: this.apiService.getAvatarUrl(usuario.foto),
       name: usuario.nombre,
       lastName: usuario.apellidos,
       alias: `@${usuario.alias}`,
@@ -248,16 +248,7 @@ export class AdminUsersPage extends AdminListBase<User> {
     super.clearSearchAndFilters();
   }
 
-  /**
-   * Obtiene la URL del avatar del usuario
-   */
-  private getAvatarUrl(foto: string): string {
-    // Si foto contiene la ruta completa con /resources/, devolver tal cual
-    if (foto.startsWith('/resources/')) {
-      return foto;
-    }
-    return this.apiService.getFullAvatarUrl(foto);
-  }
+
 
   editarUsuario(id: string): void {
     this.router.navigate(['/ad-users-edit', id]);

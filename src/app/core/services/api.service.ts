@@ -213,6 +213,13 @@ export class ApiService {
   }
 
   /**
+   * Obtiene la URL del avatar para una entidad, usando la imagen por defecto si no hay foto.
+   */
+  getAvatarUrl(foto?: string): string {
+    return foto ? this.getFullAvatarUrl(foto) : 'assets/admin/admin_default.png';
+  }
+
+  /**
    * Solicita el restablecimiento de contraseña enviando un código al email.
    * Primer paso del flujo de recuperación de contraseña.
    */
