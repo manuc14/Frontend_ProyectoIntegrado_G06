@@ -22,6 +22,6 @@ export class AvatarSelectorComponent {
 
   handleImageError(event: Event): void {
     const imgElement = event.target as HTMLImageElement;
-    imgElement.src = 'assets/admin/default.png';
+    imgElement.src = 'assets/admin/admin_default.png';
   }
 }

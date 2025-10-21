@@ -129,7 +129,7 @@ export class AdminEntityFormComponent implements OnInit {
 
     // Campo alias solo para creators
     if (this.entityType === 'creator') {
-      controls['alias'] = ['', [Validators.required, Validators.minLength(2)]];
+      controls['alias'] = ['', [Validators.required, Validators.minLength(2), Validators.maxLength(12)]];
     }
 
     this.entityForm = this.fb.group(controls);

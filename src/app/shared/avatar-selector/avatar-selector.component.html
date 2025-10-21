@@ -6,7 +6,7 @@
     <div class="text3">Selecciona una foto predeterminada:</div>
   </div>
   <div class="background-border2">
-    <img class="avatar" [src]="selectedAvatar" [alt]="'foto de ' + nombre" height="142" width="142" (error)="handleImageError($event)" />
+    <img class="avatar" [src]="selectedAvatar || 'assets/admin/admin_default.png'" [alt]="'foto de ' + nombre" height="142" width="142" (error)="handleImageError($event)" />
   </div>
   <div class="container4">
     <button
