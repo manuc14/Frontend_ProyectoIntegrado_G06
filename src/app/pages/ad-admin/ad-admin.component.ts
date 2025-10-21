@@ -14,7 +14,7 @@ import { AdminHeaderComponent } from '../../shared/components/admin-header/admin
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
-import { BackendUser } from '../../core/services/api.service';
+import { BackendUser, ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-adadmin',
@@ -70,7 +70,8 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
   constructor(
     protected override router: Router,
     private adminService: AdminEntityService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private apiService: ApiService
   ) {
     super(router);
   }
@@ -252,6 +253,24 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
 
   override clearSearchAndFilters(): void {
     super.clearSearchAndFilters();
+  }
+
+  /**
+   * Obtiene la URL del avatar del administrador
+   */
+  getAvatarUrl(admin: AdminEV): string {
+    if (admin.foto) {
+      // Si foto contiene la ruta completa con /resources/, devolver tal cual
+      if (admin.foto.startsWith('/resources/')) {
+        return admin.foto;
+      }
+      // Si foto contiene solo el nombre del archivo, construir la ruta completa
+      const avatarPath = admin.foto.startsWith('/avatars/')
+        ? admin.foto
+        : `/avatars/${admin.foto}`;
+      return this.apiService.getFullAvatarUrl(avatarPath);
+    }
+    return 'assets/admin/admin_default.png';
   }
 
   @HostListener('window:resize', ['$event'])

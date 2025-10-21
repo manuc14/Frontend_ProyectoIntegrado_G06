@@ -119,6 +119,7 @@
               [showConfirmPassword]="showConfirmPassword"
               [passwordMismatch]="passwordMismatch"
               (visibilityToggle)="showConfirmPassword = !showConfirmPassword"
+              (input)="validateForm()"
               (blur)="validateForm()">
             </app-confirm-password-field>
           </ng-container>

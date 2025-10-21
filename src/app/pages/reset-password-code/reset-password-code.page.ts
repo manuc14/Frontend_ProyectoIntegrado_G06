@@ -199,7 +199,8 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
    * Verifica si el token es un dummy token generado para emails no registrados
    */
   private isDummyToken(token: string): boolean {
-    // Los dummy tokens tienen el formato: 32chars-50chars
-    return token.includes('-') && token.length > 32;
+    // Los dummy tokens tienen el formato exacto: 32chars-50chars
+    const parts = token.split('-');
+    return parts.length === 2 && parts[0].length === 32 && parts[1].length === 50;
   }
 }

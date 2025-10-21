@@ -81,7 +81,7 @@
               [class.horizontal-border2]="i > 0">
               <div class="container13">
                 <img
-                  [src]="admin.foto || 'assets/admin/admin_default.png'"
+                  [src]="getAvatarUrl(admin)"
                   [alt]="'avatar de ' + admin.nombre"
                   height="28"
                   width="28"/>

@@ -14,6 +14,7 @@ import { AdminHeaderComponent } from '../../shared/components/admin-header/admin
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
+import { ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-adcreators',
@@ -71,7 +72,8 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
   constructor(
     protected override router: Router,
     private creatorService: AdminEntityService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private apiService: ApiService
   ) {
     super(router);
   }
@@ -238,6 +240,19 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
 
   override clearSearchAndFilters(): void {
     super.clearSearchAndFilters();
+  }
+
+  /**
+   * Obtiene la URL del avatar del creador
+   */
+  getAvatarUrl(creator: CreatorEC): string {
+    if (creator.foto) {
+      // Si foto contiene la ruta completa con /resources/, devolver tal cual
+      if (creator.foto.startsWith('/resources/')) {
+        return creator.foto;
+      }
+    }
+    return 'assets/admin/admin_default.png';
   }
 
   @HostListener('window:resize', ['$event'])

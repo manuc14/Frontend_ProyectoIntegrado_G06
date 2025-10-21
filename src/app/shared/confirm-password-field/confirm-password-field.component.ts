@@ -18,6 +18,7 @@ export class ConfirmPasswordFieldComponent {
   @Output() confirmValueChange = new EventEmitter<string>();
   @Output() visibilityToggle = new EventEmitter<void>();
   @Output() blur = new EventEmitter<void>();
+  @Output() input = new EventEmitter<void>();
 
   onBlur(): void {
     this.blur.emit();
@@ -29,5 +30,6 @@ export class ConfirmPasswordFieldComponent {
 
   onInput(): void {
     this.confirmValueChange.emit(this.confirmValue);
+    this.input.emit();
   }
 }

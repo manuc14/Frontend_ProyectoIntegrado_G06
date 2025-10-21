@@ -13,6 +13,7 @@ import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
+import { ApiService } from '../../core/services/api.service';
 
 // Interfaz temporal para compatibilidad (será reemplazada por UserEV)
 interface User {
@@ -78,7 +79,8 @@ export class AdminUsersPage extends AdminListBase<User> {
   constructor(
     protected override router: Router,
     private userService: AdminEntityService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private apiService: ApiService
   ) {
     super(router);
   }
@@ -126,7 +128,7 @@ export class AdminUsersPage extends AdminListBase<User> {
   private transformarUsuarios(usuarios: UserEV[]): User[] {
     return usuarios.map(usuario => ({
       id: usuario.id,
-      photo: usuario.foto ? `assets/admin/${usuario.foto}` : 'assets/admin/admin_default.png',
+      photo: usuario.foto ? this.getAvatarUrl(usuario.foto) : 'assets/admin/admin_default.png',
       name: usuario.nombre,
       lastName: usuario.apellidos,
       alias: `@${usuario.alias}`,
@@ -244,6 +246,17 @@ export class AdminUsersPage extends AdminListBase<User> {
       return;
     }
     super.clearSearchAndFilters();
+  }
+
+  /**
+   * Obtiene la URL del avatar del usuario
+   */
+  private getAvatarUrl(foto: string): string {
+    // Si foto contiene la ruta completa con /resources/, devolver tal cual
+    if (foto.startsWith('/resources/')) {
+      return foto;
+    }
+    return this.apiService.getFullAvatarUrl(foto);
   }
 
   editarUsuario(id: string): void {

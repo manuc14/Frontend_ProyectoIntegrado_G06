@@ -108,7 +108,7 @@
                 <!-- Foto -->
                 <div class="container13">
                   <img
-                    [src]="creator.foto || 'assets/admin/admin_default.png'"
+                    [src]="getAvatarUrl(creator)"
                     [alt]="'avatar de ' + creator.nombre"
                     height="28"
                     width="28"
@@ -145,7 +145,7 @@
                 <!-- Tipo de contenido -->
                 <div class="container15">
                   <div class="background8">
-                    <div class="category-badge">{{ creator.tipoContenido === 'VIDEO' ? 'Vídeo' : 'Audio' }}</div>
+                    <div class="category-badge">{{ (creator.tipoContenido || '').toLowerCase() === 'video' ? 'Vídeo' : 'Audio' }}</div>
                   </div>
                 </div>
 

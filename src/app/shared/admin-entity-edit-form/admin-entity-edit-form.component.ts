@@ -499,9 +499,15 @@ export class AdminEntityEditFormComponent implements OnInit {
 
     // Agregar campos adicionales que han cambiado
     for (const key in this.entityData) {
-      if ((this.entityData as any)[key] !== (this.originalData as any)[key]) {
+      if (key !== 'foto' && (this.entityData as any)[key] !== (this.originalData as any)[key]) {
         changes[key] = (this.entityData as any)[key];
       }
+    }
+
+    // Siempre incluir foto: si cambió, el nuevo valor; si no, el original para no modificar
+    changes.foto = this.originalData.foto;
+    if (this.entityData.foto !== this.originalData.foto) {
+      changes.foto = this.entityData.foto;
     }
 
     return changes;

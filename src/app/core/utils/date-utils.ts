@@ -15,7 +15,8 @@ export function toTimestampFromString(dateString: string | null | undefined): nu
   if (!dateString || dateString === '-') return null;
   
   // Si es formato DD/MM/YYYY, parsearlo manualmente
-  const ddmmyyyyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+  const ddmmyyyyMatch = regex.exec(dateString);
   if (ddmmyyyyMatch) {
     const [, day, month, year] = ddmmyyyyMatch;
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));

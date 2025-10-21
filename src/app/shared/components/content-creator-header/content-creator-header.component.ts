@@ -47,11 +47,7 @@ export class ContentCreatorHeaderComponent implements OnInit {
 
   getAvatarUrl(): string {
     if (this.currentUser?.foto) {
-      // Si foto contiene solo el nombre del archivo, construir la ruta completa
-      const avatarPath = this.currentUser.foto.startsWith('/avatars/')
-        ? this.currentUser.foto
-        : `/avatars/${this.currentUser.foto}`;
-      return this.apiService.getFullAvatarUrl(avatarPath);
+        return this.currentUser.foto;
     }
     return 'assets/admin/admin_default.png';
   }
