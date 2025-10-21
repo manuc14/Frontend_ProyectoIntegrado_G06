@@ -89,10 +89,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
    * Obtiene la URL del avatar del usuario
    */
   getAvatarUrl(): string {
-    if (this.currentUser?.foto) {
-        return this.currentUser.foto;
-    }
-    return 'assets/admin/admin_default.png';
+    return this.apiService.getAvatarUrl(this.currentUser?.foto);
   }
 
 
