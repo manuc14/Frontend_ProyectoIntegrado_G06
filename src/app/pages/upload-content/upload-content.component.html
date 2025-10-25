@@ -5,26 +5,28 @@
     <h1>Subir contenido</h1>
     <p class="hint">Comparte tu contenido multimedia con la comunidad.</p>
 
-    <form class="upload-form card" novalidate>
+    <form class="upload-form card" [formGroup]="uploadForm" novalidate>
       <div *ngIf="formError" class="form-error-summary" aria-live="assertive">{{ formError }}</div>
       <!-- LEFT COLUMN -->
       <div class="left-column">
         <section class="form-section">
           <h2>Detalles</h2>
-          
+
           <label>
             <span>Título <span class="required tags-asterisk">*</span></span>
-            <input type="text" [value]="title" (input)="onTitleInput($event)" 
-                   placeholder="Introduce el título" maxlength="50" 
-                   [class.error]="titleError && submitted" />
+            <input type="text" formControlName="title" (input)="onTitleInput($event)"
+                   placeholder="Introduce el título" maxlength="50"
+                   [class.error]="uploadForm.get('title')?.invalid && submitted" />
             <div class="char-count">{{ titleCount }} / {{ UPLOAD_LIMITS.titleLimit }}</div>
-            <div class="field-error" *ngIf="titleError && submitted" aria-live="polite">{{ titleError }}</div>
+            <div class="field-error" *ngIf="uploadForm.get('title')?.invalid && submitted" aria-live="polite">
+              Título es requerido
+            </div>
           </label>
 
           <label>
             <span>Descripción</span>
-            <textarea [value]="description" (input)="onDescriptionInput($event)" 
-                      placeholder="Cuenta de qué va a ir lo que subes" 
+            <textarea formControlName="description" (input)="onDescriptionInput($event)"
+                      placeholder="Cuenta de qué va a ir lo que subes"
                       maxlength="500" rows="4"></textarea>
             <div class="char-count">{{ descCount }} / {{ UPLOAD_LIMITS.descLimit }}</div>
           </label>
@@ -86,26 +88,31 @@
         <section class="form-section">
           <div class="form-field">
             <span class="field-label">Contenido VIP <span class="required">*</span></span>
-            <div class="radio-group" [class.error-border]="vipError && submitted">
+            <div class="radio-group" [class.error-border]="uploadForm.get('vip')?.invalid && submitted">
               <label class="radio-option">
-                <input type="radio" name="vip" [(ngModel)]="vip" value="si" (change)="onVipChange()" />
+                <input type="radio" formControlName="vip" value="si" />
                 <span>Sí</span>
               </label>
               <label class="radio-option">
-                <input type="radio" name="vip" [(ngModel)]="vip" value="no" (change)="onVipChange()" />
+                <input type="radio" formControlName="vip" value="no" />
                 <span>No</span>
               </label>
             </div>
-            <div class="field-error" *ngIf="vipError && submitted" aria-live="polite">{{ vipError }}</div>
+            <div class="field-error" *ngIf="uploadForm.get('vip')?.invalid && submitted" aria-live="polite">
+              Debe seleccionar si el contenido es VIP o no
+            </div>
           </div>
+
+
 
           <label *ngIf="type === 'video'">
             <span>URL <span class="required">*</span></span>
-            <input id="url" name="url" type="text" [(ngModel)]="url" placeholder="https://example.com/video.mp4"
-              [class.error]="urlError && submitted"
-              (input)="onUrlInput($event)"
-              (blur)="validarUrl()" />
-            <div class="field-error" *ngIf="urlError && submitted" aria-live="polite">{{ urlError }}</div>
+            <input id="url" type="text" formControlName="url" placeholder="https://example.com/video.mp4"
+              [class.error]="uploadForm.get('url')?.invalid && submitted" />
+            <div class="field-error" *ngIf="uploadForm.get('url')?.invalid && submitted" aria-live="polite">
+              <span *ngIf="uploadForm.get('url')?.hasError('required')">URL es requerida para videos</span>
+              <span *ngIf="uploadForm.get('url')?.hasError('invalidUrl')">La URL debe comenzar con http:// o https://</span>
+            </div>
           </label>
 
           <div class="form-field" *ngIf="type === 'audio'">
@@ -148,7 +155,7 @@
 
           <div class="form-field">
             <span class="field-label">Tags <span class="required tags-asterisk">*</span></span>
-            <div class="tags-container" [class.error-border]="tagsError && submitted">
+            <div class="tags-container" [class.error-border]="uploadForm.get('tags')?.invalid && submitted">
               <div class="tags-display" *ngIf="tags.length > 0">
                 <span class="tag" *ngFor="let tag of tags; let i = index">
                   {{ tag }}
@@ -156,32 +163,38 @@
                 </span>
               </div>
               <div class="tag-input-row">
-      <input type="text" name="newTag" [(ngModel)]="newTag" placeholder="Añadir tag" 
-        (keydown.enter)="addTag()" aria-label="Nuevo tag" />
+                <input type="text" [(ngModel)]="newTag" [ngModelOptions]="{standalone: true}" placeholder="Añadir tag" 
+                  (keydown.enter)="addTag()" aria-label="Nuevo tag" />
                 <button type="button" class="btn secondary small" (click)="addTag()">
                   + Añadir
                 </button>
               </div>
-              <div class="field-error" *ngIf="tagsError" aria-live="polite">{{ tagsError }}</div>
+              <div class="field-error" *ngIf="uploadForm.get('tags')?.invalid && submitted" aria-live="polite">
+                Debe agregar al menos un tag
+              </div>
             </div>
           </div>
 
           <div class="form-row">
             <label>
               <span>Duración (minutos) <span class="required">*</span></span>
-              <input type="number" name="duration" [(ngModel)]="duration" placeholder="Minutos" min="1" 
-                     [class.error]="durationError && submitted" (input)="onDurationChange()" />
-              <div class="field-error" *ngIf="durationError && submitted" aria-live="polite">{{ durationError }}</div>
+              <input type="number" formControlName="duration" placeholder="Minutos" min="1" 
+                     [class.error]="uploadForm.get('duration')?.invalid && submitted" />
+              <div class="field-error" *ngIf="uploadForm.get('duration')?.invalid && submitted" aria-live="polite">
+                Duración es requerida
+              </div>
             </label>
 
             <label>
               <span>Estado <span class="required">*</span></span>
-              <select name="estado" [(ngModel)]="estado" [class.error]="estadoError && submitted" (change)="onEstadoChange()">
+              <select formControlName="estado" [class.error]="uploadForm.get('estado')?.invalid && submitted">
                 <option value="">Seleccionar</option>
                 <option value="Publico">Publico</option>
                 <option value="Privado">Privado</option>
               </select>
-              <div class="field-error" *ngIf="estadoError && submitted" aria-live="polite">{{ estadoError }}</div>
+              <div class="field-error" *ngIf="uploadForm.get('estado')?.invalid && submitted" aria-live="polite">
+                Estado es requerido
+              </div>
             </label>
           </div>
 
@@ -189,9 +202,8 @@
           <div class="form-row" *ngIf="type === 'video'">
             <label>
               <span>Resolución <span class="required">*</span></span>
-              <select name="resolution" [(ngModel)]="resolution"
-                      [class.error]="resolutionError && submitted"
-                      (change)="onResolutionChange()">
+              <select formControlName="resolution"
+                      [class.error]="resolutionError && submitted">
                 <option value="">Seleccionar</option>
                 <option value="1080p">1080p</option>
                 <option value="720p">720p</option>
@@ -202,13 +214,15 @@
 
             <label>
               <span>Restricción de edad <span class="required">*</span></span>
-              <select name="ageRestriction" [(ngModel)]="ageRestriction" [class.error]="ageRestrictionError && submitted" (change)="onAgeRestrictionChange()">
+              <select formControlName="ageRestriction" [class.error]="uploadForm.get('ageRestriction')?.invalid && submitted">
                 <option value="">Seleccionar</option>
                 <option value="+7">+7</option>
                 <option value="+13">+13</option>
                 <option value="+18">+18</option>
               </select>
-              <div class="field-error" *ngIf="ageRestrictionError && submitted" aria-live="polite">{{ ageRestrictionError }}</div>
+              <div class="field-error" *ngIf="uploadForm.get('ageRestriction')?.invalid && submitted" aria-live="polite">
+                Restricción de edad es requerida
+              </div>
             </label>
           </div>
 
@@ -216,22 +230,24 @@
           <div *ngIf="type === 'audio'">
             <label>
               <span>Restricción de edad <span class="required">*</span></span>
-              <select name="ageRestriction" [(ngModel)]="ageRestriction" [class.error]="ageRestrictionError && submitted" (change)="onAgeRestrictionChange()">
+              <select formControlName="ageRestriction" [class.error]="uploadForm.get('ageRestriction')?.invalid && submitted">
                 <option value="">Seleccionar</option>
                 <option value="+7">+7</option>
                 <option value="+13">+13</option>
                 <option value="+18">+18</option>
               </select>
-              <div class="field-error" *ngIf="ageRestrictionError && submitted" aria-live="polite">{{ ageRestrictionError }}</div>
+              <div class="field-error" *ngIf="uploadForm.get('ageRestriction')?.invalid && submitted" aria-live="polite">
+                Restricción de edad es requerida
+              </div>
             </label>
           </div>
 
           <label>
             <span>Disponibilidad</span>
             <div style="display:flex;gap:8px;align-items:center;">
-    <input type="date" name="fechaExpiracion" [(ngModel)]="fechaExpiracion" placeholder="AAAA-MM-DD"
-      [min]="minDate" (ngModelChange)="validarFecha()" />
-    <input type="text" name="fechaManual" placeholder="AAAA-MM-DD" [(ngModel)]="fechaExpiracion" (ngModelChange)="validarFecha()" />
+    <input type="date" formControlName="fechaExpiracion" placeholder="AAAA-MM-DD"
+      [min]="minDate" (blur)="validarFecha()" />
+    <input type="text" placeholder="AAAA-MM-DD" formControlName="fechaExpiracion" (blur)="validarFecha()" />
             </div>
             <div class="field-error" *ngIf="fechaError" aria-live="polite">{{ fechaError }}</div>
           </label>

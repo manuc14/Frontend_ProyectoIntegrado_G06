@@ -1,12 +1,36 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../core/animations/animations';
 import { ApiService } from '../../../core/services/api.service';
-import { AvatarsResponseDto } from '../../../core/models/media.models';
+import { ImageSelectorService } from '../../../core/services/image-selector.service';
+import { FormBaseService } from '../../../core/services/form-base.service';
+import { Subscription } from 'rxjs';
 
 export type EntityType = 'admin' | 'creator';
+
+// Interfaces tipadas para formularios
+export interface AdminForm {
+  nombre: string;
+  apellidos: string;
+  email: string;
+  password: string;
+  repetirPassword: string;
+  departamento: string;
+}
+
+export interface CreatorForm {
+  nombre: string;
+  apellidos: string;
+  email: string;
+  alias: string;
+  password: string;
+  repetirPassword: string;
+  especialidad: string;
+  tipoContenido: string;
+  descripcion: string;
+}
 
 @Component({
   selector: 'app-admin-entity-form',
@@ -16,7 +40,7 @@ export type EntityType = 'admin' | 'creator';
   styleUrl: './admin-entity-form.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
-export class AdminEntityFormComponent implements OnInit {
+export class AdminEntityFormComponent implements OnInit, OnDestroy {
   @Input() entityType: EntityType = 'admin';
   @Input() service: any; // AdminService or CreatorService
   @Input() title: string = '';
@@ -24,9 +48,45 @@ export class AdminEntityFormComponent implements OnInit {
   @Input() successRoute: string = '';
 
   entityForm!: FormGroup;
-  selectedAvatar: string | null = null;
-  previewUrl: string = 'assets/admin/foto_upload.svg';
-  isDefaultIcon: boolean = true;
+  formId: string = '';
+
+  // Estado centralizado gestionado por FormBaseService
+  private currentFormState: any = {};
+
+  // Propiedades calculadas para compatibilidad con template
+  get selectedAvatar(): string {
+    return this.currentFormState?.imageState?.selectedImage || '';
+  }
+
+  get previewUrl(): string {
+    return this.currentFormState?.imageState?.selectedImageUrl || 'assets/admin/foto_upload.svg';
+  }
+
+  get isDefaultIcon(): boolean {
+    return !this.currentFormState?.imageState?.selectedImage;
+  }
+
+  get availableAvatars(): string[] {
+    return this.currentFormState?.imageState?.images || [];
+  }
+
+  get isLoadingAvatars(): boolean {
+    return this.currentFormState?.imageState?.loading || false;
+  }
+
+  get avatarLoadError(): boolean {
+    return this.currentFormState?.imageState?.error || false;
+  }
+
+  get isSubmitting(): boolean {
+    return this.currentFormState?.isSubmitting || false;
+  }
+
+  get errorMessage(): string | null {
+    return this.currentFormState?.error || null;
+  }
+
+  showAvatarModal = false;
 
   // Configuración específica por tipo
   get isPhotoRequired(): boolean {
@@ -86,12 +146,6 @@ export class AdminEntityFormComponent implements OnInit {
     return this.entityType === 'admin' ? 'Departamento *' : 'Especialidad *';
   }
 
-  showAvatarModal = false;
-  availableAvatars: string[] = [];
-  isLoadingAvatars = false;
-  avatarLoadError = false;
-  isSubmitting = false;
-  errorMessage: string | null = null;
   formSubmitted = false;
 
   // Validaciones de contraseña en tiempo real
@@ -103,37 +157,42 @@ export class AdminEntityFormComponent implements OnInit {
     hasSpecialChar: false
   };
 
+  private imageStateSubscription?: Subscription;
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
-    public apiService: ApiService
+    public apiService: ApiService,
+    private imageSelectorService: ImageSelectorService,
+    private formBaseService: FormBaseService
   ) {
     // Form will be created in ngOnInit after inputs are set
   }
 
   private createForm(): void {
-    // Crear form con campos comunes
-    const controls: any = {
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      apellidos: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      repetirPassword: ['', [Validators.required]],
-      // Campos específicos
-      departamento: [this.entityType === 'admin' ? 'Operaciones' : null],
-      especialidad: [this.entityType === 'creator' ? 'Música' : null],
-      tipoContenido: [this.entityType === 'creator' ? '' : null, this.entityType === 'creator' ? Validators.required : null],
-      descripcion: ['']
-    };
-
-    // Campo alias solo para creators
-    if (this.entityType === 'creator') {
-      controls['alias'] = ['', [Validators.required, Validators.minLength(2), Validators.maxLength(12)]];
+    if (this.entityType === 'admin') {
+      this.entityForm = this.formBaseService.createFormGroup<AdminForm>({
+        nombre: '',
+        apellidos: '',
+        email: '',
+        password: '',
+        repetirPassword: '',
+        departamento: 'Operaciones'
+      }, [FormBaseService.passwordMatchValidator('password', 'repetirPassword')]);
+    } else {
+      this.entityForm = this.formBaseService.createFormGroup<CreatorForm>({
+        nombre: '',
+        apellidos: '',
+        email: '',
+        alias: '',
+        password: '',
+        repetirPassword: '',
+        especialidad: 'Música',
+        tipoContenido: '',
+        descripcion: ''
+      }, [FormBaseService.passwordMatchValidator('password', 'repetirPassword')]);
     }
-
-    this.entityForm = this.fb.group(controls);
-    this.entityForm.setValidators(this.passwordMatchValidator);
   }
 
   ngOnInit(): void {
@@ -143,46 +202,34 @@ export class AdminEntityFormComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+
+    // Crear ID único para el formulario
+    this.formId = `create-${this.entityType}`;
+
+    // Crear estado del formulario
+    this.formBaseService.createFormState(this.formId, {});
+
+    // Suscribirse al estado del formulario
+    this.formBaseService.getFormState(this.formId)?.subscribe(state => {
+      this.currentFormState = state;
+    });
+
     // Crear form con campos comunes
     this.createForm();
+    // Cargar avatares
+    this.formBaseService.loadImages('avatar');
     // Continuar con la inicialización
     this.initializeForm();
   }
 
+  ngOnDestroy(): void {
+    if (this.formId) {
+      this.formBaseService.destroyFormState(this.formId);
+    }
+  }
+
   private initializeForm(): void {
-    this.cargarAvatares();
-
-    // Escuchar cambios en el campo de contraseña
-    this.entityForm.get('password')?.valueChanges.subscribe(password => {
-      this.checkPasswordStrength(password || '');
-    });
-  }
-
-  checkPasswordStrength(password: string): void {
-    // Default to empty string if password is null or undefined
-    const safePassword = password || '';
-
-    this.passwordStrength = {
-      hasMinLength: safePassword.length >= 8,
-      hasUpperCase: /[A-Z]/.test(safePassword),
-      hasLowerCase: /[a-z]/.test(safePassword),
-      hasNumber: /\d/.test(safePassword),
-      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(safePassword)
-    };
-  }
-
-  get isPasswordValid(): boolean {
-    return Object.values(this.passwordStrength).every(v => v);
-  }
-
-  get passwordRequirements(): string[] {
-    const requirements: string[] = [];
-    if (!this.passwordStrength.hasMinLength) requirements.push('Mínimo 8 caracteres');
-    if (!this.passwordStrength.hasUpperCase) requirements.push('Al menos una mayúscula');
-    if (!this.passwordStrength.hasLowerCase) requirements.push('Al menos una minúscula');
-    if (!this.passwordStrength.hasNumber) requirements.push('Al menos un dígito');
-    if (!this.passwordStrength.hasSpecialChar) requirements.push('Al menos un carácter especial');
-    return requirements;
+    // No necesitamos validación manual, usamos validadores reactivos
   }
 
   passwordMatchValidator(control: AbstractControl) {
@@ -197,22 +244,6 @@ export class AdminEntityFormComponent implements OnInit {
     return null;
   }
 
-  cargarAvatares(): void {
-    this.isLoadingAvatars = true;
-    this.avatarLoadError = false;
-    this.apiService.getAvatars().subscribe({
-      next: (response: AvatarsResponseDto) => {
-        this.availableAvatars = response.avatars || [];
-        this.isLoadingAvatars = false;
-      },
-      error: (err) => {
-        console.error('Error al cargar avatares:', err);
-        this.isLoadingAvatars = false;
-        this.avatarLoadError = true;
-      }
-    });
-  }
-
   openAvatarModal(): void {
     this.showAvatarModal = true;
   }
@@ -222,9 +253,7 @@ export class AdminEntityFormComponent implements OnInit {
   }
 
   selectPredefinedAvatar(avatar: string): void {
-    this.selectedAvatar = avatar;
-    this.previewUrl = avatar;
-    this.isDefaultIcon = false;
+    this.formBaseService.selectImage(avatar, 'avatar');
     this.closeAvatarModal();
   }
 
@@ -239,13 +268,13 @@ export class AdminEntityFormComponent implements OnInit {
 
   onSubmit(): void {
     this.formSubmitted = true;
-    this.errorMessage = null;
+    this.formBaseService.updateFormState(this.formId, { error: null });
 
     if (!this.validatePhoto()) return;
     if (!this.validatePassword()) return;
     if (!this.validateForm()) return;
 
-    this.isSubmitting = true;
+    this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
     const entityData = this.prepareEntityData();
 
     const createMethod = this.entityType === 'admin' ? 'crearAdministrador' : 'crearCreador';
@@ -262,7 +291,9 @@ export class AdminEntityFormComponent implements OnInit {
       const hasAvatar = this.selectedAvatar !== null && this.selectedAvatar !== '';
 
       if (!hasAvatar) {
-        this.errorMessage = 'Debe seleccionar un avatar predefinido para los creadores de contenido.';
+        this.formBaseService.updateFormState(this.formId, {
+          error: 'Debe seleccionar un avatar predefinido para los creadores de contenido.'
+        });
         return false;
       }
     }
@@ -270,8 +301,11 @@ export class AdminEntityFormComponent implements OnInit {
   }
 
   private validatePassword(): boolean {
-    if (!this.isPasswordValid) {
-      this.errorMessage = 'Valores incorrectos. Revisa los campos para continuar.';
+    const passwordControl = this.entityForm.get('password');
+    if (passwordControl?.invalid) {
+      this.formBaseService.updateFormState(this.formId, {
+        error: 'La contraseña no cumple con los requisitos de seguridad.'
+      });
       return false;
     }
     return true;
@@ -279,7 +313,9 @@ export class AdminEntityFormComponent implements OnInit {
 
   private validateForm(): boolean {
     if (this.entityForm.invalid) {
-      this.errorMessage = 'Valores incorrectos. Revisa los campos para continuar.';
+      this.formBaseService.updateFormState(this.formId, {
+        error: 'Valores incorrectos. Revisa los campos para continuar.'
+      });
       return false;
     }
     return true;
@@ -288,10 +324,7 @@ export class AdminEntityFormComponent implements OnInit {
   private prepareEntityData(): any {
     // UNIFICADO: Todos los tipos SOLO usan avatares predefinidos
     // Se envía el nombre del avatar en JSON (igual que registro)
-    let fotoNombre = '';
-    if (this.selectedAvatar) {
-      fotoNombre = this.selectedAvatar.split('/').pop() ?? '';
-    }
+    const fotoNombre = this.formBaseService.extractImageFileName(this.selectedAvatar);
 
     let entityData: any;
 
@@ -352,8 +385,7 @@ export class AdminEntityFormComponent implements OnInit {
 
   private handleError(error: any): void {
     console.error(`Error al crear ${this.entityType}:`, error);
-    this.errorMessage = error.message || `Error al crear el ${this.entityType}. Por favor, intenta nuevamente.`;
-    this.isSubmitting = false;
+    this.formBaseService.handleBackendError(this.formId, this.entityForm, error);
   }
 
   private getAvatarPath(): string | null {

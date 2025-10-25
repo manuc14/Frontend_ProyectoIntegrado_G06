@@ -15,6 +15,7 @@ import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/adm
 import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
 import { ApiService } from '../../core/services/api.service';
+import { ImageSelectorService } from '../../core/services/image-selector.service';
 
 @Component({
   selector: 'app-adcreators',
@@ -73,7 +74,8 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
     protected override router: Router,
     private creatorService: AdminEntityService,
     private route: ActivatedRoute,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private imageSelectorService: ImageSelectorService
   ) {
     super(router);
   }
@@ -246,7 +248,7 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
    * Obtiene la URL del avatar del creador
    */
   getAvatarUrl(creator: CreatorEC): string {
-    return this.apiService.getAvatarUrl(creator.foto);
+    return this.imageSelectorService.getFullImageUrl(creator.foto || '', 'avatar');
   }
 
   @HostListener('window:resize', ['$event'])

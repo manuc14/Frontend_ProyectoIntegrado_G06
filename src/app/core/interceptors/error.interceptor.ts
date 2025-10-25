@@ -7,8 +7,8 @@ import { extractErrorMessage } from '../utils/error-utils';
  * Convierte errores técnicos en mensajes amigables para el usuario
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  // No interceptar errores para login, dejar que api.service lo maneje
-  if (req.url.includes('/auth/login')) {
+  // No interceptar errores para login y verify, dejar que api.service lo maneje
+  if (req.url.includes('/auth/login') || req.url.includes('/auth/verify')) {
     return next(req);
   }
 

@@ -1,7 +1,3 @@
-/**
- * Página para verificar el código de verificación durante el proceso de recuperación de contraseña.
- * Segundo paso del flujo de restablecimiento de contraseña.
- */
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -9,7 +5,14 @@ import { ApiService } from '../../core/services/api.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { CodeInputBase } from '../../core/base/code-input.base';
+import { FormBaseService, FormState } from '../../core/services/form-base.service';
+import { Observable, Subscription } from 'rxjs';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
+
+/*
+ * ID único para el formulario
+ */
+const FORM_ID = 'reset-password-code';
 
 @Component({
   selector: 'app-reset-password-code',
@@ -20,28 +23,54 @@ import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDestroy {
-  isLoading = false;
-  errorMessage = '';
+  // Estado del formulario gestionado por FormBaseService
+  formState: FormState | null = null;
+  formState$: Observable<FormState> | null = null;
+
   token = '';
   // Reenvío de código
   resendDisabled = false;
   resendCountdown = 0;
   private resendTimer: any;
   // Estados separados para cada operación
-  isVerifying = false;
-  isResending = false;
   successMessage = '';
   hasError = false;
+
+  private formStateSubscription?: Subscription;
+
+  // Propiedades calculadas para compatibilidad con template
+  get loading(): boolean {
+    return this.formState?.isSubmitting || false;
+  }
+
+  get errorMessage(): string {
+    return this.formState?.error || '';
+  }
 
   constructor(
     private api: ApiService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private formBaseService: FormBaseService
   ) {
     super();
+
+    // Estado del formulario gestionado por FormBaseService
+    // Nota: formState$ se asignará en ngOnInit después de crear el estado
   }
 
   ngOnInit() {
+    // Crear estado del formulario
+    this.formBaseService.createFormState(FORM_ID, {});
+
+    // Asignar el observable del estado después de crearlo
+    this.formState$ = this.formBaseService.getFormState(FORM_ID);
+
+    // Suscribirse al estado del formulario
+    this.formStateSubscription = this.formState$?.subscribe(state => {
+      this.formState = state;
+    });
+
     // Verificar si hay token en los query params
     this.route.queryParams.subscribe(params => {
       this.token = params['token'] || '';
@@ -55,6 +84,11 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
   }
 
   ngOnDestroy() {
+    if (this.formStateSubscription) {
+      this.formStateSubscription.unsubscribe();
+    }
+    this.formBaseService.destroyFormState(FORM_ID);
+
     // Limpiar timer al destruir el componente
     if (this.resendTimer) {
       clearInterval(this.resendTimer);
@@ -70,17 +104,18 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
       return;
     }
     
-    this.isVerifying = true;
-    this.errorMessage = '';
+    this.formBaseService.updateFormState(FORM_ID, { isSubmitting: true, error: null, fieldErrors: {} });
     this.successMessage = '';
     this.hasError = false;
     this.buttonState = 'pressed';
 
     // Si es un dummy token, simular error inmediatamente sin llamar al backend
     if (this.isDummyToken(this.token)) {
-      this.errorMessage = 'Código incorrecto.';
+      this.formBaseService.updateFormState(FORM_ID, { 
+        isSubmitting: false, 
+        error: 'Código incorrecto.' 
+      });
       this.hasError = true;
-      this.isVerifying = false;
       this.buttonState = 'normal';
       this.triggerShakeError();
       // Limpiar inputs en caso de error
@@ -96,16 +131,15 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
         });
       },
       error: (error: any) => {
-        this.errorMessage = error.message || 'Código de verificación incorrecto';
+        this.formBaseService.handleBackendError(FORM_ID, null as any, error);
         this.hasError = true;
-        this.isVerifying = false;
         this.buttonState = 'normal';
         this.triggerShakeError();
         // Limpiar inputs en caso de error
         this.clearCodeInputs();
       },
       complete: () => {
-        this.isVerifying = false;
+        this.formBaseService.updateFormState(FORM_ID, { isSubmitting: false });
         this.buttonState = 'normal';
       }
     });
@@ -115,12 +149,11 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
    * Reenvía el código de verificación usando el token actual
    */
   resendCode() {
-    if (this.resendDisabled || this.isResending) {
+    if (this.resendDisabled || this.loading) {
       return;
     }
 
-    this.isResending = true;
-    this.errorMessage = '';
+    this.formBaseService.updateFormState(FORM_ID, { isSubmitting: true, error: null, fieldErrors: {} });
     this.successMessage = '';
     this.hasError = false;
 
@@ -133,7 +166,7 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
       
       // Iniciar countdown de 60 segundos
       this.startResendCountdown();
-      this.isResending = false;
+      this.formBaseService.updateFormState(FORM_ID, { isSubmitting: false });
       return;
     }
 
@@ -148,11 +181,11 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
         this.startResendCountdown();
       },
       error: (error: any) => {
-        this.errorMessage = error.message || 'Error al reenviar el código';
+        this.formBaseService.handleBackendError(FORM_ID, null as any, error);
         this.hasError = true;
       },
       complete: () => {
-        this.isResending = false;
+        this.formBaseService.updateFormState(FORM_ID, { isSubmitting: false });
       }
     });
   }

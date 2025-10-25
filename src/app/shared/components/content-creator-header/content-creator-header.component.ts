@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { BackendUser, ApiService } from '../../../core/services/api.service';
+import { ImageSelectorService } from '../../../core/services/image-selector.service';
 
 @Component({
   selector: 'app-content-creator-header',
@@ -16,7 +17,7 @@ export class ContentCreatorHeaderComponent implements OnInit {
   currentUser: BackendUser | null = null;
   isOnUploadPage = false;
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, private apiService: ApiService) {}
+  constructor(private router: Router, private activatedRoute: ActivatedRoute, private apiService: ApiService, private imageSelectorService: ImageSelectorService) {}
 
   ngOnInit() {
     this.loadCurrentUser();
@@ -47,7 +48,7 @@ export class ContentCreatorHeaderComponent implements OnInit {
 
   getAvatarUrl(): string {
       if (this.currentUser?.foto) {
-        return this.apiService.getAvatarUrl(this.currentUser?.foto);
+        return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
       }
       return 'assets/admin/admin_default.png';
   }

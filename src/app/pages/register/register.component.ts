@@ -1,15 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ApiService } from '../../core/services/api.service';
+import { ImageSelectorService } from '../../core/services/image-selector.service';
+import { FormBaseService, FormState } from '../../core/services/form-base.service';
 import { VipPromoModalComponent } from '../../shared/vip-promo-modal/vip-promo-modal.component';
 import { HttpResponse } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
-import { matchPasswordsValidator, minAgeValidator, maxAgeValidator, passwordPolicyValidator, MIN_BIRTH_YEAR } from '../../core/validators/form.validators';
-import { applyBackendDetails, clearBackendErrors } from '../../core/utils/error-mapper';
+import { Subscription, Observable } from 'rxjs';
+import { matchPasswordsValidator, MIN_BIRTH_YEAR } from '../../core/validators/form.validators';
 import { FORM_LIMITS } from '../../core/constants/form-limits';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
@@ -44,26 +46,53 @@ interface RegisterForm {
   styleUrl: './register.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
   /* RegisterComponent: pantalla de registro de usuario. Gestiona formulario, avatar, promoción VIP y envío al backend; maneja 201/400/409 y navega a verificación de email tras éxito. */
   readonly maxAlias = FORM_LIMITS.aliasMax; // usado en template
   readonly maxNombre = FORM_LIMITS.nombreMax; // usado en template
   readonly maxApellidos = FORM_LIMITS.apellidosMax; // usado en template
   readonly maxEmail = FORM_LIMITS.emailMax; // usado en template
   readonly MIN_BIRTH_YEAR = MIN_BIRTH_YEAR; // usado en template
-  
-  // Avatares del backend
-  avatars: string[] = [];
-  defaultAvatar = '';
-  selectedAvatar = '';
-  loadingAvatars = false;
-  avatarLoadError = false;
 
-  form: FormGroup<RegisterForm>;
+  // Estado del formulario gestionado por FormBaseService
+  formState: FormState | null = null;
+  formState$: Observable<FormState> | null = null;
 
-  loading = false;
-  bannerKind: 'success' | 'error' | null = null;
-  bannerText = '';
+  // Propiedades calculadas para compatibilidad con template
+  get avatars(): string[] {
+    return this.formState?.imageState.images || [];
+  }
+
+  get defaultAvatar(): string {
+    return this.formState?.imageState.defaultImage || '';
+  }
+
+  get selectedAvatar(): string {
+    return this.formState?.imageState.selectedImage || '';
+  }
+
+  get loadingAvatars(): boolean {
+    return this.formState?.imageState.loading || false;
+  }
+
+  get avatarLoadError(): boolean {
+    return this.formState?.imageState.error || false;
+  }
+
+  get loading(): boolean {
+    return this.formState?.isSubmitting || false;
+  }
+
+  get bannerKind(): 'success' | 'error' | null {
+    return this.formState?.error ? 'error' : null;
+  }
+
+  get bannerText(): string {
+    return this.formState?.error || '';
+  }
+
+  form: FormGroup;
+
   // VIP promo modal estado
   showVipPromo = false;
   promptedVipOnce = false;
@@ -77,65 +106,72 @@ export class RegisterComponent {
   showPassword = false;
   showRepeatPassword = false;
 
-  constructor(private fb: FormBuilder, private api: ApiService, private router: Router) {
-    this.form = this.fb.nonNullable.group({
-      nombre: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(FORM_LIMITS.nombreMax)]),
-      apellidos: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(FORM_LIMITS.apellidosMax)]),
-      email: this.fb.nonNullable.control('', [Validators.required, Validators.email, Validators.maxLength(FORM_LIMITS.emailMax)]),
-      alias: this.fb.nonNullable.control('', [Validators.maxLength(FORM_LIMITS.aliasMax)]),
-      fechaNacimiento: this.fb.nonNullable.control('', [Validators.required, minAgeValidator(FORM_LIMITS.minAgeYears), maxAgeValidator(MIN_BIRTH_YEAR)]),
-      password: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(FORM_LIMITS.passwordMin), Validators.maxLength(FORM_LIMITS.passwordMax), passwordPolicyValidator()]),
-      repeatPassword: this.fb.nonNullable.control('', [Validators.required]),
-      vip: this.fb.nonNullable.control<boolean>(false),
-      fotoElegida: this.fb.control<string | null>(null),
-    }, { validators: [matchPasswordsValidator('password', 'repeatPassword')] });
+  private formStateSubscription?: Subscription;
+
+  constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private imageSelectorService: ImageSelectorService, private formBaseService: FormBaseService) {
+    // Crear formulario usando FormBaseService
+    this.form = this.formBaseService.createFormGroup({
+      nombre: '',
+      apellidos: '',
+      email: '',
+      alias: '',
+      fechaNacimiento: '',
+      password: '',
+      repeatPassword: '',
+      vip: false,
+      fotoElegida: null
+    }, [matchPasswordsValidator('password', 'repeatPassword')]);
+
+    // Estado del formulario gestionado por FormBaseService
+    // Nota: formState$ se asignará en ngOnInit después de crear el estado
   }
 
   get f() { return this.form.controls; }
 
   /* Inicializa el componente cargando avatares del backend. */
   ngOnInit() {
-    this.loadAvatars();
+    // Crear estado del formulario
+    this.formBaseService.createFormState('register', {
+      nombre: '',
+      apellidos: '',
+      email: '',
+      alias: '',
+      fechaNacimiento: '',
+      password: '',
+      repeatPassword: '',
+      vip: false,
+      fotoElegida: null
+    });
+
+    // Asignar el observable del estado después de crearlo
+    this.formState$ = this.formBaseService.getFormState('register');
+
+    // Suscribirse al estado del formulario
+    this.formStateSubscription = this.formState$?.subscribe(state => {
+      this.formState = state;
+      // Actualizar formulario con avatar seleccionado
+      this.form.patchValue({ fotoElegida: state.imageState.selectedImage || null });
+    });
+
+    // Cargar avatares
+    this.formBaseService.loadImages('avatar');
   }
 
-  /* Carga la lista de avatares disponibles del backend. */
-  loadAvatars() {
-    this.loadingAvatars = true;
-    this.avatarLoadError = false;
-    this.api.getAvatars().subscribe({
-      next: (response) => {
-        this.avatars = response.avatars || [];
-        this.defaultAvatar = response.defaultAvatar || '';
-        this.selectedAvatar = this.defaultAvatar;
-        // Actualizar formulario con avatar por defecto
-        this.form.patchValue({ fotoElegida: this.defaultAvatar });
-      },
-      error: (error) => {
-        console.error('Error al cargar avatares:', error);
-        // Mostrar mensaje de error y configurar avatar por defecto vacío
-        this.loadingAvatars = false;
-        this.avatarLoadError = true;
-        this.avatars = [];
-        this.defaultAvatar = '';
-        this.selectedAvatar = '';
-        // El formulario mantendrá fotoElegida como null para usar el avatar por defecto del backend
-        this.form.patchValue({ fotoElegida: null });
-      },
-      complete: () => {
-        this.loadingAvatars = false;
-      }
-    });
+  ngOnDestroy(): void {
+    if (this.formStateSubscription) {
+      this.formStateSubscription.unsubscribe();
+    }
+    this.formBaseService.destroyFormState('register');
   }
 
   /* Marca un avatar como seleccionado y actualiza el formulario. */
   selectAvatar(avatarPath: string) {
-    this.selectedAvatar = avatarPath;
-    this.form.patchValue({ fotoElegida: avatarPath });
+    this.formBaseService.selectImage(avatarPath, 'avatar');
   }
 
   /* Obtiene la URL completa del avatar para mostrar la imagen. */
   getAvatarUrl(relativePath: string): string {
-    return this.api.getFullAvatarUrl(relativePath);
+    return this.formBaseService.getFullImageUrl(relativePath, 'avatar');
   }
 
   /* Extrae el nombre del archivo de una ruta de avatar */
@@ -190,14 +226,8 @@ export class RegisterComponent {
   private buildPayload(v: any): any {
     const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
     const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
-    
-    let fotoNombre = '';
-    if (v.fotoElegida) {
-      const extracted = v.fotoElegida.split('/').pop();
-      if (extracted && extracted.trim().length > 0) {
-        fotoNombre = extracted;
-      }
-    }
+
+    const fotoNombre = this.formBaseService.extractImageFileName(v.fotoElegida);
 
     const payload: any = {
       nombre: v.nombre!,
@@ -224,82 +254,34 @@ export class RegisterComponent {
     const status = res.status;
     if (status === 201 || status === 200) {
       const body: any = res.body || {};
-      const successMsg = (body?.message as string) || 'Usuario registrado correctamente';
       const verificationToken = body?.verificationToken;
       console.log('Registro OK', body);
-      this.bannerKind = 'success';
-      this.bannerText = successMsg;
-      
+
+      // Limpiar errores previos
+      this.formBaseService.resetFormState('register');
+
       // Verificar que el backend envió el token
       if (verificationToken) {
         // Navega a verificación usando el token como query parameter estándar
         this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
       } else {
         console.error('No se recibió verificationToken del backend');
-        this.bannerKind = 'error';
-        this.bannerText = 'Error en el proceso de registro. Intenta nuevamente.';
+        this.formBaseService.updateFormState('register', {
+          error: 'Error en el proceso de registro. Intenta nuevamente.'
+        });
       }
       return;
     }
     // Status inesperado, tratar como error
-    this.bannerKind = 'error';
-    this.bannerText = 'No se pudo crear la cuenta.';
+    this.formBaseService.updateFormState('register', {
+      error: 'No se pudo crear la cuenta.'
+    });
   }
 
-  /* Maneja errores de conflicto (409 - email duplicado). */
-  private handleConflictError(message?: string): void {
-    this.form.get('email')?.setErrors({ ...(this.form.get('email')?.errors || {}), emailTaken: true });
-    this.bannerKind = 'error';
-    this.bannerText = message ?? 'El email ya está registrado.';
-    this.triggerShakeError();
-  }
-
-  /* Maneja errores de solicitud incorrecta (400 - validación backend). */
-  private handleBadRequestError(details: Array<{ field: string; message: string }>): void {
-    const fieldMap: Record<string, string> = {
-      repetirPassword: 'repeatPassword',
-      password: 'password',
-      email: 'email',
-      nombre: 'nombre',
-      apellidos: 'apellidos',
-      alias: 'alias',
-      fechaNacimiento: 'fechaNacimiento',
-    };
-    const msgJoin = applyBackendDetails(this.form, details, fieldMap);
-    this.bannerKind = 'error';
-    this.bannerText = msgJoin;
-    this.triggerShakeError();
-  }
-
-  /* Maneja errores generales del registro. */
-  private handleGeneralError(message?: string): void {
-    this.bannerKind = 'error';
-    this.bannerText = message ?? 'Se ha producido un error. Inténtelo de nuevo más tarde.';
-    this.triggerShakeError();
-  }
-
-  /* Maneja la respuesta de error del registro. */
+  /* Maneja la respuesta de error del registro usando el servicio genérico. */
   private handleErrorResponse(err: any): void {
-    // Limpia errores previos de backend en controles relevantes
-    clearBackendErrors(this.form, ['email', 'password', 'repeatPassword', 'nombre', 'apellidos', 'alias', 'fechaNacimiento']);
-
-    const status = err?.originalError?.status || err?.status;
-    const payload = err?.originalError?.error || err?.error || {};
-    const backendMessage: string | undefined = payload?.message;
-    const details: Array<{ field: string; message: string }>|undefined = payload?.details;
-
-    if (status === 409) {
-      this.handleConflictError(backendMessage);
-      return;
-    }
-
-    if (status === 400 && Array.isArray(details) && details.length > 0) {
-      this.handleBadRequestError(details);
-      return;
-    }
-
-    // Para otros errores, usar mensaje del backend si existe, sino mensaje por defecto
-    this.handleGeneralError(backendMessage);
+    this.formBaseService.handleBackendError('register', this.form, err);
+    this.triggerShakeError();
     console.error('Error de registro', err);
   }
 
@@ -308,13 +290,17 @@ export class RegisterComponent {
     const v = this.form.value;
     const payload = this.buildPayload(v);
 
-    this.bannerKind = null;
-    this.bannerText = '';
-    this.loading = true;
+    // Limpiar errores previos y marcar como submitting
+    this.formBaseService.updateFormState('register', {
+      error: null,
+      fieldErrors: {},
+      isSubmitting: true
+    });
     this.form.disable();
+
     this.api.registerUser(payload)
       .pipe(finalize(() => {
-        this.loading = false;
+        this.formBaseService.updateFormState('register', { isSubmitting: false });
         this.form.enable();
         this.buttonState = 'normal';
       }))

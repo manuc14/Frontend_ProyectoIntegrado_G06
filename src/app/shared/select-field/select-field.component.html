@@ -3,7 +3,7 @@
     <div class="text12">{{ label }}</div>
   </div>
   <div class="background-border9">
-    <select class="input-field select-field" [(ngModel)]="value" (change)="onChange()">
+    <select class="input-field select-field" [value]="value" (change)="onChangeValue($event)" [disabled]="disabled">
       <ng-content></ng-content>
     </select>
   </div>

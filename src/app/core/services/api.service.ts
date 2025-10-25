@@ -114,6 +114,11 @@ export class ApiService {
   private extractUserMessageFromError(error: any): string {
     if (!error.error) return '';
     if (typeof error.error === 'string') {
+      // Check for specific backend error format: "Verification error - Message: 'Código incorrecto.' - Type: VerificationException"
+      const match = error.error.match(/Message:\s*'([^']+)'/);
+      if (match) {
+        return match[1];
+      }
       try {
         const parsed = JSON.parse(error.error);
         return parsed.message || parsed.error || error.error;

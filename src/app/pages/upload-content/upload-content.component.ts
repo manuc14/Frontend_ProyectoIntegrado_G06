@@ -1,397 +1,509 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ContentCreatorHeaderComponent } from '../../shared/components/content-creator-header/content-creator-header.component';
 import { ApiService, BackendUser } from '../../core/services/api.service';
-import { UploadValidatorService, UploadFormModel } from '../../core/services/upload-services/upload-validator.service';
-import { UploadFormHelperService } from '../../core/services/upload-services/upload-form-helper.service';
-import { ToastService } from '../../core/services/upload-services/toast.service';
-import { FieldClearService } from '../../core/services/upload-services/field-clear.service';
-import { extractErrorMessage } from '../../core/utils/error-utils';
+import { ImageSelectorService } from '../../core/services/image-selector.service';
+import { FormBaseService } from '../../core/services/form-base.service';
+import { UploadService } from '../../core/services/upload-services/upload.service';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { UPLOAD_LIMITS } from '../../core/constants/form-limits';
 
-import { Router } from '@angular/router';
+// Interface tipada para el formulario de upload
+export interface UploadContentForm {
+  title: string;
+  description: string;
+  type: 'video' | 'audio' | '';
+  vip: 'si' | 'no' | '';
+  url: string;
+  audioUrl: string;
+  duration: string;
+  estado: string;
+  ageRestriction: string;
+  resolution: string;
+  fechaExpiracion: string;
+  tags: string[];
+}
 
 @Component({
   selector: 'app-upload-content',
   standalone: true,
-  imports: [CommonModule, FormsModule, FooterComponent, ContentCreatorHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FooterComponent, ContentCreatorHeaderComponent],
   templateUrl: './upload-content.component.html',
   styleUrls: ['./upload-content.component.scss']
 })
-export class UploadContentComponent implements OnInit {
+export class UploadContentComponent implements OnInit, OnDestroy {
   constructor(
     private api: ApiService,
     private router: Router,
-    private validator: UploadValidatorService,
-    private formHelper: UploadFormHelperService,
-    private toast: ToastService,
-    private clearer: FieldClearService
+    private fb: FormBuilder,
+    private formBaseService: FormBaseService,
+    public imageSelectorService: ImageSelectorService,
+    private uploadService: UploadService
   ) {}
 
   // Constants for template access
   readonly UPLOAD_LIMITS = UPLOAD_LIMITS;
 
+  // Formulario reactivo
+  uploadForm!: FormGroup;
+  formId: string = 'upload-content';
+
+  // Estado centralizado
+  private currentFormState: any = {};
+
+  // Propiedades calculadas para compatibilidad con template
+  get thumbnails(): string[] {
+    return this.currentFormState?.imageState?.images || [];
+  }
+
+  get selectedThumbnail(): string {
+    return this.currentFormState?.imageState?.selectedImage || '';
+  }
+
+  get loadingThumbnails(): boolean {
+    return this.currentFormState?.imageState?.loading || false;
+  }
+
+  get thumbnailLoadError(): boolean {
+    return this.currentFormState?.imageState?.error || false;
+  }
+
+  get selectedThumbnailUrl(): string | null {
+    return this.currentFormState?.imageState?.selectedImageUrl || null;
+  }
+
+  get isSubmitting(): boolean {
+    return this.currentFormState?.isSubmitting || false;
+  }
+
+  get formError(): string | null {
+    return this.currentFormState?.error || null;
+  }
+
   // Current user
   currentUser: BackendUser | null = null;
 
-  // form model
-  title = '';
-  description = '';
-  file: File | null = null;
+  // Archivo seleccionado
+  selectedFile: File | null = null;
 
-  // thumbnail selection (from backend)
-  thumbnails: string[] = [];
-  defaultThumbnail = '';
-  selectedThumbnail = '';
-  loadingThumbnails = false;
-  thumbnailLoadError = false;
-  selectedThumbnailUrl: string | null = null;
-
-  // local thumbnail upload
+  // Thumbnail local
   localThumbnailUrl: string | null = null;
   localThumbnailFile: File | null = null;
+  localThumbnailPreview: string | null = null;
 
+  // Propiedades del template (temporal para compatibilidad)
   type: 'video' | 'audio' | '' = '';
   vip: 'si' | 'no' | '' = '';
   url = '';
-  audioUrl = '';
+  audioUrl: string | null = null;
   resolution = '';
   estado = '';
-  disponibilidad = '';
-  fechaExpiracion = '';
-  fechaError: string | null = null;
-  minDate = '';
-  duration = '';
   ageRestriction = '';
-  tags: string[] = [];
-  newTag = '';
-  tagsError: string | null = null;
+  fechaExpiracion = '';
+  duration = '';
 
-  // field-specific errors
-  urlError: string | null = null;
-  titleError: string | null = null;
+  // Errores del template (temporal)
   typeError: string | null = null;
-  vipError: string | null = null;
-  durationError: string | null = null;
-  estadoError: string | null = null;
-  ageRestrictionError: string | null = null;
   fileError: string | null = null;
   resolutionError: string | null = null;
+  fechaError: string | null = null;
 
-  // form submission state
+  // Estados de UI
   submitted = false;
 
-  // Local preview and upload state
-  localThumbnailPreview: string | null = null;
+  // Control de visibilidad del selector de tipo
+  showTypeSelector = true;
+
+  // Propiedades adicionales para compatibilidad con template
+  file: File | null = null;
+  audioUploading = false;
+  audioFileValidationError: string | null = null;
+  audioUploadError: string | null = null;
   isUploading = false;
-
-  // form state messages
-  formError: string | null = null;
-  formSuccess: string | null = null;
-
-  // success message state
   showSuccessMessage = false;
   hideSuccessMessage = false;
-
-  // thumbnail success message state
   showThumbnailSuccessMessage = false;
   hideThumbnailSuccessMessage = false;
 
-  // audio upload state
-  audioUploading = false;
-  audioUploadError: string | null = null;
-  audioFileValidationError: string | null = null;
+  // Tags
+  tags: string[] = [];
+  newTag = '';
+
+  // Fechas
+  minDate = '';
+
+  private imageStateSubscription?: Subscription;
+  private formValueSubscription?: Subscription;
 
   get titleCount() {
-    return this.title.length;
+    return this.uploadForm.get('title')?.value?.length || 0;
   }
 
   get descCount() {
-    return this.description.length;
+    return this.uploadForm.get('description')?.value?.length || 0;
   }
 
+  // Métodos simplificados para el formulario
   onTitleInput(ev: Event) {
-    this.formHelper.handleTitleInput(this, ev);
+    const value = (ev.target as HTMLInputElement).value;
+    this.uploadForm.patchValue({ title: value.slice(0, UPLOAD_LIMITS.titleLimit) });
   }
 
   onDescriptionInput(ev: Event) {
-    this.formHelper.handleDescriptionInput(this, ev);
+    const value = (ev.target as HTMLTextAreaElement).value;
+    this.uploadForm.patchValue({ description: value.slice(0, UPLOAD_LIMITS.descLimit) });
   }
 
-  onUrlInput(ev: Event) {
-    this.formHelper.handleUrlInput(this, ev);
-  }
-
-  onVipChange(): void {
-    this.clearer.clearVipError(this);
-  }
-
-  onDurationChange(): void {
-    this.clearer.clearDurationError(this);
-  }
-
-  onEstadoChange(): void {
-    this.clearer.clearEstadoError(this);
-  }
-
-  onAgeRestrictionChange(): void {
-    this.clearer.clearAgeRestrictionError(this);
-  }
-
-  onResolutionChange(): void {
-    this.clearer.clearResolutionError(this);
-  }
-
-  async onFileSelected(event: Event) {
-    await this.formHelper.handleFileSelected(this, event);
-  }
-
-  // file handling delegated to UploadFormHelperService
-
-  private isVideoFileType(file: File): boolean {
-    return this.validator.isVideoFileType(file);
-  }
-
-  onThumbnailSelected(event: Event) {
-    this.formHelper.handleThumbnailSelected(this, event);
-    this.showThumbnailSuccessToast();
-  }
-
-  private generateThumbnailPreview(file: File): void {
-    // moved to helper; kept for backwards compatibility if called manually
-    const reader = new FileReader();
-    reader.onload = (e) => { this.localThumbnailPreview = e.target?.result as string; };
-    reader.readAsDataURL(file);
-  }
-
-  clearLocalThumbnail(): void {
-    this.clearer.clearLocalThumbnail(this);
-  }
-
-  selectThumbnail(thumbnailPath: string) {
-    this.selectedThumbnail = thumbnailPath;
-    this.selectedThumbnailUrl = this.getThumbnailUrl(thumbnailPath);
-    this.localThumbnailUrl = null;
-    this.localThumbnailFile = null;
-  }
-
-  onLocalThumbnailUploaded(uploadedUrl: string): void {
-    this.localThumbnailUrl = uploadedUrl;
-    this.selectedThumbnail = '';
-    this.selectedThumbnailUrl = null;
-  }
-
-  onLocalThumbnailCleared(): void {
-    this.localThumbnailUrl = null;
-    this.localThumbnailFile = null;
-  }
-
-  getThumbnailUrl(relativePath: string): string {
-    return this.api.getFullThumbnailUrl(relativePath);
-  }
-
-  onTypeChange(t: 'video' | 'audio' | '') {
-    this.type = t;
-    this.clearer.clearField(this, 'typeError');
-    if (t === 'video') {
-      this.file = null;
-      this.clearer.clearField(this, 'fileError');
-      this.clearer.clearField(this, 'audioFileValidationError');
-      this.clearer.clearField(this, 'urlError');
-      return;
-    }
-    if (t === 'audio') {
-      this.url = '';
-      this.resolution = '';
-      this.clearer.clearField(this, 'urlError');
-      this.clearer.clearField(this, 'audioFileValidationError');
-      if (this.file && this.isVideoFileType(this.file)) {
-        this.file = null;
+  onTypeChange(type: 'video' | 'audio' | '') {
+    this.uploadForm.patchValue({ type });
+    this.type = type; // Sincronizar propiedad del template
+    // Limpiar campos relacionados
+    if (type === 'video') {
+      this.selectedFile = null;
+      this.uploadForm.patchValue({ audioUrl: '' });
+    } else if (type === 'audio') {
+      this.uploadForm.patchValue({ url: '', resolution: '' });
+      if (this.selectedFile && this.isVideoFileType(this.selectedFile)) {
+        this.selectedFile = null;
       }
-      return;
+    } else {
+      this.selectedFile = null;
     }
-    this.file = null;
-    this.clearer.clearField(this, 'audioFileValidationError');
   }
 
   addTag() {
-    this.formHelper.handleAddTag(this);
-  }
-
-  validarFecha(): boolean {
-    const err = this.validator.getFechaError(this.fechaExpiracion);
-    this.clearer.clearField(this, 'fechaError');
-    if (err) {
-      this.fechaError = err;
-      return false;
+    const candidate = this.newTag.trim();
+    if (!candidate) {
+      return;
     }
-    return true;
-  }
-
-  validarUrl(): boolean {
-    const err = this.validator.getUrlError(this.url);
-    this.clearer.clearField(this, 'urlError');
-    if (err) {
-      this.urlError = err;
-      return false;
+    if (this.tags.includes(candidate)) {
+      return;
     }
-    return true;
+    this.tags.push(candidate);
+    this.newTag = '';
+    this.uploadForm.patchValue({ tags: this.tags });
   }
 
   removeTag(index: number) {
-    this.clearer.removeTag(this, index);
+    this.tags.splice(index, 1);
+    this.uploadForm.patchValue({ tags: this.tags });
+  }
+
+  selectThumbnail(thumbnailPath: string) {
+    this.imageSelectorService.selectImage(thumbnailPath, 'thumbnail');
+    this.localThumbnailUrl = null;
+    this.localThumbnailFile = null;
+  }
+
+  clearLocalThumbnail(): void {
+    this.localThumbnailUrl = null;
+    this.localThumbnailFile = null;
+    this.localThumbnailPreview = null;
+  }
+
+  private isVideoFileType(file: File): boolean {
+    return file.type.startsWith('video/');
+  }
+
+  async onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.selectedFile = file;
+      this.file = file; // Sincronizar con la propiedad del template
+      // Limpiar errores previos
+      this.audioFileValidationError = null;
+      this.audioUploadError = null;
+      this.audioUrl = null;
+    }
+  }
+
+  onThumbnailSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.localThumbnailFile = file;
+      // Crear preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.localThumbnailPreview = e.target?.result as string;
+        this.localThumbnailUrl = this.localThumbnailPreview;
+        this.imageSelectorService.selectLocalImage(this.localThumbnailUrl);
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   async upload() {
-    this.formError = null;
-    this.formSuccess = null;
     this.submitted = true;
-    this.isUploading = true;
+    this.formBaseService.updateFormState(this.formId, { error: null });
+
+    if (this.uploadForm.invalid) {
+      this.formBaseService.updateFormState(this.formId, {
+        error: 'Por favor, revisa los campos marcados.'
+      });
+      return;
+    }
+
+    // Validaciones adicionales
+    if (!this.validateUpload()) return;
+
+    this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
+
     try {
-      const shouldContinue = this.formHelper.handlePreUploadValidation(this);
-      if (!shouldContinue) return;
-      await this.formHelper.performUploadFlow(this);
-    } catch (err: any) {
-      this.handleFormError(err);
+      // Subir archivos si es necesario
+      const uploadResult = await this.uploadFilesIfNeeded();
+      
+      // Crear el payload con las URLs de archivos subidos
+      const payload = this.buildPayload(uploadResult);
+      
+      // Crear el contenido en el backend
+      await this.api.createContent(payload).toPromise();
+      
+      this.handleUploadSuccess();
+    } catch (error: any) {
+      this.formBaseService.handleBackendError(this.formId, this.uploadForm, error);
     } finally {
-      this.isUploading = false;
+      this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
     }
   }
 
+  private validateUpload(): boolean {
+    const formValue = this.uploadForm.value;
 
-  private handleFormError(error: any): void {
-    this.formError = extractErrorMessage(error);
-  }
-
-  private handleValidationError(message: string): void {
-    if (message.includes('tag')) {
-      this.tagsError = message;
+    // Validar archivo para audio (esta validación específica no puede hacerse en FormBaseService)
+    if (formValue.type === 'audio' && !this.selectedFile && !formValue.audioUrl) {
+      this.formBaseService.updateFormState(this.formId, {
+        error: 'Debe proporcionar un archivo de audio o URL.'
+      });
+      return false;
     }
-    this.formError = message || 'Formulario inválido';
+
+    return true;
   }
 
-  public buildPayload(): any {
-    const thumbnailUrl = this.localThumbnailUrl || this.selectedThumbnailUrl;
+  private async uploadFilesIfNeeded(): Promise<{audioUrl?: string, thumbnailUrl?: string}> {
+    const formValue = this.uploadForm.value;
+    const result: {audioUrl?: string, thumbnailUrl?: string} = {};
+
+    // Subir archivo de audio si se seleccionó uno
+    if (formValue.type === 'audio' && this.selectedFile) {
+      try {
+        const audioResponse = await this.uploadService.uploadFile(this.selectedFile, 'audio').toPromise();
+        if (audioResponse?.url) {
+          result.audioUrl = audioResponse.url;
+        } else {
+          throw new Error('Respuesta inválida del servidor para archivo de audio');
+        }
+      } catch (error) {
+        throw new Error('Error al subir el archivo de audio: ' + (error as any)?.message || 'Error desconocido');
+      }
+    }
+
+    // Subir thumbnail local si se seleccionó una
+    if (this.localThumbnailFile) {
+      try {
+        const thumbnailResponse = await this.uploadService.uploadFile(this.localThumbnailFile, 'thumbnail').toPromise();
+        if (thumbnailResponse?.url) {
+          result.thumbnailUrl = thumbnailResponse.url;
+        } else {
+          throw new Error('Respuesta inválida del servidor para miniatura');
+        }
+      } catch (error) {
+        throw new Error('Error al subir la miniatura: ' + (error as any)?.message || 'Error desconocido');
+      }
+    }
+
+    return result;
+  }
+
+  private buildPayload(uploadResult: {audioUrl?: string, thumbnailUrl?: string} = {}): any {
+    const formValue = this.uploadForm.value;
+    const thumbnailUrl = uploadResult.thumbnailUrl || this.localThumbnailUrl || this.selectedThumbnailUrl;
+
     return {
-      titulo: this.title,
-      descripcion: this.description,
-      tipoArchivo: this.type === 'video' ? 'Video' : 'Audio',
-      urlContenido: this.type === 'video' ? this.url : (this.audioUrl || null),
+      titulo: formValue.title,
+      descripcion: formValue.description,
+      tipoArchivo: formValue.type === 'video' ? 'Video' : 'Audio',
+      urlContenido: formValue.type === 'video' ? formValue.url : (uploadResult.audioUrl || formValue.audioUrl || null),
       urlMiniatura: thumbnailUrl,
-      estado: this.estado,
-      esUsuarioVip: this.vip === 'si',
+      estado: formValue.estado,
+      esUsuarioVip: formValue.vip === 'si',
       tags: this.tags,
-      fecha: this.fechaExpiracion || null,
-      resolucion: this.type === 'video' ? this.resolution : null,
-      restriccionEdad: this.ageRestriction ? parseInt(this.ageRestriction.replace('+', '')) : null,
-      duracion: this.duration
+      fecha: formValue.fechaExpiracion || null,
+      resolucion: formValue.type === 'video' ? formValue.resolution : null,
+      restriccionEdad: formValue.ageRestriction ? parseInt(formValue.ageRestriction.replace('+', '')) : null,
+      duracion: formValue.duration
     };
   }
 
-  public handleUploadSuccess(): void {
-    this.formSuccess = 'Contenido guardado correctamente.';
-    this.toast.showSuccess({
-      onShow: () => {
-        this.showSuccessMessage = true;
-      },
-      onHide: () => {
-        this.hideSuccessMessage = true;
-      },
-      onComplete: () => {
+  private handleUploadSuccess(): void {
+    // Mostrar mensaje de éxito
+    this.showSuccessMessage = true;
+    this.hideSuccessMessage = false;
+    
+    // Ocultar el mensaje después de 3 segundos y navegar
+    setTimeout(() => {
+      this.hideSuccessMessage = true;
+      setTimeout(() => {
         this.showSuccessMessage = false;
-        this.hideSuccessMessage = false;
+        // Navegar de vuelta al content-creator
         this.router.navigate(['/content-creator']);
-      }
-    });
+      }, 300); // Tiempo para la animación de ocultar
+    }, 3000);
   }
 
   ngOnInit(): void {
+    // Crear fecha mínima
     const t = new Date();
     const yyyy = t.getFullYear();
     const mm = String(t.getMonth() + 1).padStart(2, '0');
     const dd = String(t.getDate()).padStart(2, '0');
     this.minDate = `${yyyy}-${mm}-${dd}`;
-    
+
+    // Crear formulario reactivo
+    this.uploadForm = this.formBaseService.createFormGroup<UploadContentForm>({
+      title: '',
+      description: '',
+      type: '',
+      vip: '',
+      url: '',
+      audioUrl: '',
+      duration: '',
+      estado: '',
+      ageRestriction: '',
+      resolution: '',
+      fechaExpiracion: '',
+      tags: []
+    });
+
+    // Crear estado del formulario
+    this.formBaseService.createFormState(this.formId, {});
+
+    // Suscribirse al estado del formulario
+    this.formBaseService.getFormState(this.formId)?.subscribe((state: any) => {
+      this.currentFormState = state;
+    });
+
+    // Suscribirse al estado de imágenes
+    this.imageStateSubscription = this.imageSelectorService.getState().subscribe((state: any) => {
+      // Actualizar el estado del formulario con el estado de imágenes
+      this.formBaseService.updateFormState(this.formId, { imageState: state });
+    });
+
+    // Suscribirse a cambios del formulario para sincronizar propiedades del template
+    this.formValueSubscription = this.uploadForm.valueChanges.subscribe(values => {
+      this.type = values.type || '';
+      this.vip = values.vip || '';
+      this.url = values.url || '';
+      this.audioUrl = values.audioUrl || '';
+      this.duration = values.duration || '';
+      this.estado = values.estado || '';
+      this.ageRestriction = values.ageRestriction || '';
+      this.resolution = values.resolution || '';
+      this.fechaExpiracion = values.fechaExpiracion || '';
+    });
+
     // Load current user
     this.loadCurrentUser();
-    
-    this.loadThumbnails();
+
+    // Cargar thumbnails
+    this.imageSelectorService.loadImages('thumbnail');
+  }
+
+  ngOnDestroy(): void {
+    if (this.imageStateSubscription) {
+      this.imageStateSubscription.unsubscribe();
+    }
+    if (this.formValueSubscription) {
+      this.formValueSubscription.unsubscribe();
+    }
+    this.formBaseService.destroyFormState(this.formId);
   }
 
   private loadCurrentUser(): void {
     const userData = sessionStorage.getItem('currentUser');
-    if (userData) {
-      this.currentUser = JSON.parse(userData);
-      // Set type based on tipoContenido
-      if (this.currentUser?.tipoContenido) {
-        this.type = this.currentUser.tipoContenido as 'video' | 'audio';
-        // Trigger the type change logic
-        this.onTypeChange(this.type);
-      }
+    if (!userData) {
+      this.showTypeSelector = true;
+      return;
     }
-  }
 
-  private showThumbnailSuccessToast(): void {
-    this.toast.showThumbnailSuccess({
-      onShow: () => (this.showThumbnailSuccessMessage = true),
-      onHide: () => (this.hideThumbnailSuccessMessage = true),
-      onComplete: () => {
-        this.showThumbnailSuccessMessage = false;
-        this.hideThumbnailSuccessMessage = false;
-      }
-    });
-  }
+    this.currentUser = JSON.parse(userData);
+    const tipoContenido = this.currentUser?.tipoContenido?.toLowerCase();
 
-  loadThumbnails() {
-    this.loadingThumbnails = true;
-    this.thumbnailLoadError = false;
-    this.api.getThumbnails().subscribe({
-      next: (response) => {
-        const resp: any = response;
-        this.thumbnails = resp?.thumbnails ?? [];
-        this.defaultThumbnail = resp?.defaultThumbnail ?? '';
-        this.selectedThumbnail = this.defaultThumbnail;
-        this.selectedThumbnailUrl = this.defaultThumbnail ? this.getThumbnailUrl(this.defaultThumbnail) : null;
-      },
-      error: (_error) => {
-        this.loadingThumbnails = false;
-        this.thumbnailLoadError = true;
-        this.thumbnails = [];
-        this.defaultThumbnail = '';
-        this.selectedThumbnail = '';
-        this.selectedThumbnailUrl = null;
-      },
-      complete: () => {
-        this.loadingThumbnails = false;
-      }
-    });
+    if (!tipoContenido) {
+      this.showTypeSelector = true;
+      return;
+    }
+
+    // Map backend values to form values
+    const typeMap: Record<string, 'video' | 'audio'> = {
+      'video': 'video',
+      'vídeo': 'video',
+      'audio': 'audio'
+    };
+
+    const type = typeMap[tipoContenido];
+
+    if (type) {
+      this.uploadForm.patchValue({ type });
+      this.onTypeChange(type);
+      this.type = type;
+      this.showTypeSelector = false;
+    } else {
+      this.showTypeSelector = true;
+    }
   }
 
   cancel() {
     this.router.navigate(['/content-creator']);
   }
 
-  getMissingRequiredFields(): string[] {
-    return this.validator.getMissingRequiredFields(this.buildUploadFormModel());
+  // Métodos adicionales para compatibilidad con template
+  getThumbnailUrl(thumbnail: string): string {
+    return thumbnail;
   }
 
-  public buildUploadFormModel(): UploadFormModel {
-    return {
-      title: this.title,
-      description: this.description,
-      type: this.type,
-      vip: this.vip,
-      url: this.url,
-      audioUrl: this.audioUrl,
-      file: this.file,
-      duration: this.duration,
-      estado: this.estado,
-      ageRestriction: this.ageRestriction,
-      resolution: this.resolution,
-      tags: this.tags,
-      fechaExpiracion: this.fechaExpiracion
-    };
+  onVipChange() {
+    // Actualizar el formulario reactivo con el valor actual
+    this.uploadForm.patchValue({ vip: this.vip });
+  }
+
+  onUrlInput(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.uploadForm.patchValue({ url: value });
+  }
+
+  onDurationChange() {
+    // Actualizar el formulario reactivo
+    this.uploadForm.patchValue({ duration: this.duration });
+  }
+
+  onEstadoChange() {
+    // Actualizar el formulario reactivo
+    this.uploadForm.patchValue({ estado: this.estado });
+  }
+
+  onResolutionChange() {
+    // Actualizar el formulario reactivo
+    this.uploadForm.patchValue({ resolution: this.resolution });
+  }
+
+  onAgeRestrictionChange() {
+    // Actualizar el formulario reactivo
+    this.uploadForm.patchValue({ ageRestriction: this.ageRestriction });
+  }
+
+  validarFecha() {
+    // Validación básica de fecha
+    const fecha = this.uploadForm.get('fechaExpiracion')?.value;
+    if (fecha && fecha < this.minDate) {
+      this.fechaError = 'La fecha de expiración no puede ser anterior a hoy';
+    } else {
+      this.fechaError = null;
+    }
   }
 }
