@@ -121,13 +121,6 @@
                 class="div"
                 placeholder="••••••••">
             </div>
-            <!-- Requisitos de contraseña en tiempo real -->
-            <div *ngIf="entityForm.get('password')?.value" class="password-requirements">
-              <div class="requirement-item" *ngFor="let req of passwordRequirements">
-                <span class="requirement-icon">✕</span>
-                <span class="requirement-text">{{ req }}</span>
-              </div>
-            </div>
           </div>
 
           <!-- Campo Repetir contraseña -->

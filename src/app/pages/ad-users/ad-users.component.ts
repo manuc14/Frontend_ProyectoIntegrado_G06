@@ -14,6 +14,7 @@ import { AdminHeaderComponent } from '../../shared/components/admin-header/admin
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
 import { ApiService } from '../../core/services/api.service';
+import { ImageSelectorService } from '../../core/services/image-selector.service';
 
 // Interfaz temporal para compatibilidad (será reemplazada por UserEV)
 interface User {
@@ -80,7 +81,8 @@ export class AdminUsersPage extends AdminListBase<User> {
     protected override router: Router,
     private userService: AdminEntityService,
     private route: ActivatedRoute,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private imageSelectorService: ImageSelectorService
   ) {
     super(router);
   }
@@ -128,7 +130,7 @@ export class AdminUsersPage extends AdminListBase<User> {
   private transformarUsuarios(usuarios: UserEV[]): User[] {
     return usuarios.map(usuario => ({
       id: usuario.id,
-      photo: this.apiService.getAvatarUrl(usuario.foto),
+      photo: this.imageSelectorService.getFullImageUrl(usuario.foto || '', 'avatar'),
       name: usuario.nombre,
       lastName: usuario.apellidos,
       alias: `@${usuario.alias}`,

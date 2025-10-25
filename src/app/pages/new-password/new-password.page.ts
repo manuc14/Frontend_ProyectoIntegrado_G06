@@ -2,15 +2,22 @@
  * Página para establecer nueva contraseña durante el proceso de recuperación.
  * Tercer y último paso del flujo de restablecimiento de contraseña.
  */
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { PasswordValidators } from '../../core/validators/form.validators';
+import { FormBaseService, FormState } from '../../core/services/form-base.service';
+import { Observable, Subscription } from 'rxjs';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
+
+/*
+ * ID único para el formulario
+ */
+const FORM_ID = 'new-password';
 
 @Component({
   selector: 'app-new-password',
@@ -20,39 +27,65 @@ import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../
   styleUrls: ['./new-password.page.scss'],
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
-export class NewPasswordPage implements OnInit {
+export class NewPasswordPage implements OnInit, OnDestroy {
+  // Estado del formulario gestionado por FormBaseService
+  formState: FormState | null = null;
+  formState$: Observable<FormState> | null = null;
+
   passwordForm: FormGroup;
-  isLoading = false;
-  errorMessage = '';
-  successMessage = '';
   token = '';
   // Animation states
   shakeForm = false;
   buttonState = 'normal';
   focusedFields: {[key: string]: boolean} = {};
 
+  private formStateSubscription?: Subscription;
+
+  // Propiedades calculadas para compatibilidad con template
+  get loading(): boolean {
+    return this.formState?.isSubmitting || false;
+  }
+
+  get errorMessage(): string {
+    return this.formState?.error || '';
+  }
+
+  get successMessage(): string {
+    // Since success is handled by navigation, we can derive this from form state
+    return '';
+  }
+
   constructor(
     private fb: FormBuilder,
     private api: ApiService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private formBaseService: FormBaseService
   ) {
-    this.passwordForm = this.fb.group({
-      password: ['', [
-        Validators.required,
-        Validators.minLength(8),
-        PasswordValidators.hasUpperCase,
-        PasswordValidators.hasLowerCase,
-        PasswordValidators.hasNumber,
-        PasswordValidators.hasSpecialChar
-      ]],
-      confirmPassword: ['', [Validators.required]]
-    }, { 
-      validators: PasswordValidators.passwordsMatch 
-    });
+    this.passwordForm = this.formBaseService.createFormGroup({
+      password: '',
+      confirmPassword: ''
+    }, [PasswordValidators.passwordsMatch]);
+
+    // Estado del formulario gestionado por FormBaseService
+    // Nota: formState$ se asignará en ngOnInit después de crear el estado
   }
 
   ngOnInit() {
+    // Crear estado del formulario
+    this.formBaseService.createFormState(FORM_ID, {
+      password: '',
+      confirmPassword: ''
+    });
+
+    // Asignar el observable del estado después de crearlo
+    this.formState$ = this.formBaseService.getFormState(FORM_ID);
+
+    // Suscribirse al estado del formulario
+    this.formStateSubscription = this.formState$?.subscribe(state => {
+      this.formState = state;
+    });
+
     // Obtener token de los query params
     this.route.queryParams.subscribe(params => {
       this.token = params['token'] || '';
@@ -85,43 +118,37 @@ export class NewPasswordPage implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.formStateSubscription) {
+      this.formStateSubscription.unsubscribe();
+    }
+    this.formBaseService.destroyFormState(FORM_ID);
+  }
+
   /**
    * Establece la nueva contraseña
    */
   onSubmit() {
     if (this.passwordForm.valid) {
-      this.isLoading = true;
-      this.errorMessage = '';
-      this.successMessage = '';
+      this.formBaseService.updateFormState(FORM_ID, { isSubmitting: true, error: null, fieldErrors: {} });
       this.buttonState = 'pressed';
 
       const { password, confirmPassword } = this.passwordForm.value;
 
       this.api.resetPasswordWithToken(this.token, password, confirmPassword).subscribe({
         next: (response: any) => {
-          this.successMessage = response.message || 'Contraseña actualizada correctamente';
           // Redirigir al login después de 2 segundos
           setTimeout(() => {
             this.router.navigate(['/login']);
           }, 2000);
         },
         error: (error: any) => {
-          // Extraer mensajes específicos de los details, ignorar el mensaje general
-          const details = error.error?.details;
-          const detailMessages = Array.isArray(details) 
-            ? details.map((detail: any) => detail.message).filter(Boolean)
-            : [];
-          
-          this.errorMessage = detailMessages.length > 0 
-            ? detailMessages.join('. ')
-            : (error.message || 'Error al actualizar la contraseña');
-            
-          this.isLoading = false;
+          this.formBaseService.handleBackendError(FORM_ID, this.passwordForm, error);
           this.buttonState = 'normal';
           this.triggerShakeError();
         },
         complete: () => {
-          this.isLoading = false;
+          this.formBaseService.updateFormState(FORM_ID, { isSubmitting: false });
           this.buttonState = 'normal';
         }
       });

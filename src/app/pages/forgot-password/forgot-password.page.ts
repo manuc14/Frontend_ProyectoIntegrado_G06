@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ApiService } from '../../core/services/api.service';
+import { FormBaseService, FormState } from '../../core/services/form-base.service';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
+import { Observable, Subscription } from 'rxjs';
 
 /*
  * Interfaz para el formulario de solicitud de restablecimiento
@@ -13,6 +15,11 @@ import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../
 interface ForgotPasswordForm {
   email: FormControl<string>;
 }
+
+/*
+ * ID único para el formulario
+ */
+const FORM_ID = 'forgot-password';
 
 /*
  * ForgotPasswordPage
@@ -28,20 +35,63 @@ interface ForgotPasswordForm {
   styleUrl: './forgot-password.page.scss',
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
-export class ForgotPasswordPage {
-  form: FormGroup<ForgotPasswordForm>;
-  loading = false;
-  bannerKind: 'success' | 'error' | null = null;
-  bannerText = '';
+export class ForgotPasswordPage implements OnInit, OnDestroy {
+  // Estado del formulario gestionado por FormBaseService
+  formState: FormState | null = null;
+  formState$: Observable<FormState> | null = null;
+
+  form: FormGroup;
+
   // Animation states
   shakeForm = false;
   buttonState = 'normal';
   emailFocused = false;
 
-  constructor(private fb: FormBuilder, private api: ApiService, private router: Router) {
-    this.form = this.fb.nonNullable.group({
-      email: this.fb.nonNullable.control('', [Validators.required, Validators.email])
+  private formStateSubscription?: Subscription;
+
+  // Propiedades calculadas para compatibilidad con template
+  get loading(): boolean {
+    return this.formState?.isSubmitting || false;
+  }
+
+  get bannerKind(): 'success' | 'error' | null {
+    return this.formState?.error ? 'error' : null;
+  }
+
+  get bannerText(): string {
+    return this.formState?.error || '';
+  }
+
+  constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private formBaseService: FormBaseService) {
+    // Crear formulario usando FormBaseService
+    this.form = this.formBaseService.createFormGroup({
+      email: ''
     });
+
+    // Estado del formulario gestionado por FormBaseService
+    // Nota: formState$ se asignará en ngOnInit después de crear el estado
+  }
+
+  ngOnInit() {
+    // Crear estado del formulario
+    this.formBaseService.createFormState(FORM_ID, {
+      email: ''
+    });
+
+    // Asignar el observable del estado después de crearlo
+    this.formState$ = this.formBaseService.getFormState(FORM_ID);
+
+    // Suscribirse al estado del formulario
+    this.formStateSubscription = this.formState$?.subscribe(state => {
+      this.formState = state;
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.formStateSubscription) {
+      this.formStateSubscription.unsubscribe();
+    }
+    this.formBaseService.destroyFormState(FORM_ID);
   }
 
   get f() { return this.form.controls; }
@@ -50,15 +100,12 @@ export class ForgotPasswordPage {
   onSendCode() {
     if (this.form.invalid || this.loading) {
       if (this.form.invalid) {
-        this.triggerShakeError();
+        this.shakeForm = !this.shakeForm;
       }
       return;
     }
     
-    this.bannerKind = null;
-    this.bannerText = '';
     this.buttonState = 'pressed';
-    this.loading = true;
     this.form.disable();
 
     const email = this.form.value.email!;
@@ -66,15 +113,13 @@ export class ForgotPasswordPage {
     // Llamada real al backend para enviar el código de restablecimiento
     this.api.requestPasswordReset(email).subscribe({
       next: (response) => {
-        this.loading = false;
         this.form.enable();
         this.buttonState = 'normal';
         
         // Verificar si el backend devolvió un token válido
         if (!response.resetToken) {
           // Tratar como si fuera un error (correo no registrado)
-          this.bannerKind = 'success';
-          this.bannerText = 'Se ha enviado un código de restablecimiento a tu email.';
+          this.handleSuccessResponse('Se ha enviado un código de restablecimiento a tu email.');
           
           // Generar un dummy token
           const dummyToken = this.generateDummyToken();
@@ -87,8 +132,7 @@ export class ForgotPasswordPage {
         }
         
         // Mostrar mensaje de éxito
-        this.bannerKind = 'success';
-        this.bannerText = response.message;
+        this.handleSuccessResponse(response.message);
         
         // Navegar a reset-password-code con el token recibido
         this.router.navigate(['/reset-password-code'], { 
@@ -96,13 +140,11 @@ export class ForgotPasswordPage {
         });
       },
       error: (error: any) => {
-        this.loading = false;
         this.form.enable();
         this.buttonState = 'normal';
         
         // Para no dar pistas a los atacantes, siempre mostrar éxito y crear un dummy token
-        this.bannerKind = 'success';
-        this.bannerText = 'Se ha enviado un código de restablecimiento a tu email.';
+        this.handleSuccessResponse('Se ha enviado un código de restablecimiento a tu email.');
         
         // Generar un dummy token
         const dummyToken = this.generateDummyToken();
@@ -115,16 +157,20 @@ export class ForgotPasswordPage {
     });
   }
 
+  /**
+   * Maneja respuesta exitosa del backend
+   */
+  private handleSuccessResponse(message: string): void {
+    this.formBaseService.updateFormState(FORM_ID, {
+      isSubmitting: false,
+      error: null,
+      fieldErrors: {}
+    });
+  }
+
   /* Navega de vuelta al login */
   goBackToLogin() {
     this.router.navigate(['/login']);
-  }
-
-  /**
-   * Dispara la animación de shake para errores
-   */
-  triggerShakeError(): void {
-    this.shakeForm = !this.shakeForm;
   }
 
   /**

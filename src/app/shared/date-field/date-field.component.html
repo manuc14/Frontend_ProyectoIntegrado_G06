@@ -7,7 +7,7 @@
       type="date"
       class="input-field"
       [(ngModel)]="value"
-      (input)="onInput()"
+      (input)="onInput($event)"
       [required]="required"
     />
   </div>

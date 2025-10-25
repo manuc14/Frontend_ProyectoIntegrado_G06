@@ -1,11 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ApiService, LoginRequest, LoginResponse } from '../../core/services/api.service';
+import { FormBaseService, FormState } from '../../core/services/form-base.service';
 import { finalize } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
 
 interface LoginForm {
@@ -21,24 +23,72 @@ interface LoginForm {
   styleUrls: ['./login.component.scss'],
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   /* LoginComponent: formulario de acceso que autentica contra el backend y redirige según tipo de usuario. */
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private router = inject(Router);
+  private formBaseService = inject(FormBaseService);
 
-  form: FormGroup<LoginForm> = this.fb.nonNullable.group({
-    email: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.email] }),
-    password: this.fb.nonNullable.control('', { validators: [Validators.required] }),
-  });
+  // Estado del formulario gestionado por FormBaseService
+  formState: FormState | null = null;
+  formState$: Observable<FormState> | null = null;
 
-  loading = false;
-  bannerKind: 'success' | 'error' | null = null;
-  bannerText = '';
+  form: FormGroup;
+
   shakeForm = false;
   buttonState = 'normal';
   emailFocused = false;
   passwordFocused = false;
+
+  private formStateSubscription?: Subscription;
+
+  // Propiedades calculadas para compatibilidad con template
+  get loading(): boolean {
+    return this.formState?.isSubmitting || false;
+  }
+
+  get bannerKind(): 'success' | 'error' | null {
+    return this.formState?.error ? 'error' : null;
+  }
+
+  get bannerText(): string {
+    return this.formState?.error || '';
+  }
+
+  constructor() {
+    // Crear formulario usando FormBaseService
+    this.form = this.formBaseService.createFormGroup({
+      email: '',
+      password: ''
+    });
+
+    // Estado del formulario gestionado por FormBaseService
+    // Nota: formState$ se asignará en ngOnInit después de crear el estado
+  }
+
+  ngOnInit() {
+    // Crear estado del formulario
+    this.formBaseService.createFormState('login', {
+      email: '',
+      password: ''
+    });
+
+    // Asignar el observable del estado después de crearlo
+    this.formState$ = this.formBaseService.getFormState('login');
+
+    // Suscribirse al estado del formulario
+    this.formStateSubscription = this.formState$?.subscribe(state => {
+      this.formState = state;
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.formStateSubscription) {
+      this.formStateSubscription.unsubscribe();
+    }
+    this.formBaseService.destroyFormState('login');
+  }
 
   get f() { return this.form.controls; }
 
@@ -50,74 +100,89 @@ export class LoginComponent {
       }
       return;
     }
-    
-    this.bannerKind = null; 
-    this.bannerText = '';
+
     this.buttonState = 'pressed';
-    
+
     const raw = this.form.getRawValue();
     const payload: LoginRequest = { email: raw.email, password: raw.password };
-    this.loading = true; 
+
+    // Limpiar errores previos y marcar como submitting
+    this.formBaseService.updateFormState('login', {
+      error: null,
+      fieldErrors: {},
+      isSubmitting: true
+    });
     this.form.disable();
-    
+
     this.api.login(payload)
-      .pipe(finalize(() => { 
-        this.loading = false; 
-        this.form.enable(); 
+      .pipe(finalize(() => {
+        this.formBaseService.updateFormState('login', { isSubmitting: false });
+        this.form.enable();
         this.buttonState = 'normal';
       }))
       .subscribe({
         next: (res: LoginResponse) => {
-          // El backend devuelve 200 OK cuando el login es exitoso
-          // Verificar si hay errores de validación
-          if (res?.validationErrorCount > 0) {
-            this.bannerKind = 'error';
-            this.bannerText = res?.message || 'Error de validación en los datos';
-            this.triggerShakeError();
-            return;
-          }
-          
-          // Verificar activación de cuenta
-          if (!res.user?.activo) {
-            this.bannerKind = 'error';
-            this.bannerText = 'Tu cuenta no está activada. Revisa tu correo para activarla.';
-            this.triggerShakeError();
-            return;
-          }
-
-          // Login exitoso - mostrar mensaje de éxito brevemente
-          this.bannerKind = 'success';
-          this.bannerText = res.message || 'Login exitoso';
-
-          // Guardar token en sessionStorage para mantener la sesión
-          if (res.token) {
-            sessionStorage.setItem('authToken', res.token);
-          }
-
-          // Guardar información del usuario en sessionStorage
-          if (res.user) {
-            sessionStorage.setItem('currentUser', JSON.stringify(res.user));
-          }
-
-          const tipo = res.user?.tipo || '';
-          // Mapeo de tipos del backend a rutas de la app
-          let target: string = '/catalog';
-          if (/admin/i.test(tipo)) target = '/ad-users';
-          else if (/creador/i.test(tipo)) target = '/content-creator';
-
-          // Redirigir después de un breve delay para mostrar el mensaje de éxito
-          setTimeout(() => {
-            this.router.navigate([target]);
-          }, 1000);
+          this.handleSuccessResponse(res);
         },
         error: (err) => {
-          console.error('Login error', err);
-          this.bannerKind = 'error';
-          // Extraer solo el mensaje sin el prefijo "Error: "
-          this.bannerText = err?.message || 'No se pudo completar el inicio de sesión';
-          this.triggerShakeError();
+          this.handleErrorResponse(err);
         }
       });
+  }
+
+  /* Maneja la respuesta exitosa del login con lógica específica de navegación. */
+  private handleSuccessResponse(res: LoginResponse): void {
+    // El backend devuelve 200 OK cuando el login es exitoso
+    // Verificar si hay errores de validación
+    if (res?.validationErrorCount > 0) {
+      this.formBaseService.updateFormState('login', {
+        error: res?.message || 'Error de validación en los datos'
+      });
+      this.triggerShakeError();
+      return;
+    }
+
+    // Verificar activación de cuenta
+    if (!res.user?.activo) {
+      this.formBaseService.updateFormState('login', {
+        error: 'Tu cuenta no está activada. Revisa tu correo para activarla.'
+      });
+      this.triggerShakeError();
+      return;
+    }
+
+    // Login exitoso - limpiar errores y mostrar mensaje de éxito
+    this.formBaseService.resetFormState('login');
+
+    // Guardar token en sessionStorage para mantener la sesión
+    if (res.token) {
+      sessionStorage.setItem('authToken', res.token);
+    }
+
+    // Guardar información del usuario en sessionStorage
+    if (res.user) {
+      sessionStorage.setItem('currentUser', JSON.stringify(res.user));
+    }
+
+    const tipo = res.user?.tipo || '';
+    // Mapeo de tipos del backend a rutas de la app
+    let target: string = '/catalog';
+    if (/admin/i.test(tipo)) target = '/ad-users';
+    else if (/creador/i.test(tipo)) target = '/content-creator';
+
+    // Redirigir después de un breve delay para mostrar el mensaje de éxito
+    setTimeout(() => {
+      this.router.navigate([target]);
+    }, 1000);
+  }
+
+  /* Maneja errores del login usando el servicio genérico. */
+  private handleErrorResponse(err: any): void {
+    console.error('Login error', err);
+    this.formBaseService.updateFormState('login', {
+      error: err?.message || 'No se pudo completar el inicio de sesión'
+    });
+    this.triggerShakeError();
   }
 
   /**

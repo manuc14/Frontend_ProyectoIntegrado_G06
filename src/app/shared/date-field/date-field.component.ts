@@ -1,27 +1,62 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-date-field',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './date-field.component.html',
-  styleUrl: './date-field.component.scss'
+  styleUrl: './date-field.component.scss',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DateFieldComponent),
+      multi: true
+    }
+  ]
 })
-export class DateFieldComponent {
+export class DateFieldComponent implements ControlValueAccessor {
   @Input() label: string = '';
-  @Input() value: string = '';
   @Input() fechaInvalid: boolean = false;
   @Input() edadInvalid: boolean = false;
   @Input() required: boolean = false;
-  @Output() valueChange = new EventEmitter<string>();
-  @Output() input = new EventEmitter<void>();
-  @Output() fechaInvalidChange = new EventEmitter<boolean>();
-  @Output() edadInvalidChange = new EventEmitter<boolean>();
 
-  onInput(): void {
-    this.valueChange.emit(this.value);
-    this.input.emit();
+  private _value: string = '';
+  disabled: boolean = false;
+
+  @Input()
+  set value(val: string) {
+    this._value = val;
+    this.onChange(val);
+  }
+
+  get value(): string {
+    return this._value;
+  }
+
+  private onChange = (value: any) => {};
+  private onTouched = () => {};
+
+  writeValue(value: any): void {
+    this._value = value || '';
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+  }
+
+  onInput(event: any): void {
+    this._value = event.target.value;
+    this.onChange(this._value);
+    this.onTouched();
   }
 }

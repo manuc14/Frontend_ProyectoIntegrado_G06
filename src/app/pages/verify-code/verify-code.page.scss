@@ -207,6 +207,20 @@
    MENSAJES DE ERROR Y ÉXITO
    -------------------------------------------------------------------------- */
 
+.field-error {
+    color: var(--destructive-foreground);
+    font-size: 14px;
+    text-align: center;
+    margin: 8px 0;
+}
+
+.field-success {
+    color: var(--success-foreground);
+    font-size: 14px;
+    text-align: center;
+    margin: 8px 0;
+}
+
 .error-message {
     color: var(--destructive-foreground);
     font: 600 12px Inter, sans-serif;

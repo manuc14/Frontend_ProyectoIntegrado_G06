@@ -5,9 +5,10 @@
   <div class="background-border9" [class.error]="tooLong">
     <textarea
       class="input-field"
-      [(ngModel)]="value"
-      (input)="onInput()"
+      [value]="value"
+      (input)="onInput($event)"
       [placeholder]="placeholder"
+      [disabled]="disabled"
       rows="3"
     ></textarea>
   </div>

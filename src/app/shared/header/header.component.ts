@@ -4,6 +4,7 @@ import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { navActiveState, navHover, fadeIn } from '../../core/animations/animations';
 import { BackendUser, ApiService } from '../../core/services/api.service';
+import { ImageSelectorService } from '../../core/services/image-selector.service';
 
 /*
  * HeaderComponent
@@ -24,6 +25,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
   private elementRef = inject(ElementRef);
   private renderer = inject(Renderer2);
   private apiService = inject(ApiService);
+  private imageSelectorService = inject(ImageSelectorService);
   currentRoute = '';
   isMenuOpen = false;
   hasScrolled = false; // Una vez que se hace scroll, se mantiene true
@@ -90,7 +92,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
    */
   getAvatarUrl(): string {
     if (this.currentUser?.foto) {
-      return this.apiService.getAvatarUrl(this.currentUser?.foto);
+      return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
     }
     return 'assets/admin/admin_default.png';
   }

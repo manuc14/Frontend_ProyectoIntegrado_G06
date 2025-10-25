@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { slideInFromTop } from '../../../core/animations/animations';
 import { BackendUser, ApiService } from '../../../core/services/api.service';
 import { Router } from '@angular/router';
+import { ImageSelectorService } from '../../../core/services/image-selector.service';
 
 @Component({
   selector: 'app-admin-header',
@@ -19,7 +20,7 @@ export class AdminHeaderComponent implements OnInit {
 
   currentUser: BackendUser | null = null;
 
-  constructor(private router: Router, private apiService: ApiService) {}
+  constructor(private router: Router, private apiService: ApiService, private imageSelectorService: ImageSelectorService) {}
 
   ngOnInit() {
     this.loadCurrentUser();
@@ -38,7 +39,7 @@ export class AdminHeaderComponent implements OnInit {
 
     getAvatarUrl(): string {
     if (this.currentUser?.foto) {
-        return this.currentUser.foto;
+        return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
     }
     return 'assets/admin/admin_default.png';
   }

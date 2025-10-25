@@ -15,6 +15,7 @@ import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/adm
 import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
 import { BackendUser, ApiService } from '../../core/services/api.service';
+import { ImageSelectorService } from '../../core/services/image-selector.service';
 
 @Component({
   selector: 'app-adadmin',
@@ -71,7 +72,8 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
     protected override router: Router,
     private adminService: AdminEntityService,
     private route: ActivatedRoute,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private imageSelectorService: ImageSelectorService
   ) {
     super(router);
   }
@@ -259,7 +261,7 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
    * Obtiene la URL del avatar del administrador
    */
   getAvatarUrl(admin: AdminEV): string {
-    return this.apiService.getAvatarUrl(admin.foto);
+    return this.imageSelectorService.getFullImageUrl(admin.foto || '', 'avatar');
   }
 
   @HostListener('window:resize', ['$event'])
