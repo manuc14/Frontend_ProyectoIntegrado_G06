@@ -23,6 +23,7 @@ export class InputFieldComponent implements ControlValueAccessor {
   @Input() errorMessage: string = '';
   @Input() tooLong: boolean = false;
   @Input() required: boolean = false;
+  @Input() maxlength: string = '';
   @Input() readonly: boolean = false;
 
   private _value: string = '';

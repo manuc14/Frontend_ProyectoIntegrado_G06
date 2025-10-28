@@ -47,7 +47,7 @@ export class NewPasswordPage implements OnInit, OnDestroy {
   }
 
   get errorMessage(): string {
-    return this.formState?.error || '';
+    return this.formState?.error ?? '';
   }
 
   get successMessage(): string {

@@ -3,13 +3,18 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { ContentCreatorHeaderComponent } from '../../shared/components/content-creator-header/content-creator-header.component';
+import { InputFieldComponent } from '../../shared/input-field/input-field.component';
+import { TextAreaFieldComponent } from '../../shared/textarea-field/textarea-field.component';
+import { DateFieldComponent } from '../../shared/date-field/date-field.component';
+import { SelectFieldComponent } from '../../shared/select-field/select-field.component';
+import { FormToggleComponent } from '../../shared/form-components/form-toggle/form-toggle.component';
 import { ApiService, BackendUser } from '../../core/services/api.service';
 import { ImageSelectorService } from '../../core/services/image-selector.service';
 import { FormBaseService } from '../../core/services/form-base.service';
 import { UploadService } from '../../core/services/upload-services/upload.service';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { UPLOAD_LIMITS } from '../../core/constants/form-limits';
+import { Subscription, firstValueFrom } from 'rxjs';
+import { UPLOAD_LIMITS, UPLOAD_FILE_TYPES } from '../../core/constants/form-limits';
 
 // Interface tipada para el formulario de upload
 export interface UploadContentForm {
@@ -30,7 +35,7 @@ export interface UploadContentForm {
 @Component({
   selector: 'app-upload-content',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, FooterComponent, ContentCreatorHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FooterComponent, ContentCreatorHeaderComponent, InputFieldComponent, TextAreaFieldComponent, DateFieldComponent, SelectFieldComponent, FormToggleComponent],
   templateUrl: './upload-content.component.html',
   styleUrls: ['./upload-content.component.scss']
 })
@@ -46,6 +51,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   // Constants for template access
   readonly UPLOAD_LIMITS = UPLOAD_LIMITS;
+  readonly UPLOAD_FILE_TYPES = UPLOAD_FILE_TYPES;
 
   // Formulario reactivo
   uploadForm!: FormGroup;
@@ -86,36 +92,10 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   // Current user
   currentUser: BackendUser | null = null;
 
-  // Archivo seleccionado
-  selectedFile: File | null = null;
-
   // Thumbnail local
   localThumbnailUrl: string | null = null;
   localThumbnailFile: File | null = null;
   localThumbnailPreview: string | null = null;
-
-  // Propiedades del template (temporal para compatibilidad)
-  type: 'video' | 'audio' | '' = '';
-  vip: 'si' | 'no' | '' = '';
-  url = '';
-  audioUrl: string | null = null;
-  resolution = '';
-  estado = '';
-  ageRestriction = '';
-  fechaExpiracion = '';
-  duration = '';
-
-  // Errores del template (temporal)
-  typeError: string | null = null;
-  fileError: string | null = null;
-  resolutionError: string | null = null;
-  fechaError: string | null = null;
-
-  // Estados de UI
-  submitted = false;
-
-  // Control de visibilidad del selector de tipo
-  showTypeSelector = true;
 
   // Propiedades adicionales para compatibilidad con template
   file: File | null = null;
@@ -128,6 +108,13 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   showThumbnailSuccessMessage = false;
   hideThumbnailSuccessMessage = false;
 
+  // Errores del template
+  fileError: string | null = null;
+  resolutionError: string | null = null;
+
+  // Estados de UI
+  submitted = false;
+
   // Tags
   tags: string[] = [];
   newTag = '';
@@ -136,43 +123,8 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   minDate = '';
 
   private imageStateSubscription?: Subscription;
-  private formValueSubscription?: Subscription;
-
-  get titleCount() {
-    return this.uploadForm.get('title')?.value?.length || 0;
-  }
-
-  get descCount() {
-    return this.uploadForm.get('description')?.value?.length || 0;
-  }
 
   // Métodos simplificados para el formulario
-  onTitleInput(ev: Event) {
-    const value = (ev.target as HTMLInputElement).value;
-    this.uploadForm.patchValue({ title: value.slice(0, UPLOAD_LIMITS.titleLimit) });
-  }
-
-  onDescriptionInput(ev: Event) {
-    const value = (ev.target as HTMLTextAreaElement).value;
-    this.uploadForm.patchValue({ description: value.slice(0, UPLOAD_LIMITS.descLimit) });
-  }
-
-  onTypeChange(type: 'video' | 'audio' | '') {
-    this.uploadForm.patchValue({ type });
-    this.type = type; // Sincronizar propiedad del template
-    // Limpiar campos relacionados
-    if (type === 'video') {
-      this.selectedFile = null;
-      this.uploadForm.patchValue({ audioUrl: '' });
-    } else if (type === 'audio') {
-      this.uploadForm.patchValue({ url: '', resolution: '' });
-      if (this.selectedFile && this.isVideoFileType(this.selectedFile)) {
-        this.selectedFile = null;
-      }
-    } else {
-      this.selectedFile = null;
-    }
-  }
 
   addTag() {
     const candidate = this.newTag.trim();
@@ -204,20 +156,31 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.localThumbnailPreview = null;
   }
 
-  private isVideoFileType(file: File): boolean {
-    return file.type.startsWith('video/');
-  }
-
   async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) {
-      this.selectedFile = file;
-      this.file = file; // Sincronizar con la propiedad del template
+      // Validar tamaño del archivo
+      const maxSizeBytes = UPLOAD_LIMITS.fileMaxSizeMB * 1024 * 1024; // Convertir MB a bytes
+      if (file.size > maxSizeBytes) {
+        this.audioFileValidationError = `El archivo es demasiado grande. Tamaño máximo: ${UPLOAD_LIMITS.fileMaxSizeMB}MB`;
+        this.file = null;
+        return;
+      }
+
+      // Validar tipo de archivo
+      const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp3'];
+      if (!allowedTypes.includes(file.type)) {
+        this.audioFileValidationError = 'Formato de archivo no válido. Formatos permitidos: MP3, WAV, AAC, OGG, FLAC';
+        this.file = null;
+        return;
+      }
+
+      this.file = file;
       // Limpiar errores previos
       this.audioFileValidationError = null;
       this.audioUploadError = null;
-      this.audioUrl = null;
+      this.uploadForm.patchValue({ audioUrl: '' });
     }
   }
 
@@ -248,8 +211,14 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Validaciones adicionales
-    if (!this.validateUpload()) return;
+    // Validación específica para contenido de audio
+    const formValue = this.uploadForm.value;
+    if (formValue.type === 'audio' && !this.file && !formValue.audioUrl) {
+      this.formBaseService.updateFormState(this.formId, {
+        error: 'Debe proporcionar un archivo de audio o URL.'
+      });
+      return;
+    }
 
     this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
 
@@ -261,7 +230,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       const payload = this.buildPayload(uploadResult);
       
       // Crear el contenido en el backend
-      await this.api.createContent(payload).toPromise();
+      await firstValueFrom(this.api.createContent(payload));
       
       this.handleUploadSuccess();
     } catch (error: any) {
@@ -271,50 +240,25 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     }
   }
 
-  private validateUpload(): boolean {
-    const formValue = this.uploadForm.value;
-
-    // Validar archivo para audio (esta validación específica no puede hacerse en FormBaseService)
-    if (formValue.type === 'audio' && !this.selectedFile && !formValue.audioUrl) {
-      this.formBaseService.updateFormState(this.formId, {
-        error: 'Debe proporcionar un archivo de audio o URL.'
-      });
-      return false;
-    }
-
-    return true;
-  }
-
   private async uploadFilesIfNeeded(): Promise<{audioUrl?: string, thumbnailUrl?: string}> {
-    const formValue = this.uploadForm.value;
     const result: {audioUrl?: string, thumbnailUrl?: string} = {};
 
-    // Subir archivo de audio si se seleccionó uno
-    if (formValue.type === 'audio' && this.selectedFile) {
-      try {
-        const audioResponse = await this.uploadService.uploadFile(this.selectedFile, 'audio').toPromise();
-        if (audioResponse?.url) {
-          result.audioUrl = audioResponse.url;
-        } else {
-          throw new Error('Respuesta inválida del servidor para archivo de audio');
-        }
-      } catch (error) {
-        throw new Error('Error al subir el archivo de audio: ' + (error as any)?.message || 'Error desconocido');
+    // Subir archivo de audio si existe
+    if (this.file) {
+      const audioResponse = await firstValueFrom(this.uploadService.uploadFile(this.file, 'audio'));
+      if (!audioResponse?.url) {
+        throw new Error('Respuesta inválida del servidor para archivo de audio');
       }
+      result.audioUrl = audioResponse.url;
     }
 
-    // Subir thumbnail local si se seleccionó una
+    // Subir thumbnail local si existe
     if (this.localThumbnailFile) {
-      try {
-        const thumbnailResponse = await this.uploadService.uploadFile(this.localThumbnailFile, 'thumbnail').toPromise();
-        if (thumbnailResponse?.url) {
-          result.thumbnailUrl = thumbnailResponse.url;
-        } else {
-          throw new Error('Respuesta inválida del servidor para miniatura');
-        }
-      } catch (error) {
-        throw new Error('Error al subir la miniatura: ' + (error as any)?.message || 'Error desconocido');
+      const thumbnailResponse = await firstValueFrom(this.uploadService.uploadFile(this.localThumbnailFile, 'thumbnail'));
+      if (!thumbnailResponse?.url) {
+        throw new Error('Respuesta inválida del servidor para miniatura');
       }
+      result.thumbnailUrl = thumbnailResponse.url;
     }
 
     return result;
@@ -322,22 +266,26 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   private buildPayload(uploadResult: {audioUrl?: string, thumbnailUrl?: string} = {}): any {
     const formValue = this.uploadForm.value;
-    const thumbnailUrl = uploadResult.thumbnailUrl || this.localThumbnailUrl || this.selectedThumbnailUrl;
+    const isVideo = formValue.type === 'video';
 
     return {
       titulo: formValue.title,
       descripcion: formValue.description,
-      tipoArchivo: formValue.type === 'video' ? 'Video' : 'Audio',
-      urlContenido: formValue.type === 'video' ? formValue.url : (uploadResult.audioUrl || formValue.audioUrl || null),
-      urlMiniatura: thumbnailUrl,
+      tipoArchivo: isVideo ? 'Video' : 'Audio',
+      urlContenido: isVideo ? formValue.url : (uploadResult.audioUrl ?? formValue.audioUrl ?? null),
+      urlMiniatura: uploadResult.thumbnailUrl ?? this.localThumbnailUrl ?? this.selectedThumbnailUrl,
       estado: formValue.estado,
       esUsuarioVip: formValue.vip === 'si',
       tags: this.tags,
       fecha: formValue.fechaExpiracion || null,
-      resolucion: formValue.type === 'video' ? formValue.resolution : null,
-      restriccionEdad: formValue.ageRestriction ? parseInt(formValue.ageRestriction.replace('+', '')) : null,
+      resolucion: isVideo ? formValue.resolution : null,
+      restriccionEdad: this.parseAgeRestriction(formValue.ageRestriction),
       duracion: formValue.duration
     };
+  }
+
+  private parseAgeRestriction(ageRestriction: string): number | null {
+    return ageRestriction ? parseInt(ageRestriction.replace('+', '')) : null;
   }
 
   private handleUploadSuccess(): void {
@@ -394,19 +342,6 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       this.formBaseService.updateFormState(this.formId, { imageState: state });
     });
 
-    // Suscribirse a cambios del formulario para sincronizar propiedades del template
-    this.formValueSubscription = this.uploadForm.valueChanges.subscribe(values => {
-      this.type = values.type || '';
-      this.vip = values.vip || '';
-      this.url = values.url || '';
-      this.audioUrl = values.audioUrl || '';
-      this.duration = values.duration || '';
-      this.estado = values.estado || '';
-      this.ageRestriction = values.ageRestriction || '';
-      this.resolution = values.resolution || '';
-      this.fechaExpiracion = values.fechaExpiracion || '';
-    });
-
     // Load current user
     this.loadCurrentUser();
 
@@ -418,16 +353,12 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     if (this.imageStateSubscription) {
       this.imageStateSubscription.unsubscribe();
     }
-    if (this.formValueSubscription) {
-      this.formValueSubscription.unsubscribe();
-    }
     this.formBaseService.destroyFormState(this.formId);
   }
 
   private loadCurrentUser(): void {
     const userData = sessionStorage.getItem('currentUser');
     if (!userData) {
-      this.showTypeSelector = true;
       return;
     }
 
@@ -435,7 +366,6 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     const tipoContenido = this.currentUser?.tipoContenido?.toLowerCase();
 
     if (!tipoContenido) {
-      this.showTypeSelector = true;
       return;
     }
 
@@ -450,11 +380,6 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
     if (type) {
       this.uploadForm.patchValue({ type });
-      this.onTypeChange(type);
-      this.type = type;
-      this.showTypeSelector = false;
-    } else {
-      this.showTypeSelector = true;
     }
   }
 
@@ -465,45 +390,5 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   // Métodos adicionales para compatibilidad con template
   getThumbnailUrl(thumbnail: string): string {
     return thumbnail;
-  }
-
-  onVipChange() {
-    // Actualizar el formulario reactivo con el valor actual
-    this.uploadForm.patchValue({ vip: this.vip });
-  }
-
-  onUrlInput(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    this.uploadForm.patchValue({ url: value });
-  }
-
-  onDurationChange() {
-    // Actualizar el formulario reactivo
-    this.uploadForm.patchValue({ duration: this.duration });
-  }
-
-  onEstadoChange() {
-    // Actualizar el formulario reactivo
-    this.uploadForm.patchValue({ estado: this.estado });
-  }
-
-  onResolutionChange() {
-    // Actualizar el formulario reactivo
-    this.uploadForm.patchValue({ resolution: this.resolution });
-  }
-
-  onAgeRestrictionChange() {
-    // Actualizar el formulario reactivo
-    this.uploadForm.patchValue({ ageRestriction: this.ageRestriction });
-  }
-
-  validarFecha() {
-    // Validación básica de fecha
-    const fecha = this.uploadForm.get('fechaExpiracion')?.value;
-    if (fecha && fecha < this.minDate) {
-      this.fechaError = 'La fecha de expiración no puede ser anterior a hoy';
-    } else {
-      this.fechaError = null;
-    }
   }
 }

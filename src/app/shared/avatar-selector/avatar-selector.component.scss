@@ -123,7 +123,9 @@
 .background-border5,
 .background-border6,
 .background-border7,
-.background-border8 {
+.background-border8,
+.background-border9,
+.background-border10 {
   @include mixins.button-base;
   background: var(--card);
   border-radius: 12px;
@@ -159,7 +161,9 @@
 .avatar-3,
 .avatar-4,
 .avatar-5,
-.avatar-6 {
+.avatar-6,
+.avatar-7,
+.avatar-8 {
   border-radius: 10px;
   width: 100%;
   height: 100%;

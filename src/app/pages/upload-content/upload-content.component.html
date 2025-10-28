@@ -12,24 +12,24 @@
         <section class="form-section">
           <h2>Detalles</h2>
 
-          <label>
-            <span>Título <span class="required tags-asterisk">*</span></span>
-            <input type="text" formControlName="title" (input)="onTitleInput($event)"
-                   placeholder="Introduce el título" maxlength="50"
-                   [class.error]="uploadForm.get('title')?.invalid && submitted" />
-            <div class="char-count">{{ titleCount }} / {{ UPLOAD_LIMITS.titleLimit }}</div>
-            <div class="field-error" *ngIf="uploadForm.get('title')?.invalid && submitted" aria-live="polite">
-              Título es requerido
-            </div>
-          </label>
+          <app-input-field
+            label="Título"
+            [required]="true"
+            formControlName="title"
+            placeholder="Introduce el título"
+            maxlength="50"
+            [tooLong]="(uploadForm.get('title')?.invalid ?? false) && submitted"
+            errorMessage="Título es requerido">
+          </app-input-field>
+          <div class="char-count">{{ (uploadForm.get('title')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.titleLimit }}</div>
 
-          <label>
-            <span>Descripción</span>
-            <textarea formControlName="description" (input)="onDescriptionInput($event)"
-                      placeholder="Cuenta de qué va a ir lo que subes"
-                      maxlength="500" rows="4"></textarea>
-            <div class="char-count">{{ descCount }} / {{ UPLOAD_LIMITS.descLimit }}</div>
-          </label>
+          <app-textarea-field
+            label="Descripción"
+            formControlName="description"
+            placeholder="Cuenta de qué va a ir lo que subes"
+            maxlength="500">
+          </app-textarea-field>
+          <div class="char-count">{{ (uploadForm.get('description')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.descLimit }}</div>
 
           <div class="form-field">
             <span class="field-label">Miniatura</span>
@@ -86,36 +86,32 @@
       <!-- RIGHT COLUMN -->
       <div class="right-column">
         <section class="form-section">
-          <div class="form-field">
-            <span class="field-label">Contenido VIP <span class="required">*</span></span>
-            <div class="radio-group" [class.error-border]="uploadForm.get('vip')?.invalid && submitted">
-              <label class="radio-option">
-                <input type="radio" formControlName="vip" value="si" />
-                <span>Sí</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" formControlName="vip" value="no" />
-                <span>No</span>
-              </label>
-            </div>
-            <div class="field-error" *ngIf="uploadForm.get('vip')?.invalid && submitted" aria-live="polite">
-              Debe seleccionar si el contenido es VIP o no
-            </div>
+          <app-form-toggle
+            label="Contenido VIP"
+            formControlName="vip"
+            [options]="[{ value: 'no', label: 'Estándar' }, { value: 'si', label: 'VIP' }]"
+            [errors]="uploadForm.get('vip')?.errors ?? null"
+            [touched]="submitted">
+          </app-form-toggle>
+          <div class="field-error" *ngIf="uploadForm.get('vip')?.invalid && submitted" aria-live="polite">
+            Debe seleccionar si el contenido es VIP o no
           </div>
 
 
 
-          <label *ngIf="type === 'video'">
-            <span>URL <span class="required">*</span></span>
-            <input id="url" type="text" formControlName="url" placeholder="https://example.com/video.mp4"
-              [class.error]="uploadForm.get('url')?.invalid && submitted" />
-            <div class="field-error" *ngIf="uploadForm.get('url')?.invalid && submitted" aria-live="polite">
-              <span *ngIf="uploadForm.get('url')?.hasError('required')">URL es requerida para videos</span>
-              <span *ngIf="uploadForm.get('url')?.hasError('invalidUrl')">La URL debe comenzar con http:// o https://</span>
-            </div>
-          </label>
+          <app-input-field
+            *ngIf="uploadForm.value.type === 'video'"
+            label="URL"
+            [required]="true"
+            formControlName="url"
+            placeholder="https://example.com/video.mp4"
+            maxlength="200"
+            [tooLong]="(uploadForm.get('url')?.invalid ?? false) && submitted"
+            [errorMessage]="uploadForm.get('url')?.hasError('required') ? 'URL es requerida para videos' : uploadForm.get('url')?.hasError('invalidUrl') ? 'La URL debe comenzar con http:// o https://' : ''">
+          </app-input-field>
+          <div class="char-count" *ngIf="uploadForm.value.type === 'video'">{{ (uploadForm.get('url')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.urlLimit }}</div>
 
-          <div class="form-field" *ngIf="type === 'audio'">
+          <div class="form-field" *ngIf="uploadForm.value.type === 'audio'">
             <span class="field-label">Archivo <span class="required">*</span></span>
             <div class="file-upload-area" [class.error-border]="fileError && submitted">
               <input type="file" (change)="onFileSelected($event)" 
@@ -134,13 +130,13 @@
                 </p>
                 
                 <!-- Archivo seleccionado pero no subido -->
-                <p *ngIf="file && !audioUrl && !audioFileValidationError" class="upload-status selected">
+                <p *ngIf="file && !uploadForm.value.audioUrl && !audioFileValidationError" class="upload-status selected">
                   📁 Archivo seleccionado: {{ file.name }}
                   <br><small>Se subirá al guardar el contenido</small>
                 </p>
                 
                 <!-- Archivo subido exitosamente -->
-                <p *ngIf="audioUrl && file" class="upload-status success">
+                <p *ngIf="uploadForm.value.audioUrl && file" class="upload-status success">
                   ✓ Archivo subido correctamente: {{ file.name }}
                 </p>
                 
@@ -176,81 +172,73 @@
           </div>
 
           <div class="form-row">
-            <label>
-              <span>Duración (minutos) <span class="required">*</span></span>
-              <input type="number" formControlName="duration" placeholder="Minutos" min="1" 
-                     [class.error]="uploadForm.get('duration')?.invalid && submitted" />
-              <div class="field-error" *ngIf="uploadForm.get('duration')?.invalid && submitted" aria-live="polite">
-                Duración es requerida
-              </div>
-            </label>
+            <app-input-field
+              label="Duración (minutos)"
+              [required]="true"
+              type="number"
+              formControlName="duration"
+              placeholder="Minutos"
+              [tooLong]="(uploadForm.get('duration')?.invalid ?? false) && submitted"
+              errorMessage="Duración es requerida">
+            </app-input-field>
 
-            <label>
-              <span>Estado <span class="required">*</span></span>
-              <select formControlName="estado" [class.error]="uploadForm.get('estado')?.invalid && submitted">
-                <option value="">Seleccionar</option>
-                <option value="Publico">Publico</option>
-                <option value="Privado">Privado</option>
-              </select>
-              <div class="field-error" *ngIf="uploadForm.get('estado')?.invalid && submitted" aria-live="polite">
-                Estado es requerido
-              </div>
-            </label>
+            <app-select-field 
+              label="Estado" 
+              formControlName="estado"
+              [hasError]="(uploadForm.get('estado')?.invalid ?? false) && submitted"
+              errorMessage="Estado es requerido">
+              <option value="">Seleccionar</option>
+              <option value="Publico">Publico</option>
+              <option value="Privado">Privado</option>
+            </app-select-field>
           </div>
 
           <!-- Video fields row -->
-          <div class="form-row" *ngIf="type === 'video'">
-            <label>
-              <span>Resolución <span class="required">*</span></span>
-              <select formControlName="resolution"
-                      [class.error]="resolutionError && submitted">
-                <option value="">Seleccionar</option>
-                <option value="1080p">1080p</option>
-                <option value="720p">720p</option>
-                <option value="480p">480p</option>
-              </select>
-              <div class="field-error" *ngIf="resolutionError && submitted" aria-live="polite">{{ resolutionError }}</div>
-            </label>
+          <div class="form-row" *ngIf="uploadForm.value.type === 'video'">
+            <app-select-field 
+              label="Resolución" 
+              formControlName="resolution"
+              [hasError]="!!resolutionError && submitted"
+              [errorMessage]="resolutionError || ''">
+              <option value="">Seleccionar</option>
+              <option value="1080p">1080p</option>
+              <option value="720p">720p</option>
+              <option value="480p">480p</option>
+            </app-select-field>
 
-            <label>
-              <span>Restricción de edad <span class="required">*</span></span>
-              <select formControlName="ageRestriction" [class.error]="uploadForm.get('ageRestriction')?.invalid && submitted">
-                <option value="">Seleccionar</option>
-                <option value="+7">+7</option>
-                <option value="+13">+13</option>
-                <option value="+18">+18</option>
-              </select>
-              <div class="field-error" *ngIf="uploadForm.get('ageRestriction')?.invalid && submitted" aria-live="polite">
-                Restricción de edad es requerida
-              </div>
-            </label>
+            <app-select-field 
+              label="Restricción de edad" 
+              formControlName="ageRestriction"
+              [hasError]="(uploadForm.get('ageRestriction')?.invalid ?? false) && submitted"
+              errorMessage="Restricción de edad es requerida">
+              <option value="">Seleccionar</option>
+              <option value="+7">+7</option>
+              <option value="+13">+13</option>
+              <option value="+18">+18</option>
+            </app-select-field>
           </div>
 
           <!-- Audio fields -->
-          <div *ngIf="type === 'audio'">
-            <label>
-              <span>Restricción de edad <span class="required">*</span></span>
-              <select formControlName="ageRestriction" [class.error]="uploadForm.get('ageRestriction')?.invalid && submitted">
-                <option value="">Seleccionar</option>
-                <option value="+7">+7</option>
-                <option value="+13">+13</option>
-                <option value="+18">+18</option>
-              </select>
-              <div class="field-error" *ngIf="uploadForm.get('ageRestriction')?.invalid && submitted" aria-live="polite">
-                Restricción de edad es requerida
-              </div>
-            </label>
+          <div *ngIf="uploadForm.value.type === 'audio'">
+            <app-select-field 
+              label="Restricción de edad" 
+              formControlName="ageRestriction"
+              [hasError]="(uploadForm.get('ageRestriction')?.invalid ?? false) && submitted"
+              errorMessage="Restricción de edad es requerida">
+              <option value="">Seleccionar</option>
+              <option value="+7">+7</option>
+              <option value="+13">+13</option>
+              <option value="+18">+18</option>
+            </app-select-field>
           </div>
 
-          <label>
-            <span>Disponibilidad</span>
-            <div style="display:flex;gap:8px;align-items:center;">
-    <input type="date" formControlName="fechaExpiracion" placeholder="AAAA-MM-DD"
-      [min]="minDate" (blur)="validarFecha()" />
-    <input type="text" placeholder="AAAA-MM-DD" formControlName="fechaExpiracion" (blur)="validarFecha()" />
-            </div>
-            <div class="field-error" *ngIf="fechaError" aria-live="polite">{{ fechaError }}</div>
-          </label>
+          <app-date-field
+            label="Disponible hasta"
+            formControlName="fechaExpiracion"
+            [fechaInvalid]="!!(uploadForm.get('fechaExpiracion')?.invalid && (uploadForm.get('fechaExpiracion')?.touched || submitted))"
+            [minDate]="minDate"
+            [errorMessage]="uploadForm.get('fechaExpiracion')?.hasError('minDate') ? 'La fecha de expiración no puede ser anterior a hoy' : ''">
+          </app-date-field>
         </section>
       </div>
 

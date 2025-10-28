@@ -21,9 +21,6 @@
         </div>
       </div>
 
-      <!-- Mostrar errores -->
-      <app-error-container [error]="error"></app-error-container>
-
       <div class="margin">
         <!-- Filtros de administradores -->
         <app-filter-buttons
@@ -68,7 +65,7 @@
             <div *ngIf="filteredAdmins.length === 0" class="no-results">
               <div class="no-results-content">
                 <p>{{ getNoResultsMessage() }}</p>
-                <button type="button" (click)="clearSearchAndFilters()" class="clear-search-btn">
+                <button *ngIf="getClearButtonText()" type="button" (click)="error ? loadData() : clearSearchAndFilters()" class="clear-search-btn">
                   {{ getClearButtonText() }}
                 </button>
               </div>

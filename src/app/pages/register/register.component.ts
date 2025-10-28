@@ -1,9 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
+import { FormInputComponent } from '../../shared/form-components/form-input/form-input.component';
+import { FormPasswordComponent } from '../../shared/form-components/form-password/form-password.component';
+import { FormDateComponent } from '../../shared/form-components/form-date/form-date.component';
+import { FormToggleComponent } from '../../shared/form-components/form-toggle/form-toggle.component';
+import { FormSubmitComponent } from '../../shared/form-components/form-submit/form-submit.component';
 import { ApiService } from '../../core/services/api.service';
 import { ImageSelectorService } from '../../core/services/image-selector.service';
 import { FormBaseService, FormState } from '../../core/services/form-base.service';
@@ -41,7 +46,7 @@ interface RegisterForm {
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, HeaderComponent, FooterComponent, VipPromoModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, HeaderComponent, FooterComponent, VipPromoModalComponent, FormInputComponent, FormPasswordComponent, FormDateComponent, FormToggleComponent, FormSubmitComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
@@ -60,27 +65,27 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   // Propiedades calculadas para compatibilidad con template
   get avatars(): string[] {
-    return this.formState?.imageState.images || [];
+    return this.formState?.imageState.images ?? [];
   }
 
   get defaultAvatar(): string {
-    return this.formState?.imageState.defaultImage || '';
+    return this.formState?.imageState.defaultImage ?? '';
   }
 
   get selectedAvatar(): string {
-    return this.formState?.imageState.selectedImage || '';
+    return this.formState?.imageState.selectedImage ?? '';
   }
 
   get loadingAvatars(): boolean {
-    return this.formState?.imageState.loading || false;
+    return this.formState?.imageState.loading ?? false;
   }
 
   get avatarLoadError(): boolean {
-    return this.formState?.imageState.error || false;
+    return this.formState?.imageState.error ?? false;
   }
 
   get loading(): boolean {
-    return this.formState?.isSubmitting || false;
+    return this.formState?.isSubmitting ?? false;
   }
 
   get bannerKind(): 'success' | 'error' | null {
@@ -88,10 +93,50 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   get bannerText(): string {
-    return this.formState?.error || '';
+    return this.formState?.error ?? '';
   }
 
   form: FormGroup;
+
+  get nombreControl(): FormControl {
+    return this.form.get('nombre') as FormControl;
+  }
+
+  get apellidosControl(): FormControl {
+    return this.form.get('apellidos') as FormControl;
+  }
+
+  get emailControl(): FormControl {
+    return this.form.get('email') as FormControl;
+  }
+
+  get aliasControl(): FormControl {
+    return this.form.get('alias') as FormControl;
+  }
+
+  get fechaNacimientoControl(): FormControl {
+    return this.form.get('fechaNacimiento') as FormControl;
+  }
+
+  get passwordControl(): FormControl {
+    return this.form.get('password') as FormControl;
+  }
+
+  get repeatPasswordControl(): FormControl {
+    return this.form.get('repeatPassword') as FormControl;
+  }
+
+  get repeatPasswordErrors() {
+    const errors = { ...this.f['repeatPassword'].errors };
+    if (this.form.errors?.['mismatch']) {
+      errors['mismatch'] = true;
+    }
+    return errors;
+  }
+
+  get vipControl(): FormControl {
+    return this.form.get('vip') as FormControl;
+  }
 
   // VIP promo modal estado
   showVipPromo = false;

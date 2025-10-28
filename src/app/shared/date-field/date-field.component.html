@@ -9,10 +9,11 @@
       [(ngModel)]="value"
       (input)="onInput($event)"
       [required]="required"
+      [min]="minDate"
     />
   </div>
   <div class="error-message" *ngIf="fechaInvalid">
-    La fecha no es válida
+    {{ errorMessage || 'La fecha no es válida' }}
   </div>
   <div class="error-message" *ngIf="edadInvalid">
     El usuario debe tener al menos 4 años

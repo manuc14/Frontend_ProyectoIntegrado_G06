@@ -2,9 +2,12 @@
   <div class="container9">
     <div class="text12">{{ label }}</div>
   </div>
-  <div class="background-border9">
+  <div class="background-border9" [class.error]="hasError">
     <select class="input-field select-field" [value]="value" (change)="onChangeValue($event)" [disabled]="disabled">
       <ng-content></ng-content>
     </select>
+  </div>
+  <div class="error-message" *ngIf="hasError">
+    {{ errorMessage }}
   </div>
 </div>

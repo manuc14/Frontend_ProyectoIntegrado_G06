@@ -12,7 +12,6 @@ import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
-import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
 import { ApiService } from '../../core/services/api.service';
 import { ImageSelectorService } from '../../core/services/image-selector.service';
@@ -20,7 +19,7 @@ import { ImageSelectorService } from '../../core/services/image-selector.service
 @Component({
   selector: 'app-adcreators',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent, ErrorContainerComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
   templateUrl: './ad-creators.component.html',
   styleUrl: './ad-creators.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
@@ -104,7 +103,7 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
         catchError((err: any) => {
           this.allItems = [];
           this.filteredItems = [];
-          this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
+          this.error = 'Error al cargar los datos. Por favor intente de nuevo';
           return of([] as CreatorEC[]);
         }),
         finalize(() => {
@@ -248,7 +247,7 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
    * Obtiene la URL del avatar del creador
    */
   getAvatarUrl(creator: CreatorEC): string {
-    return this.imageSelectorService.getFullImageUrl(creator.foto || '', 'avatar');
+    return this.imageSelectorService.getFullImageUrl(creator.foto ?? '', 'avatar');
   }
 
   @HostListener('window:resize', ['$event'])

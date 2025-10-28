@@ -1,7 +1,7 @@
 <div class="background" [@fadeIn]>
   <div class="overlay">
     <div class="background-border-shadow">
-      <app-modal-header [titulo]="getTitle()" (cerrar)="onCerrar()"></app-modal-header>
+      <app-modal-header [titulo]="titulo" (cerrar)="cancel()"></app-modal-header>
 
       <app-error-container [error]="error"></app-error-container>
 
@@ -94,11 +94,11 @@
 
             <!-- Campo específico para user -->
             <ng-container *ngIf="entityType === 'user'">
-              <app-date-field
+              <app-form-date
                 label="Fecha de Nacimiento"
                 formControlName="fechaNacimiento"
-                [required]="true">
-              </app-date-field>
+                [showAsterisk]="false">
+              </app-form-date>
             </ng-container>
           </div>
         </div>

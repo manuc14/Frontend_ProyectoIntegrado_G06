@@ -1,0 +1,8 @@
+<div class="actions" [class]="customClass">
+  <a *ngIf="showCancel" [routerLink]="cancelLink" class="btn ghost" (click)="onCancel()">{{ cancelText }}</a>
+  <button class="btn primary" type="submit"
+          [disabled]="disabled || loading"
+          (click)="onSubmit()">
+    {{ loading ? loadingText : text }}
+  </button>
+</div>

@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { BackendUser, ApiService } from '../../../core/services/api.service';
+import { ApiService } from '../../../core/services/api.service';
 import { ImageSelectorService } from '../../../core/services/image-selector.service';
+import { HeaderBase } from '../../../core/base/header.base';
 
 @Component({
   selector: 'app-content-creator-header',
@@ -12,17 +13,26 @@ import { ImageSelectorService } from '../../../core/services/image-selector.serv
   templateUrl: './content-creator-header.component.html',
   styleUrls: ['./content-creator-header.component.scss']
 })
-export class ContentCreatorHeaderComponent implements OnInit {
+export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit {
 
-  currentUser: BackendUser | null = null;
   isOnUploadPage = false;
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, private apiService: ApiService, private imageSelectorService: ImageSelectorService) {}
+  constructor(
+    router: Router,
+    activatedRoute: ActivatedRoute,
+    apiService: ApiService,
+    imageSelectorService: ImageSelectorService
+  ) {
+    super();
+    this.router = router;
+    this.apiService = apiService;
+    this.imageSelectorService = imageSelectorService;
+  }
 
   ngOnInit() {
-    this.loadCurrentUser();
+    super.loadCurrentUser();
     this.checkCurrentRoute();
-    
+
     // Suscribirse a cambios de ruta
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -35,31 +45,11 @@ export class ContentCreatorHeaderComponent implements OnInit {
     this.isOnUploadPage = this.router.url === '/upload-content';
   }
 
-  private loadCurrentUser() {
-    const userData = sessionStorage.getItem('currentUser');
-    if (userData) {
-      try {
-        this.currentUser = JSON.parse(userData);
-      } catch (error) {
-        console.error('Error parsing current user data:', error);
-      }
-    }
-  }
-
-  getAvatarUrl(): string {
-      if (this.currentUser?.foto) {
-        return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
-      }
-      return 'assets/admin/admin_default.png';
-  }
-
   navigateToUpload() {
     this.router.navigate(['/upload-content']);
   }
 
-  logout() {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('currentUser');
-    this.router.navigate(['/login']);
+  override logout() {
+    super.logout();
   }
 }

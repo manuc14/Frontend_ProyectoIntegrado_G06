@@ -1,0 +1,18 @@
+<label [class]="customClass">
+  <span>{{ label }} <span *ngIf="required">*</span></span>
+  <input [type]="type"
+         [value]="value"
+         [attr.maxlength]="maxlength"
+         [placeholder]="placeholder"
+         [disabled]="disabled"
+         (input)="onInputChange($event)"
+         (focus)="onFocus()"
+         (blur)="onBlur()" />
+  <small class="subhint" *ngIf="subhint">{{ subhint }}</small>
+  <ng-container *ngIf="touched && errors">
+    <small class="field-error" *ngIf="errors?.['required']">{{ label }} es obligatorio.</small>
+    <small class="field-error" *ngIf="errors?.['email']">Formato de email inválido.</small>
+    <small class="field-error" *ngIf="errors?.['maxlength']">El {{ label.toLowerCase() }} no puede superar {{ maxlength }} caracteres.</small>
+    <!-- Añadir más errores según necesidad -->
+  </ng-container>
+</label>

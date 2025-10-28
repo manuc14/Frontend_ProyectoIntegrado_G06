@@ -64,8 +64,10 @@
       </a>
     </ng-container>
     <ng-container *ngIf="isLoggedIn">
-      <img [src]="getAvatarUrl()" alt="Avatar" class="avatar-desktop" />
-      <button class="logout-desktop" (click)="logout()" (keydown.enter)="logout()" tabindex="0">Cerrar sesión</button>
+      <div class="shared-user-section">
+        <img [src]="getAvatarUrl()" [alt]="'avatar de ' + (currentUser?.nombre || 'usuario')" class="shared-avatar" />
+        <button class="shared-logout-button" (click)="logout()" (keydown.enter)="logout()" tabindex="0">Cerrar sesión</button>
+      </div>
     </ng-container>
   </div>
 </header>

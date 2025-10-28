@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
@@ -59,7 +59,7 @@ export class ForgotPasswordPage implements OnInit, OnDestroy {
   }
 
   get bannerText(): string {
-    return this.formState?.error || '';
+    return this.formState?.error ?? '';
   }
 
   constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private formBaseService: FormBaseService) {

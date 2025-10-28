@@ -120,3 +120,39 @@ export class PasswordValidators {
     return password === confirmPassword ? null : { passwordsMismatch: true };
   }
 }
+
+/** Valida que la fecha no sea anterior a hoy */
+export function minDateValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (!value) return null;
+
+    const selectedDate = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+    if (selectedDate < today) {
+      return { minDate: { required: today.toISOString().split('T')[0], actual: value } };
+    }
+
+    return null;
+  };
+}
+
+/** Valida URL requerida y con formato correcto para videos */
+export function videoUrlValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const url = control.value?.trim();
+    if (!url) {
+      return { required: true };
+    }
+
+    // Validación de formato URL básico
+    const urlPattern = /^https?:\/\/.+/i;
+    if (!urlPattern.test(url)) {
+      return { invalidUrl: true };
+    }
+
+    return null;
+  };
+}

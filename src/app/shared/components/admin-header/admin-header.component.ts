@@ -1,57 +1,43 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, OnInit, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { slideInFromTop } from '../../../core/animations/animations';
-import { BackendUser, ApiService } from '../../../core/services/api.service';
 import { Router } from '@angular/router';
+import { ApiService } from '../../../core/services/api.service';
 import { ImageSelectorService } from '../../../core/services/image-selector.service';
+import { HeaderBase } from '../../../core/base/header.base';
 
 @Component({
   selector: 'app-admin-header',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './admin-header.component.html',
-  styleUrls: ['./admin-header.component.scss']
-  ,
+  styleUrls: ['./admin-header.component.scss'],
   animations: [slideInFromTop]
 })
-export class AdminHeaderComponent implements OnInit {
+export class AdminHeaderComponent extends HeaderBase implements OnInit {
   @Input() sidebarVisible = false;
   @Output() toggleSidebar = new EventEmitter<void>();
 
-  currentUser: BackendUser | null = null;
-
-  constructor(private router: Router, private apiService: ApiService, private imageSelectorService: ImageSelectorService) {}
+  constructor(
+    router: Router,
+    apiService: ApiService,
+    imageSelectorService: ImageSelectorService
+  ) {
+    super();
+    this.router = router;
+    this.apiService = apiService;
+    this.imageSelectorService = imageSelectorService;
+  }
 
   ngOnInit() {
-    this.loadCurrentUser();
+    super.loadCurrentUser();
   }
-
-  private loadCurrentUser() {
-    const userData = sessionStorage.getItem('currentUser');
-    if (userData) {
-      try {
-        this.currentUser = JSON.parse(userData);
-      } catch (error) {
-        console.error('Error parsing current user data:', error);
-      }
-    }
-  }
-
-    getAvatarUrl(): string {
-    if (this.currentUser?.foto) {
-        return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
-    }
-    return 'assets/admin/admin_default.png';
-  }
-
 
   onToggle() {
     this.toggleSidebar.emit();
   }
 
-  logout() {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('currentUser');
-    this.router.navigate(['/login']);
+  override logout() {
+    super.logout();
   }
 }

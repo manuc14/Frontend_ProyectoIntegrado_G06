@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
@@ -9,6 +9,7 @@ import { FormBaseService, FormState } from '../../core/services/form-base.servic
 import { finalize } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../core/animations/animations';
+import { FormSubmitComponent } from '../../shared/form-components/form-submit/form-submit.component';
 
 interface LoginForm {
   email: FormControl<string>;
@@ -18,7 +19,7 @@ interface LoginForm {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, HeaderComponent, FooterComponent, FormSubmitComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
@@ -53,7 +54,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   get bannerText(): string {
-    return this.formState?.error || '';
+    return this.formState?.error ?? '';
   }
 
   constructor() {
@@ -62,6 +63,13 @@ export class LoginComponent implements OnInit, OnDestroy {
       email: '',
       password: ''
     });
+
+    // Quitar validaciones adicionales, dejar solo required
+    this.form.get('email')!.clearValidators();
+    this.form.get('email')!.setValidators([Validators.required]);
+    this.form.get('password')!.clearValidators();
+    this.form.get('password')!.setValidators([Validators.required]);
+    this.form.updateValueAndValidity();
 
     // Estado del formulario gestionado por FormBaseService
     // Nota: formState$ se asignará en ngOnInit después de crear el estado
@@ -96,6 +104,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   submit() {
     if (this.form.invalid || this.loading) {
       if (this.form.invalid) {
+        this.form.markAllAsTouched();
         this.triggerShakeError();
       }
       return;
@@ -179,9 +188,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   /* Maneja errores del login usando el servicio genérico. */
   private handleErrorResponse(err: any): void {
     console.error('Login error', err);
-    this.formBaseService.updateFormState('login', {
-      error: err?.message || 'No se pudo completar el inicio de sesión'
-    });
+    this.formBaseService.handleBackendError('login', this.form, err);
     this.triggerShakeError();
   }
 

@@ -1,0 +1,54 @@
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+
+  legend {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .segmented {
+    display: flex;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    border: 1px solid #d1d5db;
+    width: 200px;
+
+    .segment {
+      flex: 1;
+      position: relative;
+
+      input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      span {
+        display: block;
+        padding: 0.5rem;
+        text-align: center;
+        background: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      &.active span {
+        background: #3b82f6;
+        color: white;
+      }
+
+      &:not(:last-child) span {
+        border-right: 1px solid #d1d5db;
+      }
+    }
+  }
+
+  .hint {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+}

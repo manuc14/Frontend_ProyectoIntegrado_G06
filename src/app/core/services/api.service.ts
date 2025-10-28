@@ -110,25 +110,14 @@ export class ApiService {
 
   /**
    * Extrae el mensaje de usuario del error del backend.
+   * El backend siempre envía errores en formato JSON.
    */
   private extractUserMessageFromError(error: any): string {
-    if (!error.error) return '';
-    if (typeof error.error === 'string') {
-      // Check for specific backend error format: "Verification error - Message: 'Código incorrecto.' - Type: VerificationException"
-      const match = error.error.match(/Message:\s*'([^']+)'/);
-      if (match) {
-        return match[1];
-      }
-      try {
-        const parsed = JSON.parse(error.error);
-        return parsed.message || parsed.error || error.error;
-      } catch {
-        return error.error;
-      }
-    } else if (typeof error.error === 'object' && error.error.message) {
-      return error.error.message;
+    const errorObj = error.error;
+    if (errorObj.details?.length > 0) {
+      return errorObj.details[0].message;
     }
-    return '';
+    return errorObj.message || '';
   }
 
   /**
@@ -150,7 +139,12 @@ export class ApiService {
       }
 
       console.error(`Error en ${operation}:`, error);
-      return throwError(() => new Error(userMessage));
+      
+      // Crear un nuevo error con el mensaje amigable, preservando el error original
+      const friendlyError = new Error(userMessage);
+      (friendlyError as any).originalError = error;
+      
+      return throwError(() => friendlyError);
     };
   }
 

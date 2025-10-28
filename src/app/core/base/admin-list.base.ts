@@ -220,6 +220,10 @@ export abstract class AdminListBase<T> implements OnInit {
   };
 
   getNoResultsMessage(): string {
+    if (this.error) {
+      return this.error;
+    }
+
     const activeFilters = this.getActiveFilters();
     const hasSearch = this.searchTerm.trim().length > 0;
     const hasFilters = activeFilters.length > 0;
@@ -237,6 +241,10 @@ export abstract class AdminListBase<T> implements OnInit {
   }
 
   getClearButtonText(): string {
+    if (this.error) {
+      return 'Reintentar';
+    }
+
     const hasSearch = this.searchTerm.trim().length > 0;
     const hasFilters = this.getActiveFilters().length > 0;
 

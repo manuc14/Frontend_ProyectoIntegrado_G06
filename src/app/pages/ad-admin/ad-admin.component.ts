@@ -12,7 +12,6 @@ import { of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { AdminHeaderComponent } from '../../shared/components/admin-header/admin-header.component';
 import { AdminSidebarComponent } from '../../shared/components/admin-sidebar/admin-sidebar.component';
-import { ErrorContainerComponent } from '../../shared/error-container/error-container.component';
 import { AdminListBase } from '../../core/base/admin-list.base';
 import { BackendUser, ApiService } from '../../core/services/api.service';
 import { ImageSelectorService } from '../../core/services/image-selector.service';
@@ -20,7 +19,7 @@ import { ImageSelectorService } from '../../core/services/image-selector.service
 @Component({
   selector: 'app-adadmin',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent, ErrorContainerComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, FilterButtonsComponent, SortDropdownComponent, AdminHeaderComponent, AdminSidebarComponent],
   templateUrl: './ad-admin.component.html',
   styleUrl: './ad-admin.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, shakeError]
@@ -119,7 +118,7 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
           this.filteredItems = [...this.allItems];
         }),
         catchError((err: any) => {
-          this.error = 'Error al cargar los administradores. Por favor, intente nuevamente.';
+          this.error = 'Error al cargar los datos. Por favor intente de nuevo';
           return of([] as AdminEV[]);
         }),
         finalize(() => {
@@ -261,7 +260,7 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
    * Obtiene la URL del avatar del administrador
    */
   getAvatarUrl(admin: AdminEV): string {
-    return this.imageSelectorService.getFullImageUrl(admin.foto || '', 'avatar');
+    return this.imageSelectorService.getFullImageUrl(admin.foto ?? '', 'avatar');
   }
 
   @HostListener('window:resize', ['$event'])

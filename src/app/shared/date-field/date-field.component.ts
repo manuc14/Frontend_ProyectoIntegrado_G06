@@ -21,6 +21,8 @@ export class DateFieldComponent implements ControlValueAccessor {
   @Input() fechaInvalid: boolean = false;
   @Input() edadInvalid: boolean = false;
   @Input() required: boolean = false;
+  @Input() minDate: string = '';
+  @Input() errorMessage: string = '';
 
   private _value: string = '';
   disabled: boolean = false;

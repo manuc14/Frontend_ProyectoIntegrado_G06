@@ -9,126 +9,14 @@
       {{ bannerText }}
     </div>
     <div class="grid">
-      <label>
-        <span>Nombre *</span>
-        <input type="text" formControlName="nombre" [attr.maxlength]="maxNombre" 
-               [@inputFocus]="getInputFocusState('nombre')"
-               (focus)="onFieldFocus('nombre', true)"
-               (blur)="onFieldFocus('nombre', false)" />
-        <small class="field-error" *ngIf="f['nombre'].touched && f['nombre'].errors?.['required']">El nombre es obligatorio.</small>
-      </label>
-      <label>
-        <span>Apellidos *</span>
-        <input type="text" formControlName="apellidos" [attr.maxlength]="maxApellidos" 
-               [@inputFocus]="getInputFocusState('apellidos')"
-               (focus)="onFieldFocus('apellidos', true)"
-               (blur)="onFieldFocus('apellidos', false)" />
-        <small class="field-error" *ngIf="f['apellidos'].touched && f['apellidos'].errors?.['required']">Los apellidos son obligatorios.</small>
-      </label>
-      <label class="span-2">
-        <span>Email *</span>
-        <input type="email" formControlName="email" [attr.maxlength]="maxEmail" 
-               [@inputFocus]="getInputFocusState('email')"
-               (focus)="onFieldFocus('email', true)"
-               (blur)="onFieldFocus('email', false)" />
-        <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['required']">El email es obligatorio.</small>
-        <small class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['email']">Formato de email inválido.</small>
-        <small class="field-error" *ngIf="f['email'].errors?.['emailTaken']">Correo electrónico ya dado de alta.</small>
-      </label>
-      <label>
-        <span>Alias (opcional, máx {{maxAlias}})</span>
-        <input type="text" formControlName="alias" [attr.maxlength]="maxAlias" 
-               [@inputFocus]="getInputFocusState('alias')"
-               (focus)="onFieldFocus('alias', true)"
-               (blur)="onFieldFocus('alias', false)" />
-        <small class="subhint">Es tu nombre público.</small>
-        <small class="field-error" *ngIf="f['alias'].touched && f['alias'].errors?.['maxlength']">El alias no puede superar {{maxAlias}} caracteres.</small>
-      </label>
-      <label>
-        <span>Fecha de nacimiento *</span>
-        <input type="date" formControlName="fechaNacimiento" 
-               [@inputFocus]="getInputFocusState('fechaNacimiento')"
-               (focus)="onFieldFocus('fechaNacimiento', true)"
-               (blur)="onFieldFocus('fechaNacimiento', false)" />
-        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['required']">El formato de la fecha no es válido.</small>
-        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['futureDate']">La fecha no puede ser futura.</small>
-        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['minAge']">Debes tener al menos 4 años.</small>
-        <small class="field-error" *ngIf="f['fechaNacimiento'].touched && f['fechaNacimiento'].errors?.['maxAge']">Fecha no válida. Prueba a introducir a partir de {{ MIN_BIRTH_YEAR }}.</small>
-      </label>
-      <label class="with-help">
-        <span>
-          Contraseña *
-          <button type="button" class="help" aria-label="Requisitos de contraseña" 
-                  (click)="togglePasswordTooltip()" 
-                  [attr.aria-expanded]="showPasswordTooltip">
-            ?
-            <div class="tooltip" role="tooltip" *ngIf="showPasswordTooltip">
-              <strong>Requisitos de contraseña</strong>
-              <ul class="password-requirements">
-                <li>Mínimo 8 caracteres</li>
-                <li>Al menos 1 mayúscula que no esté en primera posición</li>
-                <li>Al menos 1 carácter especial</li>
-                <li>Al menos 1 número</li>
-              </ul>
-            </div>
-          </button>
-        </span>
-        <div class="input-with-toggle">
-          <input [type]="showPassword ? 'text' : 'password'" formControlName="password" 
-                 [@inputFocus]="getInputFocusState('password')"
-                 (focus)="onFieldFocus('password', true)"
-                 (blur)="onFieldFocus('password', false)" />
-          <button type="button" class="password-toggle" 
-                  (click)="togglePasswordVisibility()"
-                  [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-            <img [src]="showPassword ? 'assets/icons/eye-off-svgrepo-com.svg' : 'assets/icons/eye-svgrepo-com.svg'" 
-                 [alt]="showPassword ? 'Ocultar' : 'Mostrar'" />
-          </button>
-        </div>
-        <ng-container *ngIf="f['password'].touched as touched">
-          <small class="field-error" *ngIf="touched && f['password'].errors?.['required']">La contraseña es obligatoria.</small>
-          <ng-container *ngIf="touched && (f['password'].errors?.['minlength'] || f['password'].errors?.['passwordPolicy']?.['minLengthPolicy']); else otherPolicy">
-            <small class="field-error">La contraseña debe tener al menos 8 caracteres.</small>
-          </ng-container>
-          <ng-template #otherPolicy>
-            <ng-container *ngIf="f['password'].errors?.['passwordPolicy'] as pol">
-              <small class="field-error" *ngIf="pol['uppercasePolicy']">Incluye al menos 1 mayúscula que no sea la primera.</small>
-              <small class="field-error" *ngIf="pol['specialPolicy']">Incluye al menos 1 carácter especial.</small>
-              <small class="field-error" *ngIf="pol['numberPolicy']">Incluye al menos 1 número.</small>
-            </ng-container>
-          </ng-template>
-        </ng-container>
-      </label>
-      <label>
-        <span>Repetir contraseña *</span>
-        <div class="input-with-toggle">
-          <input [type]="showRepeatPassword ? 'text' : 'password'" formControlName="repeatPassword" 
-                 [@inputFocus]="getInputFocusState('repeatPassword')"
-                 (focus)="onFieldFocus('repeatPassword', true)"
-                 (blur)="onFieldFocus('repeatPassword', false)" />
-          <button type="button" class="password-toggle" 
-                  (click)="toggleRepeatPasswordVisibility()"
-                  [attr.aria-label]="showRepeatPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-            <img [src]="showRepeatPassword ? 'assets/icons/eye-off-svgrepo-com.svg' : 'assets/icons/eye-svgrepo-com.svg'" 
-                 [alt]="showRepeatPassword ? 'Ocultar' : 'Mostrar'" />
-          </button>
-        </div>
-        <small class="field-error" *ngIf="form.touched && form.errors?.['mismatch']">Las contraseñas no coinciden.</small>
-      </label>
-      <fieldset class="span-2">
-        <legend>Elige plan *</legend>
-        <div class="segmented" role="radiogroup" aria-label="Elige plan">
-          <label class="segment" [class.active]="(form.value.vip + '') === 'false'">
-            <input type="radio" formControlName="vip" [value]="false" />
-            <span>Estándar</span>
-          </label>
-          <label class="segment" [class.active]="(form.value.vip + '') === 'true'">
-            <input type="radio" formControlName="vip" [value]="true" />
-            <span>VIP</span>
-          </label>
-        </div>
-        <div class="vip-hint">Puedes cambiarlo más tarde. VIP incluye ventajas extra.</div>
-      </fieldset>
+      <app-form-input label="Nombre" [formControl]="nombreControl" [maxlength]="maxNombre" [errors]="f['nombre'].errors" [touched]="f['nombre'].touched" customClass="register-input"></app-form-input>
+      <app-form-input label="Apellidos" [formControl]="apellidosControl" [maxlength]="maxApellidos" [errors]="f['apellidos'].errors" [touched]="f['apellidos'].touched" customClass="register-input"></app-form-input>
+      <app-form-input label="Email" [formControl]="emailControl" [maxlength]="maxEmail" [errors]="f['email'].errors" [touched]="f['email'].touched" customClass="span-2 register-input"></app-form-input>
+      <app-form-input label="Alias (opcional, máx {{maxAlias}})" [formControl]="aliasControl" [maxlength]="maxAlias" [errors]="f['alias'].errors" [touched]="f['alias'].touched" subhint="Es tu nombre público." customClass="register-input"></app-form-input>
+      <app-form-password label="Contraseña" [formControl]="passwordControl" [showTooltip]="showPasswordTooltip" [errors]="f['password'].errors" [touched]="f['password'].touched" (toggleTooltip)="togglePasswordTooltip()" customClass="with-help register-input"></app-form-password>
+      <app-form-password label="Repetir contraseña" [formControl]="repeatPasswordControl" [showTooltip]="false" [showHelpButton]="false" [errors]="repeatPasswordErrors" [touched]="f['repeatPassword'].touched" customClass="register-input"></app-form-password>
+      <app-form-date label="Fecha de nacimiento" [formControl]="fechaNacimientoControl" [errors]="f['fechaNacimiento'].errors" [touched]="f['fechaNacimiento'].touched" customClass="register-input"></app-form-date>
+      <app-form-toggle label="Elige plan" [formControl]="vipControl" [options]="[{value: false, label: 'Estándar'}, {value: true, label: 'VIP'}]" hint="Puedes cambiarlo más tarde. VIP incluye ventajas extra." customClass="span-2" [name]="'vip'" [touched]="f['vip'].touched"></app-form-toggle>
       <fieldset class="span-2" *ngIf="avatars.length > 0 || loadingAvatars || avatarLoadError">
         <legend>Elige tu avatar</legend>
         <div class="avatar-section">
@@ -162,15 +50,7 @@
         </div>
       </fieldset>
     </div>
-    <div class="actions">
-      <a routerLink="/" class="btn ghost">Cancelar</a>
-  <button class="btn primary" type="submit" 
-          [disabled]="form.invalid || loading"
-          [@buttonHover]
-          [@buttonPress]="buttonState">
-    {{ loading ? 'Enviando…' : 'Crear cuenta' }}
-  </button>
-    </div>
+    <app-form-submit [text]="'Crear cuenta'" [loadingText]="'Enviando…'" [loading]="loading" [disabled]="form.invalid" (submit)="submit()" cancelLink="/" cancelText="Cancelar"></app-form-submit>
   </form>
 </main>
 

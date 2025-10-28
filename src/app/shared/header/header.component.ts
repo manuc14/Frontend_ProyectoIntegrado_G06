@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { navActiveState, navHover, fadeIn } from '../../core/animations/animations';
-import { BackendUser, ApiService } from '../../core/services/api.service';
+import { ApiService } from '../../core/services/api.service';
 import { ImageSelectorService } from '../../core/services/image-selector.service';
+import { HeaderBase } from '../../core/base/header.base';
 
 /*
  * HeaderComponent
@@ -20,20 +21,24 @@ import { ImageSelectorService } from '../../core/services/image-selector.service
   styleUrl: './header.component.scss',
   animations: [navActiveState, navHover, fadeIn]
 })
-export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
-  private router = inject(Router);
+export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDestroy, OnInit {
+  protected override router = inject(Router);
   private elementRef = inject(ElementRef);
   private renderer = inject(Renderer2);
-  private apiService = inject(ApiService);
-  private imageSelectorService = inject(ImageSelectorService);
+  protected override apiService = inject(ApiService);
+  protected override imageSelectorService = inject(ImageSelectorService);
   currentRoute = '';
   isMenuOpen = false;
   hasScrolled = false; // Una vez que se hace scroll, se mantiene true
   isHomePage = false; // Para detectar si estamos en home
   isLoggedIn = false;
-  currentUser: BackendUser | null = null;
 
   constructor() {
+    super();
+    this.router = inject(Router);
+    this.apiService = inject(ApiService);
+    this.imageSelectorService = inject(ImageSelectorService);
+
     // Obtener la ruta inicial
     this.currentRoute = this.router.url;
     this.checkIfHomePage();
@@ -75,22 +80,13 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
     const userData = sessionStorage.getItem('currentUser');
     this.isLoggedIn = !!(token && userData);
     if (this.isLoggedIn && userData) {
-      try {
-        this.currentUser = JSON.parse(userData);
-      } catch (error) {
-        console.error('Error parsing current user data:', error);
-        this.isLoggedIn = false;
-        this.currentUser = null;
-      }
+      this.loadCurrentUser();
     } else {
       this.currentUser = null;
     }
   }
 
-  /**
-   * Obtiene la URL del avatar del usuario
-   */
-  getAvatarUrl(): string {
+  override getAvatarUrl(): string {
     if (this.currentUser?.foto) {
       return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
     }
@@ -101,12 +97,9 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
   /**
    * Cierra la sesión del usuario
    */
-  logout() {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('currentUser');
+  override logout() {
+    super.logout();
     this.isLoggedIn = false;
-    this.currentUser = null;
-    this.router.navigate(['/login']);
   }
 
   /**

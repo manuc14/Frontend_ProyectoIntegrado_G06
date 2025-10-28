@@ -44,7 +44,7 @@ export class ResetPasswordCodePage extends CodeInputBase implements OnInit, OnDe
   }
 
   get errorMessage(): string {
-    return this.formState?.error || '';
+    return this.formState?.error ?? '';
   }
 
   constructor(

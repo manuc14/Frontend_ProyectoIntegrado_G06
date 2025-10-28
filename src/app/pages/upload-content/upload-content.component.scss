@@ -2,6 +2,8 @@
    ESTILOS DEL COMPONENTE UPLOAD CONTENT
    ========================================================================== */
 
+@use '../../shared/scss/mixins' as mixins;
+
 /* --------------------------------------------------------------------------
    DISEÑO DE PÁGINA
    -------------------------------------------------------------------------- */
@@ -107,96 +109,29 @@ label span {
 }
 
 /* --------------------------------------------------------------------------
-   CAMPOS DE ENTRADA
+   CAMPOS DE FORMULARIO - ESTILOS ESPECÍFICOS PARA ELEMENTOS NO COMPARTIDOS
    -------------------------------------------------------------------------- */
 
-input[type="text"],
-input[type="email"],
-input[type="url"],
-input[type="number"],
-textarea,
-select {
-  padding: 12px 14px;
-  border-radius: 8px;
+/* Input de tags - mantener estilos consistentes */
+.tag-input-row input[type="text"] {
   border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
   background: var(--card);
   color: var(--input);
   font-family: inherit;
   font-size: 14px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease;
+  flex: 1;
 }
 
-input::placeholder,
-textarea::placeholder {
+.tag-input-row input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.tag-input-row input[type="text"]::placeholder {
   color: var(--muted-foreground);
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-  background: var(--card);
-}
-
-input:hover,
-textarea:hover,
-select:hover {
-  border-color: var(--primary);
-}
-
-input:not(:focus):not(:hover),
-textarea:not(:focus):not(:hover),
-select:not(:focus):not(:hover) {
-  border-color: var(--border);
-  box-shadow: none;
-  background: var(--card);
-}
-/* --------------------------------------------------------------------------
-   ESTADOS DE VALIDACIÓN
-   -------------------------------------------------------------------------- */
-
-input:disabled,
-select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.invalid {
-  border-color: var(--destructive) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive) 25%, transparent);
-}
-
-.invalid:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 25%, transparent);
-}
-
-/* Error state for real-time validation */
-input.error,
-textarea.error,
-select.error {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2);
-}
-
-input.error:focus,
-textarea.error:focus,
-select.error:focus {
-  outline: none;
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
-}
-
-/* Remove red highlight specifically for the title input (when empty) by overriding
-   the invalid style on that field. We target the title by placeholder text to avoid
-   changing other invalid inputs site-wide. */
-input[placeholder="Introduce el título"] {
-  &.invalid {
-    border-color: var(--border) !important;
-    box-shadow: none !important;
-  }
 }
 
 /* --------------------------------------------------------------------------
@@ -221,32 +156,8 @@ input[placeholder="Introduce el título"] {
 }
 
 /* --------------------------------------------------------------------------
-   GRUPOS DE RADIO
+   GRUPOS DE RADIO - ELIMINADO: Ahora se usa form-toggle
    -------------------------------------------------------------------------- */
-
-.radio-group {
-  display: flex;
-  gap: 16px;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  flex-direction: row !important;
-}
-
-.radio-option input[type="radio"] {
-  width: auto;
-  margin: 0;
-  accent-color: var(--primary);
-}
-
-.radio-option span {
-  color: var(--foreground);
-  font-size: 14px;
-}
 
 /* --------------------------------------------------------------------------
    SECCIÓN DE THUMBNAILS
@@ -492,38 +403,55 @@ input[placeholder="Introduce el título"] {
 }
 
 .tags-container .field-error {
-  color: #dc2626; /* more intense red */
-  font-size: 13px;
-  margin-top: -4px;
-  font-weight: 600;
+  @include mixins.text-base(#8B0000, 12px, 500);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: '⚠';
+    font-size: 14px;
+  }
 }
 
 /* Error summary for missing required fields */
 .form-error-summary {
   grid-column: span 2;
-  background: rgba(220,38,38,0.06);
-  border: 1px solid rgba(220,38,38,0.12);
-  color: #991b1b;
+  background: rgba(139, 0, 0, 0.06);
+  border: 1px solid rgba(139, 0, 0, 0.12);
+  color: #8B0000;
   padding: 12px 14px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 500;
   margin-bottom: 8px;
 }
 
 /* General field error style */
 .field-error {
-  color: #dc2626; /* more intense red */
-  font-size: 13px;
-  margin-top: -4px;
-  font-weight: 600;
+  @include mixins.text-base(#8B0000, 12px, 500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: '⚠';
+    font-size: 14px;
+  }
 }
 
 /* Thumbnail upload warning style: amber warning, slightly smaller font like availability errors */
 .thumbnails-section .field-error {
-  color: #b45309; /* amber-700 */
-  font-size: 12px;
-  margin-top: -4px;
-  font-weight: 600;
+  @include mixins.text-base(#b45309, 12px, 500);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: '⚠';
+    font-size: 14px;
+  }
 }
 
 .tag-input-row input {
@@ -631,11 +559,6 @@ input[placeholder="Introduce el título"] {
   .upload-form {
     padding: 16px;
     gap: 16px;
-  }
-  
-  .radio-group {
-    flex-direction: column;
-    gap: 8px;
   }
 }
 

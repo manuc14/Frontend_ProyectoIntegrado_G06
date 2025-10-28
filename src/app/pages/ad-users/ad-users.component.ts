@@ -114,7 +114,7 @@ export class AdminUsersPage extends AdminListBase<User> {
           this.allItems = [];
           this.filteredItems = [];
           this.totalItems = 0;
-          this.error = 'No se pudo conectar con el servidor. Verifique que el backend esté funcionando.';
+          this.error = 'Error al cargar los datos. Por favor intente de nuevo';
           return of([] as UserEV[]);
         }),
         finalize(() => {
@@ -130,7 +130,7 @@ export class AdminUsersPage extends AdminListBase<User> {
   private transformarUsuarios(usuarios: UserEV[]): User[] {
     return usuarios.map(usuario => ({
       id: usuario.id,
-      photo: this.imageSelectorService.getFullImageUrl(usuario.foto || '', 'avatar'),
+      photo: this.imageSelectorService.getFullImageUrl(usuario.foto ?? '', 'avatar'),
       name: usuario.nombre,
       lastName: usuario.apellidos,
       alias: `@${usuario.alias}`,
@@ -237,7 +237,7 @@ export class AdminUsersPage extends AdminListBase<User> {
 
   override getClearButtonText(): string {
     if (this.error) {
-      return 'Reintentar conexión';
+      return 'Reintentar';
     }
     return super.getClearButtonText();
   }

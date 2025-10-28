@@ -2,7 +2,7 @@
 <header class="header local-creator-header" role="banner">
   <div class="brand-section">
     <div class="logo-container">
-      <img src="assets/icons/logo_v1.png" alt="ESIMedia" class="logo" />
+      <img src="assets/icons/logo_v2.png" alt="ESIMedia" class="logo" />
     </div>
     <div class="brand-text">ESIMedia</div>
   </div>
@@ -19,7 +19,7 @@
       <img 
         [src]="getAvatarUrl()" 
         [alt]="'avatar de ' + (currentUser?.nombre || 'usuario')" 
-        class="avatar-image"
+        class="shared-avatar"
         height="32" 
         width="32"/>
       <div class="background2" (click)="logout()" (keydown.enter)="logout()" style="cursor: pointer;">

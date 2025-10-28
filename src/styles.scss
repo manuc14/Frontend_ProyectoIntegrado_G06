@@ -150,33 +150,11 @@ textarea:focus,
 select:focus {
     outline: none !important;
     border-color: var(--primary) !important;
-    box-shadow: 0 0 0 2px var(--ring) !important;
 }
 
 /* --------------------------------------------------------------------------
    UTILIDADES GLOBALES
    -------------------------------------------------------------------------- */
 
-/* Clases de utilidad para espaciado */
-.mt-0 { margin-top: 0; }
-.mt-1 { margin-top: 0.25rem; }
-.mt-2 { margin-top: 0.5rem; }
-.mt-3 { margin-top: 0.75rem; }
-.mt-4 { margin-top: 1rem; }
-
-.mb-0 { margin-bottom: 0; }
-.mb-1 { margin-bottom: 0.25rem; }
-.mb-2 { margin-bottom: 0.5rem; }
-.mb-3 { margin-bottom: 0.75rem; }
-.mb-4 { margin-bottom: 1rem; }
-
-/* Clases de utilidad para texto */
-.text-center { text-align: center; }
-.text-left { text-align: left; }
-.text-right { text-align: right; }
-
 /* Clases de utilidad para display */
 .hidden { display: none; }
-.block { display: block; }
-.flex { display: flex; }
-.inline-flex { display: inline-flex; }

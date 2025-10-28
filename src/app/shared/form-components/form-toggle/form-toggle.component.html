@@ -1,0 +1,10 @@
+<fieldset [class]="customClass">
+  <legend>{{ label }} *</legend>
+  <div class="segmented" role="radiogroup" [attr.aria-label]="label">
+    <label class="segment" *ngFor="let option of options" [class.active]="value === option.value">
+      <input type="radio" [checked]="value === option.value" (change)="onChangeValue(option.value)" [name]="name" [disabled]="disabled" />
+      <span>{{ option.label }}</span>
+    </label>
+  </div>
+  <div class="hint" *ngIf="hint">{{ hint }}</div>
+</fieldset>

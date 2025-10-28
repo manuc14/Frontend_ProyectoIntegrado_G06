@@ -21,9 +21,6 @@
         </div>
       </div>
 
-      <!-- Mostrar errores -->
-      <app-error-container [error]="error"></app-error-container>
-
       <div class="margin">
         <!-- Filtros de creadores -->
         <app-filter-buttons
@@ -59,20 +56,8 @@
             </div>
           </div>
 
-          <!-- Mostrar mensaje de error -->
-          <div *ngIf="error && !isLoading" style="padding: 40px; text-align: center;">
-            <div style="color: #ef4444; font-size: 16px; font-family: 'NimbusSans-Medium', sans-serif; margin-bottom: 16px;">
-              {{ error }}
-            </div>
-            <button
-              (click)="loadData()"
-              style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'NimbusSans-Medium', sans-serif; font-size: 14px;">
-              Reintentar
-            </button>
-          </div>
-
           <!-- Mostrar tabla cuando hay datos -->
-          <ng-container *ngIf="!isLoading && !error">
+          <ng-container *ngIf="!isLoading">
             <!-- Encabezados -->
             <div class="background5">
               <div class="container2"><div class="table-header-text">Foto</div></div>
@@ -93,7 +78,7 @@
               <div *ngIf="filteredCreators.length === 0" class="no-results">
                 <div class="no-results-content">
                   <p>{{ getNoResultsMessage() }}</p>
-                  <button type="button" (click)="clearSearchAndFilters()" class="clear-search-btn">
+                  <button *ngIf="getClearButtonText()" type="button" (click)="error ? loadData() : clearSearchAndFilters()" class="clear-search-btn">
                     {{ getClearButtonText() }}
                   </button>
                 </div>

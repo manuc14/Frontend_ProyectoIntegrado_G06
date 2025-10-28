@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors }
 import { Observable, BehaviorSubject } from 'rxjs';
 import { ImageSelectorService, ImageSelectorState } from './image-selector.service';
 import { applyBackendDetails, clearBackendErrors } from '../utils/error-mapper';
-import { passwordPolicyValidator, minAgeValidator, maxAgeValidator, MIN_BIRTH_YEAR } from '../validators/form.validators';
+import { passwordPolicyValidator, minAgeValidator, maxAgeValidator, MIN_BIRTH_YEAR, minDateValidator, videoUrlValidator } from '../validators/form.validators';
 import { FORM_LIMITS } from '../constants/form-limits';
 
 /**
@@ -105,7 +105,7 @@ export class FormBaseService {
     const formConfig: any = {};
 
     for (const [key, value] of Object.entries(config)) {
-      formConfig[key] = [value, this.getValidatorsForField(key as string)];
+      formConfig[key] = [value, this.getValidatorsForField(key)];
     }
 
     const formGroup = this.fb.group(formConfig);
@@ -137,6 +137,7 @@ export class FormBaseService {
 
       // Fechas
       fechaNacimiento: [Validators.required, minAgeValidator(FORM_LIMITS.minAgeYears), maxAgeValidator(MIN_BIRTH_YEAR)],
+      fechaExpiracion: [minDateValidator()],
 
       // Descripciones
       descripcion: [Validators.maxLength(500)],
@@ -150,7 +151,7 @@ export class FormBaseService {
       estado: [Validators.required],
       ageRestriction: [Validators.required],
       vip: [Validators.required],
-      url: [this.conditionalUrlValidator()],
+      url: [videoUrlValidator()],
       tags: [this.tagsValidator()]
     };
 
@@ -166,32 +167,6 @@ export class FormBaseService {
       if (!Array.isArray(tags) || tags.length === 0) {
         return { required: true };
       }
-      return null;
-    };
-  }
-
-  /**
-   * Validador condicional para URL - solo requiere URL cuando el tipo es video
-   */
-  private conditionalUrlValidator() {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const parent = control.parent;
-      if (!parent) return null;
-
-      const type = parent.get('type')?.value;
-      if (type !== 'video') return null;
-
-      const url = control.value?.trim();
-      if (!url) {
-        return { required: true };
-      }
-
-      // Validación de formato URL básico
-      const urlPattern = /^https?:\/\/.+/i;
-      if (!urlPattern.test(url)) {
-        return { invalidUrl: true };
-      }
-
       return null;
     };
   }
@@ -216,28 +191,27 @@ export class FormBaseService {
    * Manejo unificado de errores del backend
    */
   handleBackendError(formId: string, form: FormGroup, error: any): void {
-    const status = error?.originalError?.status || error?.status;
-    const payload = error?.originalError?.error || error?.error || {};
+    const payload = error?.originalError?.error ?? error?.error ?? {};
     const backendMessage: string | undefined = payload?.message;
     const details: Array<{ field: string; message: string }>|undefined = payload?.details;
 
     // Limpiar errores previos
     clearBackendErrors(form, Object.keys(form.controls));
 
-    if (status === 400 && Array.isArray(details) && details.length > 0) {
+    let errorMessage = backendMessage ?? 'Ha ocurrido un error inesperado. Inténtelo de nuevo más tarde.';
+    let fieldErrors: Record<string, string> = {};
+
+    if (Array.isArray(details) && details.length > 0) {
       // Aplicar errores de validación del backend a campos específicos
       applyBackendDetails(form, details, this.getFieldMapping());
-      this.updateFormState(formId, {
-        error: 'Por favor, revisa los campos marcados.',
-        fieldErrors: this.extractFieldErrors(details)
-      });
-    } else {
-      // Error general
-      this.updateFormState(formId, {
-        error: backendMessage || 'Ha ocurrido un error. Inténtalo de nuevo.',
-        fieldErrors: {}
-      });
+      errorMessage = details[0].message || errorMessage;
+      fieldErrors = this.extractFieldErrors(details);
     }
+
+    this.updateFormState(formId, {
+      error: errorMessage,
+      fieldErrors
+    });
   }
 
   /**

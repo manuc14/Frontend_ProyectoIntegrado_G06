@@ -107,6 +107,13 @@ input[type="password"]:not(:focus):not(:hover) {
     justify-content: flex-end;
 }
 
+.links-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
 /* --------------------------------------------------------------------------
    UTILIDADES DE TEXTO
    -------------------------------------------------------------------------- */
@@ -189,6 +196,49 @@ input[type="password"]:not(:focus):not(:hover) {
         align-items: stretch;
     }
 }
+
+/* --------------------------------------------------------------------------
+   ESTILOS PARA COMPONENTES COMPARTIDOS EN LOGIN
+   -------------------------------------------------------------------------- */
+
+.login-input {
+  label {
+    margin-bottom: 1rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    &.invalid {
+      border-color: var(--destructive);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+  }
+
+  .field-error {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--destructive);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ACCIONES DE LOGIN (ahora manejadas en form-submit component)
+   -------------------------------------------------------------------------- */
 
 /* --------------------------------------------------------------------------
    FOOTER FIJO EN LOGIN
