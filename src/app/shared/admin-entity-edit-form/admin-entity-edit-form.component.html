@@ -16,37 +16,37 @@
 
           <div class="container6">
             <div class="container7">
-              <app-input-field
+              <app-form-input
                 label="Nombre"
                 formControlName="nombre"
                 placeholder="Nombre"
                 [required]="true">
-              </app-input-field>
+              </app-form-input>
 
-              <app-input-field
+              <app-form-input
                 label="Apellidos"
                 formControlName="apellidos"
                 placeholder="Apellidos"
                 [required]="true">
-              </app-input-field>
+              </app-form-input>
             </div>
 
             <!-- Campo email readonly para los distintos tipos de entidad -->
-            <app-input-field
+            <app-form-input
               label="Email"
               [value]="entityCorreo"
               placeholder="Email"
-              [readonly]="true"
+              [disabled]="true"
               class="readonly-field">
-            </app-input-field>
+            </app-form-input>
 
             <!-- Campos específicos para creator -->
             <ng-container *ngIf="entityType === 'creator'">
-              <app-input-field
+              <app-form-input
                 label="Alias"
                 formControlName="alias"
                 placeholder="Alias">
-              </app-input-field>
+              </app-form-input>
 
               <app-textarea-field
                 label="Descripción"
@@ -67,13 +67,13 @@
                 <option value="Viajes">Viajes</option>
               </app-select-field>
 
-              <app-input-field
+              <app-form-input
                 label="Tipo de Contenido"
                 [value]="creatorTipoContenido"
                 placeholder="Tipo de Contenido"
-                [readonly]="true"
+                [disabled]="true"
                 class="readonly-field">
-              </app-input-field>
+              </app-form-input>
             </ng-container>
 
             <!-- Campo específico para admin -->
@@ -97,6 +97,8 @@
               <app-form-date
                 label="Fecha de Nacimiento"
                 formControlName="fechaNacimiento"
+                [errors]="form.get('fechaNacimiento')?.errors ?? null"
+                [touched]="form.get('fechaNacimiento')?.touched ?? false"
                 [showAsterisk]="false">
               </app-form-date>
             </ng-container>

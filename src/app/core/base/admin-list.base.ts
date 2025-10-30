@@ -1,8 +1,10 @@
 import { Directive, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortOption, SortEvent } from '../../shared/sort-dropdown/sort-dropdown.component';
 import { getActiveFilters, filterAndSearch, applySorting } from '../utils/list-utils';
+import { ADMIN_CONFIG } from '../constants/admin-config.constants';
 
 @Directive()
 export abstract class AdminListBase<T> implements OnInit {
@@ -33,6 +35,9 @@ export abstract class AdminListBase<T> implements OnInit {
   currentPage = 1;
   pageSize = 5; // Fijo
   totalItems = 0;
+
+  // Estado para operaciones de guardado/eliminación
+  isSaving = false;
 
   constructor(protected router: Router) {}
 
@@ -75,33 +80,35 @@ export abstract class AdminListBase<T> implements OnInit {
 
   navigateToUsers(): void {
     this.closeSidebar();
-    this.router.navigate(['/ad-users']);
+    this.router.navigate([ADMIN_CONFIG.navRoutes.users]);
   }
 
   navigateToAdmins(): void {
     this.closeSidebar();
-    this.router.navigate(['/ad-admin']);
+    this.router.navigate([ADMIN_CONFIG.navRoutes.admins]);
   }
 
   navigateToCreators(): void {
     this.closeSidebar();
-    this.router.navigate(['/ad-creators']);
+    this.router.navigate([ADMIN_CONFIG.navRoutes.creators]);
   }
+
+  private navMethods: { [key: string]: () => void } = {
+    users: () => this.navigateToUsers(),
+    admins: () => this.navigateToAdmins(),
+    creators: () => this.navigateToCreators(),
+  };
 
   handleNav(event: string): void {
     this.closeSidebar();
-    switch (event) {
-      case 'users':
-        this.router.navigate(['/ad-users']);
-        break;
-      case 'admins':
-        this.router.navigate(['/ad-admin']);
-        break;
-      case 'creators':
-        this.router.navigate(['/ad-creators']);
-        break;
-      default:
-        break;
+    const method = this.navMethods[event];
+    if (method) {
+      method();
+    } else {
+      const route = ADMIN_CONFIG.navRoutes[event as keyof typeof ADMIN_CONFIG.navRoutes];
+      if (route) {
+        this.router.navigate([route]);
+      }
     }
   }
 
@@ -111,17 +118,17 @@ export abstract class AdminListBase<T> implements OnInit {
 
   onSearch(searchTerm: string): void {
     this.searchTerm = searchTerm;
-    this.applyFiltersAndSearch();
+    this.applyFilters();
   }
 
   onSearchTermChange(searchTerm: string): void {
     this.searchTerm = searchTerm;
-    this.applyFiltersAndSearch();
+    this.applyFilters();
   }
 
   onClearSearch(): void {
     this.searchTerm = '';
-    this.applyFiltersAndSearch();
+    this.applyFilters();
   }
 
   onFilterChange(event: { filterId: string; value: any; active: boolean; group: string }): void {
@@ -133,7 +140,7 @@ export abstract class AdminListBase<T> implements OnInit {
       });
     });
     this.filterGroups = [...this.filterGroups];
-    this.applyFiltersAndSearch();
+    this.applyFilters();
   }
 
   onClearAllFilters(): void {
@@ -143,7 +150,7 @@ export abstract class AdminListBase<T> implements OnInit {
       });
     });
     this.filterGroups = [...this.filterGroups];
-    this.applyFiltersAndSearch();
+    this.applyFilters();
   }
 
   private getActiveFilters(): any[] {
@@ -154,10 +161,6 @@ export abstract class AdminListBase<T> implements OnInit {
     this.filteredItems = filterAndSearch(this.allItems, this.getActiveFilters(), this.searchTerm, this.getSearchFields(), (item, filter) => this.getFilterPredicate(item, filter));
     this.currentPage = 1;
     if (this.selectedSort) this.applySorting();
-  }
-
-  private applyFiltersAndSearch(): void {
-    this.applyFilters();
   }
 
   // ========================================
@@ -219,48 +222,157 @@ export abstract class AdminListBase<T> implements OnInit {
     return this.getItemId(item);
   };
 
-  getNoResultsMessage(): string {
-    if (this.error) {
-      return this.error;
-    }
-
-    const activeFilters = this.getActiveFilters();
+  private getSearchAndFilterState(): { hasSearch: boolean; hasFilters: boolean } {
     const hasSearch = this.searchTerm.trim().length > 0;
-    const hasFilters = activeFilters.length > 0;
+    const hasFilters = this.getActiveFilters().length > 0;
+    return { hasSearch, hasFilters };
+  }
 
-    if (hasSearch && hasFilters) {
-      return `No se encontraron ${this.getEntityName()} que coincidan con "${this.searchTerm}" y los filtros aplicados`;
-    } else if (hasSearch) {
-      return `No se encontraron ${this.getEntityName()} que coincidan con "${this.searchTerm}"`;
-    } else if (hasFilters) {
-      const filterDescriptions = activeFilters.map(filter => filter.label).join(', ');
-      return `No se encontraron ${this.getEntityName()} con los filtros: ${filterDescriptions}`;
-    } else {
-      return `No hay ${this.getEntityName()} disponibles`;
-    }
+  private getMessageConfig() {
+    const entityName = this.getEntityName();
+    const activeFilters = this.getActiveFilters();
+    const filterDescriptions = activeFilters.map(f => f.label).join(', ');
+
+    return {
+      error: this.error,
+      searchAndFilters: `No se encontraron ${entityName} que coincidan con "${this.searchTerm}" y los filtros aplicados`,
+      searchOnly: `No se encontraron ${entityName} que coincidan con "${this.searchTerm}"`,
+      filtersOnly: `No se encontraron ${entityName} con los filtros: ${filterDescriptions}`,
+      none: `No hay ${entityName} disponibles`
+    };
+  }
+
+  getNoResultsMessage(): string {
+    const config = this.getMessageConfig();
+    if (config.error) return config.error;
+
+    const { hasSearch, hasFilters } = this.getSearchAndFilterState();
+
+    if (hasSearch && hasFilters) return config.searchAndFilters;
+    if (hasSearch) return config.searchOnly;
+    if (hasFilters) return config.filtersOnly;
+    return config.none;
   }
 
   getClearButtonText(): string {
-    if (this.error) {
-      return 'Reintentar';
-    }
+    if (this.error) return 'Reintentar';
 
-    const hasSearch = this.searchTerm.trim().length > 0;
-    const hasFilters = this.getActiveFilters().length > 0;
+    const { hasSearch, hasFilters } = this.getSearchAndFilterState();
 
-    if (hasSearch && hasFilters) {
-      return 'Limpiar búsqueda y filtros';
-    } else if (hasSearch) {
-      return 'Limpiar búsqueda';
-    } else if (hasFilters) {
-      return 'Limpiar filtros';
-    } else {
-      return `Mostrar todos los ${this.getEntityName()}`;
-    }
+    if (hasSearch && hasFilters) return 'Limpiar búsqueda y filtros';
+    if (hasSearch) return 'Limpiar búsqueda';
+    if (hasFilters) return 'Limpiar filtros';
+    return `Mostrar todos los ${this.getEntityName()}`;
   }
 
   clearSearchAndFilters(): void {
     this.searchTerm = '';
     this.onClearAllFilters();
+  }
+
+  // ========================================
+  // MÉTODOS COMUNES PARA OPERACIONES CRUD
+  // ========================================
+
+  /**
+   * Método común para eliminar entidades
+   */
+  deleteEntity(id: string, serviceMethod: (id: string) => any, entityName: string): void {
+    const confirmar = confirm('¿Estás seguro de que deseas eliminar la cuenta? Esta acción no se puede deshacer.');
+    if (!confirmar) return;
+
+    this.isSaving = true;
+    serviceMethod(id)
+      .pipe(finalize(() => { this.isSaving = false; }))
+      .subscribe({
+        next: (resp: any) => this.handleDeleteResponse(resp, entityName, false, id),
+        error: (err: any) => this.handleDeleteError(err, entityName)
+      });
+  }
+
+  private isResponseError(resp: any): boolean {
+    return resp && (
+      resp.error ||
+      resp.success === false ||
+      resp.ok === false ||
+      (typeof resp.message === 'string' && /error|fail|no se|no encontrado|not found/i.test(resp.message))
+    );
+  }
+
+  private handleDeleteResponse(resp: any, entityName: string, reload: boolean, id?: string): void {
+    if (this.isResponseError(resp)) {
+      console.error(`Backend responded with error while deleting ${entityName}:`, resp);
+      this.error = (resp && (resp.message || resp.error)) || `No se pudo eliminar el ${entityName}. Intenta de nuevo.`;
+      return;
+    }
+
+    if (reload) {
+      this.loadData();
+    } else if (id) {
+      // Remover de arrays locales
+      this.allItems = this.allItems.filter(item => this.getItemId(item) !== id);
+      this.filteredItems = this.filteredItems.filter(item => this.getItemId(item) !== id);
+      this.totalItems = this.allItems.length;
+    }
+
+    alert(`${entityName.charAt(0).toUpperCase() + entityName.slice(1)} eliminado correctamente.`);
+  }
+
+  private handleDeleteError(err: any, entityName: string): void {
+    console.error(`Error al eliminar ${entityName}:`, err);
+    this.error = `No se pudo eliminar el ${entityName}. Intenta de nuevo.`;
+  }
+
+  /**
+   * Método común para manejar respuestas de eliminación con actualización de lista
+   */
+  handleDeleteWithReload(resp: any, entityName: string): void {
+    this.handleDeleteResponse(resp, entityName, true);
+  }
+
+  /**
+   * Método común para cargar datos con manejo de errores
+   */
+  loadDataWithErrorHandling(serviceMethod: () => any, entityName: string): void {
+    this.isLoading = true;
+    this.error = null;
+
+    serviceMethod()
+      .pipe(finalize(() => { this.isLoading = false; }))
+      .subscribe({
+        next: (data: T[]) => this.handleLoadDataResponse(data),
+        error: (err: any) => this.handleLoadDataError(err, entityName)
+      });
+  }
+
+  private handleLoadDataResponse(data: T[]): void {
+    this.allItems = data || [];
+    this.filteredItems = [...this.allItems];
+    this.totalItems = this.allItems.length;
+    this.applyFilters();
+  }
+
+  private handleLoadDataError(err: any, entityName: string): void {
+    console.error(`Error al cargar ${entityName}:`, err);
+    this.error = `No se pudieron cargar los ${entityName}. Intenta de nuevo.`;
+    this.allItems = [];
+    this.filteredItems = [];
+    this.totalItems = 0;
+  }
+
+  /**
+   * Método común para navegar a formularios de edición
+   */
+  navigateToEdit(id: string, entityType: 'users' | 'admins' | 'creators'): void {
+    const route = ADMIN_CONFIG.navRoutes[entityType].edit;
+    this.router.navigate([route, id]);
+  }
+
+  /**
+   * Método común para navegar a formularios de creación
+   */
+  navigateToAdd(entityType: 'users' | 'admins' | 'creators'): void {
+    const route = ADMIN_CONFIG.navRoutes[entityType].add;
+    this.router.navigate([route]);
   }
 }

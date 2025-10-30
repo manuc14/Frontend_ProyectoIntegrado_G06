@@ -1,12 +1,16 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
-import { extractErrorMessage } from '../utils/error-utils';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 
 /**
  * Interceptor global para manejo de errores HTTP
- * Convierte errores técnicos en mensajes amigables para el usuario
+ * Maneja errores de autenticación (401) redirigiendo al login
+ * Propaga otros errores para que sean manejados por los servicios específicos
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
+  
   // No interceptar errores para login y verify, dejar que api.service lo maneje
   if (req.url.includes('/auth/login') || req.url.includes('/auth/verify')) {
     return next(req);
@@ -14,53 +18,17 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      let userMessage = 'Ha ocurrido un error inesperado';
-
-      // Si backend provee mensaje estructurado, usarlo
-      const e = extractErrorMessage(error);
-      if (e) {
-        userMessage = e;
-      } else {
-        // Mensajes amigables basados en códigos de estado HTTP
-        switch (error.status) {
-          case 400:
-            userMessage = 'Los datos enviados no son válidos. Por favor, verifica la información.';
-            break;
-          case 401:
-            userMessage = 'No tienes autorización para realizar esta acción.';
-            break;
-          case 403:
-            userMessage = 'No tienes permisos para acceder a este recurso.';
-            break;
-          case 404:
-            userMessage = 'El servicio solicitado no está disponible en este momento.';
-            break;
-          case 409:
-            userMessage = 'Ya existe un registro con esta información.';
-            break;
-          case 422:
-            userMessage = 'Los datos proporcionados no son válidos.';
-            break;
-          case 500:
-            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
-            break;
-          case 503:
-            userMessage = 'El servicio no está disponible temporalmente.';
-            break;
-          default:
-            if (error.status === 0) {
-              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
-            }
-        }
+      // Manejar errores de autenticación (401)
+      if (error.status === 401) {
+        // Limpiar token expirado
+        sessionStorage.removeItem('authToken');
+        // Redirigir al login
+        router.navigate(['/login']);
       }
 
-      console.error('Error HTTP interceptado:', error);
-      
-      // Crear un nuevo error con el mensaje amigable
-      const friendlyError = new Error(userMessage);
-      (friendlyError as any).originalError = error;
-      
-      return throwError(() => friendlyError);
+      // Para errores de autenticación, ya redirigimos al login arriba
+      // Para otros errores, simplemente propagar el error original
+      return throwError(() => error);
     })
   );
 };

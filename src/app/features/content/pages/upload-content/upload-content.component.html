@@ -1,0 +1,282 @@
+<app-content-creator-header />
+
+<main class="upload-page">
+  <div class="container">
+    <h1>Subir contenido</h1>
+    <p class="hint">Comparte tu contenido multimedia con la comunidad.</p>
+
+    <form class="upload-form card" [formGroup]="uploadForm" novalidate>
+      <div *ngIf="formError" class="form-error-summary" aria-live="assertive">{{ formError }}</div>
+      <!-- LEFT COLUMN -->
+      <div class="left-column">
+        <section class="form-section">
+          <h2>Detalles</h2>
+
+          <app-form-input
+            label="Título"
+            [required]="true"
+            formControlName="title"
+            placeholder="Introduce el título"
+            [maxlength]="50"
+            [errors]="uploadForm.get('title')?.errors ?? null"
+            [touched]="submitted">
+          </app-form-input>
+          <div class="char-count">{{ (uploadForm.get('title')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.titleLimit }}</div>
+
+          <app-textarea-field
+            label="Descripción"
+            formControlName="description"
+            placeholder="Cuenta de qué va a ir lo que subes"
+            maxlength="500">
+          </app-textarea-field>
+          <div class="char-count">{{ (uploadForm.get('description')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.descLimit }}</div>
+
+          <div class="form-field">
+            <span class="field-label">Miniatura</span>
+            <div class="thumbnails-section">
+              <!-- Loading state -->
+              <div class="loading-message" *ngIf="loadingThumbnails">
+                Cargando miniaturas disponibles...
+              </div>
+              
+              <!-- Error state -->
+              <div class="error-message" *ngIf="thumbnailLoadError">
+                No se pudieron cargar las miniaturas. Intenta recargar la página.
+              </div>
+              
+              <!-- Thumbnails grid -->
+              <div class="thumbnails-grid" *ngIf="!loadingThumbnails && !thumbnailLoadError">
+                <!-- suggested thumbnails rendered as selectable buttons -->
+                <button type="button" class="thumbnail-slot suggested"
+                        *ngFor="let thumbnail of thumbnails; let i = index"
+                        [class.selected]="selectedThumbnail === thumbnail"
+                        (click)="selectThumbnail(thumbnail)"
+                        [attr.aria-pressed]="selectedThumbnail === thumbnail">
+                  <img [src]="getThumbnailUrl(thumbnail)" [alt]="'Miniatura ' + (i + 1)" />
+                  <span class="check" *ngIf="selectedThumbnail === thumbnail">✓</span>
+                </button>
+
+                <!-- custom upload slot -->
+                <label class="thumbnail-slot upload custom-upload" [class.has-preview]="localThumbnailPreview">
+                  <input type="file" accept="image/*" (change)="onThumbnailSelected($event)" />
+                  
+                  <!-- Preview de miniatura local -->
+                  <div *ngIf="localThumbnailPreview" class="thumbnail-preview">
+                    <img [src]="localThumbnailPreview" alt="Vista previa de miniatura" />
+                    <div class="preview-overlay">
+                      <span class="preview-text">Vista previa</span>
+                      <button type="button" class="remove-preview" (click)="clearLocalThumbnail(); $event.stopPropagation()">×</button>
+                    </div>
+                  </div>
+                  
+                  <!-- Estado por defecto -->
+                  <div *ngIf="!localThumbnailPreview" class="upload-content">
+                    <div class="plus">+</div>
+                    <div class="upload-text">Subir miniatura</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="field-info">Selecciona una miniatura sugerida o sube la tuya propia.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-column">
+        <section class="form-section">
+          <app-form-toggle
+            label="Contenido VIP"
+            formControlName="vip"
+            [options]="[{ value: 'no', label: 'Estándar' }, { value: 'si', label: 'VIP' }]"
+            [errors]="uploadForm.get('vip')?.errors ?? null"
+            [touched]="submitted">
+          </app-form-toggle>
+          <div class="field-error" *ngIf="uploadForm.get('vip')?.invalid && submitted" aria-live="polite">
+            Debe seleccionar si el contenido es VIP o no
+          </div>
+
+
+
+          <app-form-input
+            *ngIf="uploadForm.value.type === 'video'"
+            label="URL"
+            [required]="true"
+            formControlName="url"
+            placeholder="https://example.com/video.mp4"
+            [maxlength]="200"
+            [errors]="uploadForm.get('url')?.errors ?? null"
+            [touched]="submitted">
+          </app-form-input>
+          <div class="char-count" *ngIf="uploadForm.value.type === 'video'">{{ (uploadForm.get('url')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.urlLimit }}</div>
+
+          <div class="form-field" *ngIf="uploadForm.value.type === 'audio'">
+            <span class="field-label">Archivo <span class="required">*</span></span>
+            <div class="file-upload-area" [class.error-border]="fileError && submitted">
+              <input type="file" (change)="onFileSelected($event)" 
+                     [disabled]="audioUploading"
+                     accept="audio/*" />
+              <div class="upload-placeholder">
+                <!-- Estado normal - sin archivo -->
+                <p *ngIf="!file && !audioFileValidationError">
+                  Arrastra y suelta un archivo de audio aquí o haz click para seleccionar
+                  <br><small class="format-hint">Formatos de audio: MP3, WAV, AAC, OGG, FLAC (máx. 1MB)</small>
+                </p>
+                
+                <!-- Error de validación de archivo -->
+                <p *ngIf="audioFileValidationError" class="upload-status error">
+                  ⚠️ {{ audioFileValidationError }}
+                </p>
+                
+                <!-- Archivo seleccionado pero no subido -->
+                <p *ngIf="file && !uploadForm.value.audioUrl && !audioFileValidationError" class="upload-status selected">
+                  📁 Archivo seleccionado: {{ file.name }}
+                  <br><small>Se subirá al guardar el contenido</small>
+                </p>
+                
+                <!-- Archivo subido exitosamente -->
+                <p *ngIf="uploadForm.value.audioUrl && file" class="upload-status success">
+                  ✓ Archivo subido correctamente: {{ file.name }}
+                </p>
+                
+                <!-- Estado de error de subida -->
+                <p *ngIf="audioUploadError" class="upload-status error">
+                  ⚠️ {{ audioUploadError }}
+                </p>
+              </div>
+            </div>
+            <div class="field-error" *ngIf="fileError && submitted" aria-live="polite">{{ fileError }}</div>
+          </div>
+
+          <div class="form-field">
+            <span class="field-label">Tags <span class="required tags-asterisk">*</span></span>
+            <div class="tags-container" [class.error-border]="uploadForm.get('tags')?.invalid && submitted">
+              <div class="tags-display" *ngIf="tags.length > 0">
+                <span class="tag" *ngFor="let tag of tags; let i = index">
+                  {{ tag }}
+                  <button type="button" class="remove-tag" (click)="removeTag(i)">×</button>
+                </span>
+              </div>
+              <div class="tag-input-row">
+                <input type="text" [(ngModel)]="newTag" [ngModelOptions]="{standalone: true}" placeholder="Añadir tag" 
+                  (keydown.enter)="addTag()" aria-label="Nuevo tag" />
+                <button type="button" class="btn secondary small" (click)="addTag()">
+                  + Añadir
+                </button>
+              </div>
+              <div class="field-error" *ngIf="uploadForm.get('tags')?.invalid && submitted" aria-live="polite">
+                Debe agregar al menos un tag
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <app-form-input
+              label="Duración (minutos)"
+              [required]="true"
+              type="number"
+              formControlName="duration"
+              placeholder="Minutos"
+              [errors]="uploadForm.get('duration')?.errors ?? null"
+              [touched]="submitted">
+            </app-form-input>
+
+            <app-select-field 
+              label="Estado" 
+              formControlName="estado"
+              [hasError]="(uploadForm.get('estado')?.invalid ?? false) && submitted"
+              errorMessage="Estado es requerido">
+              <option value="">Seleccionar</option>
+              <option value="Publico">Publico</option>
+              <option value="Privado">Privado</option>
+            </app-select-field>
+          </div>
+
+          <!-- Video fields row -->
+          <div class="form-row" *ngIf="uploadForm.value.type === 'video'">
+            <app-select-field 
+              label="Resolución" 
+              formControlName="resolution"
+              [hasError]="!!resolutionError && submitted"
+              [errorMessage]="resolutionError || ''">
+              <option value="">Seleccionar</option>
+              <option value="1080p">1080p</option>
+              <option value="720p">720p</option>
+              <option value="480p">480p</option>
+            </app-select-field>
+
+            <app-select-field 
+              label="Restricción de edad" 
+              formControlName="ageRestriction"
+              [hasError]="(uploadForm.get('ageRestriction')?.invalid ?? false) && submitted"
+              errorMessage="Restricción de edad es requerida">
+              <option value="">Seleccionar</option>
+              <option value="+7">+7</option>
+              <option value="+13">+13</option>
+              <option value="+18">+18</option>
+            </app-select-field>
+          </div>
+
+          <!-- Audio fields -->
+          <div *ngIf="uploadForm.value.type === 'audio'">
+            <app-select-field 
+              label="Restricción de edad" 
+              formControlName="ageRestriction"
+              [hasError]="(uploadForm.get('ageRestriction')?.invalid ?? false) && submitted"
+              errorMessage="Restricción de edad es requerida">
+              <option value="">Seleccionar</option>
+              <option value="+7">+7</option>
+              <option value="+13">+13</option>
+              <option value="+18">+18</option>
+            </app-select-field>
+          </div>
+
+          <app-form-date
+            label="Disponible hasta"
+            formControlName="fechaExpiracion"
+            [errors]="uploadForm.get('fechaExpiracion')?.errors ?? null"
+            [touched]="uploadForm.get('fechaExpiracion')?.touched || submitted">
+          </app-form-date>
+        </section>
+      </div>
+
+      <!-- BUTTONS -->
+      <div class="form-actions">
+         <button class="btn secondary" (click)="cancel()" [disabled]="isUploading">Cancelar</button>
+         <button type="button" class="btn primary" (click)="upload()" [disabled]="isUploading">
+           <span *ngIf="!isUploading">Guardar contenido</span>
+           <span *ngIf="isUploading" class="uploading-state">
+             <span class="spinner"></span>
+             Subiendo archivos...
+           </span>
+         </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- SUCCESS MESSAGE -->
+  <div class="success-toast" 
+       [class.show]="showSuccessMessage" 
+       [class.hide]="hideSuccessMessage">
+    <div class="success-content">
+      <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Contenido subido correctamente</span>
+    </div>
+  </div>
+
+  <!-- THUMBNAIL SUCCESS MESSAGE -->
+  <div class="success-toast thumbnail-success" 
+       [class.show]="showThumbnailSuccessMessage" 
+       [class.hide]="hideThumbnailSuccessMessage">
+    <div class="success-content">
+      <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Miniatura cargada correctamente</span>
+    </div>
+  </div>
+</main>
+<app-footer />

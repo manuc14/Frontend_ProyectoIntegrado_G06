@@ -26,9 +26,8 @@ export class FormInputComponent implements ControlValueAccessor {
   @Input() subhint: string = '';
   @Input() errors: ValidationErrors | null = null;
   @Input() touched: boolean = false;
-
-  value: string = '';
-  disabled: boolean = false;
+  @Input() value: string = '';
+  @Input() disabled: boolean = false;
 
   onChange = (value: string) => {};
   onTouched = () => {};
@@ -60,5 +59,12 @@ export class FormInputComponent implements ControlValueAccessor {
 
   onBlur() {
     this.onTouched();
+  }
+
+  getErrorMessage(): string {
+    if (this.errors?.['required']) return `${this.label} es obligatorio.`;
+    if (this.errors?.['email']) return 'Formato de email inválido.';
+    if (this.errors?.['maxlength']) return `El ${this.label.toLowerCase()} no puede superar ${this.maxlength} caracteres.`;
+    return '';
   }
 }

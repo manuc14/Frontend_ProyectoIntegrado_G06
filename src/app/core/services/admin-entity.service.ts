@@ -95,11 +95,7 @@ export class AdminEntityService {
    */
   private handleError(operation: string, entityName: string, defaultMessage = 'Ha ocurrido un error inesperado') {
     return (error: HttpErrorResponse): Observable<never> => {
-      let userMessage = error.error?.details?.length > 0 ? error.error.details[0].message :
-                        error.error?.message ||
-                        defaultMessage;
-
-      return throwError(() => new Error(userMessage));
+      return throwError(() => error);
     };
   }  /**
    * Obtiene la lista completa de entidades para administración.
@@ -117,12 +113,15 @@ export class AdminEntityService {
   /**
    * Crea una nueva entidad.
    */
-  crearEntidad(tipo: keyof typeof this.entityConfigs, formData: FormData): Observable<any> {
+  crearEntidad(tipo: keyof typeof this.entityConfigs, data: any): Observable<any> {
     const config = this.entityConfigs[tipo];
-    const headers = new HttpHeaders({
+    let headers = new HttpHeaders({
       'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
     });
-    return this.http.post(`${this.base}/${config.endpoint}/crear`, formData, { headers }).pipe(
+    if (!(data instanceof FormData)) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    return this.http.post(`${this.base}/${config.endpoint}/crear`, data, { headers }).pipe(
       catchError(this.handleError(`crear ${config.entityName}`, config.entityName, `No se pudo crear el ${config.entityName}`))
     );
   }

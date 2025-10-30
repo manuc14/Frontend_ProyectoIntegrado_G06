@@ -191,7 +191,7 @@ export class FormBaseService {
    * Manejo unificado de errores del backend
    */
   handleBackendError(formId: string, form: FormGroup, error: any): void {
-    const payload = error?.originalError?.error ?? error?.error ?? {};
+    const payload = error?.error ?? {};
     const backendMessage: string | undefined = payload?.message;
     const details: Array<{ field: string; message: string }>|undefined = payload?.details;
 

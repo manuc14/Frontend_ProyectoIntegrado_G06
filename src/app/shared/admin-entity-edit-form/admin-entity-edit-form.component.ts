@@ -10,41 +10,14 @@ import { fadeIn } from '../../core/animations/animations';
 import { ModalHeaderComponent } from '../modal-header/modal-header.component';
 import { ErrorContainerComponent } from '../error-container/error-container.component';
 import { AvatarSelectorComponent } from '../avatar-selector/avatar-selector.component';
-import { InputFieldComponent } from '../input-field/input-field.component';
 import { TextAreaFieldComponent } from '../textarea-field/textarea-field.component';
 import { SelectFieldComponent } from '../select-field/select-field.component';
 import { ToggleBlockButtonComponent } from '../toggle-block-button/toggle-block-button.component';
 import { FormActionsComponent } from '../form-actions/form-actions.component';
 import { FormDateComponent } from '../form-components/form-date/form-date.component';
-
-export type EntityType = 'admin' | 'creator' | 'user';
-
-interface BaseEntityData {
-  nombre: string;
-  apellidos: string;
-  alias: string;
-  foto?: string;
-  activo: boolean;
-}
-
-interface AdminEntityData extends BaseEntityData {
-  correo: string; // Solo para mostrar, no editable
-  departamento: string;
-}
-
-interface CreatorEntityData extends BaseEntityData {
-  correo: string; // Solo para mostrar, no editable
-  descripcion: string;
-  especialidad: string;
-  tipoContenido: string; // Solo para mostrar, no editable
-}
-
-interface UserEntityData extends BaseEntityData {
-  correo: string; // Solo para mostrar, no editable
-  fechaNacimiento: string;
-}
-
-type EntityData = AdminEntityData | CreatorEntityData | UserEntityData;
+import { FormInputComponent } from '../form-components/form-input/form-input.component';
+import { EntityType, EntityData } from './entity-types';
+import { ENTITY_CONFIGS } from './entity-configs';
 
 @Component({
   selector: 'app-admin-entity-edit-form',
@@ -55,12 +28,12 @@ type EntityData = AdminEntityData | CreatorEntityData | UserEntityData;
     ModalHeaderComponent,
     ErrorContainerComponent,
     AvatarSelectorComponent,
-    InputFieldComponent,
     TextAreaFieldComponent,
     SelectFieldComponent,
     ToggleBlockButtonComponent,
     FormActionsComponent,
-    FormDateComponent
+    FormDateComponent,
+    FormInputComponent
   ],
   templateUrl: './admin-entity-edit-form.component.html',
   styleUrl: './admin-entity-edit-form.component.scss',
@@ -133,14 +106,8 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
     return (data as any)?.tipoContenido || '';
   }
 
-  // Opciones específicas
-  departamentos = [
-    'Operaciones','Seguridad','Marketing','Soporte','Recursos Humanos','Finanzas','Desarrollo','Legal'
-  ];
-
-  especialidades = [
-    'Música','Educación','Tecnología','Cocina','Deportes','Arte','Ciencia','Viajes'
-  ];
+  // Opciones específicas (hardcodeadas en template)
+  // departamentos y especialidades eliminadas ya que están en el template
 
   constructor(
     private router: Router,
@@ -177,30 +144,8 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
   }
 
   private createForm(): void {
-    const formConfig: Record<string, any> = {};
-
-    // Campos comunes
-    formConfig['nombre'] = '';
-    formConfig['apellidos'] = '';
-
-    // Campos específicos por tipo
-    switch (this.entityType) {
-      case 'admin':
-        formConfig['departamento'] = 'Operaciones';
-        break;
-      case 'creator':
-        formConfig['alias'] = '';
-        formConfig['descripcion'] = '';
-        formConfig['especialidad'] = 'Música';
-        formConfig['correo'] = ''; // Solo para mostrar, no editable
-        formConfig['tipoContenido'] = 'VIDEO'; // Solo para mostrar, no editable
-        break;
-      case 'user':
-        formConfig['fechaNacimiento'] = '';
-        break;
-    }
-
-    this.form = this.formBaseService.createFormGroup<EntityData>(formConfig, []);
+    const config = ENTITY_CONFIGS[this.entityType];
+    this.form = this.formBaseService.createFormGroup<EntityData>(config.formConfig, []);
   }
 
   private initializeEntity(): void {
@@ -238,34 +183,9 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
       creator: '/ad-creators',
       user: '/ad-users'
     };
-    this.router.navigate([routes[this.entityType]]);
-  }
-
-  private mapEntityToData(entity: any, type: EntityType): EntityData {
-    const base = {
-      nombre: entity.nombre ?? '',
-      apellidos: entity.apellidos ?? '',
-      alias: entity.alias ?? '',
-      correo: entity.correo ?? '',
-      foto: entity.foto ?? '',
-      activo: entity.activo ?? true
-    };
-
-    switch (type) {
-      case 'admin':
-        return { ...base, departamento: entity.departamento ?? 'Operaciones' } as AdminEntityData;
-      case 'creator':
-        return {
-          ...base,
-          descripcion: entity.descripcion ?? '',
-          especialidad: entity.especialidad ?? 'Música',
-          tipoContenido: entity.tipoContenido ?? 'VIDEO'
-        } as CreatorEntityData;
-      case 'user':
-        return { ...base, fechaNacimiento: entity.fechaNacimiento ?? '' } as UserEntityData;
-      default:
-        throw new Error(`Tipo de entidad desconocido: ${type}`);
-    }
+    this.router.navigate([routes[this.entityType]]).then(() => {
+      window.location.reload();
+    });
   }
 
   private loadEntity(listObservable: Observable<any[]>, errorMessage: string): void {
@@ -281,7 +201,8 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
           return;
         }
 
-        const entityData = this.mapEntityToData(entity, this.entityType);
+        const config = ENTITY_CONFIGS[this.entityType];
+        const entityData = config.mapEntityToData(entity);
 
         this.form.patchValue(entityData);
         this.formBaseService.updateFormState(`edit-${this.entityType}`, {
@@ -305,19 +226,10 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
   private loadEntityData(): void {
     this.formBaseService.updateFormState(`edit-${this.entityType}`, { isLoading: true });
 
-    const listMethods: Record<EntityType, () => Observable<any[]>> = {
-      admin: () => this.adminEntityService.listarAdministradores(),
-      creator: () => this.adminEntityService.listarCreadores(),
-      user: () => this.adminEntityService.listarUsuarios()
-    };
+    const config = ENTITY_CONFIGS[this.entityType];
+    const errorMessage = `${this.entityType.charAt(0).toUpperCase() + this.entityType.slice(1)} no encontrado`;
 
-    const errorMessages: Record<EntityType, string> = {
-      admin: 'Administrador no encontrado',
-      creator: 'Creador no encontrado',
-      user: 'Usuario no encontrado'
-    };
-
-    this.loadEntity(listMethods[this.entityType](), errorMessages[this.entityType]);
+    this.loadEntity(config.listMethod(this.adminEntityService), errorMessage);
   }
 
   onAvatarSelected(avatarUrl: string): void {
@@ -356,15 +268,10 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
     this.formBaseService.updateFormState(`edit-${this.entityType}`, { isSubmitting: true, error: null });
 
     const formValue = this.form.value;
-    const changes = this.prepareChanges(formValue, currentState.originalData, currentState.data.foto);
+    const changes = this.prepareChanges(formValue, currentState.originalData, currentState.data.foto, currentState.data.activo);
 
-    const editMethods: Record<EntityType, (id: string, changes: any) => Observable<any>> = {
-      admin: (id, ch) => this.adminEntityService.editarAdministrador(id, ch),
-      creator: (id, ch) => this.adminEntityService.editarCreador(id, ch),
-      user: (id, ch) => this.adminEntityService.editarUsuario(id, ch)
-    };
-
-    editMethods[this.entityType](this.entityId, changes).subscribe({
+    const config = ENTITY_CONFIGS[this.entityType];
+    config.editMethod(this.adminEntityService)(this.entityId, changes).subscribe({
       next: () => this.handleSaveSuccess(),
       error: (err: BackendErrorResponse) => this.handleSaveError(err)
     });
@@ -387,24 +294,19 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
     this.formBaseService.updateFormState(`edit-${this.entityType}`, { isSubmitting: false });
   }
 
-  private prepareChanges(currentData: any, originalData: any, currentFoto?: string): any {
-    const requiredFields: Record<EntityType, string[]> = {
-      admin: ['nombre', 'apellidos', 'departamento'],
-      creator: ['nombre', 'apellidos', 'descripcion', 'especialidad', 'alias'],
-      user: ['nombre', 'apellidos', 'fechaNacimiento']
-    };
-
+  private prepareChanges(currentData: any, originalData: any, currentFoto?: string, currentActivo?: boolean): any {
+    const config = ENTITY_CONFIGS[this.entityType];
     const nonEditableFields = ['correo', 'tipoContenido'];
 
     const changes: any = {};
 
     // Incluir campos obligatorios
-    requiredFields[this.entityType].forEach(field => {
+    config.requiredFields.forEach(field => {
       changes[field] = currentData[field];
     });
 
-    // Incluir activo del original
-    changes.activo = originalData.activo;
+    // Incluir activo del estado actual
+    changes.activo = currentActivo ?? originalData.activo;
 
     // Agregar campos que han cambiado (excluyendo no editables y foto)
     Object.keys(currentData)
@@ -414,10 +316,7 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
       });
 
     // Manejar foto
-    changes.foto = originalData.foto;
-    if (currentFoto && currentFoto !== originalData.foto) {
-      changes.foto = this.formBaseService.extractImageFileName(currentFoto);
-    }
+    changes.foto = this.formBaseService.extractImageFileName(currentFoto ?? originalData.foto);
 
     return changes;
   }

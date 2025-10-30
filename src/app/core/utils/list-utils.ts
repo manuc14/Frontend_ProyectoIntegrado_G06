@@ -1,11 +1,25 @@
 export function getActiveFilters(filterGroups: any[]): any[] {
-  const activeFilters: any[] = [];
-  filterGroups.forEach(group => {
-    (group?.filters || []).forEach((filter: any) => {
-      if (filter?.active) activeFilters.push({ ...filter, groupId: group.id });
-    });
+  return filterGroups.flatMap(group =>
+    (group?.filters || [])
+      .filter((filter: any) => filter?.active)
+      .map((filter: any) => ({ ...filter, groupId: group.id }))
+  );
+}
+
+function matchesFilters(item: any, activeFilters: any[], matchFilter?: (item: any, filter: any) => boolean): boolean {
+  return activeFilters.every(filter => matchFilter ? matchFilter(item, filter) : true);
+}
+
+function matchesSearch(item: any, term: string, searchFields: string[]): boolean {
+  if (!term) return true;
+  return searchFields.some(field => {
+    try {
+      const value = item[field] ?? '';
+      return String(value).toLowerCase().includes(term);
+    } catch {
+      return false;
+    }
   });
-  return activeFilters;
 }
 
 /**
@@ -18,26 +32,20 @@ export function getActiveFilters(filterGroups: any[]): any[] {
  */
 export function filterAndSearch(items: any[], activeFilters: any[], searchTerm: string, searchFields: string[], matchFilter?: (item: any, filter: any) => boolean): any[] {
   const term = (searchTerm || '').toLowerCase().trim();
-    return (items || []).filter(item => {
-    if (activeFilters && activeFilters.length > 0) {
-      const ok = activeFilters.every(filter => {
-        if (matchFilter) return matchFilter(item, filter);
-        return true;
-      });
-      if (!ok) return false;
-    }
+  return (items || []).filter(item =>
+    matchesFilters(item, activeFilters, matchFilter) && matchesSearch(item, term, searchFields)
+  );
+}
 
-    if (!term) return true;
+function compareValues(a: any, b: any, dir: number): number {
+  const va = a ?? '';
+  const vb = b ?? '';
 
-    return searchFields.some(field => {
-      try {
-        const value = item[field] ?? '';
-        return String(value).toLowerCase().includes(term);
-      } catch {
-        return false;
-      }
-    });
-  });
+  if (typeof va === 'number' && typeof vb === 'number') {
+    return (va - vb) * dir;
+  }
+
+  return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
 }
 
 /**
@@ -47,16 +55,7 @@ export function applySorting(items: any[], sortOption: any, getSortValueFn: (ite
   if (!sortOption) return items;
   const dir = sortOption.direction === 'asc' ? 1 : -1;
 
-  return (items || []).sort((a: any, b: any) => {
-    const va = getSortValueFn(a) ?? '';
-    const vb = getSortValueFn(b) ?? '';
-
-    // If both are numbers, compare numerically
-    if (typeof va === 'number' && typeof vb === 'number') {
-      return (va - vb) * dir;
-    }
-
-    // Otherwise, compare as strings
-    return String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' }) * dir;
-  });
+  return (items || []).sort((a: any, b: any) =>
+    compareValues(getSortValueFn(a), getSortValueFn(b), dir)
+  );
 }
