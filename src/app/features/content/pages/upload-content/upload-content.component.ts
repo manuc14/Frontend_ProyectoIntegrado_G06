@@ -55,74 +55,43 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   // Formulario reactivo
   uploadForm!: FormGroup;
-  formId: string = 'upload-content';
+  formId = 'upload-content';
 
   // Estado centralizado
-  private currentFormState: any = {};
-
-  // Propiedades calculadas para compatibilidad con template
-  get thumbnails(): string[] {
-    return this.currentFormState?.imageState?.images || [];
-  }
-
-  get selectedThumbnail(): string {
-    return this.currentFormState?.imageState?.selectedImage || '';
-  }
-
-  get loadingThumbnails(): boolean {
-    return this.currentFormState?.imageState?.loading || false;
-  }
-
-  get thumbnailLoadError(): boolean {
-    return this.currentFormState?.imageState?.error || false;
-  }
-
-  get selectedThumbnailUrl(): string | null {
-    return this.currentFormState?.imageState?.selectedImageUrl || null;
-  }
-
-  get isSubmitting(): boolean {
-    return this.currentFormState?.isSubmitting || false;
-  }
-
-  get formError(): string | null {
-    return this.currentFormState?.error || null;
-  }
+  currentFormState: any = {};
 
   // Current user
   currentUser: BackendUser | null = null;
 
-  // Thumbnail local
-  localThumbnailUrl: string | null = null;
-  localThumbnailFile: File | null = null;
-  localThumbnailPreview: string | null = null;
-
-  // Propiedades adicionales para compatibilidad con template
+  // Archivos
   file: File | null = null;
-  audioUploading = false;
+  localThumbnailFile: File | null = null;
+  localThumbnailUrl: string | null = null;
+
+  // Validación
   audioFileValidationError: string | null = null;
-  audioUploadError: string | null = null;
-  isUploading = false;
-  showSuccessMessage = false;
-  hideSuccessMessage = false;
-  showThumbnailSuccessMessage = false;
-  hideThumbnailSuccessMessage = false;
-
-  // Errores del template
-  fileError: string | null = null;
-  resolutionError: string | null = null;
-
-  // Estados de UI
+  thumbnailValidationError: string | null = null;
   submitted = false;
 
   // Tags
   tags: string[] = [];
   newTag = '';
 
-  // Fechas
+  // UI state
+  showSuccessMessage = false;
+  hideSuccessMessage = false;
   minDate = '';
 
   private imageStateSubscription?: Subscription;
+
+  // Getters simplificados
+  get thumbnails() { return this.currentFormState?.imageState?.images || []; }
+  get selectedThumbnail() { return this.currentFormState?.imageState?.selectedImage || ''; }
+  get loadingThumbnails() { return this.currentFormState?.imageState?.loading || false; }
+  get thumbnailLoadError() { return this.currentFormState?.imageState?.error || false; }
+  get selectedThumbnailUrl() { return this.currentFormState?.imageState?.selectedImageUrl || null; }
+  get isSubmitting() { return this.currentFormState?.isSubmitting || false; }
+  get formError() { return this.currentFormState?.error || null; }
 
   // Métodos simplificados para el formulario
 
@@ -154,7 +123,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   clearLocalThumbnail(): void {
     this.localThumbnailUrl = null;
     this.localThumbnailFile = null;
-    this.localThumbnailPreview = null;
+    this.thumbnailValidationError = null;
   }
 
   async onFileSelected(event: Event) {
@@ -191,24 +160,47 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     // Archivo válido
     this.file = file;
     this.audioFileValidationError = null;
-    this.audioUploadError = null;
     this.uploadForm.patchValue({ audioUrl: '' });
   }
 
   onThumbnailSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (file) {
-      this.localThumbnailFile = file;
-      // Crear preview URL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.localThumbnailPreview = e.target?.result as string;
-        this.localThumbnailUrl = this.localThumbnailPreview;
-        this.imageSelectorService.selectLocalImage(this.localThumbnailUrl);
-      };
-      reader.readAsDataURL(file);
+    
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const allowedTypes = UPLOAD_FILE_TYPES.image;
+    if (!(allowedTypes as readonly string[]).includes(file.type)) {
+      this.thumbnailValidationError = 'Formato no válido. Permitidos: JPEG, PNG';
+      this.localThumbnailFile = null;
+      this.localThumbnailUrl = null;
+      input.value = '';
+      return;
     }
+
+    // Validar tamaño (5MB máximo para imágenes)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      this.thumbnailValidationError = 'Imagen demasiado grande. Máximo: 5MB';
+      this.localThumbnailFile = null;
+      this.localThumbnailUrl = null;
+      input.value = '';
+      return;
+    }
+
+    // Archivo válido
+    this.thumbnailValidationError = null;
+    this.localThumbnailFile = file;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.localThumbnailUrl = e.target?.result as string;
+      if (this.localThumbnailUrl) {
+        this.imageSelectorService.selectLocalImage(this.localThumbnailUrl);
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   async upload() {
@@ -241,7 +233,14 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       await firstValueFrom(this.api.createContent(payload));
       this.handleUploadSuccess();
     } catch (error: any) {
-      this.formBaseService.handleBackendError(this.formId, this.uploadForm, error);
+      // Distinguir entre errores de validación del frontend y errores del backend
+      if (error instanceof Error && !error.message.includes('HTTP') && !error.message.includes('status')) {
+        // Error de validación del frontend (uploadService) - mostrar directamente
+        this.formBaseService.updateFormState(this.formId, { error: error.message });
+      } else {
+        // Error del backend - procesar con handleBackendError
+        this.formBaseService.handleBackendError(this.formId, this.uploadForm, error);
+      }
     } finally {
       this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
     }
@@ -269,7 +268,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   private async uploadFilesIfNeeded(): Promise<{audioUrl?: string, thumbnailUrl?: string}> {
     const result: {audioUrl?: string, thumbnailUrl?: string} = {};
 
-    // Subir archivo de audio si existe
+    // Subir archivo de audio si existe (el servicio ya valida)
     if (this.file) {
       const audioResponse = await firstValueFrom(this.uploadService.uploadFile(this.file, 'audio'));
       if (!audioResponse?.url) {
@@ -278,7 +277,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       result.audioUrl = audioResponse.url;
     }
 
-    // Subir thumbnail local si existe
+    // Subir thumbnail local si existe (el servicio ya valida)
     if (this.localThumbnailFile) {
       const thumbnailResponse = await firstValueFrom(this.uploadService.uploadFile(this.localThumbnailFile, 'thumbnail'));
       if (!thumbnailResponse?.url) {
@@ -312,18 +311,14 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   }
 
   private handleUploadSuccess(): void {
-    // Mostrar mensaje de éxito
     this.showSuccessMessage = true;
     this.hideSuccessMessage = false;
     
-    // Ocultar el mensaje después de 3 segundos y navegar
     setTimeout(() => {
       this.hideSuccessMessage = true;
       setTimeout(() => {
-        this.showSuccessMessage = false;
-        // Navegar de vuelta al content-creator
         this.router.navigate(['/content-creator']);
-      }, 300); // Tiempo para la animación de ocultar
+      }, 300);
     }, 3000);
   }
 

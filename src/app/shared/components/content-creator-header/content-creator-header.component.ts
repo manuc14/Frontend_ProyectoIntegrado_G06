@@ -4,6 +4,7 @@ import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 import { ImageSelectorService } from '../../../core/services/image-selector.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { HeaderBase } from '../../../core/base/header.base';
 
 @Component({
@@ -21,7 +22,8 @@ export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit 
     router: Router,
     activatedRoute: ActivatedRoute,
     apiService: ApiService,
-    imageSelectorService: ImageSelectorService
+    imageSelectorService: ImageSelectorService,
+    private authService: AuthService
   ) {
     super();
     this.router = router;
@@ -30,7 +32,10 @@ export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit 
   }
 
   ngOnInit() {
-    super.loadCurrentUser();
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.currentUser = user as any;
+    }
     this.checkCurrentRoute();
 
     // Suscribirse a cambios de ruta
@@ -50,6 +55,6 @@ export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit 
   }
 
   override logout() {
-    super.logout();
+    this.authService.logout(true);
   }
 }

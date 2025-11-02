@@ -5,6 +5,7 @@ import { filter } from 'rxjs/operators';
 import { navActiveState, navHover, fadeIn } from '../../core/animations/animations';
 import { ApiService } from '../../core/services/api.service';
 import { ImageSelectorService } from '../../core/services/image-selector.service';
+import { AuthService } from '../../core/services/auth.service';
 import { HeaderBase } from '../../core/base/header.base';
 
 /*
@@ -27,6 +28,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   private renderer = inject(Renderer2);
   protected override apiService = inject(ApiService);
   protected override imageSelectorService = inject(ImageSelectorService);
+  private authService = inject(AuthService);
   currentRoute = '';
   isMenuOpen = false;
   hasScrolled = false; // Una vez que se hace scroll, se mantiene true
@@ -38,6 +40,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
     this.router = inject(Router);
     this.apiService = inject(ApiService);
     this.imageSelectorService = inject(ImageSelectorService);
+    this.authService = inject(AuthService);
 
     // Obtener la ruta inicial
     this.currentRoute = this.router.url;
@@ -52,6 +55,8 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
         this.checkIfHomePage();
         this.updateLogoVisibility();
         this.updateBodyClass();
+        // Revalidar sesión en cada cambio de ruta
+        this.checkSession();
       });
   }
 
@@ -73,33 +78,37 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   }
 
   /**
-   * Verifica si hay una sesión activa
+   * Verifica si hay una sesión activa usando AuthService
    */
   private checkSession() {
-    const token = sessionStorage.getItem('authToken');
-    const userData = sessionStorage.getItem('currentUser');
-    this.isLoggedIn = !!(token && userData);
-    if (this.isLoggedIn && userData) {
-      this.loadCurrentUser();
+    this.isLoggedIn = this.authService.isAuthenticated();
+    if (this.isLoggedIn) {
+      const user = this.authService.getCurrentUser();
+      if (user) {
+        this.currentUser = user;
+      }
     } else {
       this.currentUser = null;
     }
   }
 
   override getAvatarUrl(): string {
-    if (this.currentUser?.foto) {
-      return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
+    // Intentar con 'foto' (campo del backend)
+    const fotoUrl = this.currentUser?.foto;
+    if (fotoUrl) {
+      return this.imageSelectorService.getFullImageUrl(fotoUrl, 'avatar');
     }
     return 'assets/admin/admin_default.png';
   }
 
 
   /**
-   * Cierra la sesión del usuario
+   * Cierra la sesión del usuario usando AuthService
    */
   override logout() {
-    super.logout();
+    this.authService.logout(true);
     this.isLoggedIn = false;
+    this.currentUser = null;
   }
 
   /**

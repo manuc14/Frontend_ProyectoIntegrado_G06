@@ -191,7 +191,7 @@ export abstract class AdminListBase<T> implements OnInit {
   trackByItemId = (index: number, item: T): string => this.getItemId(item);
 
   getNoResultsMessage(): string {
-    return this.error || 'No se encontraron resultados para estos parámetros';
+    return this.error ?? 'No se encontraron resultados para estos parámetros';
   }
 
   getClearButtonText(): string {

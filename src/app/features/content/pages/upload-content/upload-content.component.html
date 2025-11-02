@@ -57,12 +57,12 @@
                 </button>
 
                 <!-- custom upload slot -->
-                <label class="thumbnail-slot upload custom-upload" [class.has-preview]="localThumbnailPreview">
+                <label class="thumbnail-slot upload custom-upload" [class.has-preview]="localThumbnailUrl">
                   <input type="file" accept="image/*" (change)="onThumbnailSelected($event)" />
                   
                   <!-- Preview de miniatura local -->
-                  <div *ngIf="localThumbnailPreview" class="thumbnail-preview">
-                    <img [src]="localThumbnailPreview" alt="Vista previa de miniatura" />
+                  <div *ngIf="localThumbnailUrl" class="thumbnail-preview">
+                    <img [src]="localThumbnailUrl" alt="Vista previa de miniatura" />
                     <div class="preview-overlay">
                       <span class="preview-text">Vista previa</span>
                       <button type="button" class="remove-preview" (click)="clearLocalThumbnail(); $event.stopPropagation()">×</button>
@@ -70,11 +70,16 @@
                   </div>
                   
                   <!-- Estado por defecto -->
-                  <div *ngIf="!localThumbnailPreview" class="upload-content">
+                  <div *ngIf="!localThumbnailUrl" class="upload-content">
                     <div class="plus">+</div>
                     <div class="upload-text">Subir miniatura</div>
                   </div>
                 </label>
+              </div>
+
+              <!-- Error de validación de miniatura -->
+              <div class="field-error" *ngIf="thumbnailValidationError" aria-live="polite">
+                 {{ thumbnailValidationError }}
               </div>
 
               <div class="field-info">Selecciona una miniatura sugerida o sube la tuya propia.</div>
@@ -113,15 +118,15 @@
 
           <div class="form-field" *ngIf="uploadForm.value.type === 'audio'">
             <span class="field-label">Archivo <span class="required">*</span></span>
-            <div class="file-upload-area" [class.error-border]="fileError && submitted">
+            <div class="file-upload-area" [class.error-border]="audioFileValidationError && submitted">
               <input type="file" (change)="onFileSelected($event)" 
-                     [disabled]="audioUploading"
+                     [disabled]="isSubmitting"
                      accept="audio/*" />
               <div class="upload-placeholder">
                 <!-- Estado normal - sin archivo -->
                 <p *ngIf="!file && !audioFileValidationError">
                   Arrastra y suelta un archivo de audio aquí o haz click para seleccionar
-                  <br><small class="format-hint">Formatos de audio: MP3, WAV, AAC, OGG, FLAC (máx. 1MB)</small>
+                  <br><small class="format-hint">Formatos de audio: MP3, WAV, AAC, OGG, FLAC (máx. {{ UPLOAD_LIMITS.fileMaxSizeMB }}MB)</small>
                 </p>
                 
                 <!-- Error de validación de archivo -->
@@ -129,24 +134,13 @@
                   ⚠️ {{ audioFileValidationError }}
                 </p>
                 
-                <!-- Archivo seleccionado pero no subido -->
-                <p *ngIf="file && !uploadForm.value.audioUrl && !audioFileValidationError" class="upload-status selected">
+                <!-- Archivo seleccionado -->
+                <p *ngIf="file && !audioFileValidationError" class="upload-status selected">
                   📁 Archivo seleccionado: {{ file.name }}
                   <br><small>Se subirá al guardar el contenido</small>
                 </p>
-                
-                <!-- Archivo subido exitosamente -->
-                <p *ngIf="uploadForm.value.audioUrl && file" class="upload-status success">
-                  ✓ Archivo subido correctamente: {{ file.name }}
-                </p>
-                
-                <!-- Estado de error de subida -->
-                <p *ngIf="audioUploadError" class="upload-status error">
-                  ⚠️ {{ audioUploadError }}
-                </p>
               </div>
             </div>
-            <div class="field-error" *ngIf="fileError && submitted" aria-live="polite">{{ fileError }}</div>
           </div>
 
           <div class="form-field">
@@ -198,8 +192,8 @@
             <app-select-field 
               label="Resolución" 
               formControlName="resolution"
-              [hasError]="!!resolutionError && submitted"
-              [errorMessage]="resolutionError || ''">
+              [hasError]="(uploadForm.get('resolution')?.invalid ?? false) && submitted"
+              errorMessage="Resolución es requerida">
               <option value="">Seleccionar</option>
               <option value="1080p">1080p</option>
               <option value="720p">720p</option>
@@ -243,10 +237,10 @@
 
       <!-- BUTTONS -->
       <div class="form-actions">
-         <button class="btn secondary" (click)="cancel()" [disabled]="isUploading">Cancelar</button>
-         <button type="button" class="btn primary" (click)="upload()" [disabled]="isUploading">
-           <span *ngIf="!isUploading">Guardar contenido</span>
-           <span *ngIf="isUploading" class="uploading-state">
+         <button class="btn secondary" (click)="cancel()" [disabled]="isSubmitting">Cancelar</button>
+         <button type="button" class="btn primary" (click)="upload()" [disabled]="isSubmitting">
+           <span *ngIf="!isSubmitting">Guardar contenido</span>
+           <span *ngIf="isSubmitting" class="uploading-state">
              <span class="spinner"></span>
              Subiendo archivos...
            </span>
@@ -264,18 +258,6 @@
         <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span>Contenido subido correctamente</span>
-    </div>
-  </div>
-
-  <!-- THUMBNAIL SUCCESS MESSAGE -->
-  <div class="success-toast thumbnail-success" 
-       [class.show]="showThumbnailSuccessMessage" 
-       [class.hide]="hideThumbnailSuccessMessage">
-    <div class="success-content">
-      <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>Miniatura cargada correctamente</span>
     </div>
   </div>
 </main>

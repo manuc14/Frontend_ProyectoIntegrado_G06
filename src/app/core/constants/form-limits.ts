@@ -19,5 +19,5 @@ export const UPLOAD_LIMITS = {
 export const UPLOAD_FILE_TYPES = {
   audio: ['audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp3'],
   video: ['video/mp4', 'video/webm', 'video/ogg'],
-  image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  image: ['image/jpeg', 'image/png']
 } as const;

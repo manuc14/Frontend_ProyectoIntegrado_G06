@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './features/home/pages/home/home.component';
 import { RegisterComponent } from './features/auth/pages/register/register.component';
 import { LoginComponent } from './features/auth/pages/login/login.component';
+import { authGuard, publicGuard } from './core/guards/auth.guard';
 
 // Administración de Usuarios
 import { AdminUsersPage } from './features/admin/pages/ad-users/ad-users.component';
@@ -29,27 +30,32 @@ import { NewPasswordPage } from './features/auth/pages/new-password/new-password
 
 export const routes: Routes = [
 	{ path: '', component: HomeComponent },
-	{ path: 'signup', component: RegisterComponent },
-	{ path: 'login', component: LoginComponent },
-	{ path: 'verify-email', component: VerifyEmailPage },
-	{ path: 'verify-code', component: VerifyCodePage },
+	{ path: 'signup', component: RegisterComponent, canActivate: [publicGuard] },
+	{ path: 'login', component: LoginComponent, canActivate: [publicGuard] },
+	{ path: 'verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
+	{ path: 'verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
 
-	{ path: 'ad-users', component: AdminUsersPage },
-  { path: 'ad-users-edit/:id', component: AdminUsersEditPage },
+	// Rutas de Admin (protegidas)
+	{ path: 'ad-users', component: AdminUsersPage, canActivate: [authGuard] },
+  { path: 'ad-users-edit/:id', component: AdminUsersEditPage, canActivate: [authGuard] },
 
-  { path: 'ad-admin', component: AdminAdmsPage },
-  { path: 'ad-admin-add', component: AdminAdmsAddPage },
-  { path: 'ad-admin-edit/:id', component: AdminAdmsEditPage },
+  { path: 'ad-admin', component: AdminAdmsPage, canActivate: [authGuard] },
+  { path: 'ad-admin-add', component: AdminAdmsAddPage, canActivate: [authGuard] },
+  { path: 'ad-admin-edit/:id', component: AdminAdmsEditPage, canActivate: [authGuard] },
 
-  { path: 'ad-creators', component: AdminCreatorsPage },
-  { path: 'ad-creators-add', component: AdminCreatorsAddPage },
-  { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage },
+  { path: 'ad-creators', component: AdminCreatorsPage, canActivate: [authGuard] },
+  { path: 'ad-creators-add', component: AdminCreatorsAddPage, canActivate: [authGuard] },
+  { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage, canActivate: [authGuard] },
 
-	{ path: 'content-creator', component: ContentCreatorComponent },
-	{ path: 'upload-content', component: UploadContentComponent },
+	// Rutas de Creator (protegidas)
+	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },
+	{ path: 'upload-content', component: UploadContentComponent, canActivate: [authGuard] },
 	
-	{ path: 'catalog', component: CatalogPage },
-	{ path: 'forgot-password', component: ForgotPasswordPage },
-	{ path: 'reset-password-code', component: ResetPasswordCodePage },
-	{ path: 'new-password', component: NewPasswordPage },
+	// Rutas de User (protegidas)
+	{ path: 'catalog', component: CatalogPage, canActivate: [authGuard] },
+	
+	// Rutas de recuperación de contraseña (públicas)
+	{ path: 'forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
+	{ path: 'reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
+	{ path: 'new-password', component: NewPasswordPage, canActivate: [publicGuard] },
 ];

@@ -4,6 +4,7 @@ import { slideInFromTop } from '../../../core/animations/animations';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { ImageSelectorService } from '../../../core/services/image-selector.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { HeaderBase } from '../../../core/base/header.base';
 
 @Component({
@@ -21,7 +22,8 @@ export class AdminHeaderComponent extends HeaderBase implements OnInit {
   constructor(
     router: Router,
     apiService: ApiService,
-    imageSelectorService: ImageSelectorService
+    imageSelectorService: ImageSelectorService,
+    private authService: AuthService
   ) {
     super();
     this.router = router;
@@ -30,7 +32,10 @@ export class AdminHeaderComponent extends HeaderBase implements OnInit {
   }
 
   ngOnInit() {
-    super.loadCurrentUser();
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.currentUser = user as any;
+    }
   }
 
   onToggle() {
@@ -38,6 +43,6 @@ export class AdminHeaderComponent extends HeaderBase implements OnInit {
   }
 
   override logout() {
-    super.logout();
+    this.authService.logout(true);
   }
 }

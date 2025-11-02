@@ -1,9 +1,9 @@
 import { Router } from '@angular/router';
-import { BackendUser, ApiService } from '../services/api.service';
+import { ApiService } from '../services/api.service';
 import { ImageSelectorService } from '../services/image-selector.service';
 
 export abstract class HeaderBase {
-  currentUser: BackendUser | null = null;
+  currentUser: any = null; // Flexible para BackendUser o CurrentUser
   protected router!: Router;
   protected apiService!: ApiService;
   protected imageSelectorService!: ImageSelectorService;
