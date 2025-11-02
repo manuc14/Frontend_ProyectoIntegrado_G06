@@ -36,121 +36,71 @@ export class ContentCreatorComponent implements OnInit {
   recentEdits: RecentEdit[] = [];
 
   ngOnInit(): void {
-    this.loadContentLists();
-    this.loadRecentEdits();
-  }
-
-  /**
-   * Carga las listas de contenido del usuario
-   */
-  loadContentLists(): void {
-    // Mock data - reemplazar con llamada al API
-    // Por defecto, no hay listas creadas
+    // Mock data - por defecto vacío hasta integrar con API
     this.contentLists = [];
-  }
-
-  /**
-   * Carga las ediciones recientes
-   */
-  loadRecentEdits(): void {
-    // Mock data - reemplazar con llamada al API
-    // Por defecto, no hay ediciones recientes
     this.recentEdits = [];
   }
 
-  /**
-   * Navega a la página de subida de contenido
-   */
+  /* Navega a diferentes páginas */
   navigateToUpload(): void {
     this.router.navigate(['/upload-content']);
   }
 
-  /**
-   * Navega a la página de inicio
-   */
   navigateToHome(): void {
     this.router.navigate(['/']);
   }
 
-  /**
-   * Crea una nueva lista de contenido
-   */
+  /* Crea una nueva lista de contenido */
   createNewList(): void {
     const listName = prompt('Nombre de la nueva lista:');
     if (listName) {
-      const newList: ContentList = {
+      this.contentLists.push({
         id: Date.now().toString(),
         title: listName,
         cover: '/assets/brand/logo.svg',
         itemCount: 0
-      };
-      this.contentLists.push(newList);
+      });
     }
   }
 
-  /**
-   * Comienza a editar un nuevo video/audio
-   */
+  /* Comienza a editar un nuevo video/audio */
   startEditing(): void {
     const title = prompt('Título del nuevo contenido:');
     if (title) {
-      const newEdit: RecentEdit = {
+      this.recentEdits.unshift({
         id: Date.now().toString(),
         title: title,
         thumbnail: '/assets/brand/logo.svg',
         lastEdited: new Date()
-      };
-      this.recentEdits.unshift(newEdit); // Agregar al inicio
+      });
       alert(`¡Contenido "${title}" agregado a ediciones recientes!`);
     }
   }
 
-  /**
-   * Edita contenido específico
-   */
+  /* Funcionalidad de edición, vista y gestión de contenido */
   editContent(contentId: string): void {
-    if (contentId) {
-      alert(`Editando contenido: ${contentId}`);
-    } else {
-      alert('Funcionalidad de edición general en desarrollo');
-    }
+    alert(contentId ? `Editando contenido: ${contentId}` : 'Funcionalidad de edición general en desarrollo');
   }
 
-  /**
-   * Muestra las listas del usuario
-   */
   viewMyLists(): void {
     alert('Navegando a mis listas');
   }
 
-  /**
-   * Muestra las estadísticas del canal
-   */
   viewStatistics(): void {
     alert('Navegando a estadísticas');
   }
 
-  /**
-   * Elimina listas seleccionadas
-   */
+  createPublication(): void {
+    alert('Funcionalidad de crear publicación en desarrollo');
+  }
+
   deleteLists(): void {
     if (this.contentLists.length === 0) {
       alert('No hay listas para eliminar');
-      return;
-    }
-
-    if (confirm('¿Estás seguro de que quieres eliminar listas?')) {
-      // Por simplicidad, eliminaremos la última lista
+    } else if (confirm('¿Estás seguro de que quieres eliminar listas?')) {
       this.contentLists.pop();
       alert('Lista eliminada correctamente');
     }
-  }
-
-  /**
-   * Crea una nueva publicación
-   */
-  createPublication(): void {
-    alert('Funcionalidad de crear publicación en desarrollo');
   }
 
   /**

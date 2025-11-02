@@ -3,13 +3,13 @@
     <div class="background-border-shadow">
       <app-modal-header [titulo]="titulo" (cerrar)="cancel()"></app-modal-header>
 
-      <app-error-container [error]="error"></app-error-container>
+      <app-error-container [error]="(formState$ | async)?.error || null"></app-error-container>
 
       <form [formGroup]="form" (ngSubmit)="saveChanges()">
         <div class="container2">
           <app-avatar-selector
-            [availableAvatars]="availableAvatars"
-            [selectedAvatar]="selectedAvatar"
+            [availableAvatars]="getAvailableAvatars(formState$ | async)"
+            [selectedAvatar]="(formState$ | async)?.imageState?.selectedImageUrl || ''"
             [nombre]="form.get('nombre')?.value"
             (avatarSelected)="onAvatarSelected($event)">
           </app-avatar-selector>
@@ -34,7 +34,7 @@
             <!-- Campo email readonly para los distintos tipos de entidad -->
             <app-form-input
               label="Email"
-              [value]="entityCorreo"
+              [value]="getEntityField(formState$ | async, 'correo')"
               placeholder="Email"
               [disabled]="true"
               class="readonly-field">
@@ -69,7 +69,7 @@
 
               <app-form-input
                 label="Tipo de Contenido"
-                [value]="creatorTipoContenido"
+                [value]="getEntityField(formState$ | async, 'tipoContenido')"
                 placeholder="Tipo de Contenido"
                 [disabled]="true"
                 class="readonly-field">
@@ -107,11 +107,11 @@
 
         <div class="horizontal-border">
           <app-toggle-block-button
-            [activo]="isActivo"
+            [activo]="getEntityField(formState$ | async, 'activo')"
             (toggle)="toggleActive()">
           </app-toggle-block-button>
           <app-form-actions
-            [isSaving]="isSaving"
+            [isSaving]="(formState$ | async)?.isSubmitting || false"
             (cancelar)="cancel()"
             (guardar)="saveChanges()">
           </app-form-actions>

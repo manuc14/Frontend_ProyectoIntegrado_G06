@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { AdminEntityEditFormComponent } from '../../../../shared/admin-entity-edit-form/admin-entity-edit-form.component';
+import { AdminEntityEditFormComponent } from '../../../../../shared/admin-entity-edit-form/admin-entity-edit-form.component';
 
 @Component({
   selector: 'app-ad-creators-edit',

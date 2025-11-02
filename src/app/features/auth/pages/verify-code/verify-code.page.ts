@@ -17,20 +17,12 @@ import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
-  /*
- * VerifyCodePage
- * Formulario interactivo para introducción de código de verificación de 6 dígitos.
- * Incluye navegación automática entre campos, soporte para pegado y validación.
- * Maneja el flujo completo de verificación de cuenta de usuario usando token de verificación.
- */
   readonly token = signal<string>('');
   isLoading = false;
   errorMessage = '';
-  // Reenvío de código
   resendDisabled = false;
   resendCountdown = 0;
   private resendTimer: any;
-  // Estados separados para cada operación
   isVerifying = false;
   isResending = false;
   successMessage = '';
@@ -41,15 +33,9 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Obtener token desde el query parameter estándar ?token=valor
     const tokenParam = this.route.snapshot.queryParamMap.get('token');
     this.token.set(tokenParam ?? '');
     
-    this.initializeTokenValidation();
-  }
-
-  private initializeTokenValidation() {
-    // Si no hay token, redirigir al registro
     if (!this.token()) {
       this.router.navigate(['/signup']);
       return;
@@ -59,24 +45,19 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
     this.api.validateVerificationToken(this.token()).subscribe({
       next: (response) => {
         if (!response.exists) {
-          // Token inválido o sesión no existe
           this.router.navigate(['/signup']);
         }
-        // Si exists=true, permitir continuar independientemente de verified
       },
       error: () => {
-        // Token inválido o error de servidor
         this.router.navigate(['/signup']);
       }
     });
   }
 
-  /* Envía el código para verificación usando el token y navega a la página de confirmación. */
+  /* Envía el código para verificación usando el token */
   onVerify() {
     if (!this.canVerify || this.isVerifying) {
-      if (!this.canVerify) {
-        this.triggerShakeError();
-      }
+      if (!this.canVerify) this.triggerShakeError();
       return;
     }
     
@@ -86,22 +67,17 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
     this.hasError = false;
     this.buttonState = 'pressed';
     
-    // Llamada al nuevo endpoint con token
     this.api.verifyUserWithToken(this.token(), this.code).subscribe({
-      next: (response: any) => {
-        console.log('Verificación exitosa:', response);
-        // Redirigir a la página de confirmación tras verificación exitosa
-        // Usamos el token original que sigue siendo válido
+      next: () => {
         this.router.navigate(['/login']);
       },
       error: (error: any) => {
-        console.error('Error en verificación:', error);
-        this.errorMessage = error.message || 'Código de verificación incorrecto';
+        // Extraer mensaje del error procesado por el interceptor
+        this.errorMessage = error?.error?.message || error?.message || 'Código de verificación incorrecto';
         this.hasError = true;
         this.isVerifying = false;
         this.buttonState = 'normal';
         this.triggerShakeError();
-        // Limpiar inputs en caso de error
         this.clearCodeInputs();
       },
       complete: () => {
@@ -111,7 +87,7 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
     });
   }
 
-  /* Reenvía un nuevo código de verificación usando el token actual. */
+  /* Reenvía un nuevo código de verificación usando el token actual */
   onResendCode() {
     if (this.isResending || this.resendDisabled) return;
     
@@ -122,18 +98,16 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
     
     this.api.resendVerificationCode(this.token()).subscribe({
       next: (response: any) => {
-        console.log('Código reenviado:', response);
         this.successMessage = response.message || 'Nuevo código enviado a tu email';
         this.hasError = false;
-        // Limpiar inputs para el nuevo código
         this.clearCodeInputs();
-        // Iniciar countdown para reenvío
         this.startResendCountdown();
       },
       error: (error: any) => {
-        console.error('Error al reenviar código:', error);
-        this.errorMessage = error.message || 'Error al reenviar el código';
+        // Extraer mensaje del error procesado por el interceptor
+        this.errorMessage = error?.error?.message || error?.message || 'Error al reenviar el código';
         this.hasError = true;
+        this.isResending = false; // Restablecer estado en caso de error
       },
       complete: () => {
         this.isResending = false;
@@ -141,13 +115,9 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Inicia el countdown para reenvío de código
-   */
   private startResendCountdown(): void {
     this.resendDisabled = true;
     this.resendCountdown = 60;
-    
     this.resendTimer = setInterval(() => {
       this.resendCountdown--;
       if (this.resendCountdown <= 0) {
@@ -160,16 +130,10 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  /**
-   * Dispara la animación de shake para errores
-   */
   triggerShakeError(): void {
     this.shakeForm = !this.shakeForm;
   }
 
-  /**
-   * Limpia recursos al destruir el componente
-   */
   ngOnDestroy(): void {
     if (this.resendTimer) {
       clearInterval(this.resendTimer);

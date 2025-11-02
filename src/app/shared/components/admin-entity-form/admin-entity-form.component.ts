@@ -96,35 +96,6 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
     return ENTITY_CONFIGS[this.entityType];
   }
 
-  get submitButtonText(): string {
-    return this.config.submitButtonText(this.currentFormState?.isSubmitting);
-  }
-
-  get aliasPlaceholder(): string {
-    return this.entityType === 'creator' ? '@alias_unico' : '';
-  }
-
-  get aliasHelpText(): string {
-    return this.entityType === 'creator' ? '(no repetible)' : '';
-  }
-
-  get emailPlaceholder(): string {
-    return this.config.emailPlaceholder;
-  }
-
-  // Opciones específicas
-  get selectOptions(): string[] {
-    return this.config.selectOptions;
-  }
-
-  get selectFieldName(): string {
-    return this.config.selectFieldName;
-  }
-
-  get selectLabel(): string {
-    return this.config.selectLabel;
-  }
-
   constructor(
     private router: Router,
     private formBaseService: FormBaseService
@@ -224,33 +195,36 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
     this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
     const entityData = this.prepareEntityData();
 
-    const createMethod = this.entityType === 'admin' ? 'crearAdministrador' : 'crearCreador';
-
-    this.service[createMethod](entityData).subscribe({
+    this.service.crearEntidad(this.entityType, entityData).subscribe({
       next: (response: any) => this.handleSuccess(response),
       error: (error: any) => this.handleError(error)
     });
   }
 
   private prepareEntityData(): any {
-    const fotoNombre = this.formBaseService.extractImageFileName(this.currentFormState?.imageState?.selectedImage);
+    const getValue = (field: string, trim: boolean = false): string => {
+      const value = this.entityForm.get(field)?.value || '';
+      return trim ? value.trim() : value;
+    };
+
     const data: any = {
-      nombre: this.entityForm.get('nombre')?.value.trim() || '',
-      apellidos: this.entityForm.get('apellidos')?.value.trim() || '',
-      correo: this.entityForm.get('email')?.value.trim() || '',
-      contrasena: this.entityForm.get('password')?.value || '',
-      confirmarContrasena: this.entityForm.get('repetirPassword')?.value || ''
+      nombre: getValue('nombre', true),
+      apellidos: getValue('apellidos', true),
+      correo: getValue('email', true),
+      contrasena: getValue('password'),
+      confirmarContrasena: getValue('repetirPassword')
     };
 
     if (this.entityType === 'admin') {
-      data.departamento = this.entityForm.get('departamento')?.value || '';
+      data.departamento = getValue('departamento');
     } else {
-      data.alias = this.entityForm.get('alias')?.value.trim() || '';
-      data.especialidad = this.entityForm.get('especialidad')?.value || '';
-      data.tipoContenido = this.entityForm.get('tipoContenido')?.value || '';
-      data.descripcion = this.entityForm.get('descripcion')?.value?.trim() || '';
+      data.alias = getValue('alias', true);
+      data.especialidad = getValue('especialidad');
+      data.tipoContenido = getValue('tipoContenido');
+      data.descripcion = getValue('descripcion', true);
     }
 
+    const fotoNombre = this.formBaseService.extractImageFileName(this.currentFormState?.imageState?.selectedImage);
     if (this.config.sendFoto && fotoNombre) {
       data.foto = fotoNombre;
     }
@@ -260,24 +234,34 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
 
   private handleSuccess(response: any): void {
     console.log(`${this.entityType} creado exitosamente:`, response);
+    
+    const getValue = (field: string, trim: boolean = true): string => {
+      const value = this.entityForm.get(field)?.value;
+      return trim ? (value?.trim() || '') : (value || '');
+    };
+
+    const foto = response.foto || this.getAvatarPath() || 
+      (this.entityType === 'admin' ? 'assets/admin/default.png' : 'assets/admin/admin_default.png');
+
+    const commonData = {
+      nombre: getValue('nombre'),
+      apellidos: getValue('apellidos'),
+      correo: getValue('email'),
+      foto
+    };
+
     const stateData = this.entityType === 'admin' ? {
       adminData: {
-        nombre: this.entityForm.get('nombre')?.value.trim(),
-        apellidos: this.entityForm.get('apellidos')?.value.trim(),
-        correo: this.entityForm.get('email')?.value.trim(),
-        departamento: this.entityForm.get('departamento')?.value,
-        foto: response.foto || this.getAvatarPath() || 'assets/admin/default.png'
+        ...commonData,
+        departamento: getValue('departamento', false)
       }
     } : {
       creatorData: {
-        nombre: this.entityForm.get('nombre')?.value.trim(),
-        apellidos: this.entityForm.get('apellidos')?.value.trim(),
-        correo: this.entityForm.get('email')?.value.trim(),
-        alias: this.entityForm.get('alias')?.value.trim(),
-        especialidad: this.entityForm.get('especialidad')?.value,
-        tipoContenido: this.entityForm.get('tipoContenido')?.value,
-        descripcion: this.entityForm.get('descripcion')?.value?.trim() || '',
-        foto: response.foto || this.getAvatarPath() || 'assets/admin/admin_default.png'
+        ...commonData,
+        alias: getValue('alias'),
+        especialidad: getValue('especialidad', false),
+        tipoContenido: getValue('tipoContenido', false),
+        descripcion: getValue('descripcion')
       }
     };
 
@@ -287,11 +271,8 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
   private handleError(error: any): void {
     console.error(`Error al crear ${this.entityType}:`, error);
     
-    // Si es un error de autenticación (401), el interceptor ya redirigió al login
-    // No necesitamos hacer nada más aquí
-    if (error.status === 401) {
-      return;
-    }
+    // Si es un error de autenticación (401), el interceptor ya redirigió
+    if (error.status === 401) return;
     
     // Para otros errores, delegar al FormBaseService
     this.formBaseService.handleBackendError(this.formId, this.entityForm, error);

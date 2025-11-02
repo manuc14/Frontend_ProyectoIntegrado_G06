@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { AdminEntityFormComponent } from '../../../../shared/components/admin-entity-form/admin-entity-form.component';
-import { AdminEntityService } from '../../../../core/services/admin-entity.service';
+import { AdminEntityFormComponent } from '../../../../../shared/components/admin-entity-form/admin-entity-form.component';
+import { AdminEntityService } from '../../../../../core/services/admin-entity.service';
 
 @Component({
   selector: 'app-adcreatorsadd',

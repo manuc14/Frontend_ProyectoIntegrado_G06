@@ -91,12 +91,10 @@ export class AdminEntityService {
   }
 
   /**
-   * Maneja errores HTTP y devuelve mensajes amigables para el usuario.
+   * Maneja errores HTTP de forma genérica
    */
-  private handleError(operation: string, entityName: string, defaultMessage = 'Ha ocurrido un error inesperado') {
-    return (error: HttpErrorResponse): Observable<never> => {
-      return throwError(() => error);
-    };
+  private handleError() {
+    return (error: HttpErrorResponse): Observable<never> => throwError(() => error);
   }  /**
    * Obtiene la lista completa de entidades para administración.
    */
@@ -106,7 +104,7 @@ export class AdminEntityService {
       'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
     });
     return this.http.get<T[]>(`${this.base}/${config.endpoint}`, { headers }).pipe(
-      catchError(this.handleError(`listar ${config.entityName}s`, config.entityName, `No se pudieron cargar los ${config.entityName}s`))
+      catchError(this.handleError())
     );
   }
 
@@ -122,7 +120,7 @@ export class AdminEntityService {
       headers = headers.set('Content-Type', 'application/json');
     }
     return this.http.post(`${this.base}/${config.endpoint}/crear`, data, { headers }).pipe(
-      catchError(this.handleError(`crear ${config.entityName}`, config.entityName, `No se pudo crear el ${config.entityName}`))
+      catchError(this.handleError())
     );
   }
 
@@ -133,7 +131,7 @@ export class AdminEntityService {
     const config = this.entityConfigs[tipo];
     const headers = this.getAuthHeaders();
     return this.http.put(`${this.base}/${config.endpoint}/editar/${id}`, data, { headers }).pipe(
-      catchError(this.handleError(`editar ${config.entityName}`, config.entityName, `No se pudo editar el ${config.entityName}`))
+      catchError(this.handleError())
     );
   }
 
@@ -144,56 +142,7 @@ export class AdminEntityService {
     const config = this.entityConfigs[tipo];
     const headers = this.getAuthHeaders();
     return this.http.delete(`${this.base}/${config.endpoint}/eliminar/${id}`, { headers }).pipe(
-      catchError(this.handleError(`eliminar ${config.entityName}`, config.entityName, `No se pudo eliminar el ${config.entityName}`))
+      catchError(this.handleError())
     );
-  }
-
-  // Métodos específicos para compatibilidad
-  listarUsuarios(): Observable<UserEV[]> {
-    return this.listarEntidades<UserEV>('user');
-  }
-
-  crearUsuario(formData: FormData): Observable<any> {
-    return this.crearEntidad('user', formData);
-  }
-
-  editarUsuario(id: string, data: any): Observable<any> {
-    return this.editarEntidad('user', id, data);
-  }
-
-  eliminarUsuario(id: string): Observable<any> {
-    return this.eliminarEntidad('user', id);
-  }
-
-  listarAdministradores(): Observable<AdminEV[]> {
-    return this.listarEntidades<AdminEV>('admin');
-  }
-
-  crearAdministrador(formData: FormData): Observable<any> {
-    return this.crearEntidad('admin', formData);
-  }
-
-  editarAdministrador(id: string, data: any): Observable<any> {
-    return this.editarEntidad('admin', id, data);
-  }
-
-  eliminarAdministrador(id: string): Observable<any> {
-    return this.eliminarEntidad('admin', id);
-  }
-
-  listarCreadores(): Observable<CreatorEC[]> {
-    return this.listarEntidades<CreatorEC>('creator');
-  }
-
-  crearCreador(formData: FormData): Observable<any> {
-    return this.crearEntidad('creator', formData);
-  }
-
-  editarCreador(id: string, data: any): Observable<any> {
-    return this.editarEntidad('creator', id, data);
-  }
-
-  eliminarCreador(id: string): Observable<any> {
-    return this.eliminarEntidad('creator', id);
   }
 }

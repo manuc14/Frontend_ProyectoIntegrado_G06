@@ -128,20 +128,21 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   addTag() {
     const candidate = this.newTag.trim();
-    if (!candidate) {
-      return;
-    }
-    if (this.tags.includes(candidate)) {
-      return;
-    }
+    if (!candidate || this.tags.includes(candidate)) return;
+    
     this.tags.push(candidate);
     this.newTag = '';
-    this.uploadForm.patchValue({ tags: this.tags });
+    this.updateTagsInForm();
   }
 
   removeTag(index: number) {
     this.tags.splice(index, 1);
+    this.updateTagsInForm();
+  }
+
+  private updateTagsInForm(): void {
     this.uploadForm.patchValue({ tags: this.tags });
+    this.uploadForm.get('tags')?.updateValueAndValidity();
   }
 
   selectThumbnail(thumbnailPath: string) {
@@ -159,29 +160,39 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (file) {
-      // Validar tamaño del archivo
-      const maxSizeBytes = UPLOAD_LIMITS.fileMaxSizeMB * 1024 * 1024; // Convertir MB a bytes
-      if (file.size > maxSizeBytes) {
-        this.audioFileValidationError = `El archivo es demasiado grande. Tamaño máximo: ${UPLOAD_LIMITS.fileMaxSizeMB}MB`;
-        this.file = null;
-        return;
-      }
+    if (!file) return;
 
-      // Validar tipo de archivo
-      const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp3'];
-      if (!allowedTypes.includes(file.type)) {
-        this.audioFileValidationError = 'Formato de archivo no válido. Formatos permitidos: MP3, WAV, AAC, OGG, FLAC';
-        this.file = null;
-        return;
-      }
+    const fileName = file.name.trim();
+    const maxSizeBytes = UPLOAD_LIMITS.fileMaxSizeMB * 1024 * 1024;
+    const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp3'];
 
-      this.file = file;
-      // Limpiar errores previos
-      this.audioFileValidationError = null;
-      this.audioUploadError = null;
-      this.uploadForm.patchValue({ audioUrl: '' });
+    // Validaciones consolidadas
+    if (!fileName || fileName.startsWith('.') || fileName.includes('..')) {
+      this.audioFileValidationError = 'Nombre de archivo inválido';
+      this.file = null;
+      input.value = '';
+      return;
     }
+
+    if (file.size > maxSizeBytes) {
+      this.audioFileValidationError = `Archivo demasiado grande. Máximo: ${UPLOAD_LIMITS.fileMaxSizeMB}MB`;
+      this.file = null;
+      input.value = '';
+      return;
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      this.audioFileValidationError = 'Formato no válido. Permitidos: MP3, WAV, AAC, OGG, FLAC';
+      this.file = null;
+      input.value = '';
+      return;
+    }
+
+    // Archivo válido
+    this.file = file;
+    this.audioFileValidationError = null;
+    this.audioUploadError = null;
+    this.uploadForm.patchValue({ audioUrl: '' });
   }
 
   onThumbnailSelected(event: Event) {
@@ -204,18 +215,20 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.submitted = true;
     this.formBaseService.updateFormState(this.formId, { error: null });
 
-    if (this.uploadForm.invalid) {
+    // Sincronizar tags antes de validar
+    this.uploadForm.patchValue({ tags: this.tags });
+
+    // Validar campos según el tipo de contenido
+    const formValue = this.uploadForm.value;
+    const isVideo = formValue.type === 'video';
+    const isAudio = formValue.type === 'audio';
+
+    // Validación personalizada según el tipo
+    const errors = this.validateForm(formValue, isVideo, isAudio);
+    if (errors.length > 0) {
+      console.error('Errores de validación:', errors);
       this.formBaseService.updateFormState(this.formId, {
         error: 'Por favor, revisa los campos marcados.'
-      });
-      return;
-    }
-
-    // Validación específica para contenido de audio
-    const formValue = this.uploadForm.value;
-    if (formValue.type === 'audio' && !this.file && !formValue.audioUrl) {
-      this.formBaseService.updateFormState(this.formId, {
-        error: 'Debe proporcionar un archivo de audio o URL.'
       });
       return;
     }
@@ -223,21 +236,34 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
 
     try {
-      // Subir archivos si es necesario
       const uploadResult = await this.uploadFilesIfNeeded();
-      
-      // Crear el payload con las URLs de archivos subidos
       const payload = this.buildPayload(uploadResult);
-      
-      // Crear el contenido en el backend
       await firstValueFrom(this.api.createContent(payload));
-      
       this.handleUploadSuccess();
     } catch (error: any) {
       this.formBaseService.handleBackendError(this.formId, this.uploadForm, error);
     } finally {
       this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
     }
+  }
+
+  private validateForm(formValue: any, isVideo: boolean, isAudio: boolean): string[] {
+    const errors: string[] = [];
+    
+    // Campos comunes requeridos
+    const requiredCommonFields = ['title', 'vip', 'duration', 'estado', 'ageRestriction'];
+    requiredCommonFields.forEach(field => {
+      if (!formValue[field]?.trim?.() && !formValue[field]) errors.push(field);
+    });
+    
+    if (!this.tags.length) errors.push('tags');
+
+    // Validaciones específicas por tipo
+    if (isVideo && !formValue.url?.trim()) errors.push('url');
+    if (isVideo && !formValue.resolution) errors.push('resolution');
+    if (isAudio && !this.file && !formValue.audioUrl) errors.push('audioFile');
+
+    return errors;
   }
 
   private async uploadFilesIfNeeded(): Promise<{audioUrl?: string, thumbnailUrl?: string}> {
@@ -267,6 +293,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   private buildPayload(uploadResult: {audioUrl?: string, thumbnailUrl?: string} = {}): any {
     const formValue = this.uploadForm.value;
     const isVideo = formValue.type === 'video';
+    const ageRestriction = formValue.ageRestriction ? parseInt(formValue.ageRestriction.replace('+', '')) : null;
 
     return {
       titulo: formValue.title,
@@ -279,13 +306,9 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       tags: this.tags,
       fecha: formValue.fechaExpiracion || null,
       resolucion: isVideo ? formValue.resolution : null,
-      restriccionEdad: this.parseAgeRestriction(formValue.ageRestriction),
+      restriccionEdad: ageRestriction,
       duracion: formValue.duration
     };
-  }
-
-  private parseAgeRestriction(ageRestriction: string): number | null {
-    return ageRestriction ? parseInt(ageRestriction.replace('+', '')) : null;
   }
 
   private handleUploadSuccess(): void {
@@ -358,16 +381,11 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   private loadCurrentUser(): void {
     const userData = sessionStorage.getItem('currentUser');
-    if (!userData) {
-      return;
-    }
+    if (!userData) return;
 
     this.currentUser = JSON.parse(userData);
     const tipoContenido = this.currentUser?.tipoContenido?.toLowerCase();
-
-    if (!tipoContenido) {
-      return;
-    }
+    if (!tipoContenido) return;
 
     // Map backend values to form values
     const typeMap: Record<string, 'video' | 'audio'> = {
@@ -377,10 +395,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     };
 
     const type = typeMap[tipoContenido];
-
-    if (type) {
-      this.uploadForm.patchValue({ type });
-    }
+    if (type) this.uploadForm.patchValue({ type });
   }
 
   cancel() {

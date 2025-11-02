@@ -44,26 +44,20 @@ export class AdminSidebarComponent implements OnInit {
   private mapRouteToKey(segment: string): 'users' | 'admins' | 'creators' | null {
     if (!segment) return 'users';
     const s = segment.toLowerCase();
-    if (s === 'ad-users' || s === 'users') return 'users';
-    if (s === 'ad-admin' || s === 'admins' || s === 'ad-admins') return 'admins';
-    if (s === 'ad-creators' || s === 'creators') return 'creators';
+    if (s.includes('user')) return 'users';
+    if (s.includes('admin')) return 'admins';
+    if (s.includes('creator')) return 'creators';
     return null;
   }
 
   goTo(route: string) {
-    switch (route) {
-      case 'users':
-        this.router.navigate(['/ad-users']);
-        break;
-      case 'admins':
-        this.router.navigate(['/ad-admin']);
-        break;
-      case 'creators':
-        this.router.navigate(['/ad-creators']);
-        break;
-      default:
-        break;
+    const routes: Record<string, string> = {
+      users: '/ad-users',
+      admins: '/ad-admin',
+      creators: '/ad-creators'
+    };
+    if (routes[route]) {
+      this.router.navigate([routes[route]]);
     }
   }
-
 }

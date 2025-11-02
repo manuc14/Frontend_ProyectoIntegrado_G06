@@ -69,7 +69,7 @@ export class AdminUsersPage extends AdminListBase<User> {
 
   loadData(): void {
     this.loadDataWithErrorHandling(
-      () => this.userService.listarUsuarios().pipe(
+      () => this.userService.listarEntidades<UserEV>('user').pipe(
         map((data: UserEV[]) => this.mapUserData(data))
       ),
       ADMIN_CONFIG.entityNames.users
@@ -126,21 +126,16 @@ export class AdminUsersPage extends AdminListBase<User> {
     return ADMIN_CONFIG.currentRoutes.users;
   }
 
-  private readonly navMap = new Map<string, () => void>([
-    ['users', () => window.location.reload()],
-    ['admins', () => this.router.navigate(['/ad-admin'])],
-    ['creators', () => this.router.navigate(['/ad-creators'])],
-  ]);
-
-  // Override para navegación específica
-  override navigateToUsers(): void {
-    this.closeSidebar();
-    window.location.reload();
-  }
-
   override handleNav(event: string): void {
     this.closeSidebar();
-    this.navMap.get(event)?.();
+    if (event === 'users') {
+      window.location.reload();
+      return;
+    }
+    const route = ADMIN_CONFIG.navRoutes[event as keyof typeof ADMIN_CONFIG.navRoutes];
+    if (route) {
+      this.router.navigate([route]);
+    }
   }
 
   @HostListener('window:resize', ['$event'])
@@ -148,27 +143,6 @@ export class AdminUsersPage extends AdminListBase<User> {
     if (event.target.innerWidth > 768) {
       this.closeSidebar();
     }
-  }
-
-  // Getters para compatibilidad con template
-  get usuariosPaginados(): User[] {
-    return this.itemsPaginados;
-  }
-
-  get filteredUsers(): User[] {
-    return this.filteredItems;
-  }
-
-  get allUsers(): User[] {
-    return this.allItems;
-  }
-
-  override get totalPaginas(): number {
-    return super.totalPaginas;
-  }
-
-  override get rangoMostrado(): string {
-    return super.rangoMostrado;
   }
 
   // Use base class trackByItemId (inherited)
@@ -181,13 +155,11 @@ export class AdminUsersPage extends AdminListBase<User> {
     super.clearSearchAndFilters();
   }
 
-
-
   editarUsuario(id: string): void {
-    this.navigateToEdit(id, 'users');
+    this.navigateTo('users', 'edit', id);
   }
 
   addNewUser(): void {
-    this.navigateToAdd('users');
+    this.navigateTo('users', 'add');
   }
 }

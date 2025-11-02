@@ -75,7 +75,7 @@
             <!-- Filas de datos -->
             <div class="container12">
               <!-- Mostrar mensaje si no hay resultados -->
-              <div *ngIf="filteredCreators.length === 0" class="no-results">
+              <div *ngIf="filteredItems.length === 0" class="no-results">
                 <div class="no-results-content">
                   <p>{{ getNoResultsMessage() }}</p>
                   <button *ngIf="getClearButtonText()" type="button" (click)="error ? loadData() : clearSearchAndFilters()" class="clear-search-btn">
@@ -86,7 +86,7 @@
 
               <!-- Lista dinámica de creadores -->
               <div
-                *ngFor="let creator of creadoresPaginados; let i = index; trackBy: trackByItemId"
+                *ngFor="let creator of itemsPaginados; let i = index; trackBy: trackByItemId"
                 class="horizontal-border"
                 [class.horizontal-border2]="i > 0">
 
@@ -172,7 +172,7 @@
               </div>
 
               <!-- Mensaje cuando no hay creadores -->
-              <div *ngIf="filteredCreators.length === 0 && allCreators.length === 0" style="padding: 40px; text-align: center;">
+              <div *ngIf="filteredItems.length === 0 && allItems.length === 0" style="padding: 40px; text-align: center;">
                 <div style="color: #66748c; font-size: 16px; font-family: 'NimbusSans-Medium', sans-serif;">
                   No hay creadores de contenido registrados
                 </div>

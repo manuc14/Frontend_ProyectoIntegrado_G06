@@ -73,7 +73,7 @@
             label="Email"
             type="email"
             formControlName="email"
-            [placeholder]="emailPlaceholder"
+            [placeholder]="config.emailPlaceholder"
             [required]="true"
             [errors]="entityForm.get('email')?.errors ?? null"
             [touched]="entityForm.get('email')?.touched ?? false">
@@ -84,8 +84,8 @@
             *ngIf="entityType === 'creator'"
             label="Alias"
             formControlName="alias"
-            [placeholder]="aliasPlaceholder"
-            subhint="{{ aliasHelpText }}"
+            placeholder="@alias_unico"
+            subhint="(no repetible)"
             [required]="true"
             [errors]="entityForm.get('alias')?.errors ?? null"
             [touched]="entityForm.get('alias')?.touched ?? false">
@@ -117,10 +117,10 @@
 
           <!-- Campo Select (departamento/especialidad) -->
           <app-select-field
-            [label]="selectLabel"
-            formControlName="{{ selectFieldName }}"
-            [hasError]="!!(entityForm.get(selectFieldName)?.invalid && entityForm.get(selectFieldName)?.touched)">
-            <option *ngFor="let opt of selectOptions" [value]="opt">{{ opt }}</option>
+            [label]="config.selectLabel"
+            [formControlName]="config.selectFieldName"
+            [hasError]="!!(entityForm.get(config.selectFieldName)?.invalid && entityForm.get(config.selectFieldName)?.touched)">
+            <option *ngFor="let opt of config.selectOptions" [value]="opt">{{ opt }}</option>
           </app-select-field>
 
           <!-- Campo Tipo de contenido (solo creator) -->

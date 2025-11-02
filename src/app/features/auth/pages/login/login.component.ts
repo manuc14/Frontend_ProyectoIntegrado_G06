@@ -6,6 +6,7 @@ import { HeaderComponent } from '../../../../shared/header/header.component';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { ApiService, LoginRequest, LoginResponse } from '../../../../core/services/api.service';
 import { FormBaseService, FormState } from '../../../../core/services/form-base.service';
+import { HttpResponse, HttpEvent } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
@@ -123,15 +124,15 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
     this.form.disable();
 
-    this.api.login(payload)
+    this.api.login(payload, { observe: 'response' })
       .pipe(finalize(() => {
         this.formBaseService.updateFormState('login', { isSubmitting: false });
         this.form.enable();
         this.buttonState = 'normal';
       }))
       .subscribe({
-        next: (res: LoginResponse) => {
-          this.handleSuccessResponse(res);
+        next: (res: HttpEvent<LoginResponse>) => {
+          this.handleSuccessResponse(res as HttpResponse<LoginResponse>);
         },
         error: (err) => {
           this.handleErrorResponse(err);
@@ -140,54 +141,37 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   /* Maneja la respuesta exitosa del login con lógica específica de navegación. */
-  private handleSuccessResponse(res: LoginResponse): void {
-    // El backend devuelve 200 OK cuando el login es exitoso
-    // Verificar si hay errores de validación
-    if (res?.validationErrorCount > 0) {
+  private handleSuccessResponse(res: HttpResponse<LoginResponse>): void {
+    const body = res.body;
+    if (!body || body?.validationErrorCount > 0) {
       this.formBaseService.updateFormState('login', {
-        error: res?.message || 'Error de validación en los datos'
+        error: body?.message ?? 'Respuesta inválida del servidor',
       });
       this.triggerShakeError();
       return;
     }
 
-    // Verificar activación de cuenta
-    if (!res.user?.activo) {
-      this.formBaseService.updateFormState('login', {
-        error: 'Tu cuenta no está activada. Revisa tu correo para activarla.'
-      });
-      this.triggerShakeError();
-      return;
-    }
-
-    // Login exitoso - limpiar errores y mostrar mensaje de éxito
+    // Login exitoso - limpiar errores
     this.formBaseService.resetFormState('login');
 
-    // Guardar token en sessionStorage para mantener la sesión
-    if (res.token) {
-      sessionStorage.setItem('authToken', res.token);
+    // Guardar token y usuario en sessionStorage
+    if (body.token) sessionStorage.setItem('authToken', body.token);
+    if (body.user) sessionStorage.setItem('currentUser', JSON.stringify(body.user));
+
+    const tipo = body.user?.tipo || '';
+    let target = '/catalog';
+    if (/admin/i.test(tipo)) {
+      target = '/ad-users';
+    } else if (/creador/i.test(tipo)) {
+      target = '/content-creator';
     }
 
-    // Guardar información del usuario en sessionStorage
-    if (res.user) {
-      sessionStorage.setItem('currentUser', JSON.stringify(res.user));
-    }
-
-    const tipo = res.user?.tipo || '';
-    // Mapeo de tipos del backend a rutas de la app
-    let target: string = '/catalog';
-    if (/admin/i.test(tipo)) target = '/ad-users';
-    else if (/creador/i.test(tipo)) target = '/content-creator';
-
-    // Redirigir después de un breve delay para mostrar el mensaje de éxito
-    setTimeout(() => {
-      this.router.navigate([target]);
-    }, 1000);
+    // Redirigir después de un breve delay
+    setTimeout(() => this.router.navigate([target]), 1000);
   }
 
   /* Maneja errores del login usando el servicio genérico. */
   private handleErrorResponse(err: any): void {
-    console.error('Login error', err);
     this.formBaseService.handleBackendError('login', this.form, err);
     this.triggerShakeError();
   }
@@ -214,12 +198,7 @@ export class LoginComponent implements OnInit, OnDestroy {
    * Estado de animación para inputs
    */
   getInputFocusState(field: 'email' | 'password'): string {
-    let state: string;
-    if (field === 'email') {
-      state = this.emailFocused ? 'focused' : 'normal';
-    } else {
-      state = this.passwordFocused ? 'focused' : 'normal';
-    }
-    return state;
+    const isFocused = field === 'email' ? this.emailFocused : this.passwordFocused;
+    return isFocused ? 'focused' : 'normal';
   }
 }

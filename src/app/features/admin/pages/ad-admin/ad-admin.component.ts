@@ -70,7 +70,7 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
 
   loadData(): void {
     this.loadDataWithErrorHandling(
-      () => this.adminService.listarAdministradores().pipe(
+      () => this.adminService.listarEntidades<AdminEV>('admin').pipe(
         map((data: AdminEV[]) => {
           let admins = this.mapAdminData(data);
           admins = this.filterOwnProfile(admins);
@@ -125,62 +125,33 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
     return ADMIN_CONFIG.currentRoutes.admins;
   }
 
-  // Override para navegación específica
-  override navigateToAdmins(): void {
-    this.closeSidebar();
-    window.location.reload();
-  }
-
   override handleNav(event: string): void {
     this.closeSidebar();
-    const navActions: Record<string, () => any> = {
-      users: () => this.router.navigate(['/ad-users']),
-      admins: () => window.location.reload(),
-      creators: () => this.router.navigate(['/ad-creators'])
-    };
-
-    const action = navActions[event];
-    if (action) action();
+    if (event === 'admins') {
+      window.location.reload();
+      return;
+    }
+    const route = ADMIN_CONFIG.navRoutes[event as keyof typeof ADMIN_CONFIG.navRoutes];
+    if (route) {
+      this.router.navigate([route]);
+    }
   }
 
   addNewAdmin(): void {
-    this.navigateToAdd('admins');
+    this.navigateTo('admins', 'add');
   }
 
   editarAdministrador(id: string): void {
-    this.navigateToEdit(id, 'admins');
+    this.navigateTo('admins', 'edit', id);
   }
 
   eliminarAdministrador(id: string): void {
     this.deleteEntity(
       id,
-      (id) => this.adminService.eliminarAdministrador(id),
+      (id) => this.adminService.eliminarEntidad('admin', id),
       ADMIN_CONFIG.entityNames.admins
     );
   }
-
-  // Getters para compatibilidad con template
-  get adminsPaginados(): AdminEV[] {
-    return this.itemsPaginados;
-  }
-
-  get filteredAdmins(): AdminEV[] {
-    return this.filteredItems;
-  }
-
-  get allAdmins(): AdminEV[] {
-    return this.allItems;
-  }
-
-  override get totalPaginas(): number {
-    return super.totalPaginas;
-  }
-
-  override get rangoMostrado(): string {
-    return super.rangoMostrado;
-  }
-
-  // Use base class trackByItemId (inherited)
 
   /**
    * Obtiene la URL del avatar del administrador

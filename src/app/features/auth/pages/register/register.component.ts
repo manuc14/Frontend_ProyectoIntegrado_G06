@@ -219,16 +219,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
     return this.formBaseService.getFullImageUrl(relativePath, 'avatar');
   }
 
-  /* Extrae el nombre del archivo de una ruta de avatar */
-  private extractAvatarFileName(avatarPath: string): string {
-    if (!avatarPath) return '';
-    // Extraer el nombre del archivo de la ruta (ej: "/avatars/avatar1.png" -> "avatar1.png")
-    return avatarPath.split('/').pop() ?? '';
-  }
-
   /* Determina si se debe mostrar la promoción VIP basada en la selección del usuario. */
-  private shouldShowVipPromo(v: any): boolean {
-    const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
+  private shouldShowVipPromo(vip: any): boolean {
+    const isVip = (vip === true) || ((vip as unknown as string) === 'true');
     return !isVip && !this.promptedVipOnce;
   }
 
@@ -243,7 +236,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.buttonState = 'pressed';
     
     const v = this.form.value;
-    if (this.shouldShowVipPromo(v)) {
+    if (this.shouldShowVipPromo(v.vip)) {
       this.showVipPromo = true;
       this.buttonState = 'normal';
       return;
@@ -296,18 +289,14 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   /* Maneja la respuesta exitosa del registro (201/200). */
   private handleSuccessResponse(res: HttpResponse<any>): void {
-    const status = res.status;
-    if (status === 201 || status === 200) {
-      const body: any = res.body || {};
-      const verificationToken = body?.verificationToken;
-      console.log('Registro OK', body);
+    const body: any = res.body || {};
+    const verificationToken = body?.verificationToken;
 
-      // Limpiar errores previos
+    if (res.status === 201 || res.status === 200) {
+      console.log('Registro OK', body);
       this.formBaseService.resetFormState('register');
 
-      // Verificar que el backend envió el token
       if (verificationToken) {
-        // Navega a verificación usando el token como query parameter estándar
         this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
       } else {
         console.error('No se recibió verificationToken del backend');
@@ -317,6 +306,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
       }
       return;
     }
+    
     // Status inesperado, tratar como error
     this.formBaseService.updateFormState('register', {
       error: 'No se pudo crear la cuenta.'
@@ -388,24 +378,14 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Alterna la visibilidad de la contraseña
+   * Alterna la visibilidad de las contraseñas
    */
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
-  /**
-   * Alterna la visibilidad de repetir contraseña
-   */
   toggleRepeatPasswordVisibility(): void {
     this.showRepeatPassword = !this.showRepeatPassword;
-  }
-
-  /**
-   * Cierra el tooltip de contraseña
-   */
-  closePasswordTooltip(): void {
-    this.showPasswordTooltip = false;
   }
 
   /**
@@ -414,10 +394,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
-    const helpButton = target.closest('.help');
-    
-    // Si el click no fue en el botón de ayuda o en el tooltip, cerrar el tooltip
-    if (!helpButton && this.showPasswordTooltip) {
+    if (!target.closest('.help') && this.showPasswordTooltip) {
       this.showPasswordTooltip = false;
     }
   }

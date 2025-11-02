@@ -58,7 +58,7 @@
 
           <div class="container12">
             <!-- Mostrar mensaje si no hay resultados -->
-            <div *ngIf="filteredUsers.length === 0" class="no-results">
+            <div *ngIf="filteredItems.length === 0" class="no-results">
               <div class="no-results-content">
                 <p>{{ getNoResultsMessage() }}</p>
                 <button *ngIf="getClearButtonText()" type="button" (click)="error ? loadData() : clearSearchAndFilters()" class="clear-search-btn">
@@ -69,7 +69,7 @@
 
             <!-- Lista dinámica de usuarios -->
             <div
-              *ngFor="let user of usuariosPaginados; let i = index; trackBy: trackByItemId"
+              *ngFor="let user of itemsPaginados; let i = index; trackBy: trackByItemId"
               class="horizontal-border"
               [class.horizontal-border2]="i > 0">
               <div class="container13">

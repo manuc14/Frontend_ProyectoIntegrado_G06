@@ -19,8 +19,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
       departamento: 'Operaciones'
     },
     requiredFields: ['nombre', 'apellidos', 'departamento'],
-    listMethod: (service) => service.listarAdministradores(),
-    editMethod: (service) => service.editarAdministrador.bind(service),
+    listMethod: (service) => service.listarEntidades('admin'),
+    editMethod: (service) => (id: string, changes: any) => service.editarEntidad('admin', id, changes),
     mapEntityToData: (entity: any): AdminEntityData => ({
       nombre: entity.nombre ?? '',
       apellidos: entity.apellidos ?? '',
@@ -40,8 +40,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
       especialidad: 'Música'
     },
     requiredFields: ['nombre', 'apellidos', 'descripcion', 'especialidad', 'alias'],
-    listMethod: (service) => service.listarCreadores(),
-    editMethod: (service) => service.editarCreador.bind(service),
+    listMethod: (service) => service.listarEntidades('creator'),
+    editMethod: (service) => (id: string, changes: any) => service.editarEntidad('creator', id, changes),
     mapEntityToData: (entity: any): CreatorEntityData => ({
       nombre: entity.nombre ?? '',
       apellidos: entity.apellidos ?? '',
@@ -61,8 +61,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
       fechaNacimiento: ''
     },
     requiredFields: ['nombre', 'apellidos', 'fechaNacimiento'],
-    listMethod: (service) => service.listarUsuarios(),
-    editMethod: (service) => service.editarUsuario.bind(service),
+    listMethod: (service) => service.listarEntidades('user'),
+    editMethod: (service) => (id: string, changes: any) => service.editarEntidad('user', id, changes),
     mapEntityToData: (entity: any): UserEntityData => ({
       nombre: entity.nombre ?? '',
       apellidos: entity.apellidos ?? '',

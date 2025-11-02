@@ -46,79 +46,23 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
 
   // Estado centralizado del formulario
   formState$!: BehaviorSubject<FormState<EntityData>>;
-  private currentState: FormState<EntityData> | null = null;
   form!: FormGroup;
-
-  // Propiedades calculadas para compatibilidad con template
-  get selectedAvatar(): string {
-    const state = this.getCurrentState();
-    return state?.imageState.selectedImageUrl || '';
-  }
-
-  get availableAvatars(): string[] {
-    const state = this.getCurrentState();
-    const images = state?.imageState.images || [];
-    // Convertir rutas relativas a URLs completas
-    return images.map(image => this.api.getFullAvatarUrl(image));
-  }
-
-  get isLoadingAvatars(): boolean {
-    const state = this.getCurrentState();
-    return state?.imageState.loading || false;
-  }
-
-  get avatarLoadError(): boolean {
-    const state = this.getCurrentState();
-    return state?.imageState.error || false;
-  }
-
-  get isSaving(): boolean {
-    const state = this.getCurrentState();
-    return state?.isSubmitting || false;
-  }
-
-  get isLoading(): boolean {
-    const state = this.getCurrentState();
-    return state?.isLoading || false;
-  }
-
-  get currentEntityData(): EntityData | null {
-    return this.getCurrentState()?.data || null;
-  }
-
-  get error(): string | null {
-    const state = this.getCurrentState();
-    return state?.error ?? null;
-  }
-
-  get isActivo(): boolean {
-    const data = this.currentEntityData;
-    return (data as any)?.activo || false;
-  }
-
-  get entityCorreo(): string {
-    const data = this.currentEntityData;
-    return (data as any)?.correo || '';
-  }
-
-  get creatorTipoContenido(): string {
-    const data = this.currentEntityData;
-    return (data as any)?.tipoContenido || '';
-  }
-
-  // Opciones específicas (hardcodeadas en template)
-  // departamentos y especialidades eliminadas ya que están en el template
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private adminEntityService: AdminEntityService,
-    private api: ApiService,
+    public api: ApiService,
     private formBaseService: FormBaseService
   ) {}
 
-  private getCurrentState(): FormState<EntityData> | null {
-    return this.currentState;
+  /* Helpers para el template */
+  getAvailableAvatars(state: FormState<EntityData> | null): string[] {
+    return state?.imageState.images?.map(img => this.api.getFullAvatarUrl(img)) || [];
+  }
+
+  getEntityField(state: FormState<EntityData> | null, field: string): any {
+    return (state?.data as any)?.[field] || '';
   }
 
   ngOnInit(): void {
@@ -131,7 +75,6 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
 
     // Inicializar estado del formulario
     this.formState$ = this.formBaseService.createFormState<EntityData>(`edit-${this.entityType}`, {} as EntityData);
-    this.formState$.subscribe(state => this.currentState = state);
 
     // Crear formulario basado en el tipo de entidad
     this.createForm();
@@ -236,7 +179,7 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
     // Extraer la ruta relativa de la URL completa
     const relativePath = this.extractRelativePath(avatarUrl);
     this.formBaseService.selectImage(relativePath, 'avatar');
-    const currentData = this.getCurrentState()?.data;
+    const currentData = this.formState$.value?.data;
     if (currentData) {
       currentData.foto = relativePath;
       this.formBaseService.updateFormState(`edit-${this.entityType}`, { data: currentData });
@@ -248,12 +191,8 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
     if (fullUrl.includes('/resources/avatars/')) {
       return fullUrl.split('/resources/avatars/')[1];
     }
-    // Si es solo el nombre del archivo, devolverlo tal cual
-    if (!fullUrl.includes('/')) {
-      return fullUrl;
-    }
-    // Para otros casos, extraer la última parte
-    return fullUrl.split('/').pop() ?? '';
+    // Si es solo el nombre del archivo o para otros casos, extraer la última parte
+    return fullUrl.includes('/') ? (fullUrl.split('/').pop() ?? '') : fullUrl;
   }
 
   saveChanges(): void {
@@ -262,15 +201,14 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentState = this.getCurrentState();
+    const currentState = this.formState$.value;
     if (!currentState) return;
 
     this.formBaseService.updateFormState(`edit-${this.entityType}`, { isSubmitting: true, error: null });
 
-    const formValue = this.form.value;
-    const changes = this.prepareChanges(formValue, currentState.originalData, currentState.data.foto, currentState.data.activo);
-
+    const changes = this.prepareChanges(this.form.value, currentState.originalData, currentState.data.foto, currentState.data.activo);
     const config = ENTITY_CONFIGS[this.entityType];
+    
     config.editMethod(this.adminEntityService)(this.entityId, changes).subscribe({
       next: () => this.handleSaveSuccess(),
       error: (err: BackendErrorResponse) => this.handleSaveError(err)
@@ -278,7 +216,7 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
   }
 
   private handleSaveSuccess(): void {
-    const currentState = this.getCurrentState();
+    const currentState = this.formState$.value;
     if (currentState) {
       this.formBaseService.updateFormState(`edit-${this.entityType}`, {
         isSubmitting: false,
@@ -326,12 +264,12 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
   }
 
   hasChanges(): boolean {
-    const state = this.getCurrentState();
+    const state = this.formState$.value;
     return state ? this.formBaseService.hasChanges(state.data, state.originalData) : false;
   }
 
   toggleActive(): void {
-    const currentState = this.getCurrentState();
+    const currentState = this.formState$.value;
     if (currentState?.data) {
       const updatedData = { ...currentState.data, activo: !currentState.data.activo };
       this.formBaseService.updateFormState(`edit-${this.entityType}`, { data: updatedData });

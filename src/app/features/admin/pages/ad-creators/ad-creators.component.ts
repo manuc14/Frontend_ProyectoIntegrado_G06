@@ -55,7 +55,7 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
 
   loadData(): void {
     this.loadDataWithErrorHandling(
-      () => this.creatorService.listarCreadores().pipe(
+      () => this.creatorService.listarEntidades<CreatorEC>('creator').pipe(
         map((data: CreatorEC[]) => this.mapCreatorData(data))
       ),
       ADMIN_CONFIG.entityNames.creators
@@ -100,61 +100,33 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
     return ADMIN_CONFIG.currentRoutes.creators;
   }
 
-  private readonly navMap = new Map<string, () => void>([
-    ['users', () => this.router.navigate(['/ad-users'])],
-    ['admins', () => this.router.navigate(['/ad-admin'])],
-    ['creators', () => window.location.reload()],
-  ]);
-
-  // Override para navegación específica
-  override navigateToCreators(): void {
-    this.closeSidebar();
-    window.location.reload();
-  }
-
   override handleNav(event: string): void {
     this.closeSidebar();
-    this.navMap.get(event)?.();
+    if (event === 'creators') {
+      window.location.reload();
+      return;
+    }
+    const route = ADMIN_CONFIG.navRoutes[event as keyof typeof ADMIN_CONFIG.navRoutes];
+    if (route) {
+      this.router.navigate([route]);
+    }
   }
 
   addNewCreator(): void {
-    this.navigateToAdd('creators');
+    this.navigateTo('creators', 'add');
   }
 
   editarCreador(id: string): void {
-    this.navigateToEdit(id, 'creators');
+    this.navigateTo('creators', 'edit', id);
   }
 
   eliminarCreador(id: string): void {
     this.deleteEntity(
       id,
-      (id) => this.creatorService.eliminarCreador(id),
+      (id) => this.creatorService.eliminarEntidad('creator', id),
       ADMIN_CONFIG.entityNames.creators
     );
   }
-
-  // Getters para compatibilidad con template
-  get creadoresPaginados(): CreatorEC[] {
-    return this.itemsPaginados;
-  }
-
-  get filteredCreators(): CreatorEC[] {
-    return this.filteredItems;
-  }
-
-  get allCreators(): CreatorEC[] {
-    return this.allItems;
-  }
-
-  override get totalPaginas(): number {
-    return super.totalPaginas;
-  }
-
-  override get rangoMostrado(): string {
-    return super.rangoMostrado;
-  }
-
-  // Use base class trackByItemId (inherited)
 
   /**
    * Obtiene la URL del avatar del creador

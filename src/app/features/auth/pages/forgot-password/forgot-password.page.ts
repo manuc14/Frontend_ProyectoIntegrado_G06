@@ -6,6 +6,8 @@ import { HeaderComponent } from '../../../../shared/header/header.component';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { ApiService } from '../../../../core/services/api.service';
 import { FormBaseService, FormState } from '../../../../core/services/form-base.service';
+import { FormInputComponent } from '../../../../shared/form-components/form-input/form-input.component';
+import { FormSubmitComponent } from '../../../../shared/form-components/form-submit/form-submit.component';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
 import { Observable, Subscription } from 'rxjs';
 
@@ -30,7 +32,7 @@ const FORM_ID = 'forgot-password';
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, ReactiveFormsModule, HeaderComponent, FooterComponent, FormInputComponent, FormSubmitComponent],
   templateUrl: './forgot-password.page.html',
   styleUrl: './forgot-password.page.scss',
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
@@ -60,6 +62,10 @@ export class ForgotPasswordPage implements OnInit, OnDestroy {
 
   get bannerText(): string {
     return this.formState?.error ?? '';
+  }
+
+  get emailControl(): any {
+    return this.form.get('email');
   }
 
   constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private formBaseService: FormBaseService) {
@@ -97,39 +103,31 @@ export class ForgotPasswordPage implements OnInit, OnDestroy {
   get f() { return this.form.controls; }
 
   /* Envía solicitud de código de restablecimiento al backend */
-  onSendCode() {
-    if (this.form.invalid || this.loading) {
-      if (this.form.invalid) {
-        this.shakeForm = !this.shakeForm;
-      }
+  submit() {
+    this.form.markAllAsTouched();
+    if (this.form.invalid) {
+      this.triggerShakeError();
       return;
     }
     
     this.buttonState = 'pressed';
-    this.form.disable();
 
     const email = this.form.value.email!;
     
+    // Limpiar errores previos y marcar como submitting
+    this.formBaseService.updateFormState(FORM_ID, {
+      error: null,
+      fieldErrors: {},
+      isSubmitting: true
+    });
+    this.form.disable();
+
     // Llamada real al backend para enviar el código de restablecimiento
     this.api.requestPasswordReset(email).subscribe({
       next: (response) => {
         this.form.enable();
         this.buttonState = 'normal';
-        
-        // Verificar si el backend devolvió un token válido
-        if (!response.resetToken) {
-          // Tratar como si fuera un error (correo no registrado)
-          this.handleSuccessResponse('Se ha enviado un código de restablecimiento a tu email.');
-          
-          // Generar un dummy token
-          const dummyToken = this.generateDummyToken();
-          
-          // Navegar a reset-password-code con el dummy token
-          this.router.navigate(['/reset-password-code'], { 
-            queryParams: { token: dummyToken } 
-          });
-          return;
-        }
+        this.formBaseService.updateFormState(FORM_ID, { isSubmitting: false });
         
         // Mostrar mensaje de éxito
         this.handleSuccessResponse(response.message);
@@ -142,17 +140,10 @@ export class ForgotPasswordPage implements OnInit, OnDestroy {
       error: (error: any) => {
         this.form.enable();
         this.buttonState = 'normal';
+        this.formBaseService.updateFormState(FORM_ID, { isSubmitting: false });
         
-        // Para no dar pistas a los atacantes, siempre mostrar éxito y crear un dummy token
-        this.handleSuccessResponse('Se ha enviado un código de restablecimiento a tu email.');
-        
-        // Generar un dummy token
-        const dummyToken = this.generateDummyToken();
-        
-        // Navegar a reset-password-code con el dummy token
-        this.router.navigate(['/reset-password-code'], { 
-          queryParams: { token: dummyToken } 
-        });
+        // Mostrar error real al usuario
+        this.formBaseService.handleBackendError(FORM_ID, null, error);
       }
     });
   }
@@ -188,11 +179,9 @@ export class ForgotPasswordPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Genera un dummy token para sesiones ficticias, similar al formato real
+   * Dispara la animación de shake para errores
    */
-  private generateDummyToken(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const randomString = (len: number) => Array.from({length: len}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    return randomString(32) + '-' + randomString(50);
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
   }
 }

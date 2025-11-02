@@ -124,7 +124,7 @@ export class ApiService {
    * Obtiene un mensaje genérico de error, independientemente del código de estado o la operación.
    */
   private getStatusMessage(status: number, operation: string, defaultMessage: string): string {
-    return 'Ha ocurrido un error inesperado. Por favor, intenta más tarde.';
+    return defaultMessage;
   }
 
   /**
@@ -140,11 +140,16 @@ export class ApiService {
 
       console.error(`Error en ${operation}:`, error);
       
-      // Crear un nuevo error con el mensaje amigable, preservando el error original
-      const friendlyError = new Error(userMessage);
-      (friendlyError as any).originalError = error;
+      // Preservar la estructura original del error pero asegurar que el mensaje esté disponible
+      const enhancedError = {
+        ...error,
+        error: {
+          ...(error.error || {}),
+          message: userMessage
+        }
+      };
       
-      return throwError(() => friendlyError);
+      return throwError(() => enhancedError);
     };
   }
 
@@ -176,11 +181,8 @@ export class ApiService {
    * Autentica usuario y devuelve datos de sesión.
    * Incluye información de perfil y token para requests posteriores.
    */
-  login(body: LoginRequest) {
-    return this.http.post<LoginResponse>(`${this.base}/auth/login`, body)
-      .pipe(
-        catchError(this.handleError('inicio de sesión', 'Email o contraseña incorrectos'))
-      );
+  login(body: LoginRequest, options?: any) {
+    return this.http.post<LoginResponse>(`${this.base}/auth/login`, body, options);
   }
 
   /**
