@@ -1,0 +1,8 @@
+<button 
+  class="filter-pill"
+  [class.active]="isActive"
+  [class.primary]="isPrimary"
+  (click)="handleClick()">
+  <img *ngIf="icon" [src]="icon" alt="" class="filter-pill__icon">
+  <span class="filter-pill__label">{{ label }}</span>
+</button>

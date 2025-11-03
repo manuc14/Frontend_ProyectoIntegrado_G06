@@ -7,6 +7,7 @@ import { ApiService } from '../../core/services/api.service';
 import { ImageSelectorService } from '../../core/services/image-selector.service';
 import { AuthService } from '../../core/services/auth.service';
 import { HeaderBase } from '../../core/base/header.base';
+import { UserDropdownMenuComponent } from '../components/user-dropdown-menu/user-dropdown-menu.component';
 
 /*
  * HeaderComponent
@@ -17,7 +18,7 @@ import { HeaderBase } from '../../core/base/header.base';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, UserDropdownMenuComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   animations: [navActiveState, navHover, fadeIn]
