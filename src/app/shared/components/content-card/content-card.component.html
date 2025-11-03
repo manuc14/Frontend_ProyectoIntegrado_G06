@@ -1,0 +1,54 @@
+<a class="content-card" [routerLink]="['/content', contenido._id]">
+  <!-- Miniatura del contenido -->
+  <div class="content-card__thumbnail">
+    <img [src]="contenido.miniaturaUrl" [alt]="contenido.titulo" class="content-card__thumbnail-img">
+    
+    <!-- Badge Premium -->
+    <div *ngIf="contenido.contenidoVip" class="content-card__badge content-card__badge--premium">
+      <svg class="content-card__badge-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+      </svg>
+      <span>Premium</span>
+    </div>
+    
+    <!-- Badge de Calidad (solo videos) -->
+    <div *ngIf="contenido.tipo === 'VIDEO' && contenido.resolucion" class="content-card__badge content-card__badge--quality">
+      {{ contenido.resolucion }}
+    </div>
+    
+    <!-- Duración -->
+    <div class="content-card__badge content-card__badge--duration">
+      {{ duracionFormateada }}
+    </div>
+    
+    <!-- Badge de Edad -->
+    <div *ngIf="contenido.restriccionEdad > 0" class="content-card__badge content-card__badge--age">
+      {{ contenido.restriccionEdad }}+
+    </div>
+  </div>
+  
+  <!-- Información del contenido -->
+  <div class="content-card__info">
+    <!-- Avatar del creador -->
+    <div *ngIf="contenido.creador" class="content-card__avatar">
+      <img [src]="contenido.creador.avatar" [alt]="contenido.creador.nombre">
+    </div>
+    
+    <!-- Título -->
+    <h3 class="content-card__title">{{ contenido.titulo }}</h3>
+    
+    <!-- Información del creador y categoría -->
+    <p *ngIf="contenido.creador || contenido.categoria" class="content-card__meta">
+      <span *ngIf="contenido.creador">{{ contenido.creador.nombre }}</span>
+      <span *ngIf="contenido.creador && contenido.categoria"> • </span>
+      <span *ngIf="contenido.categoria">{{ contenido.categoria }}</span>
+    </p>
+    
+    <!-- Etiquetas -->
+    <div class="content-card__tags">
+      <span *ngFor="let tag of etiquetasVisibles" class="content-card__tag">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+</a>
