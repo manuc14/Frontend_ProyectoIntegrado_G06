@@ -91,17 +91,24 @@ export class AuthService {
     }
     
     try {
-      const user = JSON.parse(userData) as any;
+      const user = JSON.parse(userData) as CurrentUser;
       console.log('🔍 [AuthService] getCurrentUser: user from storage', user);
       
-      // Mapear el tipo del backend a rol
-      if (user && !user.rol && user.tipo) {
-        user.rol = this.mapBackendTypeToRole(user.tipo);
-        console.log('🔍 [AuthService] getCurrentUser: mapped tipo to rol', { tipo: user.tipo, rol: user.rol });
+      // Mapear el tipo del backend a rol si no existe el rol o si existe el tipo
+      if (user && (!user.rol || user.tipo)) {
+        const mappedRole = this.mapBackendTypeToRole(user.tipo || '');
+        user.rol = mappedRole;
+        console.log('🔍 [AuthService] getCurrentUser: mapped tipo to rol', { 
+          tipo: user.tipo, 
+          rol: mappedRole 
+        });
+        
+        // Actualizar el sessionStorage con el rol mapeado
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
       }
-      return user as CurrentUser;
-    } catch {
-      console.error('🔍 [AuthService] getCurrentUser: Error parsing userData');
+      return user;
+    } catch (error) {
+      console.error('🔍 [AuthService] getCurrentUser: Error parsing userData', error);
       return null;
     }
   }
@@ -110,10 +117,11 @@ export class AuthService {
    * Mapea el tipo del backend (ADMINISTRADOR, CREADOR, USUARIO_EV) al rol de la app
    */
   private mapBackendTypeToRole(tipo: string): UserRole {
+    if (!tipo) return 'user'; // Por defecto user si no hay tipo
     const tipoLower = tipo.toLowerCase();
     if (tipoLower.includes('admin')) return 'admin';
     if (tipoLower.includes('creador') || tipoLower.includes('creator')) return 'creator';
-    return 'user';
+    return 'user'; // USUARIO_EV u otros tipos desconocidos
   }
 
   /**
@@ -183,11 +191,15 @@ export class AuthService {
     const currentPath = this.router.url;
     console.log('🔍 [AuthService] validateSessionForCurrentRoute:', currentPath);
     
-    // Si está en la página inicial (/), cerrar sesión
+    // Si está en la página inicial (/) y está autenticado, redirigir según el rol
     if (currentPath === '/') {
       if (this.isAuthenticated()) {
-        console.log('⚠️ [AuthService] En página inicial - cerrando sesión');
-        this.logout(false); // No redirigir porque ya está en /
+        const role = this.getCurrentRole();
+        if (role) {
+          const redirectRoute = this.getRedirectRouteForRole(role);
+          console.log('ℹ️ [AuthService] Usuario autenticado en página inicial - redirigiendo a:', redirectRoute);
+          this.router.navigate([redirectRoute]);
+        }
       }
       return;
     }

@@ -6,11 +6,12 @@ import { ApiService } from '../../../core/services/api.service';
 import { ImageSelectorService } from '../../../core/services/image-selector.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { HeaderBase } from '../../../core/base/header.base';
+import { UserDropdownMenuComponent } from '../user-dropdown-menu/user-dropdown-menu.component';
 
 @Component({
   selector: 'app-admin-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UserDropdownMenuComponent],
   templateUrl: './admin-header.component.html',
   styleUrls: ['./admin-header.component.scss'],
   animations: [slideInFromTop]

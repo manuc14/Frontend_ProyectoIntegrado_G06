@@ -1,22 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { ImageSelectorService } from '../../../core/services/image-selector.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { HeaderBase } from '../../../core/base/header.base';
+import { UserDropdownMenuComponent } from '../user-dropdown-menu/user-dropdown-menu.component';
 
 @Component({
   selector: 'app-content-creator-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UserDropdownMenuComponent],
   templateUrl: './content-creator-header.component.html',
   styleUrls: ['./content-creator-header.component.scss']
 })
 export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit {
-
-  isOnUploadPage = false;
 
   constructor(
     router: Router,
@@ -36,22 +34,6 @@ export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit 
     if (user) {
       this.currentUser = user as any;
     }
-    this.checkCurrentRoute();
-
-    // Suscribirse a cambios de ruta
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.checkCurrentRoute();
-    });
-  }
-
-  private checkCurrentRoute() {
-    this.isOnUploadPage = this.router.url === '/upload-content';
-  }
-
-  navigateToUpload() {
-    this.router.navigate(['/upload-content']);
   }
 
   override logout() {
