@@ -3,8 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { navActiveState, navHover, fadeIn } from '../../core/animations/animations';
-import { BackendUser, ApiService } from '../../core/services/api.service';
+import { ApiService } from '../../core/services/api.service';
 import { ImageSelectorService } from '../../core/services/image-selector.service';
+import { AuthService } from '../../core/services/auth.service';
+import { HeaderBase } from '../../core/base/header.base';
+import { UserDropdownMenuComponent } from '../components/user-dropdown-menu/user-dropdown-menu.component';
 
 /*
  * HeaderComponent
@@ -15,25 +18,31 @@ import { ImageSelectorService } from '../../core/services/image-selector.service
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, UserDropdownMenuComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   animations: [navActiveState, navHover, fadeIn]
 })
-export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
-  private router = inject(Router);
+export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDestroy, OnInit {
+  protected override router = inject(Router);
   private elementRef = inject(ElementRef);
   private renderer = inject(Renderer2);
-  private apiService = inject(ApiService);
-  private imageSelectorService = inject(ImageSelectorService);
+  protected override apiService = inject(ApiService);
+  protected override imageSelectorService = inject(ImageSelectorService);
+  private authService = inject(AuthService);
   currentRoute = '';
   isMenuOpen = false;
   hasScrolled = false; // Una vez que se hace scroll, se mantiene true
   isHomePage = false; // Para detectar si estamos en home
   isLoggedIn = false;
-  currentUser: BackendUser | null = null;
 
   constructor() {
+    super();
+    this.router = inject(Router);
+    this.apiService = inject(ApiService);
+    this.imageSelectorService = inject(ImageSelectorService);
+    this.authService = inject(AuthService);
+
     // Obtener la ruta inicial
     this.currentRoute = this.router.url;
     this.checkIfHomePage();
@@ -47,6 +56,8 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
         this.checkIfHomePage();
         this.updateLogoVisibility();
         this.updateBodyClass();
+        // Revalidar sesión en cada cambio de ruta
+        this.checkSession();
       });
   }
 
@@ -68,45 +79,37 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   /**
-   * Verifica si hay una sesión activa
+   * Verifica si hay una sesión activa usando AuthService
    */
   private checkSession() {
-    const token = sessionStorage.getItem('authToken');
-    const userData = sessionStorage.getItem('currentUser');
-    this.isLoggedIn = !!(token && userData);
-    if (this.isLoggedIn && userData) {
-      try {
-        this.currentUser = JSON.parse(userData);
-      } catch (error) {
-        console.error('Error parsing current user data:', error);
-        this.isLoggedIn = false;
-        this.currentUser = null;
+    this.isLoggedIn = this.authService.isAuthenticated();
+    if (this.isLoggedIn) {
+      const user = this.authService.getCurrentUser();
+      if (user) {
+        this.currentUser = user;
       }
     } else {
       this.currentUser = null;
     }
   }
 
-  /**
-   * Obtiene la URL del avatar del usuario
-   */
-  getAvatarUrl(): string {
-    if (this.currentUser?.foto) {
-      return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
+  override getAvatarUrl(): string {
+    // Intentar con 'foto' (campo del backend)
+    const fotoUrl = this.currentUser?.foto;
+    if (fotoUrl) {
+      return this.imageSelectorService.getFullImageUrl(fotoUrl, 'avatar');
     }
     return 'assets/admin/admin_default.png';
   }
 
 
   /**
-   * Cierra la sesión del usuario
+   * Cierra la sesión del usuario usando AuthService
    */
-  logout() {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('currentUser');
+  override logout() {
+    this.authService.logout(true);
     this.isLoggedIn = false;
     this.currentUser = null;
-    this.router.navigate(['/login']);
   }
 
   /**

@@ -707,3 +707,118 @@ button:disabled {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+// ========================================
+// ESTILOS ADICIONALES
+// ========================================
+.flex-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.flex-row app-form-input,
+.flex-row app-form-password {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+app-form-input,
+app-form-password,
+app-select-field,
+app-textarea-field {
+  width: 500px;
+}
+
+app-form-actions ::ng-deep .container11 {
+  display: flex !important;
+  justify-content: flex-end !important;
+  margin-bottom: 16px !important;
+  margin-right: 16px !important;
+}
+
+// ========================================
+// SECCIÓN DE AVATAR
+// ========================================
+.avatar-section {
+  @include flex-container(row, 16px, center, center);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-avatar {
+  @include flex-container(column, 0, center, center);
+}
+
+.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+// ========================================
+// MODAL DE AVATAR
+// ========================================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  @include flex-container(column, 0, center, center);
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  @include flex-container(row, 0, center, space-between);
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+
+  h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+  }
+}
+
+.close-btn {
+  background: none;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  cursor: pointer;
+  color: #666;
+  padding: 8px 12px;
+  min-width: 30px;
+  height: 30px;
+  @include flex-container(column, 0, center, center);
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+
+  &:hover {
+    background: #e9ecef;
+    color: #333;
+    border-color: #999;
+  }
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: calc(80vh - 80px);
+  overflow-y: auto;
+}

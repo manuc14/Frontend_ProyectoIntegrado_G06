@@ -1,0 +1,37 @@
+@import '../../../../shared/admin-shared.scss';
+
+// ========================================
+// ESTILOS ESPECÍFICOS PARA LA TABLA DE ADMINISTRADORES
+// ========================================
+
+// Variables específicas para la tabla de administradores (8 columnas)
+$table-grid-columns-admin: minmax(60px, 0.8fr) minmax(100px, 1.5fr) minmax(110px, 1.7fr) minmax(160px, 2.8fr) minmax(120px, 1.9fr) minmax(80px, 1.2fr) minmax(70px, 1fr) minmax(70px, 1fr);
+
+// Aplicar distribución específica para administradores
+.background5 {
+  grid-template-columns: $table-grid-columns-admin !important;
+}
+
+.horizontal-border,
+.horizontal-border2 {
+  grid-template-columns: $table-grid-columns-admin !important;
+}
+
+// Media queries específicas para administradores
+@media (max-width: 1200px) {
+  $table-grid-columns-admin-medium: minmax(50px, 0.7fr) minmax(85px, 1.2fr) minmax(95px, 1.4fr) minmax(140px, 2.3fr) minmax(105px, 1.6fr) minmax(70px, 1fr) minmax(60px, 0.8fr) minmax(60px, 0.8fr);
+
+  .background5,
+  .horizontal-border,
+  .horizontal-border2 {
+    grid-template-columns: $table-grid-columns-admin-medium !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .background5,
+  .horizontal-border,
+  .horizontal-border2 {
+    grid-template-columns: minmax(40px, 0.6fr) minmax(70px, 1.1fr) minmax(85px, 1.4fr) minmax(120px, 2.2fr) minmax(70px, 1.1fr) minmax(50px, 0.8fr) minmax(50px, 0.8fr) !important;
+  }
+}

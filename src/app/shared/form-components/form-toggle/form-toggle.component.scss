@@ -1,0 +1,66 @@
+@use '../../../shared/scss/mixins' as mixins;
+@use '../../../shared/scss/common3' as common3;
+
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+
+  legend {
+    @include mixins.text-base(var(--muted-foreground), 13px, 500);
+  }
+
+  .segmented {
+    display: flex;
+    border-radius: 12px;
+    overflow: hidden;
+    border-style: solid;
+    border-color: var(--border);
+    border-width: 1px;
+    width: 200px;
+    transition: border-color 0.2s ease;
+
+    &:hover {
+      border-color: var(--primary);
+    }
+
+    .segment {
+      flex: 1;
+      position: relative;
+
+      input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      span {
+        display: block;
+        padding: 0.5rem;
+        text-align: center;
+        background: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-family: "NimbusSans-Medium", sans-serif;
+        font-size: 14px;
+        color: var(--foreground);
+      }
+
+      &.active span {
+        background: #3b82f6;
+        color: white;
+      }
+
+      &:not(:last-child) span {
+        border-right: 1px solid #d1d5db;
+      }
+    }
+  }
+
+  .hint {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+}

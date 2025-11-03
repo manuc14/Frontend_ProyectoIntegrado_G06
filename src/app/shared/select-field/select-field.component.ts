@@ -19,6 +19,8 @@ import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/f
 export class SelectFieldComponent implements ControlValueAccessor {
   @Input() label: string = '';
   @Input() options: { value: string; label: string }[] = [];
+  @Input() errorMessage: string = '';
+  @Input() hasError: boolean = false;
 
   value: string = '';
   disabled: boolean = false;

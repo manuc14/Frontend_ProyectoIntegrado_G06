@@ -1,65 +1,42 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
-import { BackendUser, ApiService } from '../../../core/services/api.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ApiService } from '../../../core/services/api.service';
 import { ImageSelectorService } from '../../../core/services/image-selector.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { HeaderBase } from '../../../core/base/header.base';
+import { UserDropdownMenuComponent } from '../user-dropdown-menu/user-dropdown-menu.component';
 
 @Component({
   selector: 'app-content-creator-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UserDropdownMenuComponent],
   templateUrl: './content-creator-header.component.html',
   styleUrls: ['./content-creator-header.component.scss']
 })
-export class ContentCreatorHeaderComponent implements OnInit {
+export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit {
 
-  currentUser: BackendUser | null = null;
-  isOnUploadPage = false;
-
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, private apiService: ApiService, private imageSelectorService: ImageSelectorService) {}
+  constructor(
+    router: Router,
+    activatedRoute: ActivatedRoute,
+    apiService: ApiService,
+    imageSelectorService: ImageSelectorService,
+    private authService: AuthService
+  ) {
+    super();
+    this.router = router;
+    this.apiService = apiService;
+    this.imageSelectorService = imageSelectorService;
+  }
 
   ngOnInit() {
-    this.loadCurrentUser();
-    this.checkCurrentRoute();
-    
-    // Suscribirse a cambios de ruta
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.checkCurrentRoute();
-    });
-  }
-
-  private checkCurrentRoute() {
-    this.isOnUploadPage = this.router.url === '/upload-content';
-  }
-
-  private loadCurrentUser() {
-    const userData = sessionStorage.getItem('currentUser');
-    if (userData) {
-      try {
-        this.currentUser = JSON.parse(userData);
-      } catch (error) {
-        console.error('Error parsing current user data:', error);
-      }
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.currentUser = user as any;
     }
   }
 
-  getAvatarUrl(): string {
-      if (this.currentUser?.foto) {
-        return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
-      }
-      return 'assets/admin/admin_default.png';
-  }
-
-  navigateToUpload() {
-    this.router.navigate(['/upload-content']);
-  }
-
-  logout() {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('currentUser');
-    this.router.navigate(['/login']);
+  override logout() {
+    this.authService.logout(true);
   }
 }

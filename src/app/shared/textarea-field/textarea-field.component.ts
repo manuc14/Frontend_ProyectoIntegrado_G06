@@ -21,6 +21,7 @@ export class TextAreaFieldComponent implements ControlValueAccessor {
   @Input() placeholder: string = '';
   @Input() errorMessage: string = '';
   @Input() tooLong: boolean = false;
+  @Input() maxlength: string = '';
 
   private _value: string = '';
   disabled: boolean = false;

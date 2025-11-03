@@ -1,0 +1,22 @@
+<app-header />
+
+<main class="login-page" [@fadeIn]>
+  <h1 class="page-title">Iniciar sesión</h1>
+  <p class="hint">Accede para continuar viendo y escuchando tu contenido.</p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card" [@shakeError]="shakeForm ? 'shake' : ''">
+    <div *ngIf="bannerKind" class="banner" [class.error]="bannerKind==='error'">{{ bannerText }}</div>
+
+    <input type="email" formControlName="email" required class="login-input" placeholder="Email">
+
+    <input type="password" formControlName="password" required class="login-input" placeholder="Contraseña">
+
+    <div class="row end links-group">
+      <a class="muted" routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
+      <div class="muted small">¿Nuevo aquí? <a routerLink="/signup">Crear cuenta</a></div>
+    </div>
+
+    <app-form-submit [text]="'Entrar'" [loadingText]="'Entrando…'" [loading]="loading" [showCancel]="false" (submit)="submit()" customClass="login-actions" />
+  </form>
+</main>
+<app-footer class="login-footer" />

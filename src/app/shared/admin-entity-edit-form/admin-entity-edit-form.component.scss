@@ -1,1 +1,7 @@
 @use '../scss/base-layout' as base-layout;
+
+::ng-deep app-form-date label span {
+  font-weight: 400 !important;
+  font-size: 13px !important;
+  color: var(--muted-foreground) !important;
+}

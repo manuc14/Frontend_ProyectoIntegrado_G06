@@ -1,0 +1,708 @@
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE REGISTRO
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DISEÑO DE PÁGINA
+   -------------------------------------------------------------------------- */
+
+.register-page {
+    max-width: 960px;
+    margin: 32px auto;
+    padding: 0 16px;
+    background: var(--background);
+    color: var(--foreground);
+    min-height: 100vh;
+}
+
+.hint {
+    color: var(--muted-foreground);
+    margin: 0 0 16px 0;
+}
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR DE TARJETA
+   -------------------------------------------------------------------------- */
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* --------------------------------------------------------------------------
+   SISTEMA DE DISEÑO DE CUADRÍCULA
+   -------------------------------------------------------------------------- */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   ELEMENTOS DE FORMULARIO
+   -------------------------------------------------------------------------- */
+
+/* Etiquetas y conjuntos de campos básicos */
+label,
+fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Campos de entrada */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"] {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--input);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px var(--ring);
+    background: var(--card);
+}
+
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover,
+input[type="date"]:hover {
+    border-color: var(--primary);
+}
+
+input[type="text"]:not(:focus):not(:hover),
+input[type="email"]:not(:focus):not(:hover),
+input[type="password"]:not(:focus):not(:hover),
+input[type="date"]:not(:focus):not(:hover) {
+    border-color: var(--border);
+    box-shadow: none;
+    background: var(--card);
+}
+
+/* --------------------------------------------------------------------------
+   INPUTS CON TOGGLE DE VISIBILIDAD (MOSTRAR/OCULTAR CONTRASEÑA)
+   -------------------------------------------------------------------------- */
+
+.input-with-toggle {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-toggle input {
+    width: 100%;
+    padding-right: 50px; /* Espacio para el botón */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.password-toggle:hover {
+    background-color: var(--muted);
+}
+
+.password-toggle:focus {
+    outline: none;
+    background-color: var(--muted);
+}
+
+.password-toggle img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.password-toggle:hover img,
+.password-toggle:focus img {
+    opacity: 1;
+}
+
+/* Estilo de conjuntos de campos */
+fieldset {
+    border: 1px dashed var(--border);
+    padding: 16px;
+    border-radius: 8px;
+    background: var(--muted);
+}
+
+fieldset legend {
+    color: var(--foreground);
+    font-weight: 600;
+    padding: 0 12px;
+    background: var(--card);
+    border-radius: 4px;
+}
+
+/* Estilo específico para el fieldset del plan */
+fieldset:has(.segmented) {
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+fieldset:has(.segmented) legend {
+    color: var(--foreground);
+    font-weight: 600;
+    padding: 0 8px;
+    background: var(--card);
+    font-size: 14px;
+}
+
+/* Validación de formularios */
+input.ng-invalid.ng-touched {
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 2px var(--destructive);
+}
+
+input.ng-invalid.ng-touched:focus {
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 2px var(--destructive);
+}
+
+/* --------------------------------------------------------------------------
+   TOOLTIPS DE AYUDA
+   -------------------------------------------------------------------------- */
+
+label.with-help {
+    position: relative;
+}
+
+label.with-help > span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+label.with-help .help {
+    margin-left: 8px;
+    align-self: flex-start;
+    background: var(--muted);
+    color: var(--muted-foreground);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    position: relative;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+label.with-help .help:hover {
+    background: var(--secondary);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+label.with-help .help .tooltip {
+    position: absolute;
+    top: 28px;
+    right: 0;
+    z-index: 10;
+    min-width: 240px;
+    max-width: 320px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: var(--shadow);
+}
+
+label.with-help .help .tooltip strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--primary);
+}
+
+label.with-help .help .tooltip ul {
+    padding-left: 18px;
+    margin: 0;
+}
+
+label.with-help .help .tooltip ul.password-requirements {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+label.with-help .help .tooltip ul.password-requirements li {
+    position: relative;
+    padding-left: 14px;
+    margin: 4px 0;
+}
+
+label.with-help .help .tooltip ul.password-requirements li::before {
+    content: '\00B7';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--muted-foreground);
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   CONTROLES SEGMENTADOS (Toggle VIP)
+   -------------------------------------------------------------------------- */
+
+.segmented {
+    display: flex;
+    gap: 2px;
+    background: var(--muted);
+    border-radius: 8px;
+    padding: 3px;
+    align-items: center;
+    width: 100%;
+    max-width: 220px;
+    border: 1px solid var(--border);
+}
+
+.segment {
+    position: relative;
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 1;
+    font-weight: 500;
+    font-size: 13px;
+    min-height: 36px;
+}
+
+.segment input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.segment.active {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(0);
+}
+
+.segment:not(.active):hover {
+    background: var(--secondary);
+    color: var(--foreground);
+}
+
+.vip-hint {
+    color: var(--muted-foreground);
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   SELECCIÓN DE AVATAR
+   -------------------------------------------------------------------------- */
+
+.avatar-section {
+    margin-top: 8px;
+}
+
+.loading-avatars {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    color: var(--muted-foreground);
+    justify-content: center;
+}
+
+.avatar-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted-foreground);
+}
+
+.error-icon {
+    font-size: 20px;
+    margin-top: 2px;
+}
+
+.error-message {
+    flex: 1;
+    
+    strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--muted-foreground);
+    }
+    
+    p {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 14px;
+        line-height: 1.4;
+    }
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--muted);
+    border-top: 2px solid var(--success);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 20px;
+    max-width: 100%;
+    padding: 12px;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.avatar-option {
+    position: relative;
+    background: var(--card);
+    border: 3px solid var(--border);
+    border-radius: 50%; /* Completamente circular */
+    padding: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Para mantener imagen dentro del círculo */
+    
+    &:hover {
+        border-color: var(--primary);
+        background: var(--secondary);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    &.selected {
+        border-color: var(--primary);
+        background: var(--secondary);
+        box-shadow: 0 0 0 2px var(--ring),
+                    var(--shadow);
+        transform: scale(1.05);
+    }
+    
+    img {
+        width: 170%;
+        height: 170%;
+        object-fit: cover;
+        border-radius: 50%; /* Imagen también circular */
+        max-width: 175px;
+        max-height: 175px;
+        transition: transform 0.3s ease;
+    }
+    
+    &:hover img {
+        transform: scale(1.1);
+    }
+}
+
+.check-mark {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: 2px solid var(--card);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+    animation: checkmarkBounce 0.3s ease-out;
+}
+
+@keyframes checkmarkBounce {
+    0% {
+        transform: scale(0) rotate(180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(90deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsivo para avatares */
+@media (max-width: 640px) {
+    .avatar-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding: 8px;
+    }
+    
+    .avatar-option {
+        padding: 2px;
+        border-width: 2px;
+        
+        img {
+            max-width: 72px;
+            max-height: 72px;
+        }
+        
+        &:hover {
+            transform: translateY(-1px) scale(1.03);
+        }
+        
+        &.selected {
+            transform: scale(1.03);
+            box-shadow: 0 0 0 2px var(--ring),
+                        var(--shadow-sm);
+        }
+    }
+    
+    .check-mark {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        top: -4px;
+        right: -4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .avatar-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .avatar-option {
+        img {
+            max-width: 84px;
+            max-height: 84px;
+        }
+    }
+}
+
+/* --------------------------------------------------------------------------
+   UTILIDADES DE TEXTO
+   -------------------------------------------------------------------------- */
+
+.subhint {
+    color: var(--muted-foreground);
+    font-size: 14px;
+}
+
+.field-error {
+    color: var(--destructive-foreground);
+    font-size: 14px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.field-error::before {
+    content: '⚠';
+    font-size: 12px;
+}
+
+.errors {
+    margin-top: 12px;
+    color: var(--destructive-foreground);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   ACCIONES Y BOTONES
+   -------------------------------------------------------------------------- */
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn.primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.btn.primary:hover {
+    background: color-mix(in srgb, var(--primary) 90%, black);
+}
+
+.btn.primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn.ghost {
+    background: transparent;
+    color: var(--muted-foreground);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn.ghost:hover {
+    background: var(--muted);
+    color: var(--foreground);
+}
+
+/* --------------------------------------------------------------------------
+   BANNERS Y NOTIFICACIONES
+   -------------------------------------------------------------------------- */
+
+.banner {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--muted);
+    color: var(--foreground);
+    white-space: pre-line;
+}
+
+.banner.success {
+    border-color: color-mix(in srgb, var(--success) 60%, transparent);
+    background: var(--success);
+    color: var(--success-foreground);
+}
+
+.banner.error {
+    border-color: color-mix(in srgb, var(--destructive) 60%, transparent);
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+}
+
+/* --------------------------------------------------------------------------
+   ESTILOS PARA COMPONENTES COMPARTIDOS EN REGISTER
+   -------------------------------------------------------------------------- */
+
+.register-input {
+  label {
+    margin-bottom: 1rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--input);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--ring);
+  }
+}
+
+.with-help {
+  position: relative;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+/* --------------------------------------------------------------------------
+   DISEÑO RESPONSIVO
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   AJUSTES ESPECÍFICOS PARA ALINEACIÓN
+   -------------------------------------------------------------------------- */
+
+::ng-deep .align-bottom span {
+    padding-bottom: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   NOTAS
+   -------------------------------------------------------------------------- */
+
+/* Los estilos del modal de promoción VIP se movieron al componente compartido */

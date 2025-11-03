@@ -16,157 +16,126 @@
         </div>
         <div class="container2">
           <!-- Mensaje de error general -->
-          <div *ngIf="errorMessage" class="error-message-box" [@shakeError]>
-            {{ errorMessage }}
-          </div>
+          <app-error-container [error]="currentFormState?.error"></app-error-container>
 
           <!-- Sección de foto -->
-          <div class="background2">
-            <div class="container4">
-              <div class="text3">{{ photoLabel }}</div>
-              <div class="text4" *ngIf="entityType === 'admin'"></div>
+          <div class="avatar-section">
+            <div class="current-avatar">
+              <img [src]="currentFormState?.imageState?.selectedImage || 'assets/admin/admin_default.png'" alt="Avatar actual" class="avatar-preview">
             </div>
-            <div class="container5">
-              <div class="container6">
-                <div class="background3">
-                  <div class="svg3" *ngIf="isDefaultIcon">
-                    <img class="group" src="assets/admin/foto_upload.svg" alt="usuario por defecto" height="18" width="18"/>
-                  </div>
-                  <img
-                    *ngIf="!isDefaultIcon"
-                    [src]="previewUrl"
-                    alt="vista previa"
-                    style="width: 56px; height: 56px; border-radius: 48px; object-fit: cover; position: absolute;"/>
-                </div>
-                <button class="border3" type="button" (click)="openAvatarModal()" [@buttonHover] [@buttonPress]>
-                  <div class="container7">
-                    <div class="iconify-icon2">
-                      <div class="svg3">
-                        <img class="group2" src="assets/admin/img_predefinida.svg" alt="elegir predefinida" height="18" width="19"/>
-                      </div>
-                    </div>
-                    <div class="elegir-predefinida">Elegir predefinida</div>
-                  </div>
+            <button type="button" class="close-btn" (click)="openAvatarModal()" aria-label="Elegir avatar predefinido">
+              Elegir predefinida
+            </button>
+          </div>
+
+          <!-- Modal para selección de avatar -->
+          <div class="modal-overlay" *ngIf="showAvatarModal" (click)="closeAvatarModal()" (keydown)="onModalKeyDown($event)" tabindex="-1">
+            <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="onModalKeyDown($event)" tabindex="-1">
+              <div class="modal-header">
+                <h3>Seleccionar avatar predefinido</h3>
+                <button type="button" class="close-btn" (click)="closeAvatarModal()" aria-label="Cerrar">
+                  ×
                 </button>
+              </div>
+              <div class="modal-body">
+                <app-avatar-selector
+                  [availableAvatars]="currentFormState?.imageState?.images || []"
+                  [selectedAvatar]="currentFormState?.imageState?.selectedImage || ''"
+                  [nombre]="entityForm.get('nombre')?.value"
+                  (avatarSelected)="onAvatarSelected($event)">
+                </app-avatar-selector>
               </div>
             </div>
           </div>
 
           <!-- Campo Nombre -->
-          <div class="background4">
-            <div class="container8">
-              <div class="text6">Nombre *</div>
-            </div>
-            <div class="background-border" [class.error-border]="shouldShowError('nombre')" [@inputFocus]>
-              <input
-                type="text"
-                formControlName="nombre"
-                class="nombre"
-                placeholder="Nombre">
-            </div>
-          </div>
+          <app-form-input
+            label="Nombre"
+            formControlName="nombre"
+            placeholder="Nombre"
+            [required]="true"
+            [errors]="entityForm.get('nombre')?.errors ?? null"
+            [touched]="entityForm.get('nombre')?.touched ?? false">
+          </app-form-input>
 
           <!-- Campo Apellidos -->
-          <div class="background5">
-            <div class="container8">
-              <div class="text7">Apellidos *</div>
-            </div>
-            <div class="background-border" [class.error-border]="shouldShowError('apellidos')" [@inputFocus]>
-              <input
-                type="text"
-                formControlName="apellidos"
-                class="apellidos"
-                placeholder="Apellidos">
-            </div>
-          </div>
+          <app-form-input
+            label="Apellidos"
+            formControlName="apellidos"
+            placeholder="Apellidos"
+            [required]="true"
+            [errors]="entityForm.get('apellidos')?.errors ?? null"
+            [touched]="entityForm.get('apellidos')?.touched ?? false">
+          </app-form-input>
 
           <!-- Campo Email -->
-          <div class="background6">
-            <div class="container8">
-              <div class="text8">Email *</div>
-            </div>
-            <div class="background-border" [class.error-border]="shouldShowError('email')" [@inputFocus]>
-              <input
-                type="email"
-                formControlName="email"
-                class="email-plataforma-com"
-                [placeholder]="emailPlaceholder">
-            </div>
-          </div>
+          <app-form-input
+            label="Email"
+            type="email"
+            formControlName="email"
+            [placeholder]="config.emailPlaceholder"
+            [required]="true"
+            [errors]="entityForm.get('email')?.errors ?? null"
+            [touched]="entityForm.get('email')?.touched ?? false">
+          </app-form-input>
 
           <!-- Campo Alias (solo para creators) -->
-          <div class="background7" *ngIf="entityType === 'creator'">
-            <div class="paragraph">
-              <div class="text9">Alias *</div>
-              <div class="text10">{{ aliasHelpText }}</div>
-            </div>
-            <div class="background-border" [class.error-border]="shouldShowError('alias')" [@inputFocus]>
-              <input
-                type="text"
-                formControlName="alias"
-                class="alias-input"
-                [placeholder]="aliasPlaceholder">
-            </div>
-          </div>
+          <app-form-input
+            *ngIf="entityType === 'creator'"
+            label="Alias"
+            formControlName="alias"
+            placeholder="@alias_unico"
+            subhint="(no repetible)"
+            [required]="true"
+            [errors]="entityForm.get('alias')?.errors ?? null"
+            [touched]="entityForm.get('alias')?.touched ?? false">
+          </app-form-input>
 
           <!-- Campo Contraseña -->
-          <div class="background8">
-            <div class="container8">
-              <div class="text11">Contraseña *</div>
-            </div>
-            <div class="background-border" [class.error-border]="shouldShowError('password')" [@inputFocus]>
-              <input
-                type="password"
-                formControlName="password"
-                class="div"
-                placeholder="••••••••">
-            </div>
-          </div>
+          <app-form-password
+            label="Contraseña"
+            formControlName="password"
+            placeholder="••••••••"
+            [showTooltip]="showTooltipPassword"
+            (toggleTooltip)="onToggleTooltipPassword()"
+            [required]="true"
+            [errors]="entityForm.get('password')?.errors ?? null"
+            [touched]="entityForm.get('password')?.touched ?? false">
+          </app-form-password>
 
           <!-- Campo Repetir contraseña -->
-          <div class="background9">
-            <div class="container8">
-              <div class="text12">Repetir contraseña *</div>
-            </div>
-            <div class="background-border" [class.error-border]="shouldShowError('repetirPassword')" [@inputFocus]>
-              <input
-                type="password"
-                formControlName="repetirPassword"
-                class="div"
-                placeholder="••••••••">
-            </div>
-          </div>
+          <app-form-password
+            label="Repetir contraseña"
+            formControlName="repetirPassword"
+            placeholder="••••••••"
+            [showTooltip]="false"
+            [showHelpButton]="false"
+            [required]="true"
+            [errors]="entityForm.get('repetirPassword')?.errors ?? null"
+            [touched]="entityForm.get('repetirPassword')?.touched ?? false">
+          </app-form-password>
 
           <!-- Campo Select (departamento/especialidad) -->
-          <div class="background10">
-            <div class="container8">
-              <div class="text13">{{ selectLabel }}</div>
-            </div>
-            <div class="background-border2" [class.error-border]="shouldShowError(selectFieldName)">
-              <div class="container9">
-                <select [formControlName]="selectFieldName" class="text14">
-                  <option *ngFor="let opt of selectOptions" [value]="opt">{{ opt }}</option>
-                </select>
-              </div>
-              <div class="iconify-icon2">
-                <img class="svg4" src="assets/admin/desplegable.svg" alt="desplegable" height="18" width="19"/>
-              </div>
-            </div>
-          </div>
+          <app-select-field
+            [label]="config.selectLabel"
+            [formControlName]="config.selectFieldName"
+            [hasError]="!!(entityForm.get(config.selectFieldName)?.invalid && entityForm.get(config.selectFieldName)?.touched)">
+            <option *ngFor="let opt of config.selectOptions" [value]="opt">{{ opt }}</option>
+          </app-select-field>
 
           <!-- Campo Tipo de contenido (solo creator) -->
           <div class="background11" *ngIf="entityType === 'creator'">
             <div class="container8">
               <div class="text15">Tipo de contenido *</div>
             </div>
-            <div class="container10" [class.error-border]="shouldShowError('tipoContenido')">
-              <button class="background-border3" type="button" (click)="setTipoContenido('audio')" [@buttonHover] [@buttonPress] [class.selected]="entityForm.get('tipoContenido')?.value === 'audio'">
+            <div class="container10" [class.error-border]="entityForm.get('tipoContenido')?.invalid && entityForm.get('tipoContenido')?.touched">
+              <button class="background-border3" type="button" (click)="entityForm.patchValue({ tipoContenido: 'audio' })" [@buttonHover] [@buttonPress] [class.selected]="entityForm.get('tipoContenido')?.value === 'audio'">
                 <div class="iconify-icon2">
                   <img class="svg5" src="assets/admin/tipo_creador.svg" alt="selector audio" height="14" width="14"/>
                 </div>
                 <div class="audio">Audio</div>
               </button>
-              <button class="background-border3" type="button" (click)="setTipoContenido('video')" [@buttonHover] [@buttonPress] [class.selected]="entityForm.get('tipoContenido')?.value === 'video'">
+              <button class="background-border3" type="button" (click)="entityForm.patchValue({ tipoContenido: 'video' })" [@buttonHover] [@buttonPress] [class.selected]="entityForm.get('tipoContenido')?.value === 'video'">
                 <div class="iconify-icon2">
                   <img class="svg6" src="assets/admin/tipo_creador.svg" alt="selector video" height="14" width="14"/>
                 </div>
@@ -179,79 +148,20 @@
           </div>
 
           <!-- Campo Descripción (solo creator) -->
-          <div class="background12" *ngIf="entityType === 'creator'">
-            <div class="container8">
-              <div class="text17">Descripción</div>
-            </div>
-            <div class="background-border4" [@inputFocus]>
-              <textarea
-                formControlName="descripcion"
-                class="breve-bio"
-                placeholder="Breve bio o descripción del creador"
-                rows="4"></textarea>
-            </div>
-          </div>
+          <app-textarea-field
+            *ngIf="entityType === 'creator'"
+            label="Descripción"
+            formControlName="descripcion"
+            placeholder="Breve bio o descripción del creador">
+          </app-textarea-field>
         </div>
 
-        <div class="horizontal-border2">
-          <button class="background13" type="button" (click)="goBack()" [@buttonHover] [@buttonPress] [disabled]="isSubmitting">
-            <div class="iconify-icon">
-              <img class="svg7" src="assets/admin/eliminar.svg" alt="icono cancelar" height="18" width="19"/>
-            </div>
-            <div class="text18">Cancelar</div>
-          </button>
-          <button class="background14" type="submit" [@buttonHover] [@buttonPress] [disabled]="isSubmitting">
-            <div class="iconify-icon3">
-              <img class="svg8" src="assets/admin/tick.svg" alt="icono crear" height="18" width="19"/>
-            </div>
-            <div class="text19">{{ submitButtonText }}</div>
-          </button>
-        </div>
+        <app-form-actions
+          [isSaving]="currentFormState?.isSubmitting"
+          (cancelar)="goBack()"
+          (guardar)="onSubmit()">
+        </app-form-actions>
       </form>
     </div>
   </div>
-
-  <!-- Modal de avatares predefinidos -->
-  <button *ngIf="showAvatarModal"
-          style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; border: none; padding: 0; cursor: pointer;"
-          (click)="closeAvatarModal()"
-          onKeyDown="if(event.key === 'Enter' || event.key === ' ') { closeAvatarModal(); }"
-          onKeyUp="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); }"
-          onKeyPress="if(event.key === 'Enter' || event.key === ' ') { closeAvatarModal(); }"
-          [@fadeIn]>
-    <div style="background: white; border-radius: 16px; width: 90%; max-width: 500px; overflow: hidden; display: flex; flex-direction: column;">
-      <div style="padding: 20px; border-bottom: 1px solid #eaedf2; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="color: #0f172a; font-family: 'NimbusSans-Bold', sans-serif; font-size: 18px; font-weight: 700; margin: 0;">Selecciona un avatar</h3>
-        <button type="button" (click)="closeAvatarModal()" style="background: transparent; border: none; cursor: pointer; padding: 4px;">
-          <img src="assets/admin/salir.svg" alt="cerrar" height="18" width="19"/>
-        </button>
-      </div>
-      <div style="padding: 30px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-        <div *ngIf="isLoadingAvatars" class="loading-avatars" style="grid-column: span 2; text-align: center; padding: 40px;">
-          <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
-          <span style="color: #6b7280; font-family: 'Inter', sans-serif;">Cargando avatares...</span>
-        </div>
-        <div *ngIf="avatarLoadError" class="avatar-error" style="grid-column: span 2; text-align: center; padding: 40px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
-          <div class="error-icon" style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
-          <div class="error-message">
-            <strong style="color: #dc2626;">No se han podido cargar los avatares.</strong>
-            <p style="color: #6b7280; margin-top: 4px;">Se le asignará el predeterminado y posteriormente podrá modificarlo en su perfil.</p>
-          </div>
-        </div>
-        <ng-container *ngIf="!isLoadingAvatars && !avatarLoadError">
-          <button
-            *ngFor="let avatar of availableAvatars"
-            class="avatar-item"
-            [class.avatar-selected]="selectedAvatar === avatar"
-            (click)="selectPredefinedAvatar(avatar)"
-            tabindex="0"
-            onKeyDown="if(event.key === 'Enter' || event.key === ' ') { selectPredefinedAvatar(avatar); }"
-            onKeyUp="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); }"
-            onKeyPress="if(event.key === 'Enter' || event.key === ' ') { selectPredefinedAvatar(avatar); }">
-            <img [src]="avatar" alt="avatar predefinido" width="100" height="100" style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover;"/>
-          </button>
-        </ng-container>
-      </div>
-    </div>
-  </button>
 </div>

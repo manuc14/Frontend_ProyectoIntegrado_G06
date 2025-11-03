@@ -1,0 +1,16 @@
+<label [class]="customClass">
+  <span>{{ label }}<span *ngIf="showAsterisk"> *</span></span>
+  <input type="date"
+         [value]="value"
+         [disabled]="disabled"
+         (input)="onInputChange($event)"
+         (focus)="onFocus()"
+         (blur)="onBlur()" />
+  <ng-container *ngIf="touched && errors">
+    <small class="field-error" *ngIf="errors?.['required']">El formato de la fecha no es válido.</small>
+    <small class="field-error" *ngIf="errors?.['futureDate']">La fecha no puede ser futura.</small>
+    <small class="field-error" *ngIf="errors?.['minAge']">Debes tener al menos 4 años.</small>
+    <small class="field-error" *ngIf="errors?.['maxAge']">Fecha no válida. Prueba a introducir a partir de 1900.</small>
+    <small class="field-error" *ngIf="errors?.['minDate']">La fecha no puede ser anterior a hoy.</small>
+  </ng-container>
+</label>

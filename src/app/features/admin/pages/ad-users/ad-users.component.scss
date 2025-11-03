@@ -1,0 +1,40 @@
+@import '../../../../shared/admin-mixins.scss';
+@import '../../../../shared/admin-shared.scss';
+
+// ========================================
+// SOBRESCRITURAS ESPECÍFICAS PARA AD-USERS
+// ========================================
+
+// Variables específicas para la tabla de usuarios (9 columnas)
+$table-grid-columns-users: minmax(60px, 0.8fr) minmax(100px, 1.4fr) minmax(110px, 1.6fr) minmax(100px, 1.4fr) minmax(160px, 2.3fr) minmax(120px, 1.7fr) minmax(90px, 1.3fr) minmax(80px, 1.1fr) minmax(80px, 1.1fr);
+
+// Aplicar las columnas específicas a los elementos de tabla
+.background5 {
+  grid-template-columns: $table-grid-columns-users !important;
+}
+
+.horizontal-border,
+.horizontal-border2 {
+  grid-template-columns: $table-grid-columns-users !important;
+}
+
+// Media queries específicas para ad-users
+@media (max-width: 1200px) {
+  $table-grid-columns-users-medium: minmax(50px, 0.7fr) minmax(90px, 1.3fr) minmax(100px, 1.5fr) minmax(90px, 1.3fr) minmax(140px, 2.1fr) minmax(110px, 1.6fr) minmax(80px, 1.2fr) minmax(70px, 1fr) minmax(70px, 1fr);
+
+  .background5,
+  .horizontal-border,
+  .horizontal-border2 {
+    grid-template-columns: $table-grid-columns-users-medium !important;
+  }
+}
+
+@media (max-width: 768px) {
+  $table-grid-columns-users-mobile: minmax(45px, 0.7fr) minmax(80px, 1.2fr) minmax(90px, 1.4fr) minmax(80px, 1.2fr) minmax(120px, 1.8fr) minmax(60px, 0.9fr) minmax(55px, 0.8fr) minmax(55px, 0.8fr);
+
+  .background5,
+  .horizontal-border,
+  .horizontal-border2 {
+    grid-template-columns: $table-grid-columns-users-mobile !important;
+  }
+}

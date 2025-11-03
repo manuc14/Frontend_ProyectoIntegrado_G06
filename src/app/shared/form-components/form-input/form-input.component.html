@@ -1,0 +1,20 @@
+<div class="container8">
+  <div class="container9">
+    <div class="text5">{{ label }} <span *ngIf="required">*</span></div>
+  </div>
+  <div class="background-border9" [class.error]="touched && errors" [class.readonly]="disabled">
+    <input [type]="type"
+           class="input-field"
+           [class.readonly]="disabled"
+           [value]="value"
+           [attr.maxlength]="maxlength"
+           [placeholder]="placeholder"
+           [disabled]="disabled"
+           (input)="onInputChange($event)"
+           (focus)="onFocus()"
+           (blur)="onBlur()" />
+  </div>
+  <div class="error-message" *ngIf="touched && errors">
+    {{ getErrorMessage() }}
+  </div>
+</div>

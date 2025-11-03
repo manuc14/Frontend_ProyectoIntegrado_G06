@@ -1,5 +1,6 @@
 // === HEADER PARA CONTENT CREATOR ===
 @import '../../admin-shared.scss';
+@import '../../shared-header.scss';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 // Variables
@@ -85,38 +86,6 @@ $transition-normal: 0.2s ease;
       display: flex;
       align-items: center;
       gap: $space-2;
-
-      .avatar-image {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid $border-color;
-      }
-
-      .logout-button {
-        background: transparent;
-        border: 1px solid $border-color;
-        color: $text-primary;
-        padding: $space-2;
-        border-radius: $radius-md;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all $transition-normal;
-
-        &:hover {
-          background: rgba(239, 68, 68, 0.1);
-          border-color: #ef4444;
-          color: #ef4444;
-        }
-
-        svg {
-          width: 16px;
-          height: 16px;
-        }
-      }
     }
   }
 }

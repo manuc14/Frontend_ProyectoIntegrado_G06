@@ -141,7 +141,7 @@ export class UploadThumbnailComponent {
    * Reintenta la subida
    */
   retryUpload(): void {
-    if (this.thumbnailData && this.thumbnailData.state === 'error') {
+    if (this.thumbnailData?.state === 'error') {
       this.uploadThumbnail();
     }
   }

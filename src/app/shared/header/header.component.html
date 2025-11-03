@@ -64,8 +64,11 @@
       </a>
     </ng-container>
     <ng-container *ngIf="isLoggedIn">
-      <img [src]="getAvatarUrl()" alt="Avatar" class="avatar-desktop" />
-      <button class="logout-desktop" (click)="logout()" (keydown.enter)="logout()" tabindex="0">Cerrar sesión</button>
+      <app-user-dropdown-menu
+        [currentUser]="currentUser"
+        [avatarUrl]="getAvatarUrl()"
+        (logoutEvent)="logout()">
+      </app-user-dropdown-menu>
     </ng-container>
   </div>
 </header>
