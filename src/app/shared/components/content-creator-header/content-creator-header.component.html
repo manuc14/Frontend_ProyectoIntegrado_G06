@@ -8,23 +8,10 @@
   </div>
 
   <div class="header-actions">
-    <button *ngIf="!isOnUploadPage" class="header-upload-button" (click)="navigateToUpload()" aria-label="Subir contenido">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/>
-      </svg>
-      Subir contenido
-    </button>
-
-    <div class="avatar-section">
-      <img 
-        [src]="getAvatarUrl()" 
-        [alt]="'avatar de ' + (currentUser?.nombre || 'usuario')" 
-        class="shared-avatar"
-        height="32" 
-        width="32"/>
-      <div class="background2" (click)="logout()" (keydown.enter)="logout()" style="cursor: pointer;">
-        <div class="text2">Cerrar sesión</div>
-      </div>
-    </div>
+    <app-user-dropdown-menu
+      [currentUser]="currentUser"
+      [avatarUrl]="getAvatarUrl()"
+      (logoutEvent)="logout()">
+    </app-user-dropdown-menu>
   </div>
 </header>

@@ -21,7 +21,7 @@ import { AdminCreatorsEditPage } from './features/admin/pages/ad-creators-edit/a
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
 import { UploadContentComponent } from './features/content/pages/upload-content/upload-content.component';
-import { CatalogPage } from './features/content/pages/catalog/catalog.page';
+import { CatalogComponent } from './features/content/pages/catalog/catalog.component';
 import { VerifyEmailPage } from './features/auth/pages/verify-email/verify-email.page';
 import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.page';
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
@@ -52,7 +52,7 @@ export const routes: Routes = [
 	{ path: 'upload-content', component: UploadContentComponent, canActivate: [authGuard] },
 	
 	// Rutas de User (protegidas)
-	{ path: 'catalog', component: CatalogPage, canActivate: [authGuard] },
+	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },
 	
 	// Rutas de recuperación de contraseña (públicas)
 	{ path: 'forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
