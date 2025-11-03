@@ -22,6 +22,7 @@ import { AdminCreatorsEditPage } from './features/admin/pages/ad-creators-edit/a
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
 import { UploadContentComponent } from './features/content/pages/upload-content/upload-content.component';
 import { CatalogComponent } from './features/content/pages/catalog/catalog.component';
+import { CreatorCatalogComponent } from './features/creator/pages/creator-catalog/creator-catalog.component';
 import { VerifyEmailPage } from './features/auth/pages/verify-email/verify-email.page';
 import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.page';
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
@@ -50,6 +51,7 @@ export const routes: Routes = [
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },
 	{ path: 'upload-content', component: UploadContentComponent, canActivate: [authGuard] },
+	{ path: 'creator/catalog', component: CreatorCatalogComponent, canActivate: [authGuard] },
 	
 	// Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },

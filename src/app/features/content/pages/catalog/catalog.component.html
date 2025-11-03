@@ -1,5 +1,5 @@
-<!-- Header -->
-<app-header></app-header>
+<!-- Header (solo en vista de usuario) -->
+<app-header *ngIf="!isCreatorView"></app-header>
 
 <div class="catalog" (click)="cerrarDropdowns()" (keydown)="$event.key === 'Escape' && cerrarDropdowns()">
   
@@ -61,7 +61,7 @@
             <app-filter-pill
               [label]="textoBotonCalidad"
               icon="assets/icons/quality.svg"
-              [isActive]="filtroCalidad.length > 0"
+              [isActive]="filtroCalidad !== null"
               (onClick)="dropdownCalidadAbierto = !dropdownCalidadAbierto; dropdownEdadAbierto = false">
             </app-filter-pill>
             
@@ -69,8 +69,8 @@
               <button
                 *ngFor="let calidad of opcionesCalidad"
                 class="catalog__dropdown-item"
-                [class.active]="filtroCalidad.includes(calidad)"
-                (click)="toggleCalidad(calidad)">
+                [class.active]="filtroCalidad === calidad"
+                (click)="seleccionarCalidad(calidad)">
                 {{ calidad }}
               </button>
             </div>
@@ -124,14 +124,19 @@
     <main class="catalog__content">
     <!-- Tendencias (Carrusel Automático) -->
     <section class="catalog__section" *ngIf="contenidoTendencias.length > 0">
-      <h2 class="catalog__section-title">Tendencias</h2>
+      <div class="catalog__section-header">
+        <h2 class="catalog__section-title">Tendencias</h2>
+        <app-list-action-buttons 
+          *ngIf="isCreatorView"
+          section="tendencias"
+          (addContent)="onAddContent($event)"
+          (editList)="onEditList($event)"
+          (deleteList)="onDeleteList($event)">
+        </app-list-action-buttons>
+      </div>
       <div 
         #carouselContainer
-        class="catalog__carousel"
-        (mouseenter)="pausarCarrusel()"
-        (mouseleave)="reanudarCarrusel()"
-        (touchstart)="pausarCarrusel()"
-        (touchend)="reanudarCarrusel()">
+        class="catalog__carousel">
         <app-content-card
           *ngFor="let contenido of contenidoTendencias"
           [contenido]="contenido">
@@ -141,7 +146,16 @@
 
     <!-- Nuevos lanzamientos -->
     <section class="catalog__section" *ngIf="contenidoNuevosLanzamientos.length > 0">
-      <h2 class="catalog__section-title">Nuevos lanzamientos</h2>
+      <div class="catalog__section-header">
+        <h2 class="catalog__section-title">Nuevos lanzamientos</h2>
+        <app-list-action-buttons 
+          *ngIf="isCreatorView"
+          section="nuevos"
+          (addContent)="onAddContent($event)"
+          (editList)="onEditList($event)"
+          (deleteList)="onDeleteList($event)">
+        </app-list-action-buttons>
+      </div>
       <div class="catalog__grid">
         <app-content-card
           *ngFor="let contenido of contenidoNuevosLanzamientos"
@@ -152,7 +166,16 @@
 
     <!-- Recomendado -->
     <section class="catalog__section" *ngIf="contenidoRecomendado.length > 0">
-      <h2 class="catalog__section-title">Recomendado para ti</h2>
+      <div class="catalog__section-header">
+        <h2 class="catalog__section-title">Recomendado para ti</h2>
+        <app-list-action-buttons 
+          *ngIf="isCreatorView"
+          section="recomendado"
+          (addContent)="onAddContent($event)"
+          (editList)="onEditList($event)"
+          (deleteList)="onDeleteList($event)">
+        </app-list-action-buttons>
+      </div>
       <div class="catalog__grid">
         <app-content-card
           *ngFor="let contenido of contenidoRecomendado"
@@ -169,5 +192,5 @@
   </div>
 </div>
 
-<!-- Footer -->
-<app-footer></app-footer>
+<!-- Footer (solo en vista de usuario) -->
+<app-footer *ngIf="!isCreatorView"></app-footer>

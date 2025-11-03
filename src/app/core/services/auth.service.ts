@@ -50,7 +50,9 @@ export class AuthService {
     ],
     creator: [
       '/content-creator',
-      '/upload-content'
+      '/upload-content',
+      '/creator/catalog',
+      '/creator/profile'
     ],
     user: [
       '/catalog'

@@ -50,6 +50,10 @@ export class ContentCreatorComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
+  navigateToCreatorCatalog(): void {
+    this.router.navigate(['/creator/catalog']);
+  }
+
   /* Crea una nueva lista de contenido */
   createNewList(): void {
     const listName = prompt('Nombre de la nueva lista:');
