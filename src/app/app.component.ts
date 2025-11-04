@@ -34,7 +34,8 @@ export class AppComponent implements OnInit {
       this.authService.validateSessionForCurrentRoute();
     });
 
-    // Validar sesión inicial
-    this.authService.validateSessionForCurrentRoute();
+    // NO validar sesión inicial aquí
+    // Dejar que el authGuard maneje la autenticación en cada ruta
+    // Esto evita redirecciones no deseadas cuando se navega directamente a una URL
   }
 }

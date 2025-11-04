@@ -1,0 +1,192 @@
+<div class="player-page" 
+     (mousemove)="onMouseMove()" 
+     (mouseleave)="onMouseLeave()">
+  
+  <!-- Reproductor EMBEBIDO (YouTube, Vimeo, Dailymotion, Twitch, SoundCloud, Spotify) -->
+  <div class="player-container embed-container" 
+       *ngIf="contenido && isEmbedPlayer && embedUrl">
+    <div class="controls-header embed-header">
+      <app-back-button [navigateTo]="'/content/' + contenido._id"></app-back-button>
+      <h2 class="video-title">{{ contenido.titulo }}</h2>
+    </div>
+    
+    <iframe 
+      class="embed-player"
+      [src]="embedUrl"
+      [title]="contenido.titulo"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <!-- Reproductor NATIVO (Archivos MP4/WebM/OGG directos) -->
+  <div class="player-container" *ngIf="contenido && isVideo && isNativePlayer">
+    <video 
+      #mediaElement
+      class="video-player"
+      [src]="contenido.ficheroUrl"
+      [poster]="contenido.miniaturaUrl"
+      (timeupdate)="onTimeUpdate()"
+      (loadedmetadata)="onLoadedMetadata()"
+      (play)="isPlaying = true"
+      (pause)="isPlaying = false"
+      (ended)="isPlaying = false">
+      Tu navegador no soporta el elemento de video.
+    </video>
+
+    <!-- Controles de video -->
+    <div class="controls-overlay" [class.visible]="showControls">
+      <!-- Header con botón volver y título -->
+      <div class="controls-header">
+        <app-back-button [navigateTo]="'/content/' + contenido._id"></app-back-button>
+        <h2 class="video-title">{{ contenido.titulo }}</h2>
+      </div>
+
+      <!-- Controles principales -->
+      <div class="controls-footer">
+        <!-- Barra de progreso -->
+        <div class="progress-bar-container">
+          <input 
+            type="range" 
+            class="progress-bar"
+            [value]="currentTime"
+            [max]="duration"
+            (input)="seekTo($event)"
+            step="0.1">
+          <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+        </div>
+
+        <!-- Botones de control -->
+        <div class="controls-row">
+          <div class="controls-left">
+            <!-- Play/Pause -->
+            <button class="control-btn" (click)="togglePlay()">
+              <svg *ngIf="!isPlaying" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              <svg *ngIf="isPlaying" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16"/>
+                <rect x="14" y="4" width="4" height="16"/>
+              </svg>
+            </button>
+
+            <!-- Tiempo -->
+            <span class="time-display">
+              {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+            </span>
+          </div>
+
+          <div class="controls-right">
+            <!-- Volumen -->
+            <button class="control-btn" (click)="toggleMute()">
+              <svg *ngIf="!isMuted && volume > 0.5" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+              </svg>
+              <svg *ngIf="isMuted || volume === 0" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+              </svg>
+            </button>
+            <input 
+              type="range" 
+              class="volume-slider"
+              [value]="volume"
+              min="0"
+              max="1"
+              step="0.1"
+              (input)="changeVolume($event)">
+
+            <!-- Pantalla completa -->
+            <button class="control-btn" (click)="toggleFullscreen()">
+              <svg *ngIf="!isFullscreen" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+              </svg>
+              <svg *ngIf="isFullscreen" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reproductor de AUDIO -->
+  <div class="player-container audio-container" *ngIf="contenido && isAudio">
+    <audio 
+      #mediaElement
+      [src]="contenido.ficheroUrl"
+      (timeupdate)="onTimeUpdate()"
+      (loadedmetadata)="onLoadedMetadata()"
+      (play)="isPlaying = true"
+      (pause)="isPlaying = false"
+      (ended)="isPlaying = false">
+      Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <!-- Fondo con imagen -->
+    <div class="audio-background" [style.background-image]="'url(' + contenido.miniaturaUrl + ')'"></div>
+
+    <!-- Controles de audio -->
+    <div class="audio-controls">
+      <app-back-button [navigateTo]="'/content/' + contenido._id"></app-back-button>
+
+      <div class="audio-info">
+        <img [src]="contenido.miniaturaUrl" [alt]="contenido.titulo" class="audio-cover">
+        <h2 class="audio-title">{{ contenido.titulo }}</h2>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="progress-section">
+        <span class="time-current">{{ formatTime(currentTime) }}</span>
+        <div class="progress-bar-container">
+          <input 
+            type="range" 
+            class="progress-bar"
+            [value]="currentTime"
+            [max]="duration"
+            (input)="seekTo($event)"
+            step="0.1">
+          <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+        </div>
+        <span class="time-total">{{ formatTime(duration) }}</span>
+      </div>
+
+      <!-- Controles principales -->
+      <div class="audio-controls-buttons">
+        <button class="control-btn" (click)="toggleMute()">
+          <svg *ngIf="!isMuted && volume > 0" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+          </svg>
+          <svg *ngIf="isMuted || volume === 0" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+          </svg>
+        </button>
+
+        <button class="control-btn play-btn-large" (click)="togglePlay()">
+          <svg *ngIf="!isPlaying" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg *ngIf="isPlaying" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        </button>
+
+        <input 
+          type="range" 
+          class="volume-slider"
+          [value]="volume"
+          min="0"
+          max="1"
+          step="0.1"
+          (input)="changeVolume($event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div class="loading-state" *ngIf="!contenido">
+    <div class="spinner"></div>
+    <p>Cargando contenido...</p>
+  </div>
+</div>

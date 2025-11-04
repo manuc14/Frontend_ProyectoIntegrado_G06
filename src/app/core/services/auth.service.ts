@@ -53,7 +53,9 @@ export class AuthService {
       '/upload-content'
     ],
     user: [
-      '/catalog'
+      '/catalog',
+      '/content',
+      '/player'
     ]
   };
 
@@ -164,7 +166,19 @@ export class AuthService {
     console.log('🔍 [AuthService] Allowed routes for role:', allowedRoutes);
     
     // Verificar si la ruta actual comienza con alguna de las rutas permitidas
-    const isAllowed = allowedRoutes.some(route => currentPath.startsWith(route));
+    // IMPORTANTE: Usar match exacto o con / para evitar falsos positivos
+    // Ejemplo: /content debe hacer match con /content/123 pero NO con /content-creator
+    const isAllowed = allowedRoutes.some(route => {
+      // Si la ruta permitida es exactamente igual
+      if (currentPath === route) return true;
+      
+      // Si la ruta actual empieza con la permitida Y el siguiente carácter es / (para rutas con parámetros)
+      // Esto permite /content/123 pero rechaza /content-creator
+      if (currentPath.startsWith(route + '/')) return true;
+      
+      return false;
+    });
+    
     console.log(isAllowed ? '✅ [AuthService] Ruta permitida' : '❌ [AuthService] Ruta NO permitida');
     
     return isAllowed;
@@ -191,21 +205,12 @@ export class AuthService {
     const currentPath = this.router.url;
     console.log('🔍 [AuthService] validateSessionForCurrentRoute:', currentPath);
     
-    // Si está en la página inicial (/) y está autenticado, redirigir según el rol
-    if (currentPath === '/') {
-      if (this.isAuthenticated()) {
-        const role = this.getCurrentRole();
-        if (role) {
-          const redirectRoute = this.getRedirectRouteForRole(role);
-          console.log('ℹ️ [AuthService] Usuario autenticado en página inicial - redirigiendo a:', redirectRoute);
-          this.router.navigate([redirectRoute]);
-        }
-      }
-      return;
-    }
-
+    // NO redirigir automáticamente desde /
+    // Dejar que el authGuard y las rutas manejen la redirección
+    // Solo validar que la sesión sea válida para la ruta actual
+    
     // Si está autenticado y la ruta no está permitida, cerrar sesión
-    if (this.isAuthenticated() && !this.isRouteAllowedForCurrentUser(currentPath)) {
+    if (this.isAuthenticated() && currentPath !== '/' && !this.isRouteAllowedForCurrentUser(currentPath)) {
       console.log('⚠️ [AuthService] Ruta no permitida - cerrando sesión y redirigiendo a /');
       this.logout(true);
     } else {
