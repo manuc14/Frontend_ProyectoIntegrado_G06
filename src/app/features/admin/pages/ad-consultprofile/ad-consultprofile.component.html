@@ -1,0 +1,239 @@
+<app-header></app-header>
+
+<main class="admin-profile-container">
+  <div class="profile-content">
+    
+    <!-- Layout principal con dos columnas -->
+    <div class="main-layout">
+      
+      <!-- Columna izquierda -->
+      <div class="left-column">
+        
+        <!-- Sección Información Personal -->
+        <div class="info-section">
+          <h2 class="section-title">Información Personal</h2>
+          
+          <form [formGroup]="profileForm" class="profile-form">
+            <div class="form-grid">
+              <div class="form-row">
+                <app-form-input
+                  formControlName="firstName"
+                  label="Nombre"
+                  placeholder="Tu nombre"
+                  [errors]="getFieldError(profileForm, 'firstName')"
+                  [touched]="isFieldTouched(profileForm, 'firstName')"
+                  class="form-field">
+                </app-form-input>
+                
+                <app-form-input
+                  formControlName="lastName"
+                  label="Apellidos"
+                  placeholder="Tus apellidos"
+                  [errors]="getFieldError(profileForm, 'lastName')"
+                  [touched]="isFieldTouched(profileForm, 'lastName')"
+                  class="form-field">
+                </app-form-input>
+              </div>
+              
+              <div class="form-row">
+                <app-form-input
+                  formControlName="alias"
+                  label="Alias"
+                  placeholder="Tu alias"
+                  [errors]="getFieldError(profileForm, 'alias')"
+                  [touched]="isFieldTouched(profileForm, 'alias')"
+                  class="form-field">
+                </app-form-input>
+                
+                <app-form-input
+                  formControlName="email"
+                  label="Correo Electrónico"
+                  type="email"
+                  placeholder="tu.email@empresa.com"
+                  [errors]="getFieldError(profileForm, 'email')"
+                  [touched]="isFieldTouched(profileForm, 'email')"
+                  class="form-field readonly-field">
+                </app-form-input>
+              </div>
+              
+              <div class="form-row">
+                <app-form-input
+                  formControlName="department"
+                  label="Departamento"
+                  placeholder="Departamento de trabajo"
+                  [errors]="getFieldError(profileForm, 'department')"
+                  [touched]="isFieldTouched(profileForm, 'department')"
+                  class="form-field readonly-field">
+                </app-form-input>
+                
+                <app-form-input
+                  formControlName="startDate"
+                  label="Fecha de alta"
+                  type="date"
+                  [errors]="getFieldError(profileForm, 'startDate')"
+                  [touched]="isFieldTouched(profileForm, 'startDate')"
+                  class="form-field readonly-field">
+                </app-form-input>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Sección Cambiar Contraseña -->
+        <div class="password-section">
+          <div class="password-header">
+            <h2 class="section-title">
+              Cambiar Contraseña
+              <button 
+                type="button" 
+                class="help-button help"
+                (click)="togglePasswordTooltip()">
+                <i class="fas fa-question-circle"></i>
+              </button>
+              <!-- Tooltip de ayuda -->
+              <div class="tooltip help" *ngIf="showPasswordTooltip">
+                <div class="tooltip-content">
+                  <h4>Requisitos de contraseña:</h4>
+                  <ul>
+                    <li>Mínimo 8 caracteres</li>
+                    <li>Al menos 1 mayúscula que no esté en primera posición</li>
+                    <li>Al menos 1 carácter especial</li>
+                    <li>Al menos 1 número</li>
+                  </ul>
+                </div>
+              </div>
+            </h2>
+          </div>
+          
+          <!-- Formulario de nueva contraseña -->
+          <form [formGroup]="passwordForm" class="password-form">
+            <div class="password-fields">
+              <app-form-password
+                formControlName="newPassword"
+                label="Nueva contraseña"
+                placeholder="Introduce tu nueva contraseña"
+                [errors]="getFieldError(passwordForm, 'newPassword')"
+                [touched]="isFieldTouched(passwordForm, 'newPassword')"
+                [showTooltip]="false"
+                [showHelpButton]="false"
+                class="form-field">
+              </app-form-password>
+              
+              <app-form-password
+                formControlName="confirmPassword"
+                label="Confirmar nueva contraseña"
+                placeholder="Confirma tu nueva contraseña"
+                [errors]="getFieldError(passwordForm, 'confirmPassword')"
+                [touched]="isFieldTouched(passwordForm, 'confirmPassword')"
+                [showTooltip]="false"
+                [showHelpButton]="false"
+                class="form-field">
+              </app-form-password>
+            </div>
+            
+            <div class="password-actions">
+              <button 
+                type="button" 
+                class="btn btn-primary btn-small"
+                (click)="showPasswordModal()"
+                [disabled]="passwordFieldsEnabled">
+                {{ passwordFieldsEnabled ? 'Modificar Contraseña' : 'Modificar Contraseña' }}
+              </button>
+            </div>
+          </form>
+        </div>
+        
+      </div>
+
+      <!-- Columna derecha - Avatar del Perfil -->
+      <div class="avatar-section">
+        <h2 class="section-title">Avatar del Perfil</h2>
+        
+        <app-avatar-selector
+          [availableAvatars]="availableAvatars"
+          [selectedAvatar]="selectedAvatar"
+          (avatarSelected)="selectAvatar($event)"
+          class="avatar-grid">
+        </app-avatar-selector>
+        
+        <div class="avatar-info">
+          <i class="fas fa-circle selection-indicator"></i>
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- Botones de acción fuera de las cards -->
+    <div class="action-buttons">
+      <button 
+        type="button" 
+        class="btn btn-outline-secondary btn-with-icon save-changes-btn"
+        (click)="onSaveChanges()">
+        <i class="fas fa-save"></i>
+        Guardar Cambios
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<!-- Modal de Validación de Contraseña Actual -->
+<div class="modal-overlay" 
+     [class.show]="showModal"
+     (click)="hidePasswordModal()"
+     (keydown)="$event.key === 'Escape' && hidePasswordModal()">
+  
+  <div class="modal-content" 
+       (click)="$event.stopPropagation()"
+       (keydown)="$event.stopPropagation()">
+    
+    <div class="modal-header">
+      <h3>Validar Contraseña Actual</h3>
+      <button 
+        type="button" 
+        class="close-btn"
+        (click)="hidePasswordModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p>Para cambiar tu contraseña, necesitas confirmar tu contraseña actual.</p>
+      
+      <div class="form-field">
+        <label for="currentPassword">Contraseña Actual</label>
+        <input 
+          type="password"
+          id="currentPassword"
+          [(ngModel)]="currentPasswordValue"
+          placeholder="Introduce tu contraseña actual"
+          class="form-input"
+          [class.error]="currentPasswordError && currentPasswordTouched">
+        
+        <div class="error-message" 
+             *ngIf="currentPasswordError && currentPasswordTouched">
+          La contraseña actual es requerida
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button 
+        type="button" 
+        class="btn btn-secondary"
+        (click)="hidePasswordModal()">
+        Cancelar
+      </button>
+      
+      <button 
+        type="button" 
+        class="btn btn-primary"
+        (click)="confirmPasswordChange()">
+        Validar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<app-footer></app-footer>

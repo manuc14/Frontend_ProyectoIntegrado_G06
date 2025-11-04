@@ -58,7 +58,7 @@ export class UserDropdownMenuComponent implements OnInit {
     },
     admin: {
       homeRoute: '/ad-users',
-      profileRoute: '/profile',
+      profileRoute: '/ad-consultprofile',
       additionalOptions: []
     }
   };

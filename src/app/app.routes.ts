@@ -18,6 +18,9 @@ import { AdminCreatorsPage } from './features/admin/pages/ad-creators/ad-creator
 import { AdminCreatorsAddPage } from './features/admin/pages/ad-creators-add/ad-creators-add.component';
 import { AdminCreatorsEditPage } from './features/admin/pages/ad-creators-edit/ad-creators-edit.component';
 
+// Perfil de Administrador
+import { AdConsultprofileComponent } from './features/admin/pages/ad-consultprofile/ad-consultprofile.component';
+
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
 import { UploadContentComponent } from './features/content/pages/upload-content/upload-content.component';
@@ -46,6 +49,9 @@ export const routes: Routes = [
   { path: 'ad-creators', component: AdminCreatorsPage, canActivate: [authGuard] },
   { path: 'ad-creators-add', component: AdminCreatorsAddPage, canActivate: [authGuard] },
   { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage, canActivate: [authGuard] },
+
+  // Perfil de Administrador
+  { path: 'ad-consultprofile', component: AdConsultprofileComponent, canActivate: [authGuard] },
 
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },

@@ -171,6 +171,31 @@ export interface ResetPasswordResponse {
 }
 
 /**
+ * Interfaz para la respuesta del perfil de administrador.
+ * @interface AdminProfileResponse
+ */
+export interface AdminProfileResponse {
+  /** Nombre del administrador */
+  firstName: string;
+  /** Apellidos del administrador */
+  lastName: string;
+  /** Alias del administrador */
+  alias: string;
+  /** Email del administrador */
+  email: string;
+  /** Departamento del administrador */
+  department: string;
+  /** Fecha de registro en formato ISO */
+  registrationDate: string;
+  /** Fecha de nacimiento en formato ISO (puede ser null) */
+  dateOfBirth: string | null;
+  /** Avatar actual del administrador */
+  avatar: string;
+  /** Lista de avatares disponibles */
+  availableAvatars: string[];
+}
+
+/**
  * Servicio centralizado para todas las comunicaciones HTTP con el backend.
  * 
  * Proporciona métodos para:
@@ -276,6 +301,32 @@ export class ApiService {
   }
 
   // ==================== CONTENIDO Y RECURSOS ====================
+
+  /**
+   * Obtiene el perfil del administrador autenticado.
+   * 
+   * Recupera toda la información personal del administrador incluyendo
+   * datos básicos, fechas importantes y configuración de avatar.
+   * 
+   * @returns {Observable<AdminProfileResponse>} Observable con datos del perfil
+   * 
+   * @example
+   * ```typescript
+   * this.apiService.getAdminProfile().subscribe({
+   *   next: (profile) => {
+   *     console.log('Admin:', profile.firstName, profile.lastName);
+   *     this.loadProfileForm(profile);
+   *   },
+   *   error: (error) => console.error('Error al cargar perfil:', error)
+   * });
+   * ```
+   */
+  getAdminProfile(): Observable<AdminProfileResponse> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.get<AdminProfileResponse>(`${this.base}/admin/profile`, { headers }).pipe(
+      catchError(this.handleError('obtener perfil de administrador', 'No se pudo cargar el perfil del administrador'))
+    );
+  }
 
   /**
    * Obtiene las secciones de contenido para la página principal.

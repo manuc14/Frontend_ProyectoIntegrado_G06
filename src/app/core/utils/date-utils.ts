@@ -110,3 +110,19 @@ export function toTimestampFromString(dateString: string | null | undefined): nu
   const t = date.getTime();
   return isNaN(t) ? null : t;
 }
+
+/**
+ * Convierte una fecha ISO o timestamp al formato YYYY-MM-DD requerido por los inputs HTML de tipo date.
+ * 
+ * @param {string | number | null | undefined} dateInput - Fecha a convertir
+ * @returns {string} Fecha en formato YYYY-MM-DD o string vacío si es inválida
+ */
+export function toDateInputFormat(dateInput: string | number | null | undefined): string {
+  if (dateInput === null || dateInput === undefined || dateInput === '') return '';
+  
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return '';
+  
+  // Usar toISOString y extraer solo la parte de fecha (YYYY-MM-DD)
+  return date.toISOString().split('T')[0];
+}

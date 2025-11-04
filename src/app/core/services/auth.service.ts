@@ -46,7 +46,8 @@ export class AuthService {
       '/ad-admin-edit',
       '/ad-creators',
       '/ad-creators-add',
-      '/ad-creators-edit'
+      '/ad-creators-edit',
+      '/ad-consultprofile'
     ],
     creator: [
       '/content-creator',
