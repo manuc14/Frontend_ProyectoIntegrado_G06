@@ -121,8 +121,10 @@ export interface LoginResponse {
   message: string;
   /** Detalles adicionales del login */
   details: any;
-  /** Token JWT para autenticación de posteriores peticiones */
+  /** Access Token JWT para autenticación (15 minutos) */
   token: string;
+  /** Refresh Token para renovar el Access Token (7 días) */
+  refreshToken: string;
   /** Información del usuario autenticado */
   user: BackendUser;
   /** Número de errores de validación (0 si es exitoso) */

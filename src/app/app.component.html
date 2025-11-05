@@ -1,1 +1,8 @@
 <router-outlet />
+
+<!-- Modal de expiración de sesión -->
+<app-session-timeout-modal 
+  [isVisible]="showTimeoutModal"
+  [message]="timeoutMessage"
+  (closed)="closeTimeoutModal()">
+</app-session-timeout-modal>

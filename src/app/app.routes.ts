@@ -55,8 +55,8 @@ export const routes: Routes = [
 	
 	// Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },
-	{ path: 'content/:id', component: ContentPreviewComponent, canActivate: [authGuard] },
-	{ path: 'player/:id', component: MediaPlayerComponent, canActivate: [authGuard] },
+	{ path: 'content/preview', component: ContentPreviewComponent, canActivate: [authGuard] },
+	{ path: 'player', component: MediaPlayerComponent, canActivate: [authGuard] },
 	
 	// Rutas de recuperación de contraseña (públicas)
 	{ path: 'forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },

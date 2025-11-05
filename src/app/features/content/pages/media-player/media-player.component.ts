@@ -40,10 +40,13 @@ export class MediaPlayerComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const contentId = this.route.snapshot.paramMap.get('id');
+    // Leer ID del contenido desde localStorage
+    const contentId = localStorage.getItem('currentContentId');
+    
     if (contentId) {
       this.loadContent(contentId);
     } else {
+      console.warn('⚠️ [MEDIA PLAYER] No se encontró ID en localStorage, redirigiendo a catalog');
       this.router.navigate(['/catalog']);
     }
   }

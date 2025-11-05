@@ -1,8 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 /**
- * @fileoverview Servicio centralizado para la gestión de autenticación y sesiones
+ * @fileoverview Servicio centralizado para la gestión de autenticación y sesiones con Session Timeout
  * 
  * Responsabilidades:
  * - Gestión de tokens y datos de usuario en sessionStorage
@@ -33,6 +37,17 @@ export interface CurrentUser {
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly http = inject(HttpClient);
+  
+  // Temporizadores de sesión
+  private idleTimer: any = null;
+  private absoluteTimer: any = null;
+  
+  // Subject para notificar expiración de sesión
+  private sessionExpired$ = new BehaviorSubject<{ reason: string; message: string } | null>(null);
+  
+  // Observable público para que componentes escuchen expiración
+  public sessionExpiredObservable = this.sessionExpired$.asObservable();
   
   /**
    * Rutas permitidas por rol (sin incluir rutas públicas)
@@ -76,10 +91,90 @@ export class AuthService {
   constructor(private router: Router) {}
 
   /**
-   * Obtiene el token de autenticación del sessionStorage
+   * Obtiene el Access Token del sessionStorage
    */
   getToken(): string | null {
     return sessionStorage.getItem('authToken');
+  }
+
+  /**
+   * Obtiene el Refresh Token del localStorage
+   */
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refreshToken');
+  }
+
+  /**
+   * Guarda el Access Token en sessionStorage
+   */
+  private setToken(token: string): void {
+    sessionStorage.setItem('authToken', token);
+  }
+
+  /**
+   * Guarda el Refresh Token en localStorage para persistencia entre pestañas
+   */
+  private setRefreshToken(refreshToken: string): void {
+    localStorage.setItem('refreshToken', refreshToken);
+  }
+
+  /**
+   * Renueva el Access Token usando el Refresh Token
+   * Endpoint: POST /api/auth/refresh
+   */
+  refreshAccessToken(): Observable<{ accessToken: string; refreshToken: string; message: string }> {
+    const refreshToken = this.getRefreshToken();
+    
+    if (!refreshToken) {
+      console.log('❌ [AuthService] No hay Refresh Token - cerrando sesión');
+      this.logout(true);
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    console.log('🔄 [AuthService] Renovando Access Token...');
+    
+    return this.http.post<{ accessToken: string; refreshToken: string; message: string }>(
+      `${environment.baseApiUrl}/auth/refresh`,
+      { refreshToken }
+    ).pipe(
+      tap(response => {
+        console.log('✅ [AuthService] Token renovado exitosamente');
+        // Guardar nuevos tokens
+        this.setToken(response.accessToken);
+        this.setRefreshToken(response.refreshToken);
+        // Reiniciar Idle Timer (actividad reciente)
+        this.resetIdleTimer();
+        // NO reiniciar Absolute Timer (sigue corriendo desde login)
+      }),
+      catchError(error => {
+        console.error('❌ [AuthService] Error renovando token:', error);
+        
+        // Analizar el mensaje de error para determinar el tipo de expiración
+        const message = error.error?.message || error.message || 'Token expirado';
+        
+        if (message.includes('inactividad')) {
+          this.sessionExpired$.next({ 
+            reason: 'idle', 
+            message: 'Tu sesión expiró por inactividad' 
+          });
+        } else if (message.includes('límite de tiempo')) {
+          this.sessionExpired$.next({ 
+            reason: 'absolute', 
+            message: 'Tu sesión ha expirado' 
+          });
+        } else {
+          this.sessionExpired$.next({ 
+            reason: 'invalid', 
+            message: 'Tu sesión es inválida' 
+          });
+        }
+        
+        // Cerrar sesión
+        this.logout(true);
+        
+        return throwError(() => error);
+      })
+    );
   }
 
   /**
@@ -185,16 +280,129 @@ export class AuthService {
   }
 
   /**
-   * Cierra la sesión del usuario y limpia el sessionStorage
+   * Cierra la sesión del usuario y limpia el sessionStorage y localStorage
    * @param redirect - Si debe redirigir a la página de inicio (default: true)
    */
   logout(redirect: boolean = true): void {
+    console.log('🚪 [AuthService] Cerrando sesión...');
+    
+    // Detener temporizadores
+    this.stopAllTimers();
+    
+    // Obtener refreshToken antes de eliminarlo
+    const refreshToken = this.getRefreshToken();
+    
+    // Limpiar tokens y datos de usuario del frontend
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('refreshToken');
+    
+    // Llamar al backend para invalidar el refresh token (si existe)
+    if (refreshToken) {
+      console.log('🗑️ [AuthService] Invalidando refresh token en el backend...');
+      this.http.post(`${environment.baseApiUrl}/auth/logout`, { refreshToken }).subscribe({
+        next: () => console.log('✅ [AuthService] Refresh token invalidado en el backend'),
+        error: (error) => console.error('❌ [AuthService] Error al invalidar refresh token:', error)
+      });
+    }
     
     if (redirect) {
       this.router.navigate(['/']);
     }
+  }
+
+  /**
+   * Inicia el temporizador de Idle Timeout según el rol del usuario
+   * Se reinicia en cada actividad del usuario
+   */
+  startIdleTimer(): void {
+    const role = this.getCurrentRole();
+    if (!role) return;
+
+    // Configuración de Idle Timeout por rol (en milisegundos)
+    const idleTimeouts: Record<UserRole, number> = {
+      admin: 15 * 60 * 1000,    // 15 minutos
+      creator: 15 * 60 * 1000,  // 15 minutos
+      user: 20 * 60 * 1000      // 20 minutos
+    };
+
+    const timeout = idleTimeouts[role];
+    console.log(`⏰ [AuthService] Iniciando Idle Timer para ${role}: ${timeout / 60000} minutos`);
+
+    // Limpiar timer anterior si existe
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+    }
+
+    // Crear nuevo timer
+    this.idleTimer = setTimeout(() => {
+      console.log('⏰ [AuthService] Idle Timeout alcanzado - renovando token...');
+      this.refreshAccessToken().subscribe({
+        error: () => {
+          // El error ya fue manejado en refreshAccessToken()
+          console.log('❌ [AuthService] No se pudo renovar el token - sesión cerrada');
+        }
+      });
+    }, timeout);
+  }
+
+  /**
+   * Reinicia el temporizador de Idle Timeout
+   * Debe llamarse en cada actividad del usuario
+   */
+  resetIdleTimer(): void {
+    if (!this.isAuthenticated()) return;
+    this.startIdleTimer();
+  }
+
+  /**
+   * Inicia el temporizador de Absolute Timeout
+   * Se ejecuta UNA VEZ al hacer login y NO se reinicia
+   */
+  startAbsoluteTimer(): void {
+    const absoluteTimeout = 8 * 60 * 60 * 1000; // 8 horas para todos los roles
+    
+    console.log(`⏰ [AuthService] Iniciando Absolute Timer: ${absoluteTimeout / 3600000} horas`);
+
+    // Limpiar timer anterior si existe
+    if (this.absoluteTimer) {
+      clearTimeout(this.absoluteTimer);
+    }
+
+    // Crear nuevo timer
+    this.absoluteTimer = setTimeout(() => {
+      console.log('⏰ [AuthService] Absolute Timeout alcanzado - cerrando sesión...');
+      this.sessionExpired$.next({ 
+        reason: 'absolute', 
+        message: 'Tu sesión ha expirado (límite de 8 horas)' 
+      });
+      this.logout(true);
+    }, absoluteTimeout);
+  }
+
+  /**
+   * Detiene todos los temporizadores
+   */
+  private stopAllTimers(): void {
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+    if (this.absoluteTimer) {
+      clearTimeout(this.absoluteTimer);
+      this.absoluteTimer = null;
+    }
+    console.log('⏹️ [AuthService] Todos los temporizadores detenidos');
+  }
+
+  /**
+   * Método para llamar después de un login exitoso
+   * Inicia ambos temporizadores
+   */
+  startSessionTimers(): void {
+    console.log('🚀 [AuthService] Iniciando temporizadores de sesión...');
+    this.startIdleTimer();
+    this.startAbsoluteTimer();
   }
 
   /**

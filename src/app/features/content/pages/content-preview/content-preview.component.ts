@@ -29,9 +29,17 @@ export class ContentPreviewComponent implements OnInit {
   valoracionHover: number = 0;
 
   ngOnInit(): void {
-    const contentId = this.route.snapshot.paramMap.get('id');
+    // Intentar obtener el ID desde localStorage
+    const contentId = localStorage.getItem('currentContentId');
+    
     if (contentId) {
+      console.log('🔍 [PREVIEW] ID obtenido desde localStorage:', contentId);
       this.loadContent(contentId);
+      // Limpiar localStorage después de usar (opcional, por seguridad)
+      // localStorage.removeItem('currentContentId');
+    } else {
+      console.log('❌ [PREVIEW] No hay ID en localStorage - redirigiendo al catálogo');
+      this.router.navigate(['/catalog']);
     }
   }
 
@@ -63,8 +71,11 @@ export class ContentPreviewComponent implements OnInit {
     console.log('🆔 contenido._id:', this.contenido?._id);
     
     if (this.contenido?._id) {
-      console.log('✅ Navegando a /player/' + this.contenido._id);
-      this.router.navigate(['/player', this.contenido._id]);
+      console.log('✅ Guardando ID en localStorage y navegando a /player');
+      // Guardar ID en localStorage para el reproductor
+      localStorage.setItem('currentContentId', this.contenido._id);
+      // Navegar sin ID en la URL
+      this.router.navigate(['/player']);
     } else {
       console.error('❌ ERROR: contenido o _id es undefined');
       console.error('contenido completo:', JSON.stringify(this.contenido, null, 2));

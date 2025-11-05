@@ -6,7 +6,7 @@
   <div class="player-container embed-container" 
        *ngIf="contenido && isEmbedPlayer && embedUrl">
     <div class="controls-header embed-header">
-      <app-back-button [navigateTo]="'/content/' + contenido._id"></app-back-button>
+      <app-back-button [navigateTo]="'/content/preview'"></app-back-button>
       <h2 class="video-title">{{ contenido.titulo }}</h2>
     </div>
     
@@ -38,7 +38,7 @@
     <div class="controls-overlay" [class.visible]="showControls">
       <!-- Header con botón volver y título -->
       <div class="controls-header">
-        <app-back-button [navigateTo]="'/content/' + contenido._id"></app-back-button>
+        <app-back-button [navigateTo]="'/content/preview'"></app-back-button>
         <h2 class="video-title">{{ contenido.titulo }}</h2>
       </div>
 
@@ -128,7 +128,7 @@
 
     <!-- Controles de audio -->
     <div class="audio-controls">
-      <app-back-button [navigateTo]="'/content/' + contenido._id"></app-back-button>
+      <app-back-button [navigateTo]="'/content/preview'"></app-back-button>
 
       <div class="audio-info">
         <img [src]="contenido.miniaturaUrl" [alt]="contenido.titulo" class="audio-cover">

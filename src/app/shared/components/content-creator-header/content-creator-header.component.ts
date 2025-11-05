@@ -21,12 +21,13 @@ export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit 
     activatedRoute: ActivatedRoute,
     apiService: ApiService,
     imageSelectorService: ImageSelectorService,
-    private authService: AuthService
+    authService: AuthService
   ) {
     super();
     this.router = router;
     this.apiService = apiService;
     this.imageSelectorService = imageSelectorService;
+    this.authService = authService;
   }
 
   ngOnInit() {
