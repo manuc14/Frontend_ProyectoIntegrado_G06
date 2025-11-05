@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../../../shared/header/header.component';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { ApiService, LoginRequest, LoginResponse } from '../../../../core/services/api.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { FormBaseService, FormState } from '../../../../core/services/form-base.service';
 import { HttpResponse, HttpEvent } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
@@ -29,6 +30,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   /* LoginComponent: formulario de acceso que autentica contra el backend y redirige según tipo de usuario. */
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private formBaseService = inject(FormBaseService);
 
@@ -154,10 +156,29 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Login exitoso - limpiar errores
     this.formBaseService.resetFormState('login');
 
-    // Guardar token y usuario en sessionStorage
-    if (body.token) sessionStorage.setItem('authToken', body.token);
-    if (body.user) sessionStorage.setItem('currentUser', JSON.stringify(body.user));
+    // Guardar Access Token en sessionStorage
+    if (body.token) {
+      sessionStorage.setItem('authToken', body.token);
+      console.log('✅ [LoginComponent] Access Token guardado');
+    }
 
+    // Guardar Refresh Token en localStorage (persistencia entre pestañas)
+    if (body.refreshToken) {
+      localStorage.setItem('refreshToken', body.refreshToken);
+      console.log('✅ [LoginComponent] Refresh Token guardado');
+    }
+
+    // Guardar usuario en sessionStorage
+    if (body.user) {
+      sessionStorage.setItem('currentUser', JSON.stringify(body.user));
+      console.log('✅ [LoginComponent] Usuario guardado:', body.user);
+    }
+
+    // INICIAR TEMPORIZADORES DE SESIÓN
+    console.log('🚀 [LoginComponent] Iniciando temporizadores de sesión...');
+    this.authService.startSessionTimers();
+
+    // Determinar ruta de redirección según tipo de usuario
     const tipo = body.user?.tipo || '';
     let target = '/catalog';
     if (/admin/i.test(tipo)) {
@@ -165,6 +186,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     } else if (/creador/i.test(tipo)) {
       target = '/content-creator';
     }
+
+    console.log(`🔄 [LoginComponent] Redirigiendo a: ${target}`);
 
     // Redirigir después de un breve delay
     setTimeout(() => this.router.navigate([target]), 1000);

@@ -24,12 +24,13 @@ export class AdminHeaderComponent extends HeaderBase implements OnInit {
     router: Router,
     apiService: ApiService,
     imageSelectorService: ImageSelectorService,
-    private authService: AuthService
+    authService: AuthService
   ) {
     super();
     this.router = router;
     this.apiService = apiService;
     this.imageSelectorService = imageSelectorService;
+    this.authService = authService;
   }
 
   ngOnInit() {

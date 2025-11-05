@@ -1,4 +1,4 @@
-<a class="content-card" [routerLink]="['/content', contenido._id]">
+<a class="content-card" (click)="navigateToPreview($event)">
   <!-- Miniatura del contenido -->
   <div class="content-card__thumbnail">
     <img [src]="contenido.miniaturaUrl" [alt]="contenido.titulo" class="content-card__thumbnail-img">
