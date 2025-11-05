@@ -1,16 +1,15 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { HeaderComponent } from '../../../../shared/header/header.component';
-import { FooterComponent } from '../../../../shared/footer/footer.component';
-import { FormInputComponent } from '../../../../shared/form-components/form-input/form-input.component';
-import { FormPasswordComponent } from '../../../../shared/form-components/form-password/form-password.component';
+import { SelectFieldComponent } from '../../../../shared/select-field/select-field.component';
 import { AvatarSelectorComponent } from '../../../../shared/avatar-selector/avatar-selector.component';
 import { ApiService, AdminProfileResponse } from '../../../../core/services/api.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { FormBaseService } from '../../../../core/services/form-base.service';
 import { toDateInputFormat } from '../../../../core/utils/date-utils';
-import { fadeIn, buttonHover, buttonPress } from '../../../../core/animations/animations';
+
+// Importar la configuración de departamentos de admin-entity-form para reutilizar
+const ADMIN_DEPARTMENTS = ['Operaciones', 'Marketing', 'Finanzas', 'Recursos Humanos', 'Soporte'];
 
 @Component({
   selector: 'app-ad-consultprofile',
@@ -20,96 +19,77 @@ import { fadeIn, buttonHover, buttonPress } from '../../../../core/animations/an
     ReactiveFormsModule,
     FormsModule,
     HeaderComponent,
-    FooterComponent,
-    FormInputComponent,
-    FormPasswordComponent,
+    SelectFieldComponent,
     AvatarSelectorComponent
   ],
   templateUrl: './ad-consultprofile.component.html',
-  styleUrls: ['./ad-consultprofile.component.scss'],
-  animations: [fadeIn, buttonHover, buttonPress]
+  styleUrls: ['./ad-consultprofile.component.scss']
 })
-export class AdConsultprofileComponent implements OnInit, OnDestroy {
+export class AdConsultprofileComponent implements OnInit {
   
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private authService = inject(AuthService);
-  private formBaseService = inject(FormBaseService);
 
   profileForm!: FormGroup;
-  passwordForm!: FormGroup;
 
   // Propiedades para el selector de avatar
   availableAvatars: string[] = [];
   selectedAvatar: string = '';
 
-  // Propiedades para el modal de contraseña
-  showModal = false;
-  passwordFieldsEnabled = false;
-  currentPasswordValue = '';
-  currentPasswordError: any = null;
-  currentPasswordTouched = false;
+  // Propiedades para opciones del selector de departamento
+  // Reutilizamos la misma lista que usa admin-entity-form para mantener consistencia
+  departmentOptions: { value: string; label: string }[] = ADMIN_DEPARTMENTS.map(dept => ({ 
+    value: dept, 
+    label: dept 
+  }));
 
-  // Propiedades para el tooltip de ayuda de contraseña
-  showPasswordTooltip = false;
+  // Control de cambios y modo edición
+  hasUnsavedChanges = false;
+  isEditMode = false; // Nueva propiedad para controlar el modo edición
+  private initialFormValue: any;
 
   constructor() {}
 
   ngOnInit(): void {
     this.initializeForms();
     this.loadUserData();
-    this.initializeFormBaseService();
-    this.loadAvailableAvatars();
-    
-    // Listener para cerrar tooltip al hacer click fuera
-    document.addEventListener('click', this.onDocumentClick.bind(this));
-  }
-
-  private initializeFormBaseService(): void {
-    // Crear estado del formulario para el perfil usando FormBaseService
-    this.formBaseService.createFormState('ad-consultprofile', {});
-    
-    // Cargar imágenes de avatar
-    this.formBaseService.loadImages('avatar');
-  }
-
-  ngOnDestroy(): void {
-    // Limpiar estado del formulario
-    this.formBaseService.destroyFormState('ad-consultprofile');
-    
-    // Remover listener del documento
-    document.removeEventListener('click', this.onDocumentClick.bind(this));
   }
 
   private initializeForms(): void {
-    // Formulario de información personal (sin dateOfBirth, con email y departamento)
+    // Formulario de información personal
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(50)]],
       lastName: ['', [Validators.required, Validators.maxLength(50)]],
-      alias: ['', [Validators.required, Validators.maxLength(30)]],
+      alias: ['', [Validators.maxLength(30)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       department: ['', [Validators.required, Validators.maxLength(100)]],
-      startDate: ['', [Validators.required]] // Campo deshabilitado, solo lectura
+      startDate: ['', [Validators.required]]
     });
 
-    // Formulario de cambio de contraseña (sin currentPassword)
-    this.passwordForm = this.fb.group({
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
+    // Escuchar cambios en el formulario
+    this.profileForm.valueChanges.subscribe(() => {
+      this.checkForChanges();
     });
+  }
+
+  private checkForChanges(): void {
+    if (!this.initialFormValue) return;
+    
+    const currentValue = this.profileForm.getRawValue();
+    this.hasUnsavedChanges = JSON.stringify(currentValue) !== JSON.stringify(this.initialFormValue);
   }
 
   private loadUserData(): void {
     console.log('🔄 [Profile] Cargando datos del administrador desde el backend...');
     
-    // El authGuard ya validó la autenticación y el rol, proceder directamente
     this.api.getAdminProfile().subscribe({
       next: (profile: AdminProfileResponse) => {
         console.log('✅ [Profile] Datos del perfil cargados:', profile);
-        console.log('🔍 [Profile] Fecha de registro:', profile.registrationDate);
-        console.log('🔍 [Profile] Fecha de nacimiento:', profile.dateOfBirth);
+        console.log('🔍 [Profile] Departamento del usuario desde backend:', profile.department);
+        console.log('🔍 [Profile] Departamentos disponibles:', ADMIN_DEPARTMENTS);
         
-        // Poblar formulario con datos reales del backend (sin dateOfBirth, con email y departamento)
+        // Poblar formulario con datos reales del backend
         this.profileForm.patchValue({
           firstName: profile.firstName,
           lastName: profile.lastName,
@@ -119,169 +99,103 @@ export class AdConsultprofileComponent implements OnInit, OnDestroy {
           startDate: toDateInputFormat(profile.registrationDate)
         });
 
-        console.log('📅 [Profile] Fecha de alta para input:', toDateInputFormat(profile.registrationDate));
+        console.log('🔍 [Profile] Valor del campo department después del patchValue:', this.profileForm.get('department')?.value);
 
         // Cargar avatar actual y avatares disponibles
         this.selectedAvatar = profile.avatar;
         this.availableAvatars = profile.availableAvatars;
         
-        // Deshabilitar campos informativos (solo lectura)
+        // Deshabilitar campos de solo lectura
         this.profileForm.get('startDate')?.disable();
         this.profileForm.get('email')?.disable();
-        this.profileForm.get('department')?.disable();
-
-        // Deshabilitar campos de contraseña hasta validar contraseña actual
-        this.passwordForm.get('newPassword')?.disable();
-        this.passwordForm.get('confirmPassword')?.disable();
+        
+        // Aplicar modo inicial (campos editables deshabilitados)
+        this.applyEditMode();
+        
+        // Guardar valores iniciales para detectar cambios
+        this.initialFormValue = this.profileForm.getRawValue();
         
         console.log('✅ [Profile] Formulario poblado correctamente');
       },
       error: (error: any) => {
         console.error('❌ [Profile] Error al cargar datos del perfil:', error);
         
-        // Si hay error de autenticación, dejar que el authService maneje el logout
         if (error.status === 401 || error.status === 403) {
           console.error('❌ [Profile] Error de autorización - cerrando sesión');
           this.authService.logout(true);
           return;
         }
         
-        // Para otros errores, usar fallback
         this.loadFallbackData();
       }
     });
   }
 
-  /**
-   * Método de fallback para inicializar formularios vacíos si falla el backend
-   */
   private loadFallbackData(): void {
     console.log('⚠️ [Profile] Error al cargar datos - iniciando formularios vacíos');
     
-    // No cargar datos de ejemplo, dejar formularios vacíos
-    // Solo configurar los campos de solo lectura
     this.profileForm.get('startDate')?.disable();
     this.profileForm.get('email')?.disable();
-    this.profileForm.get('department')?.disable();
-
-    // Deshabilitar campos de contraseña hasta validar contraseña actual
-    this.passwordForm.get('newPassword')?.disable();
-    this.passwordForm.get('confirmPassword')?.disable();
-
-    // Avatar por defecto
+    this.applyEditMode(); // Aplicar modo inicial también en fallback
     this.selectedAvatar = 'assets/admin/admin_default.png';
+    this.initialFormValue = this.profileForm.getRawValue();
   }
 
-  private loadAvailableAvatars(): void {
-    // Los avatares disponibles se cargan directamente desde getAdminProfile()
-    console.log('ℹ️ [Profile] Avatares se cargan desde backend endpoint');
-  }
-
-  selectAvatar(avatar: string): void {
-    // Seguir el mismo patrón que admin-entity-edit-form
-    // Extraer la ruta relativa de la URL completa
-    const relativePath = this.extractRelativePath(avatar);
+  // Método para aplicar el estado de edición a los campos
+  private applyEditMode(): void {
+    const editableFields = ['firstName', 'lastName', 'alias', 'department'];
     
-    // Usar FormBaseService para seleccionar la imagen
-    this.formBaseService.selectImage(relativePath, 'avatar');
-    
-    // Actualizar la selección local
-    this.selectedAvatar = avatar;
-    console.log('Avatar selected:', avatar, 'Relative path:', relativePath);
+    editableFields.forEach(fieldName => {
+      const field = this.profileForm.get(fieldName);
+      if (field) {
+        if (this.isEditMode) {
+          field.enable();
+        } else {
+          field.disable();
+        }
+      }
+    });
   }
 
-  private extractRelativePath(fullUrl: string): string {
-    // Si la URL contiene '/resources/avatars/', extraer el nombre del archivo
-    if (fullUrl.includes('/resources/avatars/')) {
-      return fullUrl.split('/resources/avatars/')[1];
+  // Método para toggle del modo edición (conectado al botón lápiz)
+  toggleEditMode(): void {
+    this.isEditMode = !this.isEditMode;
+    this.applyEditMode();
+    
+    console.log('Modo edición:', this.isEditMode ? 'Activado' : 'Desactivado');
+    
+    // Si salimos del modo edición sin guardar, preguntar si desea descartar cambios
+    if (!this.isEditMode && this.hasUnsavedChanges) {
+      this.onCancelChanges();
     }
-    // Si es solo el nombre del archivo o para otros casos, extraer la última parte
-    return fullUrl.includes('/') ? (fullUrl.split('/').pop() ?? '') : fullUrl;
+  }
+
+  onAvatarSelected(avatar: string): void {
+    this.selectedAvatar = avatar;
+    this.hasUnsavedChanges = true;
+    console.log('Avatar seleccionado:', avatar);
   }
 
   onSaveChanges(): void {
-    if (this.profileForm.valid) {
-      // Aquí implementarías la lógica para guardar los cambios
-      console.log('Profile data to save:', this.profileForm.value);
-      // Mostrar mensaje de éxito
-    }
-
-    if (this.passwordForm.valid && this.isPasswordFormTouched()) {
-      // Aquí implementarías la lógica para cambiar la contraseña
-      console.log('Password change requested');
-      // Mostrar mensaje de éxito
-    }
-  }
-  private isPasswordFormTouched(): boolean {
-    return this.passwordForm.get('newPassword')?.value ||
-           this.passwordForm.get('confirmPassword')?.value;
-  }
-
-  // Métodos para el modal de contraseña
-  showPasswordModal(): void {
-    this.showModal = true;
-    this.currentPasswordValue = '';
-    this.currentPasswordError = null;
-    this.currentPasswordTouched = false;
-  }
-
-  hidePasswordModal(): void {
-    this.showModal = false;
-    this.currentPasswordValue = '';
-    this.currentPasswordError = null;
-    this.currentPasswordTouched = false;
-    
-    // Si no se han habilitado los campos de contraseña, asegurar que permanezcan deshabilitados
-    if (!this.passwordFieldsEnabled) {
-      this.passwordForm.get('newPassword')?.disable();
-      this.passwordForm.get('confirmPassword')?.disable();
+    if (this.profileForm.valid && this.hasUnsavedChanges) {
+      const formData = this.profileForm.getRawValue();
+      console.log('Datos del perfil a guardar:', formData);
+      console.log('Avatar seleccionado:', this.selectedAvatar);
+      
+      // Aquí implementarías la lógica para guardar los cambios en el backend
+      // this.api.updateAdminProfile(formData, this.selectedAvatar).subscribe(...)
+      
+      // Actualizar valores iniciales después de guardar
+      this.initialFormValue = formData;
+      this.hasUnsavedChanges = false;
     }
   }
 
-  confirmPasswordChange(): void {
-    if (!this.currentPasswordValue) {
-      this.currentPasswordError = { required: true };
-      this.currentPasswordTouched = true;
-      return;
-    }
-
-    // Aquí validarías la contraseña actual con el backend
-    console.log('Validating current password:', this.currentPasswordValue);
-    
-    // Simulando validación exitosa
-    this.passwordFieldsEnabled = true;
-    this.hidePasswordModal();
-    
-    // Habilitar los campos de contraseña después de validar contraseña actual
-    this.passwordForm.get('newPassword')?.enable();
-    this.passwordForm.get('confirmPassword')?.enable();
-    
-    // Mostrar mensaje de éxito
-    console.log('Password fields enabled');
-  }
-
-  // Métodos para obtener errores de validación
-  getFieldError(form: FormGroup, fieldName: string) {
-    const field = form.get(fieldName);
-    return field?.errors && field?.touched ? field.errors : null;
-  }
-
-  isFieldTouched(form: FormGroup, fieldName: string): boolean {
-    return form.get(fieldName)?.touched || false;
-  }
-
-  // Métodos para el tooltip de ayuda de contraseña
-  togglePasswordTooltip(): void {
-    this.showPasswordTooltip = !this.showPasswordTooltip;
-  }
-
-  /**
-   * Cierra el tooltip cuando se hace click fuera de él
-   */
-  onDocumentClick(event: Event): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.help') && this.showPasswordTooltip) {
-      this.showPasswordTooltip = false;
+  onCancelChanges(): void {
+    if (this.initialFormValue) {
+      this.profileForm.patchValue(this.initialFormValue);
+      this.hasUnsavedChanges = false;
+      console.log('Cambios cancelados');
     }
   }
 }
