@@ -219,7 +219,7 @@ export class FormBaseService {
       // Campos de texto comunes
       nombre: [Validators.required, Validators.maxLength(FORM_LIMITS.nombreMax)],
       apellidos: [Validators.required, Validators.maxLength(FORM_LIMITS.apellidosMax)],
-      alias: [Validators.maxLength(FORM_LIMITS.aliasMax)],
+      alias: [Validators.required, Validators.maxLength(FORM_LIMITS.aliasMax)],
       email: [Validators.required, Validators.email, Validators.maxLength(FORM_LIMITS.emailMax)],
       correo: [Validators.required, Validators.email, Validators.maxLength(FORM_LIMITS.emailMax)],
 
