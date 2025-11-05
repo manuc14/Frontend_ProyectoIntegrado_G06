@@ -29,7 +29,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   private renderer = inject(Renderer2);
   protected override apiService = inject(ApiService);
   protected override imageSelectorService = inject(ImageSelectorService);
-  private authService = inject(AuthService);
+  protected override authService = inject(AuthService);
   currentRoute = '';
   isMenuOpen = false;
   hasScrolled = false; // Una vez que se hace scroll, se mantiene true

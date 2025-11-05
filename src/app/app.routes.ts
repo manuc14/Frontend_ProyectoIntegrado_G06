@@ -22,6 +22,8 @@ import { AdminCreatorsEditPage } from './features/admin/pages/ad-creators-edit/a
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
 import { UploadContentComponent } from './features/content/pages/upload-content/upload-content.component';
 import { CatalogComponent } from './features/content/pages/catalog/catalog.component';
+import { ContentPreviewComponent } from './features/content/pages/content-preview/content-preview.component';
+import { MediaPlayerComponent } from './features/content/pages/media-player/media-player.component';
 import { CreatorCatalogComponent } from './features/creator/pages/creator-catalog/creator-catalog.component';
 import { CreatorStatsComponent } from './features/creator/pages/creator-stats/creator-stats.component';
 import { VerifyEmailPage } from './features/auth/pages/verify-email/verify-email.page';
@@ -31,7 +33,7 @@ import { ResetPasswordCodePage } from './features/auth/pages/reset-password-code
 import { NewPasswordPage } from './features/auth/pages/new-password/new-password.page';
 
 export const routes: Routes = [
-	{ path: '', component: HomeComponent },
+	{ path: '', component: HomeComponent, canActivate: [publicGuard] },
 	{ path: 'signup', component: RegisterComponent, canActivate: [publicGuard] },
 	{ path: 'login', component: LoginComponent, canActivate: [publicGuard] },
 	{ path: 'verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
@@ -57,6 +59,8 @@ export const routes: Routes = [
 	
 	// Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },
+	{ path: 'content/preview', component: ContentPreviewComponent, canActivate: [authGuard] },
+	{ path: 'player', component: MediaPlayerComponent, canActivate: [authGuard] },
 	
 	// Rutas de recuperación de contraseña (públicas)
 	{ path: 'forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },

@@ -1,17 +1,30 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { Contenido } from '../../../core/models/contenido.models';
 
 @Component({
   selector: 'app-content-card',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule],
   templateUrl: './content-card.component.html',
   styleUrls: ['./content-card.component.scss']
 })
 export class ContentCardComponent {
   @Input() contenido!: Contenido;
+
+  constructor(private router: Router) {}
+
+  /**
+   * Navega al preview guardando el ID en localStorage (sin mostrarlo en URL)
+   */
+  navigateToPreview(event: Event): void {
+    event.preventDefault();
+    // Guardar ID en localStorage de forma segura
+    localStorage.setItem('currentContentId', this.contenido._id);
+    // Navegar sin ID en la URL
+    this.router.navigate(['/content/preview']);
+  }
 
   /**
    * Convierte la duración en minutos a formato HH:MM

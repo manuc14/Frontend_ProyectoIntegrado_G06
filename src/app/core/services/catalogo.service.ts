@@ -1,19 +1,25 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { Contenido, ResolucionVideo } from '../models/contenido.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CatalogoService {
+  private readonly http = inject(HttpClient);
+  private readonly API_URL = `${environment.baseApiUrl}/contenidos`;
   
   private mockVideos: Contenido[] = [
     {
       _id: '68f76c14e13b596143c38b81',
       titulo: 'Max Verstappens Incredible Pole Lap 2023 Monaco',
       descripcion: 'Ride onboard with Max Verstappen as he takes pole position in Monaco with this incredible lap!',
-      ficheroUrl: 'https://www.youtube.com/watch?v=lZ0bHr8UW7k',
+      ficheroUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
       miniaturaUrl: '/api/files/thumbnails/00ebf669-1864-48c5-9eb9-5b390f0fca6b.png',
-      duracion: 2,
+      duracion: 596,
       resolucion: '1080p',
       contenidoVip: true,
       estado: 'PUBLICO',
@@ -32,9 +38,9 @@ export class CatalogoService {
       _id: 'video-2',
       titulo: 'Northern Lights Over Fjords',
       descripcion: 'Impresionante captura de auroras boreales sobre los fiordos noruegos',
-      ficheroUrl: '/api/files/video/northern-lights.mp4',
+      ficheroUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       miniaturaUrl: 'https://picsum.photos/seed/aurora/400/300',
-      duracion: 748,
+      duracion: 653,
       resolucion: '4K',
       contenidoVip: true,
       estado: 'PUBLICO',
@@ -53,9 +59,9 @@ export class CatalogoService {
       _id: 'video-3',
       titulo: 'Perfect Pasta at Home',
       descripcion: 'Aprende a hacer pasta perfecta como en Italia',
-      ficheroUrl: '/api/files/video/pasta.mp4',
+      ficheroUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       miniaturaUrl: 'https://picsum.photos/seed/pasta/400/300',
-      duracion: 501,
+      duracion: 15,
       resolucion: '1080p',
       contenidoVip: false,
       estado: 'PUBLICO',
@@ -74,9 +80,9 @@ export class CatalogoService {
       _id: 'video-4',
       titulo: 'HIIT: Total Body',
       descripcion: 'Entrenamiento HIIT de cuerpo completo de alta intensidad',
-      ficheroUrl: '/api/files/video/hiit.mp4',
+      ficheroUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
       miniaturaUrl: 'https://picsum.photos/seed/hiit/400/300',
-      duracion: 1325,
+      duracion: 15,
       resolucion: '1080p',
       contenidoVip: true,
       estado: 'PUBLICO',
@@ -95,9 +101,9 @@ export class CatalogoService {
       _id: 'video-5',
       titulo: 'Drones Over Tokyo',
       descripcion: 'Impresionante vista aérea de Tokio capturada con drones',
-      ficheroUrl: '/api/files/video/tokyo.mp4',
+      ficheroUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
       miniaturaUrl: 'https://picsum.photos/seed/tokyo/400/300',
-      duracion: 573,
+      duracion: 15,
       resolucion: '4K',
       contenidoVip: true,
       estado: 'PUBLICO',
@@ -116,9 +122,9 @@ export class CatalogoService {
       _id: 'video-6',
       titulo: 'Watercolor Basics',
       descripcion: 'Tutorial básico de acuarela para principiantes',
-      ficheroUrl: '/api/files/video/watercolor.mp4',
+      ficheroUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
       miniaturaUrl: 'https://picsum.photos/seed/watercolor/400/300',
-      duracion: 1182,
+      duracion: 15,
       resolucion: '720p',
       contenidoVip: false,
       estado: 'PUBLICO',
@@ -137,9 +143,9 @@ export class CatalogoService {
       _id: 'video-7',
       titulo: 'Leading Through Change',
       descripcion: 'Estrategias de liderazgo en tiempos de cambio',
-      ficheroUrl: '/api/files/video/leadership.mp4',
+      ficheroUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
       miniaturaUrl: 'https://picsum.photos/seed/leadership/400/300',
-      duracion: 2210,
+      duracion: 15,
       resolucion: '1080p',
       contenidoVip: true,
       estado: 'PUBLICO',
@@ -158,9 +164,9 @@ export class CatalogoService {
       _id: 'video-8',
       titulo: 'Morning Yoga Flow',
       descripcion: 'Rutina de yoga matutina para empezar el día con energía',
-      ficheroUrl: '/api/files/video/yoga.mp4',
+      ficheroUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
       miniaturaUrl: 'https://picsum.photos/seed/yoga/400/300',
-      duracion: 1085,
+      duracion: 888,
       resolucion: '1080p',
       contenidoVip: false,
       estado: 'PUBLICO',
@@ -434,9 +440,9 @@ export class CatalogoService {
       _id: '68fe6dc0537fef5cfa2d7f79',
       titulo: 'Subida de audio prueba',
       descripcion: '',
-      ficheroUrl: '/api/files/audio/ffc963e3-d7f6-4a88-9933-3b764b53dd13.wav',
+      ficheroUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
       miniaturaUrl: '/api/files/thumbnails/69c6e8dd-f883-4ec1-916b-ea6fc5bd315a.jpg',
-      duracion: 2,
+      duracion: 348,
       contenidoVip: false,
       estado: 'PUBLICO',
       fechaEstado: new Date('2025-10-26T18:51:44.195Z'),
@@ -454,9 +460,9 @@ export class CatalogoService {
       _id: 'audio-2',
       titulo: 'Lo-Fi Study Beats',
       descripcion: 'Música relajante para estudiar y concentrarse',
-      ficheroUrl: '/api/files/audio/lofi.mp3',
+      ficheroUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
       miniaturaUrl: 'https://picsum.photos/seed/lofi/400/300',
-      duracion: 179,
+      duracion: 348,
       contenidoVip: false,
       estado: 'PUBLICO',
       fechaEstado: new Date(),
@@ -534,25 +540,45 @@ export class CatalogoService {
 
   /**
    * Obtiene todos los contenidos de tipo VIDEO
+   * Usa mock si useMocks=true, sino obtiene del backend y filtra
    */
   getVideos(): Contenido[] {
-    return this.mockVideos;
+    if (environment.useMocks) {
+      return this.mockVideos;
+    }
+    // Si no estamos en modo mock, esto debería llamarse de forma async
+    // Por compatibilidad, devolvemos array vacío (el componente debe cambiar a async)
+    console.warn('⚠️ getVideos() síncrono - migrar a getContenidos() Observable');
+    return [];
   }
 
   /**
    * Obtiene todos los contenidos de tipo AUDIO
+   * Usa mock si useMocks=true, sino obtiene del backend y filtra
    */
   getAudios(): Contenido[] {
-    return this.mockAudios;
+    if (environment.useMocks) {
+      return this.mockAudios;
+    }
+    // Si no estamos en modo mock, esto debería llamarse de forma async
+    // Por compatibilidad, devolvemos array vacío (el componente debe cambiar a async)
+    console.warn('⚠️ getAudios() síncrono - migrar a getContenidos() Observable');
+    return [];
   }
 
   /**
    * Obtiene un contenido destacado aleatorio
+   * Usa mock si useMocks=true
    */
   getContenidoDestacado(): Contenido {
-    const allContent = [...this.mockVideos, ...this.mockAudios];
-    const randomIndex = Math.floor(Math.random() * allContent.length);
-    return allContent[randomIndex];
+    if (environment.useMocks) {
+      const allContent = [...this.mockVideos, ...this.mockAudios];
+      const randomIndex = Math.floor(Math.random() * allContent.length);
+      return allContent[randomIndex];
+    }
+    // Placeholder - debería ser async
+    console.warn('⚠️ getContenidoDestacado() síncrono - migrar a Observable');
+    return this.mockVideos[0];
   }
 
   /**
@@ -585,6 +611,64 @@ export class CatalogoService {
     if (etiquetas.length === 0) return contenidos;
     return contenidos.filter(c => 
       c.tags.some(tag => etiquetas.includes(tag.toLowerCase()))
+    );
+  }
+
+  /**
+   * Obtiene un contenido específico por ID desde el backend
+   * Endpoint: GET /api/contenidos/{id}
+   */
+  getContenidoById(id: string): Observable<Contenido> {
+    console.log('🌐 [CATALOGO SERVICE] getContenidoById llamado con ID:', id);
+    console.log('🌐 [CATALOGO SERVICE] URL completa:', `${this.API_URL}/${id}`);
+    
+    return this.http.get<any>(`${this.API_URL}/${id}`).pipe(
+      map((response: any) => {
+        console.log('✅ [CATALOGO SERVICE] Respuesta del backend:', response);
+        // Mapear 'id' del backend a '_id' del frontend
+        const { id: backendId, tipoArchivo, autorId, disponibleHasta, ...rest } = response;
+        const mapped = {
+          ...rest,
+          _id: backendId || id, // Usar el id del backend o el del parámetro como fallback
+          tipo: tipoArchivo || rest.tipo // Mapear tipoArchivo → tipo
+        } as Contenido;
+        console.log('🔄 [CATALOGO SERVICE] Contenido mapeado:', mapped);
+        return mapped;
+      }),
+      catchError(error => {
+        console.error('❌ [CATALOGO SERVICE] Error obteniendo contenido:', error);
+        console.error('❌ [CATALOGO SERVICE] Error status:', error.status);
+        console.error('❌ [CATALOGO SERVICE] Error message:', error.message);
+        return throwError(() => new Error(`Error obteniendo contenido con ID ${id}`));
+      })
+    );
+  }
+
+  /**
+   * Obtiene todos los contenidos del catálogo
+   * Endpoint: GET /api/contenidos
+   */
+  getContenidos(): Observable<Contenido[]> {
+    return this.http.get<any[]>(this.API_URL).pipe(
+      map((response: any[]) => {
+        // Mapear cada contenido: id → _id, tipoArchivo → tipo
+        return response.map(item => {
+          const { id: backendId, tipoArchivo, autorId, disponibleHasta, ...rest } = item;
+          return {
+            ...rest,
+            _id: backendId,
+            tipo: tipoArchivo || rest.tipo
+          } as Contenido;
+        });
+      }),
+      catchError(error => {
+        console.error('Error obteniendo contenidos:', error);
+        // Fallback a mock en caso de error (para desarrollo)
+        if (environment.useMocks) {
+          return of([...this.mockVideos, ...this.mockAudios]);
+        }
+        return throwError(() => error);
+      })
     );
   }
 }
