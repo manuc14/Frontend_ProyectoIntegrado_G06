@@ -1,7 +1,13 @@
 <app-content-creator-header />
 
-<main class="upload-page">
-  <div class="container">
+<div class="creator-layout">
+  <!-- Sidebar Navigation Compartido -->
+  <app-creator-sidebar></app-creator-sidebar>
+
+  <!-- Main Content -->
+  <main class="creator-layout__main">
+    <div class="upload-page">
+      <div class="container">
     <h1>Subir contenido</h1>
     <p class="hint">Comparte tu contenido multimedia con la comunidad.</p>
 
@@ -260,5 +266,8 @@
       <span>Contenido subido correctamente</span>
     </div>
   </div>
-</main>
+    </div>
+  </main>
+</div>
+
 <app-footer />

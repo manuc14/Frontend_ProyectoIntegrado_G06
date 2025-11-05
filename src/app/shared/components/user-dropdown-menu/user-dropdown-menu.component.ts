@@ -51,12 +51,6 @@ export class UserDropdownMenuComponent implements OnInit {
       { iconSvg: 'user', label: 'Mi perfil', action: () => this.navigate(routes.profile) }
     ];
 
-    // Opciones específicas de creador
-    const creatorOptions: MenuOption[] = role === 'creator' ? [
-      { iconSvg: 'upload', label: 'Subir contenido', action: () => this.navigate('/upload-content') },
-      { iconSvg: 'list', label: 'Crear lista', action: () => this.navigate('/create-list') }
-    ] : [];
-
     // Opción de logout
     const logoutOption: MenuOption = {
       iconSvg: 'logout',
@@ -64,7 +58,7 @@ export class UserDropdownMenuComponent implements OnInit {
       action: () => this.logout()
     };
 
-    return [...baseOptions, ...creatorOptions, logoutOption];
+    return [...baseOptions, logoutOption];
   }
 
   private navigate(route: string) {

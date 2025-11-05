@@ -5,6 +5,25 @@
 @use '../../../../shared/scss/mixins' as mixins;
 
 /* --------------------------------------------------------------------------
+   LAYOUT DEL CREADOR
+   -------------------------------------------------------------------------- */
+
+.creator-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #eef1f6;
+  align-items: stretch; // Asegura que los hijos se estiren
+
+  &__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    min-height: 100vh; // Asegura que el contenido principal también tenga altura completa
+  }
+}
+
+/* --------------------------------------------------------------------------
    DISEÑO DE PÁGINA
    -------------------------------------------------------------------------- */
 
@@ -12,7 +31,7 @@
   max-width: 1200px;
   margin: 32px auto 56px auto;
   padding: 32px 16px 48px;
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
 }
 

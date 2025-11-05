@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CatalogComponent } from '../../../content/pages/catalog/catalog.component';
 import { ContentCreatorHeaderComponent } from '../../../../shared/components/content-creator-header/content-creator-header.component';
+import { CreatorSidebarComponent } from '../../../../shared/components/creator-sidebar/creator-sidebar.component';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
 
 @Component({
   selector: 'app-creator-catalog',
   standalone: true,
-  imports: [CommonModule, RouterModule, CatalogComponent, ContentCreatorHeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterModule, CatalogComponent, ContentCreatorHeaderComponent, CreatorSidebarComponent, FooterComponent],
   templateUrl: './creator-catalog.component.html',
   styleUrls: ['./creator-catalog.component.scss']
 })
