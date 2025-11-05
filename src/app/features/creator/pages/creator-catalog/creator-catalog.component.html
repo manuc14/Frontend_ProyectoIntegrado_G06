@@ -1,0 +1,16 @@
+<!-- Header del creador -->
+<app-content-creator-header></app-content-creator-header>
+
+<div class="creator-layout">
+  <!-- Sidebar Navigation Compartido -->
+  <app-creator-sidebar [collapsed]="sidebarCollapsed"></app-creator-sidebar>
+
+  <!-- Main Content -->
+  <main class="creator-layout__main">
+    <!-- Reusamos el componente de catálogo con vista de creador -->
+    <app-catalog [isCreatorView]="true"></app-catalog>
+  </main>
+</div>
+
+<!-- Footer -->
+<app-footer></app-footer>

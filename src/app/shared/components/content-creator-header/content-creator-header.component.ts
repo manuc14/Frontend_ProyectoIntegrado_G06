@@ -12,21 +12,26 @@ import { UserDropdownMenuComponent } from '../user-dropdown-menu/user-dropdown-m
   standalone: true,
   imports: [CommonModule, UserDropdownMenuComponent],
   templateUrl: './content-creator-header.component.html',
-  styleUrls: ['./content-creator-header.component.scss']
+  styleUrls: ['./content-creator-header.component.scss'],
+  host: {
+    '(document:click)': 'onClickOutside($event)'
+  }
 })
 export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit {
+  isCreateDropdownOpen = false;
 
   constructor(
     router: Router,
     activatedRoute: ActivatedRoute,
     apiService: ApiService,
     imageSelectorService: ImageSelectorService,
-    private authService: AuthService
+    authService: AuthService
   ) {
     super();
     this.router = router;
     this.apiService = apiService;
     this.imageSelectorService = imageSelectorService;
+    this.authService = authService;
   }
 
   ngOnInit() {
@@ -38,5 +43,27 @@ export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit 
 
   override logout() {
     this.authService.logout(true);
+  }
+
+  toggleCreateDropdown() {
+    this.isCreateDropdownOpen = !this.isCreateDropdownOpen;
+  }
+
+  onClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const isInsideDropdown = target.closest('.create-dropdown-container');
+    if (!isInsideDropdown) {
+      this.isCreateDropdownOpen = false;
+    }
+  }
+
+  navigateToUploadContent() {
+    this.isCreateDropdownOpen = false;
+    this.router.navigate(['/upload-content']);
+  }
+
+  navigateToCreateList() {
+    this.isCreateDropdownOpen = false;
+    this.router.navigate(['/create-list']);
   }
 }

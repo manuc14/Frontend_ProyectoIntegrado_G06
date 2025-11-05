@@ -1,0 +1,100 @@
+.creator-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #eef1f6;
+  align-items: stretch;
+
+  &__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+}
+
+
+// Wrapper para modificar el catálogo sin tocar el componente original
+.creator-catalog-wrapper {
+  flex: 1;
+
+  // Añadir botones sobre las secciones
+  ::ng-deep {
+    .catalog__section {
+      .catalog__section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0;
+      }
+
+      // Contenedor para título + botones
+      &::before {
+        content: '';
+        display: block;
+        height: 0;
+      }
+    }
+
+    // Agregar botones después del título de cada sección
+    .catalog__section:first-of-type,
+    .catalog__section:nth-of-type(2),
+    .catalog__section:nth-of-type(3) {
+      > h2 {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2px;
+        
+        &::after {
+          content: '';
+          display: flex;
+          gap: 8px;
+        }
+      }
+    }
+  }
+}
+
+// Estilos para los botones de acción (se agregarán dinámicamente)
+.section-actions {
+  display: flex;
+  gap: 8px;
+
+  &__btn {
+    background: #e6eeff;
+    border-radius: 12px;
+    border: 1px solid #dbe0ea;
+    padding: 7px 11px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #d0deff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      
+      &:hover {
+        transform: none;
+        box-shadow: none;
+      }
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+  }
+}

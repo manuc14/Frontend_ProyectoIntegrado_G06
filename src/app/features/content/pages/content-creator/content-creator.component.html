@@ -1,140 +1,190 @@
-<div class="creator-panel">
-  <!-- Shared header for Content Creator -->
-  <app-content-creator-header></app-content-creator-header>
+<!-- Header del creador -->
+<app-content-creator-header></app-content-creator-header>
 
-  <!-- Main content area -->
-  <div class="main-layout">
-    <!-- Left sidebar -->
-    <div class="sidebar">
-      <div class="channel-info">
-        <div class="channel-avatar">
-          <!-- Reemplazar check verde por avatar circular genérico -->
-          <div class="avatar-placeholder" aria-hidden="true"></div>
-        </div>
-        <div class="channel-name">Mi Canal</div>
-        <div class="channel-handle">&#64;usuario</div>
+<div class="creator-layout">
+  <!-- Sidebar Navigation Compartido -->
+  <app-creator-sidebar></app-creator-sidebar>
+
+  <!-- Main Content -->
+  <main class="creator-layout__main">
+    <div class="dashboard">
+      <!-- Dashboard Header -->
+      <div class="dashboard__header">
+        <h1 class="dashboard__title">Panel del Creador</h1>
+        <p class="dashboard__subtitle">Resumen de tu actividad y estadísticas principales</p>
       </div>
-      
-  <div class="sidebar-menu">
-        <button class="menu-item active" type="button" (click)="navigateToHome()" aria-label="Ir a inicio" tabindex="0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,6V14H13V6H11M11,16V18H13V16H11Z"/>
-          </svg>
-          <span>Inicio</span>
-        </button>
-        <div class="menu-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 16V8l-9 5-9-5v8l9 5 9-5z" />
-            <path d="M3 7.5L12 3l9 4.5" />
-          </svg>
-          <span>Contenido</span>
-        </div>
-        <div class="menu-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6"/>
-          </svg>
-          <span>Estadísticas</span>
-        </div>
-        <div class="menu-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M3 3h18v4H3V3zm0 6h18v12H3V9zm2 2v8h14v-8H5z" />
-          </svg>
-          <span>Biblioteca</span>
-        </div>
-      </div>
-    </div>
 
-    <!-- Center content -->
-    <div class="content-area">
-      <div class="panel-header">
-        <h1 class="panel-title">Panel del Creador</h1>
-      </div>
-      <div class="creator-panel-container">
-        <div class="three-boxes-row">
-          <!-- Left column: Estadísticas encima de Mis listas -->
-          <div class="left-column">
-            <!-- Box 1: Estadísticas -->
-            <div class="panel-box stats-box">
-              <div class="box-title">Estadísticas</div>
-              <div class="box-description">Resumen del rendimiento de tu canal.</div>
-              <button class="box-button stats-button" (click)="viewStatistics()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6"/>
-                </svg>
-                Ver estadísticas
-              </button>
-            </div>
-
-            <!-- Upload button moved to header. Removed inline duplicate. -->
-
-            <!-- Box 2: Mis listas (moved under Estadísticas) -->
-            <div class="panel-box lists-box">
-              <div class="box-title">Mis listas</div>
-              <div class="lists-content">
-                <!-- existing-lists intentionally removed; keep only the dashed create box below -->
-                <button class="create-new-list" (click)="createNewList()" aria-label="Crear nueva lista">
-                  <div class="create-icon">+</div>
-                  <div class="create-text">Crear nueva lista</div>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          
-        </div>
-
-        <!-- Edit content wide box -->
-        <div class="edit-content-box">
-          <div class="edit-content-title">Editar contenido</div>
-          <button class="edit-action-button" (click)="startEditing()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M15,18V16H6V18H15M18,14V12H6V14H18Z"/>
+      <!-- Stats Cards Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
             </svg>
-            Ir a edición
-          </button>
+          </div>
+          <div class="stat-card__content">
+            <div class="stat-card__label">Visualizaciones</div>
+            <div class="stat-card__value">{{ statsData.views | number }}</div>
+            <div class="stat-card__change stat-card__change--positive">{{ statsData.viewsChange }} vs mes anterior</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
+            </svg>
+          </div>
+          <div class="stat-card__content">
+            <div class="stat-card__label">Tiempo de reproducción</div>
+            <div class="stat-card__value">{{ statsData.watchTime }} hrs</div>
+            <div class="stat-card__change stat-card__change--positive">{{ statsData.watchTimeChange }} vs mes anterior</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 17V19H2V17S2 13 9 13 16 17 16 17M12.5 7.5A3.5 3.5 0 1 0 9 11A3.5 3.5 0 0 0 12.5 7.5M15.94 13A5.32 5.32 0 0 1 18 17V19H22V17S22 13.37 15.94 13M15 4A3.39 3.39 0 0 0 13.07 4.59A5 5 0 0 1 13.07 10.41A3.39 3.39 0 0 0 15 11A3.5 3.5 0 0 0 15 4Z"/>
+            </svg>
+          </div>
+          <div class="stat-card__content">
+            <div class="stat-card__label">Suscriptores</div>
+            <div class="stat-card__value">{{ statsData.subscribers | number }}</div>
+            <div class="stat-card__change stat-card__change--positive">{{ statsData.subscribersChange }} vs mes anterior</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--orange">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z"/>
+            </svg>
+          </div>
+          <div class="stat-card__content">
+            <div class="stat-card__label">Ingresos estimados</div>
+            <div class="stat-card__value">{{ statsData.revenue }}</div>
+            <div class="stat-card__change stat-card__change--positive">{{ statsData.revenueChange }} vs mes anterior</div>
+          </div>
         </div>
       </div>
 
-      <!-- Recent edits -->
-      <div class="recent-edits-section">
-        <div class="section-header-small">
-          <span>Ediciones recientes</span>
+      <!-- Charts Section -->
+      <div class="charts-section">
+        <!-- Visualizaciones por mes -->
+        <div class="chart-card">
+          <div class="chart-card__header">
+            <h2 class="chart-card__title">Visualizaciones por mes</h2>
+            <span class="chart-card__period">Últimos 6 meses</span>
+          </div>
+          <div class="chart-card__content">
+            <!-- Mockup de gráfico de barras -->
+            <div class="bar-chart">
+              @for (data of chartData; track data.month) {
+                <div class="bar-chart__item">
+                  <div class="bar-chart__bar-container">
+                    <div class="bar-chart__bar" [style.height.%]="(data.views / 8000) * 100"></div>
+                    <span class="bar-chart__value">{{ data.views / 1000 }}k</span>
+                  </div>
+                  <span class="bar-chart__label">{{ data.month }}</span>
+                </div>
+              }
+            </div>
+          </div>
         </div>
 
-        <div class="recent-edits-grid edits-grid">
-          <!-- Create new edit card -->
-          <button class="create-edit-item create-card animate-entry"
-                  type="button"
-                  (click)="startEditing()"
-                  aria-label="Crear nueva edición">
-            <div class="create-icon">+</div>
-            <div class="create-text">
-              <span>Crear nueva</span>
-              <span>edición</span>
-            </div>
-          </button>
+        <!-- Curva de reproducción -->
+        <div class="chart-card">
+          <div class="chart-card__header">
+            <h2 class="chart-card__title">Curva de reproducción</h2>
+            <span class="chart-card__period">Promedio últimos 30 días</span>
+          </div>
+          <div class="chart-card__content">
+            <!-- Mockup de gráfico de línea -->
+            <div class="line-chart">
+              <svg viewBox="0 0 300 150" class="line-chart__svg">
+                <!-- Grid lines -->
+                <line x1="0" y1="30" x2="300" y2="30" stroke="#e5e7eb" stroke-width="1"/>
+                <line x1="0" y1="60" x2="300" y2="60" stroke="#e5e7eb" stroke-width="1"/>
+                <line x1="0" y1="90" x2="300" y2="90" stroke="#e5e7eb" stroke-width="1"/>
+                <line x1="0" y1="120" x2="300" y2="120" stroke="#e5e7eb" stroke-width="1"/>
+                
+                <!-- Line chart path -->
+                <path d="M 0 120 L 50 100 L 100 80 L 150 70 L 200 85 L 250 95 L 300 110" 
+                      fill="none" 
+                      stroke="url(#gradient)" 
+                      stroke-width="3"/>
+                
+                <!-- Gradient definition -->
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                  </linearGradient>
+                </defs>
 
-          <!-- Recent edits -->
-          @for (edit of recentEdits; track edit) {
-            <div class="edit-card">
-              <img [src]="edit.thumbnail" [alt]="edit.title" class="edit-thumbnail" />
-              <div class="edit-info">
-                <div class="edit-title">{{ edit.title }}</div>
-                <div class="edit-date">{{ edit.lastEdited | date }}</div>
-                <div class="edit-description">Actualizado recientemente</div>
+                <!-- Data points -->
+                <circle cx="0" cy="120" r="4" fill="#3b82f6"/>
+                <circle cx="50" cy="100" r="4" fill="#3b82f6"/>
+                <circle cx="100" cy="80" r="4" fill="#3b82f6"/>
+                <circle cx="150" cy="70" r="4" fill="#3b82f6"/>
+                <circle cx="200" cy="85" r="4" fill="#3b82f6"/>
+                <circle cx="250" cy="95" r="4" fill="#3b82f6"/>
+                <circle cx="300" cy="110" r="4" fill="#8b5cf6"/>
+              </svg>
+              <div class="line-chart__labels">
+                <span>0s</span>
+                <span>30s</span>
+                <span>1m</span>
+                <span>1.5m</span>
+                <span>2m</span>
+                <span>2.5m</span>
+                <span>3m</span>
               </div>
             </div>
-          }
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions Section -->
+      <div class="quick-actions">
+        <div class="action-card action-card--primary" (click)="navigateToCreatorCatalog()" (keydown)="navigateToCreatorCatalog()">
+          <div class="action-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z"/>
+            </svg>
+          </div>
+          <div class="action-card__content">
+            <h3 class="action-card__title">Acceso a contenidos</h3>
+            <p class="action-card__description">Gestiona todos tus vídeos, audios y listas de reproducción</p>
+          </div>
+          <div class="action-card__arrow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+            </svg>
+          </div>
         </div>
 
-        @if (recentEdits.length === 0) {
-          <div class="empty-state">
-            <p class="empty-message">Aún no has editado ningún vídeo. Empieza a editar tu primer contenido.</p>
+        <div class="action-card action-card--secondary" (click)="startEditing()" (keydown)="startEditing()">
+          <div class="action-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+            </svg>
           </div>
-        }
+          <div class="action-card__content">
+            <h3 class="action-card__title">Edición de contenido</h3>
+            <p class="action-card__description">Edita metadatos, miniaturas y descripción de tu contenido</p>
+          </div>
+          <div class="action-card__arrow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+            </svg>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- Shared footer component (keeps exact footer used in other pages) -->
-  <app-footer></app-footer>
+  </main>
 </div>
+
+<!-- Footer -->
+<app-footer></app-footer>

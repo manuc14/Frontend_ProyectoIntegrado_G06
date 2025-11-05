@@ -1,0 +1,27 @@
+<aside class="creator-sidebar" [class.collapsed]="collapsed">
+  <div class="creator-sidebar__content">
+    <!-- Navigation Items -->
+    <nav class="creator-sidebar__nav">
+      <a routerLink="/content-creator" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="creator-sidebar__nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Panel</span>
+      </a>
+
+      <a routerLink="/creator/catalog" routerLinkActive="active" class="creator-sidebar__nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5M12 12H15M12 16H15M9 12H9.01M9 16H9.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Contenido</span>
+      </a>
+
+      <a routerLink="/creator/estadisticas" routerLinkActive="active" class="creator-sidebar__nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6"/>
+        </svg>
+        <span>Estadísticas</span>
+      </a>
+    </nav>
+  </div>
+</aside>

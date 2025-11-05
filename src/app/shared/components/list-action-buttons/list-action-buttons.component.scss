@@ -1,0 +1,165 @@
+.list-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: none;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+
+    svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    span {
+      position: relative;
+      z-index: 1;
+    }
+
+    // Efecto de brillo al pasar el cursor
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s ease, height 0.6s ease;
+    }
+
+    &:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    &:hover svg {
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    // Botón Añadir contenido - Azul vibrante
+    &--add {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+
+      &:hover {
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+      }
+    }
+
+    // Botón Editar lista - Verde vibrante
+    &--edit {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+
+      &:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+      }
+    }
+
+    // Botón Eliminar lista - Rojo vibrante
+    &--delete {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+
+      &:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+      }
+    }
+  }
+
+  // Animación de entrada
+  animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .list-actions {
+    gap: 6px;
+
+    &__btn {
+      padding: 8px 12px;
+      font-size: 13px;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      span {
+        display: none; // Ocultar texto en móvil, solo mostrar iconos
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .list-actions {
+    flex-direction: column;
+    width: 100%;
+
+    &__btn {
+      width: 100%;
+      justify-content: center;
+
+      span {
+        display: inline; // Mostrar texto cuando están en columna
+      }
+    }
+  }
+}
