@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { ContentCreatorHeaderComponent } from '../../../../shared/components/content-creator-header/content-creator-header.component';
+import { CreatorSidebarComponent } from '../../../../shared/components/creator-sidebar/creator-sidebar.component';
 import { TextAreaFieldComponent } from '../../../../shared/textarea-field/textarea-field.component';
 import { SelectFieldComponent } from '../../../../shared/select-field/select-field.component';
 import { FormToggleComponent } from '../../../../shared/form-components/form-toggle/form-toggle.component';
@@ -35,7 +36,7 @@ export interface UploadContentForm {
 @Component({
   selector: 'app-upload-content',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, FooterComponent, ContentCreatorHeaderComponent, FormInputComponent, TextAreaFieldComponent, FormDateComponent, SelectFieldComponent, FormToggleComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FooterComponent, ContentCreatorHeaderComponent, CreatorSidebarComponent, FormInputComponent, TextAreaFieldComponent, FormDateComponent, SelectFieldComponent, FormToggleComponent],
   templateUrl: './upload-content.component.html',
   styleUrls: ['./upload-content.component.scss']
 })
