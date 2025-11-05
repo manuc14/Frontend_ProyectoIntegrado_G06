@@ -165,7 +165,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
       repeatPassword: '',
       vip: false,
       fotoElegida: null
-    }, [matchPasswordsValidator('password', 'repeatPassword')]);
+    }, [matchPasswordsValidator('password', 'repeatPassword')], 'register');
 
     // Estado del formulario gestionado por FormBaseService
     // Nota: formState$ se asignará en ngOnInit después de crear el estado

@@ -178,6 +178,7 @@ export class FormBaseService {
    * @template T - Tipo de datos del formulario
    * @param {Record<keyof T, any>} config - Configuración inicial de campos y valores
    * @param {((control: AbstractControl) => ValidationErrors | null)[]} [customValidators] - Validadores personalizados
+   * @param {string} [formId] - Identificador del formulario para validadores contextuales
    * @returns {FormGroup} FormGroup configurado con validadores
    * 
    * @example
@@ -188,11 +189,11 @@ export class FormBaseService {
    * }, [FormBaseService.passwordMatchValidator('password', 'confirmPassword')]);
    * ```
    */
-  createFormGroup<T>(config: Record<keyof T, any>, customValidators?: ((control: AbstractControl) => ValidationErrors | null)[]): FormGroup {
+  createFormGroup<T>(config: Record<keyof T, any>, customValidators?: ((control: AbstractControl) => ValidationErrors | null)[], formId?: string): FormGroup {
     const formConfig: any = {};
 
     for (const [key, value] of Object.entries(config)) {
-      formConfig[key] = [value, this.getValidatorsForField(key)];
+      formConfig[key] = [value, this.getValidatorsForField(key, formId)];
     }
 
     const formGroup = this.fb.group(formConfig);
@@ -212,14 +213,17 @@ export class FormBaseService {
    * 
    * @private
    * @param {string} fieldName - Nombre del campo
+   * @param {string} [formId] - Identificador del formulario para validadores contextuales
    * @returns {any[]} Array de validadores para el campo
    */
-  private getValidatorsForField(fieldName: string): any[] {
+  private getValidatorsForField(fieldName: string, formId?: string): any[] {
     const validators: Record<string, any[]> = {
       // Campos de texto comunes
       nombre: [Validators.required, Validators.maxLength(FORM_LIMITS.nombreMax)],
       apellidos: [Validators.required, Validators.maxLength(FORM_LIMITS.apellidosMax)],
-      alias: [Validators.required, Validators.maxLength(FORM_LIMITS.aliasMax)],
+      alias: formId === 'register' 
+        ? [Validators.maxLength(FORM_LIMITS.aliasMax)] 
+        : [Validators.required, Validators.maxLength(FORM_LIMITS.aliasMax)],
       email: [Validators.required, Validators.email, Validators.maxLength(FORM_LIMITS.emailMax)],
       correo: [Validators.required, Validators.email, Validators.maxLength(FORM_LIMITS.emailMax)],
 
