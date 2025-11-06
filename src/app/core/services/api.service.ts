@@ -171,6 +171,23 @@ export interface ResetPasswordResponse {
 }
 
 /**
+ * Interfaz para la petición de actualización del perfil de administrador.
+ * Define los campos que se pueden actualizar en el perfil.
+ * 
+ * @interface UpdateAdminProfileRequest
+ */
+export interface UpdateAdminProfileRequest {
+  /** Nombre del administrador */
+  firstName: string;
+  /** Apellidos del administrador */
+  lastName: string;
+  /** Departamento del administrador */
+  department: string;
+  /** Ruta del avatar seleccionado (opcional) */
+  avatar?: string;
+}
+
+/**
  * Interfaz para la respuesta del perfil de administrador.
  * @interface AdminProfileResponse
  */
@@ -301,6 +318,51 @@ export class ApiService {
   }
 
   // ==================== CONTENIDO Y RECURSOS ====================
+
+  /**
+   * Actualiza el perfil del administrador autenticado.
+   * 
+   * Envía los datos actualizados del perfil al backend. Este método
+   * centraliza la comunicación y reutiliza la lógica de validación
+   * similar a la de ad-users-edit.
+   * 
+   * @param {UpdateAdminProfileRequest} payload - Datos actualizados del perfil
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   * 
+   * @example
+   * ```typescript
+   * const updateData: UpdateAdminProfileRequest = {
+   *   firstName: 'Juan Carlos',
+   *   lastName: 'García López',
+   *   alias: 'jgarcia',
+   *   department: 'Marketing',
+   *   avatar: 'admin_avatar_3.png'
+   * };
+   * 
+   * this.apiService.updateAdminProfile(updateData).subscribe({
+   *   next: (response) => {
+   *     console.log('Perfil actualizado:', response);
+   *     this.showSuccessMessage('Perfil actualizado correctamente');
+   *   },
+   *   error: (error) => console.error('Error al actualizar perfil:', error)
+   * });
+   * ```
+   */
+  updateAdminProfile(payload: UpdateAdminProfileRequest): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    
+    // Preparar datos en el formato esperado por el backend (similar a editarEntidad)
+    const updateData = {
+      nombre: payload.firstName,
+      apellidos: payload.lastName,
+      departamento: payload.department,
+      foto: payload.avatar || ''
+    };
+    
+    return this.http.put(`${this.base}/admin/profile`, updateData, { headers }).pipe(
+      catchError(this.handleError('actualizar perfil de administrador', 'No se pudo actualizar el perfil del administrador'))
+    );
+  }
 
   /**
    * Obtiene el perfil del administrador autenticado.

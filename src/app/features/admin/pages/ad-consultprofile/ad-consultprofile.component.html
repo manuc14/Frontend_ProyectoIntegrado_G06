@@ -3,19 +3,18 @@
 <main class="background">
   <div class="container">
     
-    <!-- Título de la página con botón de edición -->
+    <!-- Título de la página -->
     <div class="container2">
       <div class="container3">
         <div class="text">Tu perfil</div>
-        <button 
-          type="button"
-          class="border"
-          (click)="toggleEditMode()"
-          [title]="isEditMode ? 'Salir del modo edición' : 'Editar perfil'">
-          <div class="iconify-icon">
-            <img class="svg" src="assets/icons/edit-pencil.svg" alt="Editar" />
-          </div>
-        </button>
+      </div>
+    </div>
+
+    <!-- Mensaje de éxito -->
+    <div class="success-message" *ngIf="showSuccessMessage">
+      <div class="success-content">
+        <img src="assets/icons/check-circle.svg" alt="Éxito" class="success-icon" />
+        {{ successMessage }}
       </div>
     </div>
 
@@ -23,7 +22,7 @@
     <div class="background-border-shadow">
       
       <!-- Columna izquierda - Selector de Avatar -->
-      <div class="container4">
+      <div class="container4" [class.avatar-disabled]="!isEditMode">
         
         <app-avatar-selector
           [availableAvatars]="availableAvatars"
@@ -38,6 +37,15 @@
         <div class="margin">
           <div class="container5">
             <div class="text4">Información personal</div>
+            <!-- Botón de edición movido aquí -->
+            <button 
+              type="button"
+              class="edit-button-top-right"
+              [class.active]="isEditMode"
+              (click)="toggleEditMode()"
+              [title]="isEditMode ? 'Salir del modo edición' : 'Editar perfil'">
+              <img class="edit-icon" src="assets/icons/edit-pencil.svg" alt="Editar" />
+            </button>
           </div>
         </div>
         
@@ -45,88 +53,72 @@
           <!-- Primera fila: Nombre y Apellidos -->
           <div class="form-row">
             <div class="field-container">
-              <div class="container5">
-                <div class="text5">Nombre*</div>
-              </div>
-              <div class="background-border13">
-                <input 
-                  type="text"
-                  class="text6"
-                  formControlName="firstName"
-                  placeholder="Escribe aquí tu nombre" />
-              </div>
+              <app-form-input
+                label="Nombre"
+                type="text"
+                [maxlength]="maxNombre"
+                placeholder="Escribe aquí tu nombre"
+                [required]="true"
+                formControlName="firstName"
+                [errors]="firstNameControl?.errors ?? null"
+                [touched]="firstNameControl?.touched || false"
+                [disabled]="!isEditMode">
+              </app-form-input>
             </div>
             
             <div class="field-container">
-              <div class="container5">
-                <div class="text7">Apellidos*</div>
-              </div>
-              <div class="background-border13">
-                <input 
-                  type="text"
-                  class="text8"
-                  formControlName="lastName"
-                  placeholder="Escribe aquí tus apellidos" />
-              </div>
+              <app-form-input
+                label="Apellidos"
+                type="text"
+                [maxlength]="maxApellidos"
+                placeholder="Escribe aquí tus apellidos"
+                [required]="true"
+                formControlName="lastName"
+                [errors]="lastNameControl?.errors ?? null"
+                [touched]="lastNameControl?.touched || false"
+                [disabled]="!isEditMode">
+              </app-form-input>
             </div>
           </div>
           
           <!-- Segunda fila: Email -->
           <div class="form-row">
             <div class="field-container full-width">
-              <div class="container5">
-                <div class="text11">Email</div>
-              </div>
-              <div class="background-border13">
-                <input 
-                  type="email"
-                  class="text12"
-                  formControlName="email"
-                  placeholder="email@empresa.com"
-                  readonly />
-              </div>
+              <app-form-input
+                label="Email"
+                type="email"
+                [maxlength]="maxEmail"
+                placeholder="email@empresa.com"
+                [required]="false"
+                formControlName="email"
+                [disabled]="true">
+              </app-form-input>
             </div>
           </div>
           
           <!-- Tercera fila: Fecha de alta -->
           <div class="form-row">
             <div class="field-container full-width">
-              <div class="container5">
-                <div class="text13">Fecha de alta</div>
-              </div>
-              <div class="background-border13">
-                <input 
-                  type="text"
-                  class="text14"
-                  formControlName="startDate"
-                  placeholder="Fecha de registro"
-                  readonly />
-              </div>
+              <app-form-date
+                label="Fecha de alta"
+                placeholder="Fecha de registro"
+                [required]="false"
+                formControlName="startDate"
+                [disabled]="true">
+              </app-form-date>
             </div>
           </div>
           
-          <!-- Cuarta fila: Alias y Departamento -->
+          <!-- Cuarta fila: Departamento -->
           <div class="form-row">
-            <div class="field-container">
-              <div class="container5">
-                <div class="text9">Alias</div>
-              </div>
-              <div class="background-border13">
-                <input 
-                  type="text"
-                  class="text10"
-                  formControlName="alias"
-                  placeholder="Escribe aquí tu alias" />
-              </div>
-            </div>
-            
-            <div class="field-container">
+            <div class="field-container full-width">
               <div class="container5">
                 <div class="text15">Departamento</div>
               </div>
               <app-select-field
                 formControlName="department"
                 placeholder="Selecciona tu departamento"
+                [disabled]="!isEditMode"
                 class="text16 department-select">
                 <option *ngFor="let dept of departmentOptions" [value]="dept.value">{{ dept.label }}</option>
               </app-select-field>

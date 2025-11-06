@@ -201,6 +201,41 @@
   position: relative;
 }
 
+.edit-button-top-right {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  &.active {
+    background-color: #3b82f6;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    transform: scale(0.95);
+    
+    .edit-icon {
+      filter: brightness(0) invert(1); // Hace el icono blanco
+    }
+    
+    &:hover {
+      background-color: #2563eb;
+    }
+  }
+  
+  i {
+    font-size: 16px;
+    color: #6b7280;
+  }
+}
+
 .text2 {
   color: #111827;
   text-align: left;
@@ -269,9 +304,40 @@
   display: flex;
   flex-direction: column;
   gap: 8px; // Aumentar a 8px para mejor separación visual entre etiqueta e input
+  position: relative; // Necesario para posicionar errores de forma absoluta
+  margin-bottom: 20px; // Espacio para mensajes de error
   
   &.full-width {
     flex: 1;
+  }
+}
+
+// Estilos para mensajes de error de validación
+.error-message {
+  position: absolute;
+  top: 100%; // Justo debajo del input
+  left: 0;
+  right: 0;
+  color: #ef4444;
+  font-size: 12px;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  line-height: 1.2;
+  padding-top: 4px;
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(-5px);
+  animation: slideInError 0.3s ease-out forwards;
+  
+  @media (max-width: 768px) {
+    font-size: 11px;
+  }
+}
+
+@keyframes slideInError {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -337,7 +403,7 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
-  transition: background-color 0.2s ease; // Transición suave para cambios de estado
+  transition: all 0.3s ease; // Transición suave para todos los cambios de estado
 
   input {
     border: none;
@@ -348,10 +414,12 @@
     font-size: 14px;
     font-weight: 400;
     outline: none;
+    transition: color 0.2s ease;
 
     &::placeholder {
       color: #9ca3af;
       font-style: italic;
+      transition: color 0.2s ease;
     }
 
     &:read-only {
@@ -369,6 +437,19 @@
     &:focus:not(:read-only):not(:disabled) {
       color: #111827;
     }
+
+    // Animaciones para campos editables
+    &:not(:disabled):not(:read-only) {
+      cursor: text; // Cursor de texto para campos editables
+      
+      &:hover {
+        color: #374151;
+        
+        &::placeholder {
+          color: #6b7280;
+        }
+      }
+    }
   }
 
   // Estilo para contenedor cuando el input está deshabilitado
@@ -376,6 +457,48 @@
     background-color: #f8fafc;
     border-color: #d1d5db;
   }
+
+  // Estilo para contenedor cuando el input tiene error
+  &:has(input.ng-invalid.ng-dirty, input.ng-invalid.ng-touched) {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+    
+    input {
+      color: #dc2626;
+    }
+  }
+
+  // Animaciones para campos editables (hover y focus)
+  &:has(input:not(:disabled):not(:read-only)) {
+    &:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      transform: translateY(-1px);
+    }
+    
+    &:focus-within {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      transform: translateY(-1px);
+      background-color: #fafbff;
+    }
+    
+    // Efecto de pulsación al hacer click
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+    }
+  }
+
+  // Restablecer animaciones cuando está deshabilitado o con error
+  &:has(input:disabled), &:has(input:read-only) {
+    &:hover, &:focus-within, &:active {
+      transform: none;
+      box-shadow: none;
+      border-color: #d1d5db;
+    }
+  }
+}
 
   // Estilos específicos para el select-field
   app-select-field {
@@ -396,7 +519,6 @@
           &::placeholder {
             color: #9ca3af !important;
             font-style: italic !important;
-          }
         }
       }
     }
@@ -415,12 +537,35 @@
       padding: 13px !important;
       min-height: auto !important;
       height: auto !important;
-      transition: background-color 0.2s ease, border-color 0.2s ease; // Transición para estado deshabilitado
+      transition: all 0.3s ease !important; // Transiciones para animaciones
       
       &.disabled {
         background-color: #f8fafc !important;
         border-color: #d1d5db !important;
         cursor: not-allowed !important;
+      }
+      
+      // Animaciones para select editable
+      &:not(.disabled) {
+        cursor: pointer; // Cursor pointer para select editable
+        
+        &:hover {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+          transform: translateY(-1px) !important;
+        }
+        
+        &:focus-within, &.focused {
+          border-color: #2563eb !important;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important;
+          transform: translateY(-1px) !important;
+          background-color: #fafbff !important;
+        }
+        
+        &:active {
+          transform: translateY(0) !important;
+          box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3) !important;
+        }
       }
     }
     
@@ -784,5 +929,231 @@
   .text17,
   .text18 {
     font-size: 13px;
+  }
+}
+
+// ========= MENSAJE DE ÉXITO =========
+.success-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: #10b981; // Verde éxito
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-in 2.7s; // 3s total - 0.3s de salida
+  animation-fill-mode: forwards;
+  
+  .success-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    font-weight: 500;
+    font-size: 14px;
+    
+    .success-icon {
+      width: 20px;
+      height: 20px;
+      filter: brightness(0) invert(1); // Hacer el icono blanco
+    }
+  }
+}
+
+// Animaciones para el mensaje de éxito
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+// Estilos para campos deshabilitados (modo no-edición)
+app-form-input .background-border9,
+:host ::ng-deep app-form-input .background-border9.readonly,
+:host ::ng-deep app-form-input[disabled] .background-border9 {
+  background-color: transparent !important;
+  border: 1px solid #9ca3af !important;
+  
+  .input-field {
+    color: #9ca3af !important; // Texto más gris
+    background-color: transparent !important;
+    cursor: not-allowed !important;
+    
+    &::placeholder {
+      color: #d1d5db !important; // Placeholder aún más claro
+    }
+  }
+  
+  &:focus-within {
+    border-color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+
+// Prevenir movimiento de campos cuando aparecen errores
+:host ::ng-deep app-form-input {
+  .container8 {
+    min-height: 76px; // Altura mínima fija para evitar movimiento
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  
+  .error-message {
+    position: absolute;
+    bottom: -22px; // Posicionar mensaje de error fuera del contenedor
+    left: 0;
+    right: 0;
+    height: 20px; // Altura fija para el mensaje de error
+    overflow: hidden;
+  }
+
+  // Quitar el marco azul oscuro cuando hay error
+  .background-border9.error {
+    &:focus-within {
+      box-shadow: none !important; // Quitar la sombra azul
+      border-color: var(--destructive) !important; // Mantener solo el borde rojo de error
+    }
+  }
+}
+
+// Contenedor de campos con espacio para errores
+.field-container {
+  position: relative;
+  margin-bottom: 10px; // Espacio adicional para mensajes de error
+}
+
+// Ajustar espaciado del campo fecha para que coincida con otros campos
+:host ::ng-deep app-form-date {
+  label {
+    margin-bottom: 0.5rem !important; // Reducir el margin para que coincida
+    
+    span {
+      margin-bottom: 6px; // Espaciado consistente con form-input
+      display: block;
+    }
+  }
+}
+
+// Estilos para select deshabilitado
+:host ::ng-deep app-select-field select[disabled],
+:host ::ng-deep app-select-field[disabled] select {
+  background-color: transparent !important;
+  border: none !important; // Sin borde para el select
+  color: #9ca3af !important; // Texto más gris
+  cursor: not-allowed !important;
+  
+  &:hover {
+    border: none !important; // Sin borde en hover
+    color: #9ca3af !important; // Mantener texto gris en hover
+  }
+  
+  &:focus {
+    border: none !important; // Sin borde en focus
+    box-shadow: none !important;
+    outline: none !important;
+  }
+}
+
+// Estilos para select habilitado (solo cuando se puede editar)
+:host ::ng-deep app-select-field select:not([disabled]) {
+  &:hover {
+    border-color: var(--primary, #3b82f6) !important; // Azul solo cuando está habilitado
+  }
+  
+  &:focus {
+    border-color: var(--primary, #3b82f6) !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+}
+
+// Estilos para campo de fecha deshabilitado
+:host ::ng-deep app-form-date label input,
+:host ::ng-deep app-form-date[disabled] label input,
+app-form-date label input[disabled] {
+  background-color: transparent !important;
+  border: 1px solid #9ca3af !important;
+  color: #9ca3af !important; // Texto más gris
+  cursor: not-allowed !important;
+  
+  &:hover {
+    border-color: #000000 !important;
+  }
+  
+  &:focus {
+    border-color: #000000 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  
+  &::placeholder {
+    color: #d1d5db !important;
+  }
+}
+
+// Estilos para deshabilitar el selector de avatar
+.avatar-disabled {
+  :host ::ng-deep app-avatar-selector {
+    pointer-events: none;
+    
+    // Aplicar filtro grisáceo a todo el componente
+    .background-border,
+    .container12 {
+      filter: grayscale(60%) brightness(0.9) !important;
+      opacity: 0.7 !important;
+    }
+    
+    .background-border {
+      border: 1px solid #000000 !important; // Borde negro para consistencia
+      background-color: transparent !important;
+      
+      button {
+        cursor: not-allowed !important;
+        border: 1px solid #000000 !important;
+        background-color: transparent !important;
+        
+        &:hover {
+          transform: none !important;
+          background-color: transparent !important;
+          border-color: #000000 !important;
+        }
+      }
+      
+      .text3, .text4 {
+        color: #9ca3af !important; // Texto gris
+      }
+      
+      // Avatar principal también con borde negro
+      .background-border2 {
+        border: 1px solid #000000 !important;
+      }
+      
+      // Asegurar que todas las imágenes se vean grises
+      img {
+        filter: grayscale(70%) brightness(0.8) !important;
+      }
+    }
+    
+    // Aplicar también al título superior
+    .container12 .text16 {
+      color: #9ca3af !important;
+    }
   }
 }
