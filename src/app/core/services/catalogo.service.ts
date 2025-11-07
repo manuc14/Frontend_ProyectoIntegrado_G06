@@ -11,7 +11,7 @@ import { environment } from '../../../environments/environment';
 export class CatalogoService {
   private readonly http = inject(HttpClient);
   private readonly API_URL = `${environment.baseApiUrl}/contenidos`;
-  
+
   private mockVideos: Contenido[] = [
     {
       _id: '68f76c14e13b596143c38b81',
@@ -609,7 +609,7 @@ export class CatalogoService {
    */
   filtrarPorEtiquetas(contenidos: Contenido[], etiquetas: string[]): Contenido[] {
     if (etiquetas.length === 0) return contenidos;
-    return contenidos.filter(c => 
+    return contenidos.filter(c =>
       c.tags.some(tag => etiquetas.includes(tag.toLowerCase()))
     );
   }
@@ -621,7 +621,7 @@ export class CatalogoService {
   getContenidoById(id: string): Observable<Contenido> {
     console.log('🌐 [CATALOGO SERVICE] getContenidoById llamado con ID:', id);
     console.log('🌐 [CATALOGO SERVICE] URL completa:', `${this.API_URL}/${id}`);
-    
+
     return this.http.get<any>(`${this.API_URL}/${id}`).pipe(
       map((response: any) => {
         console.log('✅ [CATALOGO SERVICE] Respuesta del backend:', response);

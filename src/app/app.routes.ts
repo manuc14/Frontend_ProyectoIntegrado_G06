@@ -18,6 +18,10 @@ import { AdminCreatorsPage } from './features/admin/pages/ad-creators/ad-creator
 import { AdminCreatorsAddPage } from './features/admin/pages/ad-creators-add/ad-creators-add.component';
 import { AdminCreatorsEditPage } from './features/admin/pages/ad-creators-edit/ad-creators-edit.component';
 
+// Listas Públicas
+import { CreatePublicListComponent } from './features/content/pages/create-public-list/create-public-list.component';
+import { EditPublicListComponent } from './features/content/pages/edit-public-list/edit-public-list.component';
+
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
 import { UploadContentComponent } from './features/content/pages/upload-content/upload-content.component';
@@ -31,6 +35,7 @@ import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.pa
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
 import { ResetPasswordCodePage } from './features/auth/pages/reset-password-code/reset-password-code.page';
 import { NewPasswordPage } from './features/auth/pages/new-password/new-password.page';
+import {AddContentComponent} from './features/content/pages/add-content/add-content.component';
 
 export const routes: Routes = [
 	{ path: '', component: HomeComponent, canActivate: [publicGuard] },
@@ -56,12 +61,17 @@ export const routes: Routes = [
 	{ path: 'upload-content', component: UploadContentComponent, canActivate: [authGuard] },
 	{ path: 'creator/catalog', component: CreatorCatalogComponent, canActivate: [authGuard] },
 	{ path: 'creator/estadisticas', component: CreatorStatsComponent, canActivate: [authGuard] },
-	
-	// Rutas de User (protegidas)
+
+  // Rutas de Listas Públicas (protegidas)
+  { path: 'create-list', component: CreatePublicListComponent, canActivate: [authGuard] },
+  { path: 'edit-list/:id', component: EditPublicListComponent, canActivate: [authGuard] },
+  { path: 'add-content/:id', component: AddContentComponent, canActivate: [authGuard] },
+
+  // Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },
 	{ path: 'content/preview', component: ContentPreviewComponent, canActivate: [authGuard] },
 	{ path: 'player', component: MediaPlayerComponent, canActivate: [authGuard] },
-	
+
 	// Rutas de recuperación de contraseña (públicas)
 	{ path: 'forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
 	{ path: 'reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
