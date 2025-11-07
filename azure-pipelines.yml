@@ -13,6 +13,7 @@ pool:
 
 variables:
   - group: firebase-secrets
+  - group: sonarqube-secrets
 
 stages:
   - stage: Build
@@ -42,6 +43,30 @@ stages:
               summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/frontend_g06/cobertura-coverage.xml'
             condition: succeededOrFailed()
             continueOnError: true
+
+          - task: SonarQubePrepare@5
+            inputs:
+              SonarQube: 'SonarQube'
+              scannerMode: 'CLI'
+              configMode: 'manual'
+              cliProjectKey: '2025-g06-frontend'
+              cliProjectName: '2025-g06-frontend'
+              cliProjectVersion: '0.1'
+              cliSources: 'src'
+              cliExclusions: '**/node_modules/**,**/dist/**,**/*.spec.ts'
+              extraProperties: |
+                sonar.token=$(SONAR_TOKEN)
+                sonar.host.url=$(SONAR_HOST_URL)
+                sonar.typescript.lcov.reportPaths=coverage/frontend_g06/lcov.info
+            displayName: 'Prepare SonarQube analysis'
+
+          - task: SonarQubeAnalyze@5
+            displayName: 'Run SonarQube analysis'
+
+          - task: SonarQubePublish@5
+            inputs:
+              pollingTimeoutSec: '300'
+            displayName: 'Publish SonarQube quality gate result'
 
           - task: PublishBuildArtifacts@1
             inputs:
