@@ -15,16 +15,57 @@ variables:
   - group: sonarqube-secrets
 
 stages:
+  - stage: Preparation
+    displayName: 'Preparation and Validation'
+    jobs:
+      - job: PreparationJob
+        displayName: 'Validate Environment'
+        container:
+          image: node:20-alpine
+          options: --cpus 1 --memory 2048m
+        steps:
+          - checkout: self
+
+          - script: |
+              echo "=== Node.js Version ==="
+              node --version
+              echo "=== NPM Version ==="
+              npm --version
+              echo "=== Docker Information ==="
+              docker --version
+              echo "=== Pipeline Variables ==="
+              echo "Branch: $(Build.SourceBranch)"
+              echo "Repository: $(Build.Repository.Name)"
+              echo "Build ID: $(Build.BuildId)"
+            displayName: 'Display Environment Information'
+
+          - script: npm ci --dry-run
+            displayName: 'Validate npm dependencies'
+
+          - script: |
+              if [ ! -f ".firebaserc" ]; then
+                echo "Error: .firebaserc not found"
+                exit 1
+              fi
+              if [ ! -f "firebase.json" ]; then
+                echo "Error: firebase.json not found"
+                exit 1
+              fi
+              echo "✓ Firebase configuration files validated"
+            displayName: 'Validate Firebase configuration'
+
   - stage: Build
     displayName: 'Build Angular Application'
+    dependsOn: Preparation
+    condition: succeeded()
     jobs:
       - job: BuildJob
         displayName: 'Build and Test'
+        container:
+          image: node:20-alpine
+          options: --cpus 2 --memory 4096m
         steps:
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '20.x'
-            displayName: 'Install Node.js'
+          - checkout: self
 
           - script: npm ci
             displayName: 'Install dependencies'
@@ -36,19 +77,6 @@ stages:
             displayName: 'Run unit tests'
             continueOnError: true
 
-          - task: PublishCodeCoverageResults@1
-            inputs:
-              codeCoverageTool: Cobertura
-              summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/frontend_g06/cobertura-coverage.xml'
-            condition: succeededOrFailed()
-            continueOnError: true
-
-          - script: |
-              npm install -g sonar-scanner
-              sonar-scanner -Dsonar.token=$(SONAR_TOKEN) -Dsonar.host.url=$(SONAR_HOST_URL) -Dsonar.projectKey=2025-g06-frontend -Dsonar.sources=src -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/*.spec.ts"
-            displayName: 'Run SonarQube analysis'
-            continueOnError: true
-
           - task: PublishBuildArtifacts@1
             inputs:
               pathToPublish: 'dist/frontend_g06/browser'
@@ -56,9 +84,42 @@ stages:
               publishLocation: 'Container'
             displayName: 'Publish build artifacts'
 
+  - stage: Sonarqube
+    displayName: 'SonarQube Code Analysis'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: SonarqubeJob
+        displayName: 'SonarQube Analysis'
+        container:
+          image: node:20-alpine
+          options: --cpus 2 --memory 4096m
+        steps:
+          - checkout: self
+
+          - script: npm ci
+            displayName: 'Install dependencies'
+
+          - script: npm run build
+            displayName: 'Build Angular application'
+
+          - script: |
+              npm install -g sonar-scanner
+              sonar-scanner \
+                -Dsonar.token=$(SONAR_TOKEN) \
+                -Dsonar.host.url=$(SONAR_HOST_URL) \
+                -Dsonar.projectKey=2025-g06-frontend \
+                -Dsonar.projectName=2025-g06-frontend \
+                -Dsonar.sources=src \
+                -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/*.spec.ts"
+            displayName: 'Run SonarQube analysis'
+            continueOnError: true
+
   - stage: Deploy
     displayName: 'Deploy to Firebase'
-    dependsOn: Build
+    dependsOn: 
+      - Build
+      - Sonarqube
     condition: succeeded()
     jobs:
       - deployment: DeployJob
@@ -68,10 +129,10 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: NodeTool@0
+                - task: UseNode@1
                   inputs:
-                    versionSpec: '20.x'
-                  displayName: 'Install Node.js'
+                    version: '20.x'
+                  displayName: 'Setup Node.js'
 
                 - script: npm install -g firebase-tools
                   displayName: 'Install Firebase CLI'
