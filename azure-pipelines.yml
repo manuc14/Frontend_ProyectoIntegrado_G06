@@ -1,0 +1,86 @@
+trigger:
+  branches:
+    include:
+      - main
+      - Mario_dev
+  paths:
+    exclude:
+      - README.md
+      - .gitignore
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: firebase-secrets
+
+stages:
+  - stage: Build
+    displayName: 'Build Angular Application'
+    jobs:
+      - job: BuildJob
+        displayName: 'Build and Test'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Install Node.js'
+
+          - script: npm ci
+            displayName: 'Install dependencies'
+
+          - script: npm run build
+            displayName: 'Build Angular application'
+
+          - script: npm run test -- --watch=false --code-coverage
+            displayName: 'Run unit tests'
+            continueOnError: true
+
+          - task: PublishCodeCoverageResults@1
+            inputs:
+              codeCoverageTool: Cobertura
+              summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/frontend_g06/cobertura-coverage.xml'
+            condition: succeededOrFailed()
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: 'dist/frontend_g06/browser'
+              artifactName: 'dist'
+              publishLocation: 'Container'
+            displayName: 'Publish build artifacts'
+
+  - stage: Deploy
+    displayName: 'Deploy to Firebase'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployJob
+        displayName: 'Deploy to Firebase Hosting'
+        environment: 'Firebase'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: NodeTool@0
+                  inputs:
+                    versionSpec: '20.x'
+                  displayName: 'Install Node.js'
+
+                - script: npm install -g firebase-tools
+                  displayName: 'Install Firebase CLI'
+
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'dist'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+                  displayName: 'Download build artifacts'
+
+                - script: |
+                    ls -la $(System.ArtifactsDirectory)
+                    firebase deploy --only hosting --token $(FIREBASE_TOKEN) --project esimedia-frontend-g06 --non-interactive --public $(System.ArtifactsDirectory)/dist
+                  displayName: 'Deploy to Firebase Hosting'
+                  env:
+                    FIREBASE_TOKEN: $(FIREBASE_TOKEN)
