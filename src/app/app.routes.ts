@@ -24,18 +24,31 @@ import { UploadContentComponent } from './features/content/pages/upload-content/
 import { CatalogComponent } from './features/content/pages/catalog/catalog.component';
 import { ContentPreviewComponent } from './features/content/pages/content-preview/content-preview.component';
 import { MediaPlayerComponent } from './features/content/pages/media-player/media-player.component';
+
+// Autenticación y verificación
 import { VerifyEmailPage } from './features/auth/pages/verify-email/verify-email.page';
 import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.page';
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
 import { ResetPasswordCodePage } from './features/auth/pages/reset-password-code/reset-password-code.page';
 import { NewPasswordPage } from './features/auth/pages/new-password/new-password.page';
 
+// Autenticación en dos pasos (2FA)
+import { QrCodeSetupPage } from './features/auth/pages/qr-code-setup/qr-code-setup.page';
+import { VerifyOtpPage } from './features/auth/pages/verify-otp/verify-otp.page';
+import { TwoFactorContainerComponent } from './features/auth/pages/2fa-container/2fa-container.component';
+
 export const routes: Routes = [
-	{ path: '', component: HomeComponent, canActivate: [publicGuard] },
+	// Home es accesible para todos (autenticados y no autenticados)
+	{ path: '', component: HomeComponent },
 	{ path: 'signup', component: RegisterComponent, canActivate: [publicGuard] },
 	{ path: 'login', component: LoginComponent, canActivate: [publicGuard] },
+	
+	// Rutas de verificación y 2FA (públicas)
+	{ path: 'qr-code-setup', component: QrCodeSetupPage, canActivate: [publicGuard] },
 	{ path: 'verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
 	{ path: 'verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
+	{ path: 'verify-otp', component: VerifyOtpPage, canActivate: [publicGuard] },
+	{ path: 'auth/2fa', component: TwoFactorContainerComponent, canActivate: [publicGuard] },
 
 	// Rutas de Admin (protegidas)
 	{ path: 'ad-users', component: AdminUsersPage, canActivate: [authGuard] },

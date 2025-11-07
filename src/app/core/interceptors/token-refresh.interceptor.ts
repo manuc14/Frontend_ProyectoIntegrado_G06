@@ -23,7 +23,10 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
           '/auth/verify-code',
           '/auth/forgot-password',
           '/auth/reset-password',
-          '/auth/refresh'
+          '/auth/refresh',
+          '/auth/2fa/setup-during-login',      // 2FA setup para usuarios nuevos
+          '/auth/2fa/verify-and-enable',       // Verificación + habilitación de 2FA
+          '/api/auth/2fa/verify'               // Verificación de 2FA para usuarios existentes
         ];
 
         // Si es una ruta pública de autenticación, NO intentar renovar token

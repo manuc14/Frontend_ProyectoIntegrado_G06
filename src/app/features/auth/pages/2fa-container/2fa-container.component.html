@@ -1,0 +1,42 @@
+<div class="two-factor-container">
+  <!-- Pantalla de carga -->
+  <div *ngIf="isLoading()" class="loading-screen">
+    <div class="spinner">
+      <div class="spinner-ring"></div>
+      <p>Detectando tipo de verificación...</p>
+    </div>
+  </div>
+
+  <!-- Pantalla de error -->
+  <div *ngIf="errorMessage()" class="error-screen">
+    <div class="error-box">
+      <h2>⚠️ Error</h2>
+      <p>{{ errorMessage() }}</p>
+      <p class="redirect-message">Redirigiendo a login...</p>
+    </div>
+  </div>
+
+  <!-- Componentes dinámicos -->
+  <div *ngIf="!isLoading() && !errorMessage()">
+    <!-- Flujo Setup (nuevo usuario sin 2FA) -->
+    <div *ngIf="isSetup()" style="width: 100%;">
+      <app-2fa-setup 
+        [setupResponse]="setupResponse()"
+        [sessionToken]="sessionToken()"
+        (setupCompleted)="onSetupCompleted($event)"
+        (setupError)="onError($event)"
+      ></app-2fa-setup>
+    </div>
+
+    <!-- Flujo Verify (usuario existente con 2FA) -->
+    <div *ngIf="isVerify()" style="width: 100%;">
+      <app-2fa-verify 
+        [sessionToken]="sessionToken()"
+        [email]="email()"
+        (verifyCompleted)="onVerifyCompleted($event)"
+        (verifyError)="onError($event)"
+      ></app-2fa-verify>
+    </div>
+  </div>
+</div>
+

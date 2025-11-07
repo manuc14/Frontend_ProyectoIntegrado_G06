@@ -153,18 +153,41 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Login exitoso - limpiar errores
-    this.formBaseService.resetFormState('login');
+    // **NUEVO: Verificar si requiere 2FA (Two Factor Authentication)**
+    if (body.requiresTwoFactor && body.twoFactorSessionToken) {
+      console.log('🔐 [LoginComponent] Requiere verificación de 2FA (nuevo flujo unificado)');
+      console.log('   - twoFactorType:', body.twoFactorType);
+      
+      // Guardar datos temporales en sessionStorage para 2fa-container
+      sessionStorage.setItem('twoFactorSessionToken', body.twoFactorSessionToken);
+      sessionStorage.setItem('loginEmail', body.user?.email || this.form.get('email')?.value);
+      sessionStorage.setItem('twoFactorType', body.twoFactorType || 'VERIFY');
+      
+      // Si es SETUP, guardar también los datos de setup (QR, secret, códigos respaldo)
+      if (body.twoFactorType === 'SETUP' && body.setupData) {
+        sessionStorage.setItem('twoFASetupData', JSON.stringify(body.setupData));
+        console.log('   - Datos de setup guardados');
+      }
+      
+      // Redirigir a contenedor inteligente de 2FA que detecta setup vs verify
+      this.router.navigate(['/auth/2fa']);
+      return;
+    }
 
-    // Guardar Access Token en sessionStorage
+    // **FLUJO NORMAL: Login completo sin OTP (caso legacy o usuarios sin 2FA)**
+    // LIMPIAR ESTADO ANTERIOR ANTES DE GUARDAR NUEVOS TOKENS
+    console.log('🧹 [LoginComponent] Limpiando estado anterior...');
+    this.authService.logout(false, true); // Limpiar estado sin redirigir ni invalidar backend
+
+    // Guardar Access Token usando el método del AuthService (inicia timer de expiración)
     if (body.token) {
-      sessionStorage.setItem('authToken', body.token);
+      this.authService.setAccessToken(body.token);
       console.log('✅ [LoginComponent] Access Token guardado');
     }
 
-    // Guardar Refresh Token en localStorage (persistencia entre pestañas)
+    // Guardar Refresh Token usando el método del AuthService
     if (body.refreshToken) {
-      localStorage.setItem('refreshToken', body.refreshToken);
+      this.authService.setRefreshTokenPublic(body.refreshToken);
       console.log('✅ [LoginComponent] Refresh Token guardado');
     }
 
@@ -172,6 +195,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (body.user) {
       sessionStorage.setItem('currentUser', JSON.stringify(body.user));
       console.log('✅ [LoginComponent] Usuario guardado:', body.user);
+    }
+
+    // GUARDAR CONFIGURACIÓN DE TIMEOUTS DEL BACKEND
+    if (body.idleTimeoutMillis && body.absoluteTimeoutMillis) {
+      this.authService.saveSessionConfig(body.idleTimeoutMillis, body.absoluteTimeoutMillis);
+      console.log('✅ [LoginComponent] Configuración de timeouts guardada:', {
+        idle: body.idleTimeoutMillis / 1000 + 's',
+        absolute: body.absoluteTimeoutMillis / 3600000 + 'h'
+      });
+    } else {
+      console.warn('⚠️ [LoginComponent] Backend no retornó configuración de timeouts, usando valores por defecto');
     }
 
     // INICIAR TEMPORIZADORES DE SESIÓN
@@ -195,6 +229,32 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   /* Maneja errores del login usando el servicio genérico. */
   private handleErrorResponse(err: any): void {
+    // Detectar si es error por sesión de 2FA expirada
+    const errorMessage = err?.error?.message || err?.message || '';
+    const isTwoFactorSessionExpired =
+      errorMessage.includes('Esta sesión ha expirado') ||
+      errorMessage.includes('sesión de login no encontrada') ||
+      errorMessage.includes('sessionToken') ||
+      (err?.status === 401 && errorMessage.toLowerCase().includes('expirado'));
+
+    if (isTwoFactorSessionExpired) {
+      console.log('⏰ [LoginComponent] Sesión de 2FA expirada detectada - mostrando modal');
+
+      // Limpiar cualquier estado de 2FA temporal que pueda estar interfiriendo
+      sessionStorage.removeItem('twoFactorSessionToken');
+      sessionStorage.removeItem('twoFactorType');
+      sessionStorage.removeItem('loginEmail');
+      sessionStorage.removeItem('twoFASetupData');
+
+      // Mostrar modal de sesión expirada
+      this.authService.emitSessionExpired(
+        'session-timeout',
+        'Tu sesión de verificación ha expirado. Por favor, inicia sesión nuevamente.'
+      );
+      return;
+    }
+
+    // Error normal - usar manejo genérico
     this.formBaseService.handleBackendError('login', this.form, err);
     this.triggerShakeError();
   }

@@ -291,19 +291,23 @@ export class RegisterComponent implements OnInit, OnDestroy {
   private handleSuccessResponse(res: HttpResponse<any>): void {
     const body: any = res.body || {};
     const verificationToken = body?.verificationToken;
+    const email = this.form.get('email')?.value;
 
     if (res.status === 201 || res.status === 200) {
-      console.log('Registro OK', body);
+      console.log('✅ [Register] Registro exitoso', body);
       this.formBaseService.resetFormState('register');
 
-      if (verificationToken) {
-        this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
-      } else {
-        console.error('No se recibió verificationToken del backend');
-        this.formBaseService.updateFormState('register', {
-          error: 'Error en el proceso de registro. Intenta nuevamente.'
-        });
+      // Guardar email y token de verificación para el proceso de verificación
+      if (email) {
+        sessionStorage.setItem('pendingVerificationEmail', email);
       }
+      if (verificationToken) {
+        sessionStorage.setItem('verificationToken', verificationToken);
+      }
+
+      // Redirigir a página de verificación de email
+      console.log('� [Register] Redirigiendo a verificación de email...');
+      this.router.navigate(['/verify-email']);
       return;
     }
     

@@ -1,0 +1,310 @@
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE 2FA VERIFY
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DISEÑO DE PÁGINA
+   -------------------------------------------------------------------------- */
+
+.two-factor-verify-page {
+  max-width: 600px;
+  margin: 32px auto 56px auto;
+  padding-top: 32px;
+  padding-bottom: 120px;
+  background: var(--background);
+  color: var(--foreground);
+
+  h1, .page-title {
+    margin: 0 0 8px 0;
+    color: var(--foreground);
+    text-align: center;
+  }
+}
+
+.hint {
+  color: var(--muted-foreground);
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR DE TARJETA
+   -------------------------------------------------------------------------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* --------------------------------------------------------------------------
+   EMAIL DISPLAY
+   -------------------------------------------------------------------------- */
+
+.email-display {
+  background: var(--muted);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  text-align: center;
+  border-left: 4px solid var(--primary);
+
+  .email-label {
+    display: block;
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .email-value {
+    display: block;
+    color: var(--foreground);
+    font-weight: 600;
+    word-break: break-all;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   VERIFY SECTION
+   -------------------------------------------------------------------------- */
+
+.verify-section {
+  margin-bottom: 1.5rem;
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+
+  &.hidden {
+    display: none;
+  }
+
+  h2 {
+    font-size: 1rem;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .section-description {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    text-align: center;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   CÓDIGO DE VERIFICACIÓN - INPUTS INDIVIDUALES (idéntico a 2fa-setup)
+   -------------------------------------------------------------------------- */
+
+.verify-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  color: var(--foreground);
+  margin: 0 0 12px 0;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.code-inputs-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 24px 0;
+
+  input {
+    width: 52px;
+    height: 58px;
+    text-align: center;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 24px;
+    font-weight: 600;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: var(--ring);
+      box-shadow: 0 0 0 2px var(--ring);
+    }
+
+    &:hover {
+      border-color: var(--accent);
+    }
+
+    &:disabled {
+      background: var(--muted);
+      color: var(--muted-foreground);
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &::placeholder {
+      color: var(--muted-foreground);
+      opacity: 0.3;
+    }
+  }
+}
+
+.backup-code-inputs {
+  input {
+    width: 48px;
+    height: 54px;
+    font-size: 22px;
+  }
+}
+
+.backup-code-hint {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.verify-button-container {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 16px 0;
+}
+
+.toggle-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+.toggle-link-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.toggle-text {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.toggle-link {
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+  }
+
+  &:active {
+    opacity: 0.6;
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   HELP SECTION
+   -------------------------------------------------------------------------- */
+
+.help-section {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--muted);
+  border-radius: 12px;
+  border-left: 4px solid var(--primary);
+
+  .help-text {
+    font-size: 0.875rem;
+    color: var(--foreground);
+    margin: 0 0 0.75rem 0;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    
+    li {
+      font-size: 0.8125rem;
+      color: var(--muted-foreground);
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ERROR MESSAGE
+   -------------------------------------------------------------------------- */
+
+.error-message {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--destructive-foreground);
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+  .two-factor-verify-page {
+    margin: 16px auto 40px auto;
+    padding-top: 16px;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .code-inputs-container {
+    gap: 6px;
+
+    input {
+      width: 44px;
+      height: 50px;
+      font-size: 20px;
+    }
+  }
+
+  .backup-code-inputs {
+    input {
+      width: 42px;
+      height: 48px;
+      font-size: 18px;
+    }
+  }
+}
+

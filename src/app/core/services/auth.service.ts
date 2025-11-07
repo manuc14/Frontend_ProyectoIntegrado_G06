@@ -42,6 +42,7 @@ export class AuthService {
   // Temporizadores de sesión
   private idleTimer: any = null;
   private absoluteTimer: any = null;
+  private tokenExpiryTimer: any = null; // Timer para renovar token antes de que expire
   
   // Subject para notificar expiración de sesión
   private sessionExpired$ = new BehaviorSubject<{ reason: string; message: string } | null>(null);
@@ -81,8 +82,10 @@ export class AuthService {
     '/',
     '/login',
     '/signup',
+    '/qr-code-setup',
     '/verify-email',
     '/verify-code',
+    '/verify-otp',
     '/forgot-password',
     '/reset-password-code',
     '/new-password'
@@ -109,6 +112,25 @@ export class AuthService {
    */
   private setToken(token: string): void {
     sessionStorage.setItem('authToken', token);
+    
+    // Decodificar el token JWT para obtener el tiempo de expiración
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiryTime = payload.exp * 1000; // Convertir a milisegundos
+      sessionStorage.setItem('tokenExpiry', expiryTime.toString());
+      
+      // Iniciar timer para renovar token proactivamente
+      this.startTokenExpiryTimer(expiryTime);
+    } catch (error) {
+      console.error('❌ [AuthService] Error decodificando token JWT:', error);
+    }
+  }
+
+  /**
+   * Guarda el Access Token en sessionStorage (método público)
+   */
+  setAccessToken(token: string): void {
+    this.setToken(token);
   }
 
   /**
@@ -116,6 +138,40 @@ export class AuthService {
    */
   private setRefreshToken(refreshToken: string): void {
     localStorage.setItem('refreshToken', refreshToken);
+  }
+
+  /**
+   * Guarda el Refresh Token en localStorage (método público)
+   */
+  setRefreshTokenPublic(refreshToken: string): void {
+    this.setRefreshToken(refreshToken);
+  }
+
+  /**
+   * Guarda la configuración de timeouts recibida del backend
+   */
+  saveSessionConfig(idleTimeoutMillis: number, absoluteTimeoutMillis: number): void {
+    const config = {
+      idleTimeout: idleTimeoutMillis,
+      absoluteTimeout: absoluteTimeoutMillis
+    };
+    sessionStorage.setItem('sessionConfig', JSON.stringify(config));
+    console.log('💾 [AuthService] Configuración de sesión guardada:', config);
+  }
+
+  /**
+   * Obtiene la configuración de timeouts del backend (si existe)
+   */
+  private getSessionConfig(): { idleTimeout: number; absoluteTimeout: number } | null {
+    const configData = sessionStorage.getItem('sessionConfig');
+    if (!configData) return null;
+    
+    try {
+      return JSON.parse(configData);
+    } catch (error) {
+      console.error('❌ [AuthService] Error parseando sessionConfig:', error);
+      return null;
+    }
   }
 
   /**
@@ -141,7 +197,7 @@ export class AuthService {
         console.log('✅ [AuthService] Token renovado exitosamente');
         // Guardar nuevos tokens
         this.setToken(response.accessToken);
-        this.setRefreshToken(response.refreshToken);
+        this.setRefreshTokenPublic(response.refreshToken);
         // Reiniciar Idle Timer (actividad reciente)
         this.resetIdleTimer();
         // NO reiniciar Absolute Timer (sigue corriendo desde login)
@@ -169,8 +225,8 @@ export class AuthService {
           });
         }
         
-        // Cerrar sesión
-        this.logout(true);
+        // Cerrar sesión omitiendo invalidación del token (ya está invalidado en el backend)
+        this.logout(true, true);
         
         return throwError(() => error);
       })
@@ -182,32 +238,50 @@ export class AuthService {
    */
   getCurrentUser(): CurrentUser | null {
     const userData = sessionStorage.getItem('currentUser');
-    if (!userData) {
-      console.log('🔍 [AuthService] getCurrentUser: No userData in sessionStorage');
-      return null;
+    if (userData) {
+      // Proteger contra valores inválidos
+      if (userData === 'undefined' || userData === 'null') {
+        console.log('🔍 [AuthService] getCurrentUser: userData es un string inválido');
+        sessionStorage.removeItem('currentUser');
+        return null;
+      }
+      
+      try {
+        const user = JSON.parse(userData) as CurrentUser;
+        console.log('🔍 [AuthService] getCurrentUser: user from sessionStorage', user);
+        return user;
+      } catch (error) {
+        console.error('🔍 [AuthService] getCurrentUser: Error parsing userData', error);
+        sessionStorage.removeItem('currentUser');
+        return null;
+      }
     }
     
-    try {
-      const user = JSON.parse(userData) as CurrentUser;
-      console.log('🔍 [AuthService] getCurrentUser: user from storage', user);
+    // Si no hay en sessionStorage, construir desde JWT
+    const decoded = this.decodeJWT();
+    if (decoded?.email) {
+      console.log('📝 [AuthService] getCurrentUser: Construyendo usuario desde JWT');
       
-      // Mapear el tipo del backend a rol si no existe el rol o si existe el tipo
-      if (user && (!user.rol || user.tipo)) {
-        const mappedRole = this.mapBackendTypeToRole(user.tipo || '');
-        user.rol = mappedRole;
-        console.log('🔍 [AuthService] getCurrentUser: mapped tipo to rol', { 
-          tipo: user.tipo, 
-          rol: mappedRole 
-        });
-        
-        // Actualizar el sessionStorage con el rol mapeado
-        sessionStorage.setItem('currentUser', JSON.stringify(user));
-      }
-      return user;
-    } catch (error) {
-      console.error('🔍 [AuthService] getCurrentUser: Error parsing userData', error);
-      return null;
+      // Normalizar el rol del JWT
+      const normalizedRole = this.normalizeRole(decoded.role) || 'user';
+      
+      const userFromJWT: CurrentUser = {
+        id: decoded.sub || decoded.userId || 'unknown',
+        email: decoded.email,
+        nombre: decoded.name || decoded.nombre || decoded.email.split('@')[0],
+        apellidos: decoded.apellidos || decoded.apellido || '',
+        rol: normalizedRole,
+        tipo: decoded.tipo || decoded.role, // Guardar el tipo original del backend también
+        avatar: decoded.avatar || decoded.foto
+      };
+      
+      console.log('✅ [AuthService] Usuario construido desde JWT:', userFromJWT);
+      // Guardar en sessionStorage para futuras referencias
+      sessionStorage.setItem('currentUser', JSON.stringify(userFromJWT));
+      return userFromJWT;
     }
+    
+    return null;
   }
 
   /**
@@ -229,11 +303,181 @@ export class AuthService {
   }
 
   /**
-   * Obtiene el rol del usuario actual
+   * Obtiene los datos completos del usuario desde el backend
+   * Se usa cuando el backend no devuelve los datos en la respuesta de login/2FA
+   */
+  getCurrentUserFromBackend(): Observable<CurrentUser> {
+    console.log('🔍 [AuthService] Obteniendo datos del usuario del backend...');
+    return this.http.get<CurrentUser>(`${environment.baseApiUrl}/auth/me`).pipe(
+      tap((user: CurrentUser) => {
+        console.log('✅ [AuthService] Datos del usuario obtenidos del backend:', user);
+        // Normalizar el rol si viene del backend
+        if (user.tipo && !user.rol) {
+          user.rol = this.normalizeRole(user.tipo) || 'user';
+        }
+        return user;
+      }),
+      catchError((error) => {
+        console.error('❌ [AuthService] Error obteniendo datos del usuario:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Inicia el setup de 2FA durante el login para usuarios nuevos sin 2FA configurado
+   * Retorna QR, secreto y códigos de respaldo para que el usuario escanee
+   * 
+   * @param sessionToken - Token temporal de sesión 2FA válido por 5 minutos
+   * @returns Observable con respuesta del setup (QR, secreto, códigos respaldo)
+   */
+  setupDuringLogin(sessionToken: string): Observable<any> {
+    console.log('🔐 [AuthService] Iniciando setup de 2FA durante login...');
+    return this.http.post<any>(
+      `${environment.baseApiUrl}/auth/2fa/setup-during-login`,
+      { sessionToken }
+    ).pipe(
+      tap((response) => {
+        console.log('✅ [AuthService] Setup 2FA iniciado exitosamente');
+        console.log('   - QR Code disponible:', response.qrCode ? '✅' : '❌');
+        console.log('   - Secreto disponible:', response.secret ? '✅' : '❌');
+        console.log('   - Códigos respaldo:', response.backupCodes?.length || 0);
+      }),
+      catchError((error) => {
+        console.error('❌ [AuthService] Error iniciando setup de 2FA:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Verifica e habilita 2FA durante el setup inicial
+   * El usuario introduce el código TOTP de su authenticator
+   * 
+   * @param request - { sessionToken, code, isBackupCode }
+   * @returns Observable con tokens JWT si verificación es exitosa
+   */
+  verifyAndEnable(request: { sessionToken: string; code: string; isBackupCode?: boolean }): Observable<any> {
+    console.log('🔐 [AuthService] Verificando y habilitando 2FA...');
+    return this.http.post<any>(
+      `${environment.baseApiUrl}/auth/2fa/verify-and-enable`,
+      request
+    ).pipe(
+      tap((response) => {
+        console.log('✅ [AuthService] 2FA verificado y habilitado exitosamente');
+        console.log('   - Access Token:', response.accessToken ? '✅' : '❌');
+        console.log('   - Refresh Token:', response.refreshToken ? '✅' : '❌');
+      }),
+      catchError((error) => {
+        console.error('❌ [AuthService] Error verificando 2FA:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Verifica código TOTP para usuarios que ya tienen 2FA configurado
+   * Se usa cuando un usuario con 2FA existente se autentica
+   * 
+   * @param request - { sessionToken, code, isBackupCode }
+   * @returns Observable con tokens JWT si verificación es exitosa
+   */
+  verify(request: { sessionToken: string; code: string; isBackupCode?: boolean }): Observable<any> {
+    console.log('🔐 [AuthService] Enviando request de verificación');
+    console.log('   - sessionToken: ***' + request.sessionToken.slice(-8));
+    console.log('   - code: ' + request.code);
+    console.log('   - isBackupCode: ' + request.isBackupCode);
+    console.log('   - code length: ' + request.code.length);
+    console.log('   - code type: ' + typeof request.code);
+    console.log('🔍 [AuthService] REQUEST BODY COMPLETO (JSON):', JSON.stringify(request, null, 2));
+    console.log('🔍 [AuthService] KEYS del request:', Object.keys(request));
+    console.log('🔍 [AuthService] isBackupCode TYPE:', typeof request.isBackupCode);
+    console.log('🔍 [AuthService] isBackupCode VALUE:', request.isBackupCode === true ? 'TRUE (boolean)' : request.isBackupCode === false ? 'FALSE (boolean)' : 'UNDEFINED or OTHER');
+    return this.http.post<any>(
+      `${environment.baseApiUrl}/auth/2fa/verify`,
+      request
+    ).pipe(
+      tap((response) => {
+        console.log('✅ [AuthService] Código TOTP verificado exitosamente');
+        console.log('   - Access Token:', response.accessToken ? '✅' : '❌');
+        console.log('   - Refresh Token:', response.refreshToken ? '✅' : '❌');
+      }),
+      catchError((error) => {
+        console.error('❌ [AuthService] Error verificando TOTP:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Decodifica el JWT actual y extrae sus claims
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private decodeJWT(): any {
+    const token = this.getToken();
+    if (!token) {
+      console.log('🔐 [AuthService] decodeJWT: No hay token disponible');
+      return null;
+    }
+    
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('JWT inválido: debe tener 3 partes');
+      }
+      
+      const decoded = JSON.parse(atob(parts[1]));
+      console.log('🔐 [AuthService] decodeJWT: Token decodificado exitosamente');
+      console.log('   - sub:', decoded.sub);
+      console.log('   - email:', decoded.email);
+      console.log('   - role:', decoded.role);
+      console.log('   - Todas las claims:', Object.keys(decoded));
+      
+      return decoded;
+    } catch (error) {
+      console.error('❌ [AuthService] decodeJWT: Error al decodificar token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Normaliza los roles del backend a los roles del frontend
+   */
+  private normalizeRole(backendRole: string): UserRole | null {
+    const roleMap: Record<string, UserRole> = {
+      'ADMIN': 'admin',
+      'ADMINISTRADOR': 'admin',
+      'CREADORCONTENIDO': 'creator',
+      'CREADOR': 'creator',
+      'USUARIOEV': 'user',
+      'USUARIO_EV': 'user',
+      'USER': 'user'
+    };
+    
+    const normalized = roleMap[backendRole.toUpperCase()];
+    
+    if (!normalized) {
+      console.warn('⚠️ [AuthService] normalizeRole: Rol desconocido:', backendRole);
+    }
+    
+    return normalized || null;
+  }
+
+  /**
+   * Obtiene el rol del usuario actual directamente del JWT
+   * El backend siempre incluye el rol en el token
    */
   getCurrentRole(): UserRole | null {
-    const user = this.getCurrentUser();
-    return user?.rol ?? null;
+    const decoded = this.decodeJWT();
+    if (decoded?.role) {
+      console.log('🔐 [AuthService] getCurrentRole: Rol extraído del JWT:', decoded.role);
+      const normalizedRole = this.normalizeRole(decoded.role);
+      console.log('🔐 [AuthService] getCurrentRole: Rol normalizado:', normalizedRole);
+      return normalizedRole;
+    }
+    
+    console.warn('⚠️ [AuthService] getCurrentRole: No se encontró rol en el JWT');
+    return null;
   }
 
   /**
@@ -282,8 +526,9 @@ export class AuthService {
   /**
    * Cierra la sesión del usuario y limpia el sessionStorage y localStorage
    * @param redirect - Si debe redirigir a la página de inicio (default: true)
+   * @param skipBackendInvalidation - Si debe omitir la invalidación del token en el backend (default: false)
    */
-  logout(redirect: boolean = true): void {
+  logout(redirect: boolean = true, skipBackendInvalidation: boolean = false): void {
     console.log('🚪 [AuthService] Cerrando sesión...');
     
     // Detener temporizadores
@@ -292,18 +537,22 @@ export class AuthService {
     // Obtener refreshToken antes de eliminarlo
     const refreshToken = this.getRefreshToken();
     
-    // Limpiar tokens y datos de usuario del frontend
+    // Limpiar tokens, datos de usuario y configuración de sesión del frontend
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('sessionConfig'); // Limpiar configuración de timeouts
+    sessionStorage.removeItem('tokenExpiry'); // Limpiar timestamp de expiración del token
     localStorage.removeItem('refreshToken');
     
-    // Llamar al backend para invalidar el refresh token (si existe)
-    if (refreshToken) {
+    // Llamar al backend para invalidar el refresh token (si existe y no se debe omitir)
+    if (refreshToken && !skipBackendInvalidation) {
       console.log('🗑️ [AuthService] Invalidando refresh token en el backend...');
       this.http.post(`${environment.baseApiUrl}/auth/logout`, { refreshToken }).subscribe({
         next: () => console.log('✅ [AuthService] Refresh token invalidado en el backend'),
         error: (error) => console.error('❌ [AuthService] Error al invalidar refresh token:', error)
       });
+    } else if (skipBackendInvalidation) {
+      console.log('⏭️ [AuthService] Omitiendo invalidación del token en el backend (ya invalidado)');
     }
     
     if (redirect) {
@@ -312,22 +561,29 @@ export class AuthService {
   }
 
   /**
-   * Inicia el temporizador de Idle Timeout según el rol del usuario
+   * Emite un evento de sesión expirada para que muestre el modal
+   * Útil cuando otros componentes detectan que la sesión ha expirado
+   */
+  emitSessionExpired(reason: string = 'session-timeout', message: string = 'Tu sesión ha expirado'): void {
+    console.log('⏰ [AuthService] Emitiendo evento de sesión expirada:', { reason, message });
+    this.sessionExpired$.next({ reason, message });
+  }
+
+  /**
+   * Inicia el temporizador de Idle Timeout según la configuración del backend
    * Se reinicia en cada actividad del usuario
    */
   startIdleTimer(): void {
-    const role = this.getCurrentRole();
-    if (!role) return;
+    // Obtener configuración del backend
+    const sessionConfig = this.getSessionConfig();
+    
+    if (!sessionConfig?.idleTimeout) {
+      console.error('❌ [AuthService] No se encontró configuración de Idle Timeout del backend');
+      return;
+    }
 
-    // Configuración de Idle Timeout por rol (en milisegundos)
-    const idleTimeouts: Record<UserRole, number> = {
-      admin: 15 * 60 * 1000,    // 15 minutos
-      creator: 15 * 60 * 1000,  // 15 minutos
-      user: 20 * 60 * 1000      // 20 minutos
-    };
-
-    const timeout = idleTimeouts[role];
-    console.log(`⏰ [AuthService] Iniciando Idle Timer para ${role}: ${timeout / 60000} minutos`);
+    const timeout = sessionConfig.idleTimeout;
+    console.log(`⏰ [AuthService] Iniciando Idle Timer: ${timeout / 1000} segundos`);
 
     // Limpiar timer anterior si existe
     if (this.idleTimer) {
@@ -356,13 +612,20 @@ export class AuthService {
   }
 
   /**
-   * Inicia el temporizador de Absolute Timeout
+   * Inicia el temporizador de Absolute Timeout según la configuración del backend
    * Se ejecuta UNA VEZ al hacer login y NO se reinicia
    */
   startAbsoluteTimer(): void {
-    const absoluteTimeout = 8 * 60 * 60 * 1000; // 8 horas para todos los roles
+    // Obtener configuración del backend
+    const sessionConfig = this.getSessionConfig();
     
-    console.log(`⏰ [AuthService] Iniciando Absolute Timer: ${absoluteTimeout / 3600000} horas`);
+    if (!sessionConfig?.absoluteTimeout) {
+      console.error('❌ [AuthService] No se encontró configuración de Absolute Timeout del backend');
+      return;
+    }
+
+    const timeout = sessionConfig.absoluteTimeout;
+    console.log(`⏰ [AuthService] Iniciando Absolute Timer: ${timeout / 3600000} horas`);
 
     // Limpiar timer anterior si existe
     if (this.absoluteTimer) {
@@ -374,10 +637,45 @@ export class AuthService {
       console.log('⏰ [AuthService] Absolute Timeout alcanzado - cerrando sesión...');
       this.sessionExpired$.next({ 
         reason: 'absolute', 
-        message: 'Tu sesión ha expirado (límite de 8 horas)' 
+        message: 'Tu sesión ha expirado (límite de tiempo alcanzado)' 
       });
-      this.logout(true);
-    }, absoluteTimeout);
+      // Omitir invalidación del token (el backend ya lo invalidó por timeout)
+      this.logout(true, true);
+    }, timeout);
+  }
+
+  /**
+   * Inicia un timer para renovar el token proactivamente antes de que expire
+   * @param expiryTime - Timestamp en milisegundos cuando expira el token
+   */
+  private startTokenExpiryTimer(expiryTime: number): void {
+    // Limpiar timer anterior si existe
+    if (this.tokenExpiryTimer) {
+      clearTimeout(this.tokenExpiryTimer);
+    }
+
+    const now = Date.now();
+    const timeUntilExpiry = expiryTime - now;
+    
+    // Renovar el token 10 segundos ANTES de que expire
+    // O si ya pasó el tiempo, renovar inmediatamente
+    const renewBeforeExpiry = 10000; // 10 segundos
+    const timeUntilRenewal = Math.max(0, timeUntilExpiry - renewBeforeExpiry);
+
+    console.log(`⏰ [AuthService] Token expira en ${timeUntilExpiry / 1000}s - renovación programada en ${timeUntilRenewal / 1000}s`);
+
+    this.tokenExpiryTimer = setTimeout(() => {
+      console.log('⏰ [AuthService] Renovando token proactivamente antes de expiración...');
+      this.refreshAccessToken().subscribe({
+        next: () => {
+          console.log('✅ [AuthService] Token renovado proactivamente');
+        },
+        error: (error) => {
+          console.error('❌ [AuthService] Error en renovación proactiva:', error);
+          // El error ya fue manejado en refreshAccessToken()
+        }
+      });
+    }, timeUntilRenewal);
   }
 
   /**
@@ -392,14 +690,24 @@ export class AuthService {
       clearTimeout(this.absoluteTimer);
       this.absoluteTimer = null;
     }
+    if (this.tokenExpiryTimer) {
+      clearTimeout(this.tokenExpiryTimer);
+      this.tokenExpiryTimer = null;
+    }
     console.log('⏹️ [AuthService] Todos los temporizadores detenidos');
   }
 
   /**
    * Método para llamar después de un login exitoso
-   * Inicia ambos temporizadores
+   * Inicia ambos temporizadores (idempotente - no reinicia si ya están activos)
    */
   startSessionTimers(): void {
+    // Verificar si los timers ya están activos
+    if (this.idleTimer || this.absoluteTimer) {
+      console.log('⚠️ [AuthService] Temporizadores ya iniciados, omitiendo reinicio');
+      return;
+    }
+    
     console.log('🚀 [AuthService] Iniciando temporizadores de sesión...');
     this.startIdleTimer();
     this.startAbsoluteTimer();
