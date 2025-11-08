@@ -169,9 +169,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
 
     // Guardar usuario en sessionStorage
+    // IMPORTANTE: El backend debe enviar edad y esVip en body.user
+    // Ejemplo: { id, nombre, email, tipo, edad: 25, esVip: true }
     if (body.user) {
       sessionStorage.setItem('currentUser', JSON.stringify(body.user));
       console.log('✅ [LoginComponent] Usuario guardado:', body.user);
+      console.log('👤 Edad del usuario:', body.user.edad);
+      console.log('💎 Usuario VIP:', body.user.esVip);
     }
 
     // INICIAR TEMPORIZADORES DE SESIÓN

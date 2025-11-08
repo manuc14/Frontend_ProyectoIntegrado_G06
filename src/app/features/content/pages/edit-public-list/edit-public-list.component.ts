@@ -49,6 +49,9 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     initializeListComponent(this.router, this.route, (listId) => {
       this.listId = listId;
+      // Limpiar sessionStorage después de obtener el ID
+      sessionStorage.removeItem('editListId');
+      
       this.formBaseService.createFormState(this.formId, {});
       this.formBaseService.getFormState(this.formId)?.subscribe(state => {
         this.currentFormState = state;
@@ -75,7 +78,7 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
         });
         this.isVisible = lista.visible;
         this.selectedContentType = lista.dominantType as 'VIDEO' | 'AUDIO';
-        this.preselectedIds = lista.items.map(item => item.id);
+        this.preselectedIds = lista.items.map(item => item._id);
         this.isLoadingList = false;
       },
       error: (error) => {

@@ -2,7 +2,8 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { buttonHover, buttonPress } from '../../core/animations/animations';
-import { PublicListService, Contenido } from '../../core/services/public-list.service';
+import { PublicListService } from '../../core/services/public-list.service';
+import { environment } from '../../../environments/environment';
 
 export interface SuggestedContent {
   id: string;
@@ -172,17 +173,17 @@ export class ContentSelectorComponent implements OnInit {
     this.selectedContentType = this.initialType;
     this.isLoadingContent = true;
     this.publicListService.getAvailableContent().subscribe({
-      next: (contenidos: Contenido[]) => {
+      next: (contenidos: any[]) => {
         this.allContent = contenidos.map(c => ({
-          id: c.id,
-          thumbnail: c.miniaturaUrl || 'assets/default-thumbnail.png',
+          id: c.id || c._id,
+          thumbnail: this.buildThumbnailUrl(c.miniaturaUrl),
           title: c.titulo,
-          channel: c.autorId || 'Desconocido',
+          channel: c.creador?.nombre || 'Desconocido',
           duration: c.duracion ? `${Math.floor(c.duracion / 60).toString().padStart(2, '0')}:${(c.duracion % 60).toString().padStart(2, '0')}` : '00:00',
-          added: this.preselectedIds.includes(c.id),
-          tipo: c.tipo,
+          added: this.preselectedIds.includes(c.id || c._id),
+          tipo: c.tipoArchivo || c.tipo,
           ficheroUrl: c.ficheroUrl,
-          autorId: c.autorId,
+          autorId: c.creador?.nombre || '',
           descripcion: c.descripcion
         }));
         this.isLoadingContent = false;
@@ -191,6 +192,21 @@ export class ContentSelectorComponent implements OnInit {
         this.isLoadingContent = false;
       }
     });
+  }
+
+  /**
+   * Construye la URL completa para la miniatura
+   */
+  private buildThumbnailUrl(miniaturaUrl: string | undefined): string {
+    if (!miniaturaUrl) return 'assets/default-thumbnail.png';
+    
+    // Si ya es una URL completa, devolverla tal cual
+    if (miniaturaUrl.startsWith('http') || miniaturaUrl.startsWith('/')) {
+      return miniaturaUrl;
+    }
+    
+    // Si es solo el nombre del archivo, añadir el baseResourceUrl
+    return `${environment.baseResourceUrl}/miniaturas/${miniaturaUrl}`;
   }
   onContentTypeChange(type: 'VIDEO' | 'AUDIO'): void {
     if (this.selectedContentType !== type) {

@@ -108,6 +108,10 @@ export interface BackendUser {
   especialidad?: string;
   /** Tipo de contenido que crea (audio | video) (opcional) */
   tipoContenido?: string;
+  /** Edad del usuario para restricciones de contenido */
+  edad?: number;
+  /** Indica si el usuario tiene suscripción VIP/Premium */
+  esVip?: boolean;
 }
 
 /**

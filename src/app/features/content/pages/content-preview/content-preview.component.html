@@ -146,3 +146,23 @@
     </div>
   </div>
 </div>
+
+<!-- Modal VIP -->
+<app-vip-promo-modal
+  *ngIf="showVipModal"
+  [title]="'🔒 Contenido Exclusivo VIP'"
+  [benefits]="[
+    'Acceso ilimitado a todo el contenido premium',
+    'Calidad de transmisión en 4K',
+    'Descargas sin límite',
+    'Sin anuncios',
+    'Soporte prioritario 24/7'
+  ]"
+  [primaryLabel]="'Mejorar a VIP'"
+  [secondaryLabel]="'Continuar sin VIP'"
+  [planPriceLabel]="'VIP\n$12.99/mes'"
+  [planDescription]="'Cancela cuando quieras.\nAcceso total a contenido VIP.'"
+  (upgrade)="onUpgradeToVip()"
+  (continue)="onContinueWithoutVip()"
+  (close)="onCloseVipModal()">
+</app-vip-promo-modal>

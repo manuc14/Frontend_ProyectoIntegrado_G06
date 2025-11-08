@@ -15,14 +15,16 @@ export function initializeListComponent(
     router.navigate(['/login']);
     return;
   }
-  route.paramMap.subscribe(params => {
-    const listId = params.get('id') ?? '';
-    if (!listId) {
-      router.navigate(['/creator/catalog']);
-      return;
-    }
-    callback(listId);
-  });
+  
+  // Leer el ID desde sessionStorage en lugar de la URL
+  const listId = sessionStorage.getItem('editListId');
+  if (!listId) {
+    console.error('❌ No se encontró ID de lista en sessionStorage');
+    router.navigate(['/creator/catalog']);
+    return;
+  }
+  
+  callback(listId);
 }
 
 export function parseDuration(duration: string): number {

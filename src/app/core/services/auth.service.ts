@@ -28,6 +28,8 @@ export interface CurrentUser {
   tipoContenido?: string;
   foto?: string; // Campo del backend para avatar
   avatar?: string; // Alias del campo foto
+  edad?: number; // Edad del usuario para restricciones de contenido
+  esVip?: boolean; // Si el usuario tiene suscripción VIP
 }
 
 /**
@@ -70,8 +72,7 @@ export class AuthService {
       '/creator/catalog',
       '/creator/profile',
       '/create-list',
-      '/edit-list',
-      '/add-content'
+      '/edit-list'
     ],
     user: [
       '/catalog',
@@ -240,6 +241,22 @@ export class AuthService {
   getCurrentRole(): UserRole | null {
     const user = this.getCurrentUser();
     return user?.rol ?? null;
+  }
+
+  /**
+   * Obtiene la edad del usuario actual desde sessionStorage
+   */
+  getUserAge(): number {
+    const user = this.getCurrentUser();
+    return user?.edad ?? 0; // Por defecto 0 (sin restricciones)
+  }
+
+  /**
+   * Verifica si el usuario actual es VIP
+   */
+  isUserVip(): boolean {
+    const user = this.getCurrentUser();
+    return user?.esVip ?? false;
   }
 
   /**

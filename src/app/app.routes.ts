@@ -36,7 +36,6 @@ import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.pa
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
 import { ResetPasswordCodePage } from './features/auth/pages/reset-password-code/reset-password-code.page';
 import { NewPasswordPage } from './features/auth/pages/new-password/new-password.page';
-import {AddContentComponent} from './features/content/pages/add-content/add-content.component';
 
 export const routes: Routes = [
 	{ path: '', component: HomeComponent, canActivate: [publicGuard] },
@@ -67,8 +66,7 @@ export const routes: Routes = [
 
   // Rutas de Listas Públicas (protegidas)
   { path: 'create-list', component: CreatePublicListComponent, canActivate: [authGuard] },
-  { path: 'edit-list/:id', component: EditPublicListComponent, canActivate: [authGuard] },
-  { path: 'add-content/:id', component: AddContentComponent, canActivate: [authGuard] },
+  { path: 'edit-list', component: EditPublicListComponent, canActivate: [authGuard] },
 
   // Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },
