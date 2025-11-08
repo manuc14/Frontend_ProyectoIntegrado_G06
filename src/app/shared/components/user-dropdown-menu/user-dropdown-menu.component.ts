@@ -42,7 +42,7 @@ export class UserDropdownMenuComponent implements OnInit {
   }
 
   private buildMenuOptions(): MenuOption[] {
-    const role = this.currentUser?.rol || 'user';
+    const role = this.currentUser?.rol ?? 'user';
     const routes = this.roleRoutes[role];
     
     // Opciones base (comunes para todos)

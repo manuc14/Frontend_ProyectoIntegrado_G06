@@ -158,8 +158,4 @@ export class AdminUsersPage extends AdminListBase<User> {
   editarUsuario(id: string): void {
     this.navigateTo('users', 'edit', id);
   }
-
-  addNewUser(): void {
-    this.navigateTo('users', 'add');
-  }
 }
