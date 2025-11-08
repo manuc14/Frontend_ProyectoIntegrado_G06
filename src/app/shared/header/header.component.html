@@ -2,17 +2,9 @@
         [class.fixed-header]="isHomePage" 
         [class.normal-header]="!isHomePage" 
         [@fadeIn]>
-  <!-- Logo grande arriba que desaparece con scroll (solo en home) -->
-  <div class="container brand desktop-logo" [class.force-hidden]="!isHomePage">
-    <a routerLink="/" class="logo-link">
-      <div class="iconify-icon logo-container">
-        <img class="svg logo-large" src="assets/icons/logo_v2.png" alt="ESIMedia" />
-      </div>
-    </a>
-  </div>
-
-  <!-- Logo pequeño a la izquierda que aparece después del scroll -->
-  <div class="container brand desktop-logo-small" [class.force-visible]="!isHomePage">
+  
+  <!-- Logo a la izquierda (siempre visible en desktop) -->
+  <div class="container brand desktop-logo-small">
     <a routerLink="/" class="logo-link">
       <div class="iconify-icon">
         <img class="svg logo-small" src="assets/icons/logo_v2.png" alt="ESIMedia" />

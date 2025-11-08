@@ -112,7 +112,7 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
         password: '',
         repetirPassword: '',
         departamento: this.config.defaultSelectValue
-      }, [FormBaseService.passwordMatchValidator('password', 'repetirPassword')]);
+      }, [FormBaseService.passwordMatchValidator('password', 'repetirPassword')], 'admin');
     } else {
       this.entityForm = this.formBaseService.createFormGroup<CreatorForm>({
         nombre: '',
@@ -124,7 +124,7 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
         especialidad: this.config.defaultSelectValue,
         tipoContenido: '',
         descripcion: ''
-      }, [FormBaseService.passwordMatchValidator('password', 'repetirPassword')]);
+      }, [FormBaseService.passwordMatchValidator('password', 'repetirPassword')], 'creator');
     }
   }
 

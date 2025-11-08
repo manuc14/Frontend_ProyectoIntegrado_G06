@@ -61,7 +61,8 @@ export class AuthService {
       '/ad-admin-edit',
       '/ad-creators',
       '/ad-creators-add',
-      '/ad-creators-edit'
+      '/ad-creators-edit',
+      '/ad-content'
     ],
     creator: [
       '/content-creator',
@@ -195,7 +196,7 @@ export class AuthService {
       
       // Mapear el tipo del backend a rol si no existe el rol o si existe el tipo
       if (user && (!user.rol || user.tipo)) {
-        const mappedRole = this.mapBackendTypeToRole(user.tipo || '');
+        const mappedRole = this.mapBackendTypeToRole(user.tipo ?? '');
         user.rol = mappedRole;
         console.log('🔍 [AuthService] getCurrentUser: mapped tipo to rol', { 
           tipo: user.tipo, 

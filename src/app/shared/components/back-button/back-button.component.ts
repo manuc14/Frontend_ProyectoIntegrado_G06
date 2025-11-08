@@ -17,7 +17,7 @@ export class BackButtonComponent {
   constructor(private router: Router) {}
 
   handleClick(): void {
-    if (this.onClick.observers.length > 0) {
+    if (this.onClick.observed) {
       this.onClick.emit();
     } else if (this.navigateTo) {
       this.router.navigate([this.navigateTo]);
