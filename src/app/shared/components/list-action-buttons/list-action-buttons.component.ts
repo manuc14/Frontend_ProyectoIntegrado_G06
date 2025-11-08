@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
 })
 export class ListActionButtonsComponent {
   @Input() section: string = ''; // Identificador de la sección (tendencias, nuevos, recomendado)
-  
+
   @Output() addContent = new EventEmitter<string>();
   @Output() editList = new EventEmitter<string>();
   @Output() deleteList = new EventEmitter<string>();

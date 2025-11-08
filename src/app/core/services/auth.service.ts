@@ -7,7 +7,7 @@ import { environment } from '../../../environments/environment';
 
 /**
  * @fileoverview Servicio centralizado para la gestión de autenticación y sesiones con Session Timeout
- * 
+ *
  * Responsabilidades:
  * - Gestión de tokens y datos de usuario en sessionStorage
  * - Control de roles y permisos
@@ -38,17 +38,17 @@ export interface CurrentUser {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  
+
   // Temporizadores de sesión
   private idleTimer: any = null;
   private absoluteTimer: any = null;
-  
+
   // Subject para notificar expiración de sesión
   private sessionExpired$ = new BehaviorSubject<{ reason: string; message: string } | null>(null);
-  
+
   // Observable público para que componentes escuchen expiración
   public sessionExpiredObservable = this.sessionExpired$.asObservable();
-  
+
   /**
    * Rutas permitidas por rol (sin incluir rutas públicas)
    */
@@ -68,7 +68,10 @@ export class AuthService {
       '/content-creator',
       '/upload-content',
       '/creator/catalog',
-      '/creator/profile'
+      '/creator/profile',
+      '/create-list',
+      '/edit-list',
+      '/add-content'
     ],
     user: [
       '/catalog',
@@ -127,7 +130,7 @@ export class AuthService {
    */
   refreshAccessToken(): Observable<{ accessToken: string; refreshToken: string; message: string }> {
     const refreshToken = this.getRefreshToken();
-    
+
     if (!refreshToken) {
       console.log('❌ [AuthService] No hay Refresh Token - cerrando sesión');
       this.logout(true);
@@ -135,7 +138,7 @@ export class AuthService {
     }
 
     console.log('🔄 [AuthService] Renovando Access Token...');
-    
+
     return this.http.post<{ accessToken: string; refreshToken: string; message: string }>(
       `${environment.baseApiUrl}/auth/refresh`,
       { refreshToken }
@@ -151,30 +154,30 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('❌ [AuthService] Error renovando token:', error);
-        
+
         // Analizar el mensaje de error para determinar el tipo de expiración
         const message = error.error?.message || error.message || 'Token expirado';
-        
+
         if (message.includes('inactividad')) {
-          this.sessionExpired$.next({ 
-            reason: 'idle', 
-            message: 'Tu sesión expiró por inactividad' 
+          this.sessionExpired$.next({
+            reason: 'idle',
+            message: 'Tu sesión expiró por inactividad'
           });
         } else if (message.includes('límite de tiempo')) {
-          this.sessionExpired$.next({ 
-            reason: 'absolute', 
-            message: 'Tu sesión ha expirado' 
+          this.sessionExpired$.next({
+            reason: 'absolute',
+            message: 'Tu sesión ha expirado'
           });
         } else {
-          this.sessionExpired$.next({ 
-            reason: 'invalid', 
-            message: 'Tu sesión es inválida' 
+          this.sessionExpired$.next({
+            reason: 'invalid',
+            message: 'Tu sesión es inválida'
           });
         }
-        
+
         // Cerrar sesión
         this.logout(true);
-        
+
         return throwError(() => error);
       })
     );
@@ -189,20 +192,20 @@ export class AuthService {
       console.log('🔍 [AuthService] getCurrentUser: No userData in sessionStorage');
       return null;
     }
-    
+
     try {
       const user = JSON.parse(userData) as CurrentUser;
       console.log('🔍 [AuthService] getCurrentUser: user from storage', user);
-      
+
       // Mapear el tipo del backend a rol si no existe el rol o si existe el tipo
       if (user && (!user.rol || user.tipo)) {
         const mappedRole = this.mapBackendTypeToRole(user.tipo ?? '');
         user.rol = mappedRole;
-        console.log('🔍 [AuthService] getCurrentUser: mapped tipo to rol', { 
-          tipo: user.tipo, 
-          rol: mappedRole 
+        console.log('🔍 [AuthService] getCurrentUser: mapped tipo to rol', {
+          tipo: user.tipo,
+          rol: mappedRole
         });
-        
+
         // Actualizar el sessionStorage con el rol mapeado
         sessionStorage.setItem('currentUser', JSON.stringify(user));
       }
@@ -245,7 +248,7 @@ export class AuthService {
    */
   isRouteAllowedForCurrentUser(currentPath: string): boolean {
     console.log('🔍 [AuthService] isRouteAllowedForCurrentUser:', currentPath);
-    
+
     // Rutas públicas siempre permitidas
     if (this.publicRoutes.includes(currentPath)) {
       console.log('✅ [AuthService] Ruta pública permitida');
@@ -254,7 +257,7 @@ export class AuthService {
 
     const role = this.getCurrentRole();
     console.log('🔍 [AuthService] Current role:', role);
-    
+
     if (!role) {
       console.log('❌ [AuthService] No role found');
       return false;
@@ -262,23 +265,23 @@ export class AuthService {
 
     const allowedRoutes = this.allowedRoutesByRole[role];
     console.log('🔍 [AuthService] Allowed routes for role:', allowedRoutes);
-    
+
     // Verificar si la ruta actual comienza con alguna de las rutas permitidas
     // IMPORTANTE: Usar match exacto o con / para evitar falsos positivos
     // Ejemplo: /content debe hacer match con /content/123 pero NO con /content-creator
     const isAllowed = allowedRoutes.some(route => {
       // Si la ruta permitida es exactamente igual
       if (currentPath === route) return true;
-      
+
       // Si la ruta actual empieza con la permitida Y el siguiente carácter es / (para rutas con parámetros)
       // Esto permite /content/123 pero rechaza /content-creator
-      if (currentPath.startsWith(route + '/')) return true;
-      
-      return false;
+      return currentPath.startsWith(route + '/');
+
+
     });
-    
+
     console.log(isAllowed ? '✅ [AuthService] Ruta permitida' : '❌ [AuthService] Ruta NO permitida');
-    
+
     return isAllowed;
   }
 
@@ -288,18 +291,18 @@ export class AuthService {
    */
   logout(redirect: boolean = true): void {
     console.log('🚪 [AuthService] Cerrando sesión...');
-    
+
     // Detener temporizadores
     this.stopAllTimers();
-    
+
     // Obtener refreshToken antes de eliminarlo
     const refreshToken = this.getRefreshToken();
-    
+
     // Limpiar tokens y datos de usuario del frontend
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('currentUser');
     localStorage.removeItem('refreshToken');
-    
+
     // Llamar al backend para invalidar el refresh token (si existe)
     if (refreshToken) {
       console.log('🗑️ [AuthService] Invalidando refresh token en el backend...');
@@ -308,7 +311,7 @@ export class AuthService {
         error: (error) => console.error('❌ [AuthService] Error al invalidar refresh token:', error)
       });
     }
-    
+
     if (redirect) {
       this.router.navigate(['/']);
     }
@@ -364,7 +367,7 @@ export class AuthService {
    */
   startAbsoluteTimer(): void {
     const absoluteTimeout = 8 * 60 * 60 * 1000; // 8 horas para todos los roles
-    
+
     console.log(`⏰ [AuthService] Iniciando Absolute Timer: ${absoluteTimeout / 3600000} horas`);
 
     // Limpiar timer anterior si existe
@@ -375,9 +378,9 @@ export class AuthService {
     // Crear nuevo timer
     this.absoluteTimer = setTimeout(() => {
       console.log('⏰ [AuthService] Absolute Timeout alcanzado - cerrando sesión...');
-      this.sessionExpired$.next({ 
-        reason: 'absolute', 
-        message: 'Tu sesión ha expirado (límite de 8 horas)' 
+      this.sessionExpired$.next({
+        reason: 'absolute',
+        message: 'Tu sesión ha expirado (límite de 8 horas)'
       });
       this.logout(true);
     }, absoluteTimeout);
@@ -415,11 +418,11 @@ export class AuthService {
   validateSessionForCurrentRoute(): void {
     const currentPath = this.router.url;
     console.log('🔍 [AuthService] validateSessionForCurrentRoute:', currentPath);
-    
+
     // NO redirigir automáticamente desde /
     // Dejar que el authGuard y las rutas manejen la redirección
     // Solo validar que la sesión sea válida para la ruta actual
-    
+
     // Si está autenticado y la ruta no está permitida, cerrar sesión
     if (this.isAuthenticated() && currentPath !== '/' && !this.isRouteAllowedForCurrentUser(currentPath)) {
       console.log('⚠️ [AuthService] Ruta no permitida - cerrando sesión y redirigiendo a /');

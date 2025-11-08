@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -22,18 +22,18 @@ type EdadPermitida = 0 | 7 | 13 | 18;
 })
 export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() isCreatorView = false;
-  
+  @Output() addContent = new EventEmitter<string>();
+  @Output() editList = new EventEmitter<string>();
+  @Output() deleteList = new EventEmitter<string>();
+
   seccionActiva: SeccionActiva = 'VIDEO';
   contenidoDestacado: Contenido | null = null;
   contenidoFiltrado: Contenido[] = [];
-  
   filtroPremium = false;
   filtroEdad: EdadPermitida | null = null;
   filtroCalidad: ResolucionVideo | null = null;
-  
   readonly opcionesEdad: EdadPermitida[] = [7, 13, 18];
   readonly opcionesCalidad: ResolucionVideo[] = ['4K', '1080p', '720p', '480p'];
-  
   dropdownEdadAbierto = false;
   dropdownCalidadAbierto = false;
 
@@ -81,35 +81,35 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private aplicarFiltros(): void {
-    const fuente = this.seccionActiva === 'VIDEO' 
-      ? this.catalogoService.getVideos() 
+    const fuente = this.seccionActiva === 'VIDEO'
+      ? this.catalogoService.getVideos()
       : this.catalogoService.getAudios();
-    
+
     let resultado = this.catalogoService.filtrarPorEdad(fuente, 18);
-    
+
     if (this.filtroEdad !== null) {
       resultado = resultado.filter(c => c.restriccionEdad === this.filtroEdad);
     }
-    
+
     if (this.filtroPremium) {
       resultado = this.catalogoService.filtrarPremium(resultado, true);
     }
-    
+
     if (this.seccionActiva === 'VIDEO' && this.filtroCalidad !== null) {
       resultado = this.catalogoService.filtrarPorCalidad(resultado, [this.filtroCalidad]);
     }
-    
+
     this.contenidoFiltrado = resultado;
   }
 
   private autoScroll(): void {
     const container = this.carouselContainer?.nativeElement;
     if (!container) return;
-    
+
     const scrollAmount = container.scrollLeft >= container.scrollWidth - container.clientWidth - 10
       ? -container.scrollLeft
       : this.CAROUSEL_SCROLL_AMOUNT;
-    
+
     container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   }
 
@@ -141,18 +141,19 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.contenidoFiltrado.slice(4, 12);
   }
 
-  // Métodos para vista de creador - Simplificados
+  // Métodos para vista de creador - Emiten eventos al parent
   onAddContent(section: string): void {
-    alert(`Funcionalidad de añadir contenido a "${section}" en desarrollo`);
+    console.log('Catalog: Emitting addContent for', section);
+    this.addContent.emit(section);
   }
 
   onEditList(section: string): void {
-    alert(`Funcionalidad de editar lista "${section}" en desarrollo`);
+    console.log('Catalog: Emitting editList for', section);
+    this.editList.emit(section);
   }
 
   onDeleteList(section: string): void {
-    if (confirm(`¿Estás seguro de que deseas eliminar la lista "${section}"? Esta acción no se puede deshacer.`)) {
-      alert(`Lista "${section}" eliminada (funcionalidad en desarrollo)`);
-    }
+    console.log('Catalog: Emitting deleteList for', section);
+    this.deleteList.emit(section);
   }
 }

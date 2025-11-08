@@ -638,7 +638,7 @@ export class CatalogoService {
    */
   filtrarPorEtiquetas(contenidos: Contenido[], etiquetas: string[]): Contenido[] {
     if (etiquetas.length === 0) return contenidos;
-    return contenidos.filter(c => 
+    return contenidos.filter(c =>
       c.tags.some(tag => etiquetas.includes(tag.toLowerCase()))
     );
   }
