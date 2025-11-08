@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { Contenido, ResolucionVideo } from '../models/contenido.models';
 import { environment } from '../../../environments/environment';
 
@@ -11,7 +11,8 @@ import { environment } from '../../../environments/environment';
 export class CatalogoService {
   private readonly http = inject(HttpClient);
   private readonly API_URL = `${environment.baseApiUrl}/contenidos`;
-
+  private readonly logPrefix = '[CATALOGO SERVICE]';
+  
   private mockVideos: Contenido[] = [
     {
       _id: '68f76c14e13b596143c38b81',
@@ -538,6 +539,34 @@ export class CatalogoService {
     }
   ];
 
+  // === Mapeo y utilidades reutilizables ===
+  private mapContenido = (raw: any): Contenido => {
+    if (!raw) throw new Error('Contenido vacío');
+    const { id: backendId, tipoArchivo, autorId, disponibleHasta, ...rest } = raw; // Campos ignorados o futuros
+    return {
+      ...rest,
+      _id: backendId ?? rest._id,
+      tipo: tipoArchivo || rest.tipo
+    } as Contenido;
+  };
+
+  private mapContenidos = (arr: any[]): Contenido[] => (arr || []).map(this.mapContenido);
+
+  private buildUrl(segment?: string): string {
+    return segment ? `${this.API_URL}/${segment}` : this.API_URL;
+  }
+
+  private handleArrayError(context: string, fallback?: () => Contenido[]) {
+    return (error: any): Observable<Contenido[]> => {
+      console.error(`❌ ${this.logPrefix} Error ${context}:`, error);
+      if (environment.useMocks && fallback) {
+        console.warn(`🟡 ${this.logPrefix} Usando fallback mock para ${context}`);
+        return of(fallback());
+      }
+      return throwError(() => error);
+    };
+  }
+
   /**
    * Obtiene todos los contenidos de tipo VIDEO
    * Usa mock si useMocks=true, sino obtiene del backend y filtra
@@ -619,26 +648,12 @@ export class CatalogoService {
    * Endpoint: GET /api/contenidos/{id}
    */
   getContenidoById(id: string): Observable<Contenido> {
-    console.log('🌐 [CATALOGO SERVICE] getContenidoById llamado con ID:', id);
-    console.log('🌐 [CATALOGO SERVICE] URL completa:', `${this.API_URL}/${id}`);
-
+    console.log(`🌐 ${this.logPrefix} getContenidoById(${id})`);
     return this.http.get<any>(`${this.API_URL}/${id}`).pipe(
-      map((response: any) => {
-        console.log('✅ [CATALOGO SERVICE] Respuesta del backend:', response);
-        // Mapear 'id' del backend a '_id' del frontend
-        const { id: backendId, tipoArchivo, autorId, disponibleHasta, ...rest } = response;
-        const mapped = {
-          ...rest,
-          _id: backendId || id, // Usar el id del backend o el del parámetro como fallback
-          tipo: tipoArchivo || rest.tipo // Mapear tipoArchivo → tipo
-        } as Contenido;
-        console.log('🔄 [CATALOGO SERVICE] Contenido mapeado:', mapped);
-        return mapped;
-      }),
+      map(this.mapContenido),
+      tap(contenido => console.log(`✅ ${this.logPrefix} Contenido recibido:`, contenido._id)),
       catchError(error => {
-        console.error('❌ [CATALOGO SERVICE] Error obteniendo contenido:', error);
-        console.error('❌ [CATALOGO SERVICE] Error status:', error.status);
-        console.error('❌ [CATALOGO SERVICE] Error message:', error.message);
+        console.error(`❌ ${this.logPrefix} Error getContenidoById(${id}):`, error);
         return throwError(() => new Error(`Error obteniendo contenido con ID ${id}`));
       })
     );
@@ -649,26 +664,35 @@ export class CatalogoService {
    * Endpoint: GET /api/contenidos
    */
   getContenidos(): Observable<Contenido[]> {
-    return this.http.get<any[]>(this.API_URL).pipe(
-      map((response: any[]) => {
-        // Mapear cada contenido: id → _id, tipoArchivo → tipo
-        return response.map(item => {
-          const { id: backendId, tipoArchivo, autorId, disponibleHasta, ...rest } = item;
-          return {
-            ...rest,
-            _id: backendId,
-            tipo: tipoArchivo || rest.tipo
-          } as Contenido;
-        });
-      }),
-      catchError(error => {
-        console.error('Error obteniendo contenidos:', error);
-        // Fallback a mock en caso de error (para desarrollo)
-        if (environment.useMocks) {
-          return of([...this.mockVideos, ...this.mockAudios]);
-        }
-        return throwError(() => error);
-      })
+    return this.http.get<any[]>(this.buildUrl()).pipe(
+      map(this.mapContenidos),
+      tap(res => console.log(`✅ ${this.logPrefix} Contenidos recibidos:`, res.length)),
+      catchError(this.handleArrayError('obteniendo contenidos', () => [...this.mockVideos, ...this.mockAudios]))
+    );
+  }
+
+  /**
+   * Obtiene todos los contenidos públicos aprobados
+   * Endpoint: GET /api/contenidos/publicos
+   */
+  getContenidosPublicos(): Observable<Contenido[]> {
+    return this.http.get<any[]>(this.buildUrl('publicos')).pipe(
+      map(this.mapContenidos),
+      tap(res => console.log(`✅ ${this.logPrefix} Contenidos públicos recibidos:`, res.length)),
+      catchError(this.handleArrayError('obteniendo contenidos públicos', () => this.mockVideos.filter(v => v.estado === 'PUBLICO')))
+    );
+  }
+
+  /**
+   * Obtiene todos los contenidos privados
+   * Endpoint: GET /api/contenidos/privados
+   */
+  getContenidosPrivados(): Observable<Contenido[]> {
+    return this.http.get<any[]>(this.buildUrl('privados')).pipe(
+      map(this.mapContenidos),
+      tap(res => console.log(`✅ ${this.logPrefix} Contenidos privados recibidos:`, res.length)),
+      catchError(this.handleArrayError('obteniendo contenidos privados', () => this.mockVideos.filter(v => v.estado === 'PRIVADO')))
     );
   }
 }
+

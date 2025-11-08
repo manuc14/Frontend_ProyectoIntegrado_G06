@@ -1,5 +1,6 @@
 <div class="vip-overlay">
-  <dialog class="vip-modal" open aria-labelledby="vip-title">
+  <button class="overlay-backdrop" aria-label="Cerrar" (click)="onClose()"></button>
+  <dialog class="vip-modal" aria-labelledby="vip-title" open>
     <div class="background-border-shadow">
       <!-- Top bar -->
       <div class="container topbar">
@@ -9,10 +10,10 @@
           </div>
           <div class="container3">
             <div class="container4">
-              <div class="text" id="vip-title">{{ title || 'Conviértete en Usuario VIP' }}</div>
+              <div class="text" id="vip-title">{{ showFromHome ? 'Desbloquea Todo el Potencial de ESIMedia' : (title || 'Conviértete en Usuario VIP') }}</div>
             </div>
             <div class="container4">
-              <div class="text2">Desbloquea contenido premium, acceso prioritario y calidad elevada.</div>
+              <div class="text2">{{ showFromHome ? 'Únete a miles de usuarios VIP y disfruta de contenido exclusivo, calidad 4K y mucho más.' : 'Desbloquea contenido premium, acceso prioritario y calidad elevada.' }}</div>
             </div>
           </div>
         </div>
@@ -56,10 +57,9 @@
 
       <!-- Bottom actions -->
       <div class="container9">
-        <button class="link4" type="button" (click)="onContinue()"><div class="text24">Continuar como Estándar</div></button>
-        <button class="link3" type="button" (click)="onUpgrade()"><div class="text25">Actualizar a VIP</div></button>
+        <button class="link4" type="button" (click)="onContinue()"><div class="text24">{{ showFromHome ? 'Continuar explorando' : 'Continuar como Estándar' }}</div></button>
+        <button class="link3" type="button" (click)="onUpgrade()"><div class="text25">{{ showFromHome ? 'Hazte VIP' : 'Actualizar a VIP' }}</div></button>
       </div>
     </div>
   </dialog>
-  <button class="overlay-backdrop" aria-label="Cerrar" (click)="onClose()"></button>
 </div>

@@ -12,6 +12,7 @@ import { AdminUsersEditPage } from './features/admin/pages/ad-users/ad-users-edi
 import { AdminAdmsPage } from './features/admin/pages/ad-admin/ad-admin.component';
 import { AdminAdmsAddPage } from './features/admin/pages/ad-admin-add/ad-admin-add.component';
 import { AdminAdmsEditPage } from './features/admin/pages/ad-admin-edit/ad-admin-edit.component';
+import { AdminContentPage } from './features/admin/pages/ad-content/ad-content.component';
 
 // Administración de Creadores de Contenido
 import { AdminCreatorsPage } from './features/admin/pages/ad-creators/ad-creators.component';
@@ -55,6 +56,8 @@ export const routes: Routes = [
   { path: 'ad-creators', component: AdminCreatorsPage, canActivate: [authGuard] },
   { path: 'ad-creators-add', component: AdminCreatorsAddPage, canActivate: [authGuard] },
   { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage, canActivate: [authGuard] },
+
+  { path: 'ad-content', component: AdminContentPage, canActivate: [authGuard] },
 
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },
