@@ -77,7 +77,10 @@ export class AuthService {
     user: [
       '/catalog',
       '/content',
-      '/player'
+      '/player',
+      '/my-lists',
+      '/create-private-list',
+      '/edit-private-list'
     ]
   };
 

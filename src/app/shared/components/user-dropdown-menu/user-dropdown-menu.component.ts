@@ -30,7 +30,7 @@ export class UserDropdownMenuComponent implements OnInit {
 
   // Mapeo directo de rutas por rol - simplificado
   private readonly roleRoutes: Record<UserRole, { home: string; profile: string }> = {
-    user: { home: '/catalog', profile: '/profile' },
+    user: { home: '/catalog', profile: '/my-lists' },
     creator: { home: '/content-creator', profile: '/profile' },
     admin: { home: '/ad-users', profile: '/profile' }
   };

@@ -23,6 +23,11 @@ import { AdminCreatorsEditPage } from './features/admin/pages/ad-creators-edit/a
 import { CreatePublicListComponent } from './features/content/pages/create-public-list/create-public-list.component';
 import { EditPublicListComponent } from './features/content/pages/edit-public-list/edit-public-list.component';
 
+// Listas Privadas del Usuario
+import { PrivateListsComponent } from './features/user/pages/private-lists/private-lists.component';
+import { CreatePrivateListComponent } from './features/user/pages/create-private-list/create-private-list.component';
+import { EditPrivateListComponent } from './features/user/pages/edit-private-list/edit-private-list.component';
+
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
 import { UploadContentComponent } from './features/content/pages/upload-content/upload-content.component';
@@ -67,6 +72,11 @@ export const routes: Routes = [
   // Rutas de Listas Públicas (protegidas)
   { path: 'create-list', component: CreatePublicListComponent, canActivate: [authGuard] },
   { path: 'edit-list', component: EditPublicListComponent, canActivate: [authGuard] },
+
+  // Rutas de Listas Privadas (protegidas)
+  { path: 'my-lists', component: PrivateListsComponent, canActivate: [authGuard] },
+  { path: 'create-private-list', component: CreatePrivateListComponent, canActivate: [authGuard] },
+  { path: 'edit-private-list', component: EditPrivateListComponent, canActivate: [authGuard] },
 
   // Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },

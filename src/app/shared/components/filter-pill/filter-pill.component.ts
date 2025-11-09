@@ -1,6 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+export type FilterIconType = 'video' | 'audio' | 'premium' | 'age' | 'quality' | 'check';
+
 @Component({
   selector: 'app-filter-pill',
   standalone: true,
@@ -10,7 +12,8 @@ import { CommonModule } from '@angular/common';
 })
 export class FilterPillComponent {
   @Input() label: string = '';
-  @Input() icon?: string; // URL del icono SVG
+  @Input() iconType?: FilterIconType; // Tipo de icono SVG
+  @Input() icon?: string; // Deprecated: usar iconType en su lugar
   @Input() isActive: boolean = false;
   @Input() isPrimary: boolean = false; // Para pills de Video/Audio
   @Output() onClick = new EventEmitter<void>();

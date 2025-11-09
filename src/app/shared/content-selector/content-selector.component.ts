@@ -154,6 +154,7 @@ export class ContentSelectorComponent implements OnInit {
   @Input() showSelectedCount = false;
   @Input() initialType: ContentType = 'VIDEO';
   @Input() preselectedIds: string[] = [];
+  @Input() isPrivateMode = false; // Nuevo input para modo privado
 
   @Output() selectedChange = new EventEmitter<SuggestedContent[]>();
   @Output() typeChange = new EventEmitter<ContentType>();
@@ -181,7 +182,12 @@ export class ContentSelectorComponent implements OnInit {
     this.selectedContentType = this.initialType;
     this.isLoadingContent = true;
 
-    this.publicListService.getAvailableContent().subscribe({
+    // Usar el endpoint apropiado según el modo
+    const observable = this.isPrivateMode 
+      ? this.publicListService.getAvailableContentForUser()
+      : this.publicListService.getAvailableContent();
+
+    observable.subscribe({
       next: (contenidos: any[]) => {
         this.allContent = contenidos.map(c => this.mapContenidoToSuggestedContent(c));
         this.isLoadingContent = false;
