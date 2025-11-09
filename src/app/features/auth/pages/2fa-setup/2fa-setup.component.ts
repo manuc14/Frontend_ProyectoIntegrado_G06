@@ -19,7 +19,6 @@ import { BackButtonComponent } from '../../../../shared/components/back-button/b
 export class TwoFactorSetupComponent extends CodeInputBase implements OnInit {
   @Input() setupResponse: any = null;
   @Input() sessionToken: string = '';
-
   @Output() setupCompleted = new EventEmitter<any>();
   @Output() setupError = new EventEmitter<string>();
 
@@ -34,7 +33,6 @@ export class TwoFactorSetupComponent extends CodeInputBase implements OnInit {
   backupCodesCopied = signal<boolean>(false);
   qrScanned = signal<boolean>(false);
   codesAcknowledged = signal<boolean>(false);
-  
   isVerifying = signal<boolean>(false);
   hasError = signal<boolean>(false);
   errorMessage = signal<string>('');
@@ -66,53 +64,42 @@ export class TwoFactorSetupComponent extends CodeInputBase implements OnInit {
 
   verifyAndEnable(): void {
     const code = this.useBackupCode() ? this.backupCodeInput() : this.code;
-    const isValid = this.useBackupCode() ? /^\d{8}$/.test(this.backupCodeInput()) : this.code.length === 6;
-    
-    if (!isValid) return;
-
-    this.isVerifying.set(true);
-    this.hasError.set(false);
-    this.buttonState = 'pressed';
-
+    if (!this.useBackupCode() && this.code.length !== 6) return;
+    if (this.useBackupCode() && !/^\d{8}$/.test(this.backupCodeInput())) return;
     const sessionTokenToUse = sessionStorage.getItem('twoFactorSessionToken');
-    
     if (!sessionTokenToUse) {
       this.hasError.set(true);
-      this.isVerifying.set(false);
       this.errorMessage.set('Sesión expirada. Inicia sesión nuevamente.');
       setTimeout(() => window.location.href = '/login', 2000);
       return;
     }
-
+    this.isVerifying.set(true);
+    this.hasError.set(false);
+    this.buttonState = 'pressed';
     this.mfaService.verifyFactor(sessionTokenToUse, 'TOTP', code, null).subscribe({
       next: (response) => {
         this.isVerifying.set(false);
         this.buttonState = 'normal';
-        
         if (response.state === 'COMPLETED' || response.state === 'REQUIRES_FACTOR') {
           this.setupCompleted.emit(response);
         } else {
           this.hasError.set(true);
           this.errorMessage.set(response.message || 'Código incorrecto');
           this.clearCodeInputs();
-          this.shakeForm = true;
-          setTimeout(() => this.shakeForm = false, 500);
+          this.triggerShakeError();
         }
       },
       error: (error) => {
         this.isVerifying.set(false);
         this.buttonState = 'normal';
-        
         const mfaError = this.mfaService.mapErrorToMFAError(error);
-        
         if (mfaError.type === 'EXPIRED_SESSION') {
           this.authService.emitSessionExpired();
         } else {
           this.hasError.set(true);
           this.errorMessage.set(mfaError.message);
           this.clearCodeInputs();
-          this.shakeForm = true;
-          setTimeout(() => this.shakeForm = false, 500);
+          this.triggerShakeError();
         }
       }
     });
@@ -128,18 +115,15 @@ export class TwoFactorSetupComponent extends CodeInputBase implements OnInit {
   onBackupInput(index: number, event: Event): void {
     const input = event.target as HTMLInputElement;
     const value = input.value.replace(/\D/g, '');
-    
     if (value) {
       input.value = value;
       const current = this.backupCodeInput();
       this.backupCodeInput.set(current.substring(0, index) + value + current.substring(index + 1));
-      
       if (index < 7 && value.length === 1) {
         const inputs = this.backupInputsElements.toArray();
         inputs[index + 1]?.nativeElement.focus();
       }
     }
-    
     if (this.hasError()) this.hasError.set(false);
   }
 
@@ -153,12 +137,9 @@ export class TwoFactorSetupComponent extends CodeInputBase implements OnInit {
     event.preventDefault();
     const paste = event.clipboardData?.getData('text').replace(/\D/g, '').slice(0, 8);
     if (!paste) return;
-    
     this.backupCodeInput.set(paste);
     const inputs = this.backupInputsElements.toArray();
-    paste.split('').forEach((char, i) => {
-      if (inputs[i]) inputs[i].nativeElement.value = char;
-    });
+    paste.split('').forEach((char, i) => { if (inputs[i]) inputs[i].nativeElement.value = char; });
   }
 
   onBackupInputFocus(index: number): void { this.focusedInput = index; }

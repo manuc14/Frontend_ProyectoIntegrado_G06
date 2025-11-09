@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { MFASetupRequest, MFASetupResponse, MFAVerifyFactorResponse, ThirdFactorStatusResponse, ThirdFactorToggleResponse, FactorType, MFAError, MFAErrorType } from '../models/mfa.models';
+import { MFASetupResponse, MFAVerifyFactorResponse, ThirdFactorStatusResponse, ThirdFactorToggleResponse, FactorType, MFAError, MFAErrorType } from '../models/mfa.models';
 
 @Injectable({ providedIn: 'root' })
 export class MFAService {
@@ -20,14 +20,6 @@ export class MFAService {
     if (factorType === 'EMAIL_CODE' && verificationToken) request.verificationToken = verificationToken;
     return this.http.post<MFAVerifyFactorResponse>(`${this.MFA_BASE_URL}/verify-factor`, request)
       .pipe(catchError(error => this.handleMFAError(error, 'verifyFactor')));
-  }
-
-  verifyTOTP(sessionToken: string, code: string): Observable<MFAVerifyFactorResponse> {
-    return this.verifyFactor(sessionToken, 'TOTP', code);
-  }
-
-  verifyEmailCode(sessionToken: string, code: string, verificationToken: string): Observable<MFAVerifyFactorResponse> {
-    return this.verifyFactor(sessionToken, 'EMAIL_CODE', code, verificationToken);
   }
 
   resendEmailCode(verificationToken: string, sessionToken: string): Observable<any> {

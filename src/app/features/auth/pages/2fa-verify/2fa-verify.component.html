@@ -20,7 +20,10 @@
         <p class="section-description">Hemos enviado un código de 6 dígitos a <strong>{{ email }}</strong>. Introdúcelo a continuación.</p>
       </div>
 
-      <div *ngIf="hasError()" class="error-message" [@shakeError]="shakeForm">
+      <div *ngIf="errorMessage()" 
+           [class.error-message]="hasError()" 
+           [class.success-message]="!hasError()" 
+           [@shakeError]="shakeForm">
         {{ errorMessage() }}
       </div>
 
@@ -82,7 +85,10 @@
         <p class="section-description">Escribe el código de 6 dígitos de tu app de autenticación</p>
       </div>
 
-      <div *ngIf="hasError()" class="error-message" [@shakeError]="shakeForm">
+      <div *ngIf="errorMessage()" 
+           [class.error-message]="hasError()" 
+           [class.success-message]="!hasError()" 
+           [@shakeError]="shakeForm">
         {{ errorMessage() }}
       </div>
 
@@ -126,22 +132,25 @@
       </div>
 
       <!-- Separator y toggle -->
-      <div class="toggle-separator"></div>
+      <div class="toggle-separator" *ngIf="nextFactor !== 'EMAIL_CODE'"></div>
       
-      <div class="toggle-link-section">
+      <div class="toggle-link-section" *ngIf="nextFactor !== 'EMAIL_CODE'">
         <span class="toggle-text">¿No tienes acceso a tu autenticador?</span>
         <a class="toggle-link" (click)="toggleBackupCode()" [class.disabled]="isVerifying()">Usar código de respaldo</a>
       </div>
     </div>
 
     <!-- Sección Código de Respaldo -->
-    <div class="verify-section" [class.hidden]="!useBackupCode()">
+    <div class="verify-section" [class.hidden]="!useBackupCode() || nextFactor === 'EMAIL_CODE'">
       <div class="verify-header">
         <h2 class="section-title">Introduce el código de respaldo</h2>
         <p class="section-description">Escribe el código de 8 digitos que guardaste durante la configuración</p>
       </div>
 
-      <div *ngIf="hasError()" class="error-message" [@shakeError]="shakeForm">
+      <div *ngIf="errorMessage()" 
+           [class.error-message]="hasError()" 
+           [class.success-message]="!hasError()" 
+           [@shakeError]="shakeForm">
         {{ errorMessage() }}
       </div>
 
@@ -197,9 +206,9 @@
       </div>
 
       <!-- Separator y toggle -->
-      <div class="toggle-separator"></div>
+      <div class="toggle-separator" *ngIf="nextFactor !== 'EMAIL_CODE'"></div>
       
-      <div class="toggle-link-section">
+      <div class="toggle-link-section" *ngIf="nextFactor !== 'EMAIL_CODE'">
         <span class="toggle-text">¿Tienes acceso a tu autenticador?</span>
         <a class="toggle-link" (click)="toggleBackupCode()" [class.disabled]="isVerifying()">Usar código de autenticador</a>
       </div>

@@ -139,6 +139,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   onEmailFocus(focused: boolean): void { this.emailFocused = focused; }
   onPasswordFocus(focused: boolean): void { this.passwordFocused = focused; }
   getInputFocusState(field: 'email' | 'password'): string {
-    return (field === 'email' ? this.emailFocused : this.passwordFocused) ? 'focused' : 'normal';
+    const isFocused = field === 'email' ? this.emailFocused : this.passwordFocused;
+    return isFocused ? 'focused' : 'normal';
   }
 }

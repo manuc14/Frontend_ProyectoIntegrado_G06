@@ -50,7 +50,7 @@ export class AuthService {
       sessionStorage.setItem('tokenExpiry', expiryTime.toString());
       this.startTokenExpiryTimer(expiryTime);
     } catch (error) {
-      console.error('❌ [AuthService] Error decodificando token JWT:', error);
+      // Error decodificando token JWT
     }
   }
 
@@ -69,7 +69,6 @@ export class AuthService {
     try {
       return JSON.parse(configData);
     } catch (error) {
-      console.error('❌ [AuthService] Error parseando sessionConfig:', error);
       return null;
     }
   }
@@ -117,7 +116,6 @@ export class AuthService {
       try {
         return JSON.parse(userData) as CurrentUser;
       } catch (error) {
-        console.error('❌ [AuthService] Error parsing userData', error);
         sessionStorage.removeItem('currentUser');
         return null;
       }
@@ -140,31 +138,8 @@ export class AuthService {
     return null;
   }
 
-  private mapBackendTypeToRole(tipo: string): UserRole {
-    if (!tipo) return 'user';
-    const tipoLower = tipo.toLowerCase();
-    if (tipoLower.includes('admin')) return 'admin';
-    if (tipoLower.includes('creador') || tipoLower.includes('creator')) return 'creator';
-    return 'user';
-  }
-
   isAuthenticated(): boolean {
     return !!this.getToken() && !!this.getCurrentUser();
-  }
-
-  getCurrentUserFromBackend(): Observable<CurrentUser> {
-    return this.http.get<CurrentUser>(`${environment.baseApiUrl}/auth/me`).pipe(
-      tap((user: CurrentUser) => {
-        if (user.tipo && !user.rol) {
-          user.rol = this.normalizeRole(user.tipo) || 'user';
-        }
-        return user;
-      }),
-      catchError((error) => {
-        console.error('❌ [AuthService] Error obteniendo datos del usuario:', error);
-        return throwError(() => error);
-      })
-    );
   }
 
   private decodeJWT(): any {
@@ -175,7 +150,6 @@ export class AuthService {
       if (parts.length !== 3) throw new Error('JWT inválido: debe tener 3 partes');
       return JSON.parse(atob(parts[1]));
     } catch (error) {
-      console.error('❌ [AuthService] decodeJWT: Error al decodificar token:', error);
       return null;
     }
   }
@@ -213,9 +187,7 @@ export class AuthService {
     localStorage.removeItem('refreshToken');
     
     if (refreshToken && !skipBackendInvalidation) {
-      this.http.post(`${environment.baseApiUrl}/auth/logout`, { refreshToken }).subscribe({
-        error: (error) => console.error('❌ [AuthService] Error al invalidar refresh token:', error)
-      });
+      this.http.post(`${environment.baseApiUrl}/auth/logout`, { refreshToken }).subscribe();
     }
     
     if (redirect) this.router.navigate(['/']);
@@ -227,10 +199,7 @@ export class AuthService {
 
   startIdleTimer(): void {
     const sessionConfig = this.getSessionConfig();
-    if (!sessionConfig?.idleTimeout) {
-      console.error('❌ [AuthService] No se encontró configuración de Idle Timeout del backend');
-      return;
-    }
+    if (!sessionConfig?.idleTimeout) return;
 
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = setTimeout(() => {
@@ -245,10 +214,7 @@ export class AuthService {
 
   startAbsoluteTimer(): void {
     const sessionConfig = this.getSessionConfig();
-    if (!sessionConfig?.absoluteTimeout) {
-      console.error('❌ [AuthService] No se encontró configuración de Absolute Timeout del backend');
-      return;
-    }
+    if (!sessionConfig?.absoluteTimeout) return;
 
     if (this.absoluteTimer) clearTimeout(this.absoluteTimer);
     this.absoluteTimer = setTimeout(() => {

@@ -31,10 +31,6 @@ import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.pa
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
 import { ResetPasswordCodePage } from './features/auth/pages/reset-password-code/reset-password-code.page';
 import { NewPasswordPage } from './features/auth/pages/new-password/new-password.page';
-
-// Autenticación en dos pasos (2FA)
-import { QrCodeSetupPage } from './features/auth/pages/qr-code-setup/qr-code-setup.page';
-import { VerifyOtpPage } from './features/auth/pages/verify-otp/verify-otp.page';
 import { TwoFactorContainerComponent } from './features/auth/pages/2fa-container/2fa-container.component';
 
 export const routes: Routes = [
@@ -47,18 +43,16 @@ export const routes: Routes = [
 	{ path: 'auth/verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
 	{ path: 'auth/verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
 	
-	// ===== Segundo Factor (2FA - Login) =====
+	// ===== Segundo Factor (2FA - Login y Setup) =====
 	{ path: 'auth/2fa', component: TwoFactorContainerComponent, canActivate: [publicGuard] },
-	
-	// ===== Tercer Factor (3FA - Setup inicial en registro) =====
-	{ path: 'auth/2fa/setup', component: QrCodeSetupPage, canActivate: [publicGuard] },
-	{ path: 'auth/2fa/verify-otp', component: VerifyOtpPage, canActivate: [publicGuard] },
 	
 	// ===== Redirects para compatibilidad (rutas legacy) =====
 	{ path: 'verify-email', redirectTo: 'auth/verify-email', pathMatch: 'full' },
 	{ path: 'verify-code', redirectTo: 'auth/verify-code', pathMatch: 'full' },
-	{ path: 'qr-code-setup', redirectTo: 'auth/2fa/setup', pathMatch: 'full' },
-	{ path: 'verify-otp', redirectTo: 'auth/2fa/verify-otp', pathMatch: 'full' },
+	{ path: 'qr-code-setup', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'verify-otp', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'auth/2fa/setup', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'auth/2fa/verify-otp', redirectTo: 'auth/2fa', pathMatch: 'full' },
 
 	// Rutas de Admin (protegidas)
 	{ path: 'ad-users', component: AdminUsersPage, canActivate: [authGuard] },

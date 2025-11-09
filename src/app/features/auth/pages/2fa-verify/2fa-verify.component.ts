@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { CodeInputBase } from '../../../../core/base/code-input.base';
 import { AuthService } from '../../../../core/services/auth.service';
 import { MFAService } from '../../../../core/services/mfa.service';
+import { FactorType } from '../../../../core/models/mfa.models';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
 import { ActionButtonComponent } from '../../../../shared/components/action-button/action-button.component';
 
@@ -54,7 +55,14 @@ export class TwoFactorVerifyComponent extends CodeInputBase {
     this.hasError.set(false);
     this.buttonState = 'pressed';
 
-    const factorType = this.nextFactor === 'EMAIL_CODE' ? 'EMAIL_CODE' : this.useBackupCode() ? 'BACKUP_CODE' : 'TOTP';
+    let factorType: FactorType;
+    if (this.nextFactor === 'EMAIL_CODE') {
+      factorType = 'EMAIL_CODE';
+    } else if (this.useBackupCode()) {
+      factorType = 'BACKUP_CODE';
+    } else {
+      factorType = 'TOTP';
+    }
 
     this.mfaService.verifyFactor(this.sessionToken, factorType, code, this.nextFactor === 'EMAIL_CODE' ? this.verificationToken : null).subscribe({
       next: (res) => {
@@ -91,7 +99,8 @@ export class TwoFactorVerifyComponent extends CodeInputBase {
     this.mfaService.resendEmailCode(this.verificationToken, this.sessionToken).subscribe({
       next: () => {
         this.isVerifying.set(false);
-        this.errorMessage.set('✅ Código reenviado. Revisa tu email.');
+        this.hasError.set(false);
+        this.errorMessage.set(' Código reenviado. Revisa tu email.');
         this.clearCodeInputs();
         setTimeout(() => this.inputs.first?.nativeElement.focus(), 200);
       },
