@@ -11,10 +11,9 @@ import { Router } from '@angular/router';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   
-  // No interceptar errores para login, verify, y 2FA verify, dejar que los servicios/componentes lo manejen
+  // No interceptar errores para login y verify, dejar que los servicios/componentes lo manejen
   if (req.url.includes('/auth/login') || 
-      req.url.includes('/auth/verify') || 
-      req.url.includes('/api/auth/2fa/verify')) {
+      req.url.includes('/auth/verify')) {
     return next(req);
   }
 

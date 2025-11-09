@@ -8,7 +8,7 @@
   </div>
 
   <!-- Pantalla de error -->
-  <div *ngIf="errorMessage()" class="error-screen">
+  <div *ngIf="hasError()" class="error-screen">
     <div class="error-box">
       <h2>⚠️ Error</h2>
       <p>{{ errorMessage() }}</p>
@@ -17,11 +17,11 @@
   </div>
 
   <!-- Componentes dinámicos -->
-  <div *ngIf="!isLoading() && !errorMessage()">
+  <div *ngIf="!isLoading() && !hasError()">
     <!-- Flujo Setup (nuevo usuario sin 2FA) -->
-    <div *ngIf="isSetup()" style="width: 100%;">
+    <div *ngIf="isSetupFlow()" style="width: 100%;">
       <app-2fa-setup 
-        [setupResponse]="setupResponse()"
+        [setupResponse]="setupData()"
         [sessionToken]="sessionToken()"
         (setupCompleted)="onSetupCompleted($event)"
         (setupError)="onError($event)"
@@ -29,14 +29,15 @@
     </div>
 
     <!-- Flujo Verify (usuario existente con 2FA) -->
-    <div *ngIf="isVerify()" style="width: 100%;">
+    <div *ngIf="isVerifyFlow()" style="width: 100%;">
       <app-2fa-verify 
         [sessionToken]="sessionToken()"
         [email]="email()"
+        [verificationToken]="verificationToken()"
+        [nextFactor]="nextFactor()"
         (verifyCompleted)="onVerifyCompleted($event)"
         (verifyError)="onError($event)"
       ></app-2fa-verify>
     </div>
   </div>
 </div>
-

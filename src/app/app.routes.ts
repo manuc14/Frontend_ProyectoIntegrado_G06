@@ -43,12 +43,22 @@ export const routes: Routes = [
 	{ path: 'signup', component: RegisterComponent, canActivate: [publicGuard] },
 	{ path: 'login', component: LoginComponent, canActivate: [publicGuard] },
 	
-	// Rutas de verificación y 2FA (públicas)
-	{ path: 'qr-code-setup', component: QrCodeSetupPage, canActivate: [publicGuard] },
-	{ path: 'verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
-	{ path: 'verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
-	{ path: 'verify-otp', component: VerifyOtpPage, canActivate: [publicGuard] },
+	// ===== Verificación de Email (1FA) =====
+	{ path: 'auth/verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
+	{ path: 'auth/verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
+	
+	// ===== Segundo Factor (2FA - Login) =====
 	{ path: 'auth/2fa', component: TwoFactorContainerComponent, canActivate: [publicGuard] },
+	
+	// ===== Tercer Factor (3FA - Setup inicial en registro) =====
+	{ path: 'auth/2fa/setup', component: QrCodeSetupPage, canActivate: [publicGuard] },
+	{ path: 'auth/2fa/verify-otp', component: VerifyOtpPage, canActivate: [publicGuard] },
+	
+	// ===== Redirects para compatibilidad (rutas legacy) =====
+	{ path: 'verify-email', redirectTo: 'auth/verify-email', pathMatch: 'full' },
+	{ path: 'verify-code', redirectTo: 'auth/verify-code', pathMatch: 'full' },
+	{ path: 'qr-code-setup', redirectTo: 'auth/2fa/setup', pathMatch: 'full' },
+	{ path: 'verify-otp', redirectTo: 'auth/2fa/verify-otp', pathMatch: 'full' },
 
 	// Rutas de Admin (protegidas)
 	{ path: 'ad-users', component: AdminUsersPage, canActivate: [authGuard] },
@@ -71,8 +81,13 @@ export const routes: Routes = [
 	{ path: 'content/preview', component: ContentPreviewComponent, canActivate: [authGuard] },
 	{ path: 'player', component: MediaPlayerComponent, canActivate: [authGuard] },
 	
-	// Rutas de recuperación de contraseña (públicas)
-	{ path: 'forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
-	{ path: 'reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
-	{ path: 'new-password', component: NewPasswordPage, canActivate: [publicGuard] },
+	// ===== Recuperación de Contraseña =====
+	{ path: 'auth/forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
+	{ path: 'auth/reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
+	{ path: 'auth/new-password', component: NewPasswordPage, canActivate: [publicGuard] },
+	
+	// Redirects para rutas legacy de recuperación
+	{ path: 'forgot-password', redirectTo: 'auth/forgot-password', pathMatch: 'full' },
+	{ path: 'reset-password-code', redirectTo: 'auth/reset-password-code', pathMatch: 'full' },
+	{ path: 'new-password', redirectTo: 'auth/new-password', pathMatch: 'full' },
 ];

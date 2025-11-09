@@ -2,6 +2,7 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { isPublicAuthRoute } from '../constants/route-config.constants';
 
 /**
  * Interceptor para manejar errores 401 y renovar tokens automáticamente
@@ -15,22 +16,8 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401) {
         console.log('🔄 [TokenRefreshInterceptor] Error 401 detectado en:', req.url);
         
-        // Rutas que NO deben intentar renovar el token (rutas públicas de autenticación)
-        const publicAuthUrls = [
-          '/auth/login',
-          '/auth/register',
-          '/auth/verify-email',
-          '/auth/verify-code',
-          '/auth/forgot-password',
-          '/auth/reset-password',
-          '/auth/refresh',
-          '/auth/2fa/setup-during-login',      // 2FA setup para usuarios nuevos
-          '/auth/2fa/verify-and-enable',       // Verificación + habilitación de 2FA
-          '/api/auth/2fa/verify'               // Verificación de 2FA para usuarios existentes
-        ];
-
-        // Si es una ruta pública de autenticación, NO intentar renovar token
-        if (publicAuthUrls.some(url => req.url.includes(url))) {
+        // ✅ Usar helper centralizado para verificar rutas públicas
+        if (isPublicAuthRoute(req.url)) {
           console.log('⚠️ [TokenRefreshInterceptor] Ruta pública de autenticación - no renovar token');
           return throwError(() => error);
         }

@@ -1,5 +1,5 @@
 <div class="two-factor-setup-page">
-  <h1 class="page-title">Configurar Autenticación de Dos Factores</h1>
+  <h1 class="page-title">Configurar Autenticación de Doble Factor</h1>
   <p class="hint">Protege tu cuenta con una capa adicional de seguridad</p>
 
   <div class="card">
@@ -78,7 +78,7 @@
           [label]="'Continuar'"
           [variant]="'primary'"
           [size]="'large'"
-          [disabled]="!canProceedToStep2()"
+          [disabled]="!canProceedToStep2"
           (onClick)="proceedToVerification()"
         ></app-action-button>
       </div>
@@ -103,23 +103,23 @@
 
         <div class="code-inputs-container">
           <input #codeInput type="text" inputmode="numeric" maxlength="1"
-                 (input)="onCodeInput(0, $event)" (keydown)="onCodeKeyDown(0, $event)" (paste)="onCodePaste(0, $event)"
-                 (focus)="onCodeInputFocus(0)" />
+                 (input)="onInput(0, $event)" (keydown)="onKeyDown(0, $event)" (paste)="onPaste(0, $event)"
+                 (focus)="onInputFocus(0)" />
           <input #codeInput type="text" inputmode="numeric" maxlength="1"
-                 (input)="onCodeInput(1, $event)" (keydown)="onCodeKeyDown(1, $event)" (paste)="onCodePaste(1, $event)"
-                 (focus)="onCodeInputFocus(1)" />
+                 (input)="onInput(1, $event)" (keydown)="onKeyDown(1, $event)" (paste)="onPaste(1, $event)"
+                 (focus)="onInputFocus(1)" />
           <input #codeInput type="text" inputmode="numeric" maxlength="1"
-                 (input)="onCodeInput(2, $event)" (keydown)="onCodeKeyDown(2, $event)" (paste)="onCodePaste(2, $event)"
-                 (focus)="onCodeInputFocus(2)" />
+                 (input)="onInput(2, $event)" (keydown)="onKeyDown(2, $event)" (paste)="onPaste(2, $event)"
+                 (focus)="onInputFocus(2)" />
           <input #codeInput type="text" inputmode="numeric" maxlength="1"
-                 (input)="onCodeInput(3, $event)" (keydown)="onCodeKeyDown(3, $event)" (paste)="onCodePaste(3, $event)"
-                 (focus)="onCodeInputFocus(3)" />
+                 (input)="onInput(3, $event)" (keydown)="onKeyDown(3, $event)" (paste)="onPaste(3, $event)"
+                 (focus)="onInputFocus(3)" />
           <input #codeInput type="text" inputmode="numeric" maxlength="1"
-                 (input)="onCodeInput(4, $event)" (keydown)="onCodeKeyDown(4, $event)" (paste)="onCodePaste(4, $event)"
-                 (focus)="onCodeInputFocus(4)" />
+                 (input)="onInput(4, $event)" (keydown)="onKeyDown(4, $event)" (paste)="onPaste(4, $event)"
+                 (focus)="onInputFocus(4)" />
           <input #codeInput type="text" inputmode="numeric" maxlength="1"
-                 (input)="onCodeInput(5, $event)" (keydown)="onCodeKeyDown(5, $event)" (paste)="onCodePaste(5, $event)"
-                 (focus)="onCodeInputFocus(5)" />
+                 (input)="onInput(5, $event)" (keydown)="onKeyDown(5, $event)" (paste)="onPaste(5, $event)"
+                 (focus)="onInputFocus(5)" />
         </div>
 
         <div class="verify-actions">

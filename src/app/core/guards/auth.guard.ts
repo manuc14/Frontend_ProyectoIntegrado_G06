@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { isFlexibleAuthRoute } from '../constants/route-config.constants';
 
 /**
  * @fileoverview Guard funcional para proteger rutas que requieren autenticación
@@ -67,10 +68,8 @@ export const publicGuard: CanActivateFn = (route, state) => {
 
   console.log('🌐 [publicGuard] Verificando acceso a ruta pública:', state.url);
 
-  // Rutas que permiten acceso tanto a autenticados como no autenticados
-  // (flujo de verificación 2FA, OTP, etc)
-  const flexibleRoutes = ['/verify-otp', '/qr-code-setup', '/auth/2fa'];
-  const isFlexibleRoute = flexibleRoutes.some(route => state.url.startsWith(route));
+  // ✅ Usar helper centralizado para verificar rutas flexibles
+  const isFlexibleRoute = isFlexibleAuthRoute(state.url);
 
   // Si está autenticado Y NO está en una ruta flexible, redirigir según el rol
   if (authService.isAuthenticated() && !isFlexibleRoute) {

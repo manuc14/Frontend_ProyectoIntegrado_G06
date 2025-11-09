@@ -144,13 +144,13 @@ export class QrCodeSetupPage implements OnInit {
     
     // Navegar a verify-code con el token de verificación
     setTimeout(() => {
-      // Limpiar datos de 2FA setup antes de ir a verify-email
+      // Limpiar datos de 2FA setup antes de ir a verify-code
       sessionStorage.removeItem('qrCodeSetup_qrCode');
       sessionStorage.removeItem('qrCodeSetup_backupCodes');
       sessionStorage.removeItem('qrCodeSetup_qrScanned');
       sessionStorage.removeItem('qrCodeSetup_codesAcknowledged');
       
-      this.router.navigate(['/verify-code'], {
+      this.router.navigate(['/auth/verify-code'], {
         queryParams: {
           token: this.token(),
           email: this.email()

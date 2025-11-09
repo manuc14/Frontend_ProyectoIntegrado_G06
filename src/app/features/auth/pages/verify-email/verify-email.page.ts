@@ -37,7 +37,7 @@ export class VerifyEmailPage {
     
     if (token) {
       // Con token: Ir a verify-code manteniendo el token en sessionStorage
-      this.router.navigate(['/verify-code']);
+      this.router.navigate(['/auth/verify-code']);
     } else {
       // Sin token: Ir a signup para reiniciar el flujo
       this.router.navigate(['/signup']);
