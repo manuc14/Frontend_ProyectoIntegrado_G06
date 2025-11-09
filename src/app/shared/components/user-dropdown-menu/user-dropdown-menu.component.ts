@@ -73,7 +73,11 @@ export class UserDropdownMenuComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onClickOutside(event: MouseEvent) {
     const isOutside = !(event.target as HTMLElement).closest('.user-dropdown-container');
-    if (isOutside) this.isDropdownOpen = false;
+
+    // Early return if click is inside dropdown
+    if (!isOutside) return;
+
+    this.isDropdownOpen = false;
   }
 
   executeMenuAction(option: MenuOption) {

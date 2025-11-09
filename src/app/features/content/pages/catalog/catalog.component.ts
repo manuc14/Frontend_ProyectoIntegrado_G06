@@ -10,6 +10,7 @@ import { ListActionButtonsComponent } from '../../../../shared/components/list-a
 import { PublicListService, ListaPublicaResponse } from '../../../../core/services/public-list.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Contenido, ResolucionVideo } from '../../../../core/models/contenido.models';
+import { allConditionsTrue } from '../../../../core/utils/validation.helpers';
 
 type SeccionActiva = 'VIDEO' | 'AUDIO';
 type EdadPermitida = 0 | 7 | 13 | 18;
@@ -76,13 +77,13 @@ export class CatalogComponent implements OnInit {
   }
 
   private cumpleFiltros(item: Contenido): boolean {
-    return [
+    return allConditionsTrue([
       item.tipo === this.seccionActiva,
       this.isCreatorView || item.restriccionEdad <= this.edadUsuario,
       this.filtroEdad === null || item.restriccionEdad === this.filtroEdad,
       !this.filtroPremium || item.contenidoVip,
       this.seccionActiva !== 'VIDEO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad
-    ].every(Boolean);
+    ]);
   }
 
   private seleccionarContenidoDestacado(): void {
@@ -143,7 +144,16 @@ export class CatalogComponent implements OnInit {
 
   onDeleteList(listId: string): void {
     const lista = this.listasPublicas.find(l => l.id === listId);
-    lista && confirm(`¿Estás seguro de que quieres eliminar la lista "${lista.nombre}"?\n\nEsta acción no se puede deshacer.`) && this.publicListService.deleteList(listId).subscribe({
+
+    // Early return if list not found
+    if (!lista) return;
+
+    // Early return if user cancels
+    if (!confirm(`¿Estás seguro de que quieres eliminar la lista "${lista.nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    this.publicListService.deleteList(listId).subscribe({
       next: () => {
         alert(`Lista "${lista.nombre}" eliminada correctamente.`);
         this.cargarListasPublicas();

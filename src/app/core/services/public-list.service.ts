@@ -175,29 +175,6 @@ export class PublicListService {
     );
   }
 
-  getAddCandidates(id: string): Observable<any[]> {
-    console.log('🌐 Obteniendo candidatos para lista:', id);
-    return this.http.get<any[]>(`${this.creatorApiUrl}/agregar/${id}`, {
-      headers: this.getAuthHeaders()
-    }).pipe(
-      tap(contenidos => console.log('✅ Candidatos obtenidos:', contenidos.length, 'elementos')),
-      catchError(this.handleError('obtener candidatos'))
-    );
-  }
-
-  addContentsToList(id: string, contenidos: any[]): Observable<Contenido[]> {
-    console.log('🌐 Añadiendo contenidos a lista:', id, contenidos);
-    return this.http.patch<any[]>(`${this.creatorApiUrl}/agregar-contenidos/${id}`, contenidos, {
-      headers: this.getAuthHeaders()
-    }).pipe(
-      map(response => {
-        console.log('✅ Contenidos añadidos exitosamente:', response);
-        return Array.isArray(response) ? response.map(item => this.mapBackendToContenido(item)) : [];
-      }),
-      catchError(this.handleError('añadir contenidos'))
-    );
-  }
-
   private processPublicLists(listas: ListaPublicaResponse[]): ListaPublicaResponse[] {
     console.log('✅ Listas públicas obtenidas:', listas);
     return listas

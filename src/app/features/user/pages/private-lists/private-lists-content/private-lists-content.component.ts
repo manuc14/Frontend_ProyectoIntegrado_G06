@@ -8,6 +8,7 @@ import { ListActionButtonsComponent } from '../../../../../shared/components/lis
 import { PublicListService, ListaPublicaResponse } from '../../../../../core/services/public-list.service';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { Contenido, ResolucionVideo } from '../../../../../core/models/contenido.models';
+import { allConditionsTrue } from '../../../../../core/utils/validation.helpers';
 
 type SeccionActiva = 'VIDEO' | 'AUDIO';
 type EdadPermitida = 0 | 7 | 13 | 18;
@@ -75,13 +76,13 @@ export class PrivateListsContentComponent implements OnInit {
   }
 
   private cumpleFiltros(item: Contenido): boolean {
-    return [
+    return allConditionsTrue([
       item.tipo === this.seccionActiva,
       item.restriccionEdad <= this.edadUsuario,
       this.filtroEdad === null || item.restriccionEdad === this.filtroEdad,
       !this.filtroPremium || item.contenidoVip,
       this.seccionActiva !== 'VIDEO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad
-    ].every(Boolean);
+    ]);
   }
 
   private seleccionarContenidoDestacado(): void {
@@ -119,16 +120,19 @@ export class PrivateListsContentComponent implements OnInit {
   }
 
   onEliminarLista(id: string): void {
-    if (confirm('¿Estás seguro de que deseas eliminar esta lista?')) {
-      this.publicListService.deletePrivateList(id).subscribe({
-        next: () => {
-          this.cargarListasPrivadas();
-        },
-        error: () => {
-          alert('Error al eliminar la lista. Inténtalo de nuevo.');
-        }
-      });
+    // Early return if user cancels
+    if (!confirm('¿Estás seguro de que deseas eliminar esta lista?')) {
+      return;
     }
+
+    this.publicListService.deletePrivateList(id).subscribe({
+      next: () => {
+        this.cargarListasPrivadas();
+      },
+      error: () => {
+        alert('Error al eliminar la lista. Inténtalo de nuevo.');
+      }
+    });
   }
 
   crearLista(): void {

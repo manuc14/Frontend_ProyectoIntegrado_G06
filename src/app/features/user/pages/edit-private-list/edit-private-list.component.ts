@@ -10,6 +10,7 @@ import { ErrorContainerComponent } from '../../../../shared/error-container/erro
 import { PublicListService, ListaPublicaResponse } from '../../../../core/services/public-list.service';
 import { ContentSelectorComponent, SuggestedContent } from '../../../../shared/content-selector/content-selector.component';
 import { handleListSubmit } from '../../../../shared/utils/list-init.util';
+import { checkAuthenticationOrRedirect, executeObservableOperation, navigateWithUnsavedCheck } from '../../../../core/utils/observable.helpers';
 
 export interface PrivateListForm {
   nombre: string;
@@ -47,11 +48,7 @@ export class EditPrivateListComponent implements OnInit, OnDestroy {
   preselectedIds: string[] = [];
 
   ngOnInit(): void {
-    const storedToken = sessionStorage.getItem('authToken');
-    if (!storedToken) {
-      this.router.navigate(['/login']);
-      return;
-    }
+    if (!checkAuthenticationOrRedirect(this.router)) return;
 
     this.listId = sessionStorage.getItem('editPrivateListId') ?? '';
     if (!this.listId) {
@@ -115,31 +112,28 @@ export class EditPrivateListComponent implements OnInit, OnDestroy {
       this.formId
     );
 
-    if (request) {
-      this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
-      this.publicListService.updatePrivateList(this.listId, request).subscribe({
-        next: () => {
-          this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
-          this.router.navigate(['/my-lists']);
-        },
-        error: (error) => {
-          this.formBaseService.updateFormState(this.formId, {
-            error: error.message || 'Error al actualizar la lista privada. Inténtalo de nuevo.',
-            isSubmitting: false
-          });
-        }
-      });
-    }
+    if (!request) return;
+
+    executeObservableOperation(
+      this.publicListService.updatePrivateList(this.listId, request),
+      {
+        formId: this.formId,
+        formService: this.formBaseService,
+        successRoute: '/my-lists',
+        router: this.router,
+        defaultErrorMessage: 'Error al actualizar la lista privada. Inténtalo de nuevo.'
+      }
+    );
   }
 
   goBack(): void {
-    if (this.listForm.dirty || this.hasContentChanged()) {
-      if (confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.')) {
-        this.router.navigate(['/my-lists']);
+    navigateWithUnsavedCheck(
+      () => this.listForm.dirty || this.hasContentChanged(),
+      {
+        targetRoute: '/my-lists',
+        router: this.router
       }
-    } else {
-      this.router.navigate(['/my-lists']);
-    }
+    );
   }
 
   private hasContentChanged(): boolean {

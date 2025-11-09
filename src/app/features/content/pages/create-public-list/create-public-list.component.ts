@@ -11,6 +11,7 @@ import { ErrorContainerComponent } from '../../../../shared/error-container/erro
 import { PublicListService } from '../../../../core/services/public-list.service';
 import { ContentSelectorComponent, SuggestedContent } from '../../../../shared/content-selector/content-selector.component';
 import { handleListSubmit } from '../../../../shared/utils/list-init.util';
+import { checkAuthenticationOrRedirect, executeObservableOperation, navigateWithUnsavedCheck } from '../../../../core/utils/observable.helpers';
 
 export interface PublicListForm {
   nombre: string;
@@ -43,11 +44,8 @@ export class CreatePublicListComponent implements OnInit, OnDestroy {
   selectedContentType: 'VIDEO' | 'AUDIO' = 'VIDEO';
   isVisible: boolean = true;
   ngOnInit(): void {
-    const storedToken = sessionStorage.getItem('authToken');
-    if (!storedToken) {
-      this.router.navigate(['/login']);
-      return;
-    }
+    if (!checkAuthenticationOrRedirect(this.router)) return;
+
     this.formBaseService.createFormState(this.formId, {});
     this.formBaseService.getFormState(this.formId)?.subscribe(state => {
       this.currentFormState = state;
@@ -57,20 +55,25 @@ export class CreatePublicListComponent implements OnInit, OnDestroy {
       descripcion: ''
     });
   }
+
   ngOnDestroy(): void {
     if (this.formId) {
       this.formBaseService.destroyFormState(this.formId);
     }
   }
+
   onVisibilityChange(visible: boolean): void {
     this.isVisible = visible;
   }
+
   onContentTypeChange(type: 'VIDEO' | 'AUDIO'): void {
     this.selectedContentType = type;
   }
+
   onSelectedChange(selected: SuggestedContent[]): void {
     this.addedContent = selected;
   }
+
   onSubmit(): void {
     const request = handleListSubmit(
       this.listForm,
@@ -80,29 +83,28 @@ export class CreatePublicListComponent implements OnInit, OnDestroy {
       this.formBaseService,
       this.formId
     );
-    if (request) {
-      this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
-      this.publicListService.createPublicList(request).subscribe({
-        next: () => {
-          this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
-          this.router.navigate(['/content-creator']);
-        },
-        error: (error) => {
-          this.formBaseService.updateFormState(this.formId, {
-            error: error.message || 'Error al crear la lista. Inténtalo de nuevo.',
-            isSubmitting: false
-          });
-        }
-      });
-    }
-  }
-  goBack(): void {
-    if (this.listForm.dirty || this.addedContent.length > 0) {
-      if (confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.')) {
-        this.router.navigate(['/content-creator']);
+
+    if (!request) return;
+
+    executeObservableOperation(
+      this.publicListService.createPublicList(request),
+      {
+        formId: this.formId,
+        formService: this.formBaseService,
+        successRoute: '/content-creator',
+        router: this.router,
+        defaultErrorMessage: 'Error al crear la lista. Inténtalo de nuevo.'
       }
-    } else {
-      this.router.navigate(['/content-creator']);
-    }
+    );
+  }
+
+  goBack(): void {
+    navigateWithUnsavedCheck(
+      this.listForm.dirty || this.addedContent.length > 0,
+      {
+        targetRoute: '/content-creator',
+        router: this.router
+      }
+    );
   }
 }

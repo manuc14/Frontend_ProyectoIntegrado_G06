@@ -12,6 +12,7 @@ import { finalize } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
 import { FormSubmitComponent } from '../../../../shared/form-components/form-submit/form-submit.component';
+import { isEmpty } from '../../../../core/utils/validation.helpers';
 
 interface LoginForm {
   email: FormControl<string>;
@@ -145,6 +146,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   /* Maneja la respuesta exitosa del login con lógica específica de navegación. */
   private handleSuccessResponse(res: HttpResponse<LoginResponse>): void {
     const body = res.body;
+    
+    // Early return si hay errores de validación
     if (!body || body?.validationErrorCount > 0) {
       this.formBaseService.updateFormState('login', {
         error: body?.message ?? 'Respuesta inválida del servidor',
@@ -156,45 +159,57 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Login exitoso - limpiar errores
     this.formBaseService.resetFormState('login');
 
-    // Guardar Access Token en sessionStorage
-    if (body.token) {
+    // Guardar tokens y usuario
+    this.saveAuthData(body);
+
+    // Iniciar temporizadores de sesión
+    console.log('🚀 [LoginComponent] Iniciando temporizadores de sesión...');
+    this.authService.startSessionTimers();
+
+    // Navegar a la ruta correspondiente
+    const target = this.getRedirectRoute(body.user?.tipo || '');
+    console.log(`🔄 [LoginComponent] Redirigiendo a: ${target}`);
+    setTimeout(() => this.router.navigate([target]), 1000);
+  }
+
+  /**
+   * Guarda los datos de autenticación (tokens y usuario)
+   */
+  private saveAuthData(body: LoginResponse): void {
+    // Guardar Access Token
+    if (!isEmpty(body.token)) {
       sessionStorage.setItem('authToken', body.token);
       console.log('✅ [LoginComponent] Access Token guardado');
     }
 
-    // Guardar Refresh Token en localStorage (persistencia entre pestañas)
-    if (body.refreshToken) {
+    // Guardar Refresh Token
+    if (!isEmpty(body.refreshToken)) {
       localStorage.setItem('refreshToken', body.refreshToken);
       console.log('✅ [LoginComponent] Refresh Token guardado');
     }
 
-    // Guardar usuario en sessionStorage
-    // IMPORTANTE: El backend debe enviar edad y esVip en body.user
-    // Ejemplo: { id, nombre, email, tipo, edad: 25, esVip: true }
+    // Guardar usuario
     if (body.user) {
       sessionStorage.setItem('currentUser', JSON.stringify(body.user));
       console.log('✅ [LoginComponent] Usuario guardado:', body.user);
       console.log('👤 Edad del usuario:', body.user.edad);
       console.log('💎 Usuario VIP:', body.user.esVip);
     }
+  }
 
-    // INICIAR TEMPORIZADORES DE SESIÓN
-    console.log('🚀 [LoginComponent] Iniciando temporizadores de sesión...');
-    this.authService.startSessionTimers();
-
-    // Determinar ruta de redirección según tipo de usuario
-    const tipo = body.user?.tipo || '';
-    let target = '/catalog';
-    if (/admin/i.test(tipo)) {
-      target = '/ad-users';
-    } else if (/creador/i.test(tipo)) {
-      target = '/content-creator';
+  /**
+   * Determina la ruta de redirección según el tipo de usuario
+   */
+  private getRedirectRoute(userType: string): string {
+    if (/admin/i.test(userType)) {
+      return '/ad-users';
     }
-
-    console.log(`🔄 [LoginComponent] Redirigiendo a: ${target}`);
-
-    // Redirigir después de un breve delay
-    setTimeout(() => this.router.navigate([target]), 1000);
+    
+    if (/creador/i.test(userType)) {
+      return '/content-creator';
+    }
+    
+    return '/catalog';
   }
 
   /* Maneja errores del login usando el servicio genérico. */

@@ -188,16 +188,16 @@ export class MediaPlayerComponent implements OnInit {
     if (!this.contenido?.ficheroUrl) return 'native';
     
     const url = this.contenido.ficheroUrl.toLowerCase();
-    const patterns = [
-      { type: 'youtube' as const, test: (u: string) => u.includes('youtube.com') || u.includes('youtu.be') },
-      { type: 'vimeo' as const, test: (u: string) => u.includes('vimeo.com') },
-      { type: 'dailymotion' as const, test: (u: string) => u.includes('dailymotion.com') },
-      { type: 'twitch' as const, test: (u: string) => u.includes('twitch.tv') },
-      { type: 'soundcloud' as const, test: (u: string) => u.includes('soundcloud.com') },
-      { type: 'spotify' as const, test: (u: string) => u.includes('spotify.com') }
-    ];
-    
-    return patterns.find(p => p.test(url))?.type ?? 'native';
+
+    // Early returns for each platform
+    if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+    if (url.includes('vimeo.com')) return 'vimeo';
+    if (url.includes('dailymotion.com')) return 'dailymotion';
+    if (url.includes('twitch.tv')) return 'twitch';
+    if (url.includes('soundcloud.com')) return 'soundcloud';
+    if (url.includes('spotify.com')) return 'spotify';
+
+    return 'native';
   }
 
   get isNativePlayer(): boolean {

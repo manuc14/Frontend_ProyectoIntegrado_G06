@@ -19,6 +19,7 @@ import { Subscription, Observable } from 'rxjs';
 import { matchPasswordsValidator, MIN_BIRTH_YEAR } from '../../../../core/validators/form.validators';
 import { FORM_LIMITS } from '../../../../core/constants/form-limits';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
+import { allConditionsTrue, isEmpty } from '../../../../core/utils/validation.helpers';
 
 /*
  * Interfaz tipada para el formulario de registro
@@ -251,20 +252,23 @@ export class RegisterComponent implements OnInit, OnDestroy {
     const body: unknown = res.body || {};
     const verificationToken = (body as any)?.verificationToken;
 
-    if (res.status !== 201 && res.status !== 200) {
+    // Early return si el status no es exitoso
+    if (!allConditionsTrue([res.status === 201, res.status === 200])) {
       this.formBaseService.updateFormState('register', { error: 'No se pudo crear la cuenta.' });
       return;
     }
 
-    console.log('Registro OK', body);
-    this.formBaseService.resetFormState('register');
-
-    if (verificationToken) {
-      this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
-    } else {
+    // Early return si no hay verification token
+    if (isEmpty(verificationToken)) {
       console.error('No se recibió verificationToken del backend');
       this.formBaseService.updateFormState('register', { error: 'Error en el proceso de registro. Intenta nuevamente.' });
+      return;
     }
+
+    // Registro exitoso
+    console.log('Registro OK', body);
+    this.formBaseService.resetFormState('register');
+    this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
   }
 
   /* Maneja la respuesta de error del registro usando el servicio genérico. */
@@ -297,7 +301,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
         next: (res: HttpResponse<unknown>) => {
           this.handleSuccessResponse(res);
         },
-        error: (err) => {
+        error: (err: unknown) => {
           this.handleErrorResponse(err);
         },
       });

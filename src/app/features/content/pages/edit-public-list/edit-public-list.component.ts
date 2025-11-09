@@ -11,6 +11,7 @@ import { ErrorContainerComponent } from '../../../../shared/error-container/erro
 import { PublicListService } from '../../../../core/services/public-list.service';
 import { ContentSelectorComponent, SuggestedContent } from '../../../../shared/content-selector/content-selector.component';
 import { initializeListComponent , handleListSubmit } from '../../../../shared/utils/list-init.util';
+import { executeObservableOperation, navigateWithUnsavedCheck } from '../../../../core/utils/observable.helpers';
 
 export interface PublicListForm {
   nombre: string;
@@ -119,29 +120,28 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
       this.formBaseService,
       this.formId
     );
-    if (request) {
-      this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
-      this.publicListService.updatePublicList(this.listId, request).subscribe({
-        next: () => {
-          this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
-          this.router.navigate(['/creator/catalog']);
-        },
-        error: (error) => {
-          this.formBaseService.updateFormState(this.formId, {
-            error: error.message || 'Error al actualizar la lista. Inténtalo de nuevo.',
-            isSubmitting: false
-          });
-        }
-      });
-    }
-  }
-  goBack(): void {
-    if (this.hasChanges) {
-      if (confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.')) {
-        this.router.navigate(['/creator/catalog']);
+
+    if (!request) return;
+
+    executeObservableOperation(
+      this.publicListService.updatePublicList(this.listId, request),
+      {
+        formId: this.formId,
+        formService: this.formBaseService,
+        successRoute: '/creator/catalog',
+        router: this.router,
+        defaultErrorMessage: 'Error al actualizar la lista. Inténtalo de nuevo.'
       }
-    } else {
-      this.router.navigate(['/creator/catalog']);
-    }
+    );
+  }
+
+  goBack(): void {
+    navigateWithUnsavedCheck(
+      this.hasChanges,
+      {
+        targetRoute: '/creator/catalog',
+        router: this.router
+      }
+    );
   }
 }

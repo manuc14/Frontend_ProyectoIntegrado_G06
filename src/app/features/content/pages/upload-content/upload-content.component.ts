@@ -16,6 +16,7 @@ import { UploadService } from '../../../../core/services/upload-services/upload.
 import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { UPLOAD_LIMITS, UPLOAD_FILE_TYPES } from '../../../../core/constants/form-limits';
+import { executeAsyncOperation } from '../../../../core/utils/observable.helpers';
 
 // Interface tipada para el formulario de upload
 export interface UploadContentForm {
@@ -82,6 +83,11 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   minDate = '';
 
   private imageStateSubscription?: Subscription;
+
+  get is4KWithoutVip(): boolean {
+    const formValue = this.uploadForm?.value;
+    return formValue?.type === 'video' && formValue?.resolution === '4K' && formValue?.vip !== 'si';
+  }
 
   // Getters simplificados
   get thumbnails() { return this.currentFormState?.imageState?.images || []; }
@@ -185,31 +191,35 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.formBaseService.updateFormState(this.formId, { error: null });
     this.uploadForm.patchValue({ tags: this.tags });
 
+    // Early return si el formulario es inválido
     if (this.uploadForm.invalid || this.validateForm(this.uploadForm.value).length > 0) {
       this.formBaseService.updateFormState(this.formId, { error: 'Por favor, revisa los campos marcados.' });
       return;
     }
 
-    this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
-
-    try {
-      const uploadResult = await this.uploadFilesIfNeeded();
-      const payload = this.buildPayload(uploadResult);
-      await firstValueFrom(this.api.createContent(payload));
-      this.router.navigate(['/content-creator']);
-    } catch (error: unknown) {
-      const isNetworkError = error instanceof Error && !error.message.includes('HTTP') && !error.message.includes('status');
-      isNetworkError ? this.formBaseService.updateFormState(this.formId, { error: error.message }) : this.formBaseService.handleBackendError(this.formId, this.uploadForm, error);
-    } finally {
-      this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
-    }
+    await executeAsyncOperation(
+      async () => {
+        const uploadResult = await this.uploadFilesIfNeeded();
+        const payload = this.buildPayload(uploadResult);
+        await firstValueFrom(this.api.createContent(payload));
+      },
+      {
+        formId: this.formId,
+        formService: this.formBaseService,
+        form: this.uploadForm,
+        router: this.router,
+        successRoute: '/content-creator'
+      }
+    );
   }
 
   private validateForm(formValue: Partial<UploadContentForm>): string[] {
     const isAudio = formValue.type === 'audio';
+    const isVideo = formValue.type === 'video';
     const checks = [
       { condition: this.tags.length === 0, error: 'tags' },
-      { condition: isAudio && !this.file && !formValue.audioUrl?.trim(), error: 'audioFile' }
+      { condition: isAudio && !this.file && !formValue.audioUrl?.trim(), error: 'audioFile' },
+      { condition: isVideo && formValue.resolution === '4K' && formValue.vip !== 'si', error: '4kRequiresVip' }
     ];
     return checks.filter(check => check.condition).map(check => check.error);
   }

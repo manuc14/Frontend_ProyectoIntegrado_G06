@@ -16,9 +16,10 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { SectionDto, AvatarsResponseDto } from '../models/media.models';
+import { AvatarsResponseDto } from '../models/media.models';
+import { isAbsoluteUrl, startsWithPrefix, hasElements } from '../utils/validation.helpers';
 
 /**
  * Interfaz para la petición de registro de usuario.
@@ -214,9 +215,11 @@ export class ApiService {
    */
   private extractUserMessageFromError(error: any): string {
     const errorObj = error.error;
-    if (errorObj.details?.length > 0) {
+    
+    if (hasElements(errorObj.details)) {
       return errorObj.details[0].message;
     }
+    
     return errorObj.message || '';
   }
 
@@ -282,39 +285,6 @@ export class ApiService {
   }
 
   // ==================== CONTENIDO Y RECURSOS ====================
-
-  /**
-   * Obtiene las secciones de contenido para la página principal.
-   *
-   * Recupera todas las secciones disponibles con su contenido multimedia
-   * (audios, videos, álbumes). Se usa principalmente en la página de inicio
-   * para mostrar el contenido destacado.
-   *
-   * @returns {Observable<SectionDto[]>} Observable con array de secciones
-   *
-   * @example
-   * ```typescript
-   * this.apiService.getSections().subscribe({
-   *   next: (sections) => {
-   *     sections.forEach(section => {
-   *       console.log(section.titulo, section.contenidos.length);
-   *     });
-   *   },
-   *   error: (error) => console.error('Error al cargar secciones:', error)
-   * });
-   * ```
-   */
-  getHomeSections(): Observable<SectionDto[]> {
-    return this.http.get<SectionDto[]>(`${this.base}/home/sections`).pipe(
-      catchError((err) => {
-        if (environment.useMocks) {
-          const fallback: SectionDto[] = [];
-          return of(fallback);
-        }
-        throw err;
-      })
-    );
-  }
 
   // ==================== AUTENTICACIÓN ====================
 
@@ -443,11 +413,11 @@ export class ApiService {
    */
   getFullAvatarUrl(relativePath: string): string {
     // Si la ruta ya incluye /resources/, devolver tal cual
-    if (relativePath.startsWith('/resources/')) {
+    if (startsWithPrefix(relativePath, '/resources/')) {
       return relativePath;
     }
     // Si la ruta es relativa (ej: /avatars/avatar1.png), agregar /resources/
-    if (relativePath.startsWith('/')) {
+    if (startsWithPrefix(relativePath, '/')) {
       return `${this.resourceBase}${relativePath}`;
     }
     // Si es solo el nombre del archivo, construir la ruta completa
@@ -768,10 +738,10 @@ export class ApiService {
    * ```
    */
   getFullThumbnailUrl(relativePath: string): string {
-    if (relativePath.startsWith('http')) {
+    if (isAbsoluteUrl(relativePath)) {
       return relativePath;
     }
-    const cleanPath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+    const cleanPath = startsWithPrefix(relativePath, '/') ? relativePath : `/${relativePath}`;
     return `${this.base.replace('/api', '')}${cleanPath}`;
   }
 }

@@ -15,6 +15,7 @@ import { Contenido, ResolucionVideo, TipoContenido } from '../../../../core/mode
 import { FilterPillComponent } from '../../../../shared/components/filter-pill/filter-pill.component';
 import { ImageSelectorService } from '../../../../core/services/image-selector.service';
 import { ADMIN_CONFIG } from '../../../../core/constants/admin-config.constants';
+import { allConditionsTrue, anyConditionTrue, hasElements } from '../../../../core/utils/validation.helpers';
 
 // Interfaz para la tabla de contenidos
 interface ContentRow {
@@ -152,26 +153,29 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
   }
 
   toggleFiltro(tipo: 'calidad' | 'categoria' | 'edad', valor: any): void {
-  const toggle = (current: any) => current === valor ? null : valor;
-
-  const actions = {
-    calidad: () => {
-      this.filtroCalidad = toggle(this.filtroCalidad);
+    // Early return for calidad filter
+    if (tipo === 'calidad') {
+      this.filtroCalidad = this.filtroCalidad === valor ? null : valor;
       this.dropdownCalidadAbierto = false;
-    },
-    categoria: () => {
-      this.filtroCategoria = toggle(this.filtroCategoria);
-      this.dropdownCategoriaAbierto = false;
-    },
-    edad: () => {
-      this.filtroEdad = toggle(this.filtroEdad);
-      this.dropdownEdadAbierto = false;
+      this.applyContentFilters();
+      return;
     }
-  } as const;
 
-  actions[tipo]();
-  this.applyContentFilters();
-}
+    // Early return for categoria filter
+    if (tipo === 'categoria') {
+      this.filtroCategoria = this.filtroCategoria === valor ? null : valor;
+      this.dropdownCategoriaAbierto = false;
+      this.applyContentFilters();
+      return;
+    }
+
+    // Early return for edad filter
+    if (tipo === 'edad') {
+      this.filtroEdad = this.filtroEdad === valor ? null : valor;
+      this.dropdownEdadAbierto = false;
+      this.applyContentFilters();
+    }
+  }
 
   
   cerrarDropdowns(): void {
@@ -193,19 +197,23 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
   }
   
   private matchesAllFilters(item: ContentRow): boolean {
-  const s = this.searchTerm?.toLowerCase();
-  const searchOk = !s || [item.title, item.creator, item.category]
-    .some(f => f.toLowerCase().includes(s));
+    const searchTerm = this.searchTerm?.toLowerCase();
+    const searchMatch = !searchTerm ||
+      anyConditionTrue([
+        item.title.toLowerCase().includes(searchTerm),
+        item.creator.toLowerCase().includes(searchTerm),
+        item.category.toLowerCase().includes(searchTerm)
+      ]);
 
-  return [
-    item.tipo === this.selectedContentType,
-    !this.filtroPremium || item.isPremium,
-    !this.filtroCalidad || item.quality === this.filtroCalidad,
-    !this.filtroCategoria || item.category === this.filtroCategoria,
-    this.filtroEdad === null || item.ageRestriction === this.filtroEdad,
-    searchOk
-  ].every(Boolean);
-}
+    return allConditionsTrue([
+      item.tipo === this.selectedContentType,
+      !this.filtroPremium || item.isPremium,
+      !this.filtroCalidad || item.quality === this.filtroCalidad,
+      !this.filtroCategoria || item.category === this.filtroCategoria,
+      this.filtroEdad === null || item.ageRestriction === this.filtroEdad,
+      searchMatch
+    ]);
+  }
 
   private applyContentFilters(): void {
     this.filteredItems = this.allItems.filter(item => this.matchesAllFilters(item));
@@ -252,9 +260,9 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
   }
   
   override getClearButtonText(): string {
-    const hasActiveFilters = [this.searchTerm, this.filtroPremium, this.filtroCalidad, 
-                               this.filtroCategoria, this.filtroEdad].some(f => f);
-    return hasActiveFilters ? 'Limpiar filtros' : '';
+    const activeFilters = [this.searchTerm, this.filtroPremium, this.filtroCalidad,
+                           this.filtroCategoria, this.filtroEdad];
+    return hasElements(activeFilters.filter(f => f)) ? 'Limpiar filtros' : '';
   }
   
   override clearSearchAndFilters(): void {

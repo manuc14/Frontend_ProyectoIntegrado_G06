@@ -195,12 +195,13 @@
 
           <!-- Video fields row -->
           <div class="form-row" *ngIf="uploadForm.value.type === 'video'">
-            <app-select-field 
-              label="Resolución" 
+            <app-select-field
+              label="Resolución"
               formControlName="resolution"
-              [hasError]="(uploadForm.get('resolution')?.invalid ?? false) && submitted"
-              errorMessage="Resolución es requerida">
+              [hasError]="((uploadForm.get('resolution')?.invalid ?? false) && submitted) || is4KWithoutVip"
+              [errorMessage]="is4KWithoutVip ? 'La calidad 4K solo está disponible para contenido VIP' : 'Resolución es requerida'">
               <option value="">Seleccionar</option>
+              <option value="4K">4K</option>
               <option value="1080p">1080p</option>
               <option value="720p">720p</option>
               <option value="480p">480p</option>
