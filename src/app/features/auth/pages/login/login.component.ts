@@ -28,83 +28,46 @@ interface LoginForm {
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  /* LoginComponent: formulario de acceso que autentica contra el backend y redirige según tipo de usuario. */
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private authService = inject(AuthService);
   private router = inject(Router);
   private formBaseService = inject(FormBaseService);
 
-  // Estado del formulario gestionado por FormBaseService
   formState: FormState | null = null;
   formState$: Observable<FormState> | null = null;
-
   form: FormGroup;
-
   shakeForm = false;
   buttonState = 'normal';
   emailFocused = false;
   passwordFocused = false;
-
   private formStateSubscription?: Subscription;
 
-  // Propiedades calculadas para compatibilidad con template
-  get loading(): boolean {
-    return this.formState?.isSubmitting || false;
-  }
-
-  get bannerKind(): 'success' | 'error' | null {
-    return this.formState?.error ? 'error' : null;
-  }
-
-  get bannerText(): string {
-    return this.formState?.error ?? '';
-  }
+  get loading(): boolean { return this.formState?.isSubmitting || false; }
+  get bannerKind(): 'success' | 'error' | null { return this.formState?.error ? 'error' : null; }
+  get bannerText(): string { return this.formState?.error ?? ''; }
+  get f() { return this.form.controls; }
 
   constructor() {
-    // Crear formulario usando FormBaseService
-    this.form = this.formBaseService.createFormGroup({
-      email: '',
-      password: ''
-    });
-
-    // Quitar validaciones adicionales, dejar solo required
+    this.form = this.formBaseService.createFormGroup({ email: '', password: '' });
     this.form.get('email')!.clearValidators();
     this.form.get('email')!.setValidators([Validators.required]);
     this.form.get('password')!.clearValidators();
     this.form.get('password')!.setValidators([Validators.required]);
     this.form.updateValueAndValidity();
-
-    // Estado del formulario gestionado por FormBaseService
-    // Nota: formState$ se asignará en ngOnInit después de crear el estado
   }
 
   ngOnInit() {
-    // Crear estado del formulario
-    this.formBaseService.createFormState('login', {
-      email: '',
-      password: ''
-    });
-
-    // Asignar el observable del estado después de crearlo
+    this.formBaseService.createFormState('login', { email: '', password: '' });
     this.formState$ = this.formBaseService.getFormState('login');
-
-    // Suscribirse al estado del formulario
-    this.formStateSubscription = this.formState$?.subscribe(state => {
-      this.formState = state;
-    });
+    this.formStateSubscription = this.formState$?.subscribe(state => { this.formState = state; });
   }
 
   ngOnDestroy(): void {
-    if (this.formStateSubscription) {
-      this.formStateSubscription.unsubscribe();
-    }
+    if (this.formStateSubscription) this.formStateSubscription.unsubscribe();
     this.formBaseService.destroyFormState('login');
   }
 
-  get f() { return this.form.controls; }
-
-  /* Envía credenciales y procesa la respuesta del backend. */
   submit() {
     if (this.form.invalid || this.loading) {
       if (this.form.invalid) {
@@ -113,20 +76,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
       return;
     }
-
     this.buttonState = 'pressed';
-
     const raw = this.form.getRawValue();
     const payload: LoginRequest = { email: raw.email, password: raw.password };
-
-    // Limpiar errores previos y marcar como submitting
-    this.formBaseService.updateFormState('login', {
-      error: null,
-      fieldErrors: {},
-      isSubmitting: true
-    });
+    this.formBaseService.updateFormState('login', { error: null, fieldErrors: {}, isSubmitting: true });
     this.form.disable();
-
     this.api.login(payload, { observe: 'response' })
       .pipe(finalize(() => {
         this.formBaseService.updateFormState('login', { isSubmitting: false });
@@ -134,111 +88,59 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.buttonState = 'normal';
       }))
       .subscribe({
-        next: (res: HttpEvent<LoginResponse>) => {
-          this.handleSuccessResponse(res as HttpResponse<LoginResponse>);
-        },
-        error: (err) => {
-          this.handleErrorResponse(err);
-        }
+        next: (res: HttpEvent<LoginResponse>) => this.handleSuccessResponse(res as HttpResponse<LoginResponse>),
+        error: (err) => this.handleErrorResponse(err)
       });
   }
 
-  /* Maneja la respuesta exitosa del login con lógica específica de navegación. */
   private handleSuccessResponse(res: HttpResponse<LoginResponse>): void {
     const body = res.body;
     
     // Early return si hay errores de validación
     if (!body || body?.validationErrorCount > 0) {
-      this.formBaseService.updateFormState('login', {
-        error: body?.message ?? 'Respuesta inválida del servidor',
-      });
+      this.formBaseService.updateFormState('login', { error: body?.message ?? 'Respuesta inválida del servidor' });
       this.triggerShakeError();
       return;
     }
-
-    // Login exitoso - limpiar errores
-    this.formBaseService.resetFormState('login');
-
-    // Guardar tokens y usuario
-    this.saveAuthData(body);
-
-    // Iniciar temporizadores de sesión
-    console.log('🚀 [LoginComponent] Iniciando temporizadores de sesión...');
+    if (body.requiresTwoFactor && body.twoFactorSessionToken) {
+      sessionStorage.setItem('twoFactorSessionToken', body.twoFactorSessionToken);
+      sessionStorage.setItem('loginEmail', body.user?.email || this.form.get('email')?.value);
+      sessionStorage.setItem('twoFactorType', body.twoFactorType || 'VERIFY');
+      this.router.navigate(['/auth/2fa']);
+      return;
+    }
+    this.authService.logout(false, true);
+    if (body.token) this.authService.setAccessToken(body.token);
+    if (body.refreshToken) this.authService.setRefreshTokenPublic(body.refreshToken);
+    if (body.user) sessionStorage.setItem('currentUser', JSON.stringify(body.user));
+    if (body.idleTimeoutMillis && body.absoluteTimeoutMillis) {
+      this.authService.saveSessionConfig(body.idleTimeoutMillis, body.absoluteTimeoutMillis);
+    }
     this.authService.startSessionTimers();
-
-    // Navegar a la ruta correspondiente
-    const target = this.getRedirectRoute(body.user?.tipo || '');
-    console.log(`🔄 [LoginComponent] Redirigiendo a: ${target}`);
+    const tipo = body.user?.tipo || '';
+    let target = '/catalog';
+    if (/admin/i.test(tipo)) target = '/ad-users';
+    else if (/creador/i.test(tipo)) target = '/content-creator';
     setTimeout(() => this.router.navigate([target]), 1000);
   }
 
-  /**
-   * Guarda los datos de autenticación (tokens y usuario)
-   */
-  private saveAuthData(body: LoginResponse): void {
-    // Guardar Access Token
-    if (!isEmpty(body.token)) {
-      sessionStorage.setItem('authToken', body.token);
-      console.log('✅ [LoginComponent] Access Token guardado');
-    }
-
-    // Guardar Refresh Token
-    if (!isEmpty(body.refreshToken)) {
-      localStorage.setItem('refreshToken', body.refreshToken);
-      console.log('✅ [LoginComponent] Refresh Token guardado');
-    }
-
-    // Guardar usuario
-    if (body.user) {
-      sessionStorage.setItem('currentUser', JSON.stringify(body.user));
-      console.log('✅ [LoginComponent] Usuario guardado:', body.user);
-      console.log('👤 Edad del usuario:', body.user.edad);
-      console.log('💎 Usuario VIP:', body.user.esVip);
-    }
-  }
-
-  /**
-   * Determina la ruta de redirección según el tipo de usuario
-   */
-  private getRedirectRoute(userType: string): string {
-    if (/admin/i.test(userType)) {
-      return '/ad-users';
-    }
-    
-    if (/creador/i.test(userType)) {
-      return '/content-creator';
-    }
-    
-    return '/catalog';
-  }
-
-  /* Maneja errores del login usando el servicio genérico. */
   private handleErrorResponse(err: any): void {
+    const errorMessage = err?.error?.message || err?.message || '';
+    const isTwoFactorSessionExpired = errorMessage.includes('Esta sesión ha expirado') || errorMessage.includes('sesión de login no encontrada') || errorMessage.includes('sessionToken') || (err?.status === 401 && errorMessage.toLowerCase().includes('expirado'));
+    if (isTwoFactorSessionExpired) {
+      sessionStorage.removeItem('twoFactorSessionToken');
+      sessionStorage.removeItem('twoFactorType');
+      sessionStorage.removeItem('loginEmail');
+      this.authService.emitSessionExpired('session-timeout', 'Tu sesión de verificación ha expirado. Por favor, inicia sesión nuevamente.');
+      return;
+    }
     this.formBaseService.handleBackendError('login', this.form, err);
     this.triggerShakeError();
   }
 
-  /**
-   * Dispara la animación de shake para errores
-   */
-  triggerShakeError(): void {
-    this.shakeForm = !this.shakeForm;
-  }
-
-  /**
-   * Maneja el estado de focus de los inputs
-   */
-  onEmailFocus(focused: boolean): void {
-    this.emailFocused = focused;
-  }
-
-  onPasswordFocus(focused: boolean): void {
-    this.passwordFocused = focused;
-  }
-
-  /**
-   * Estado de animación para inputs
-   */
+  triggerShakeError(): void { this.shakeForm = !this.shakeForm; }
+  onEmailFocus(focused: boolean): void { this.emailFocused = focused; }
+  onPasswordFocus(focused: boolean): void { this.passwordFocused = focused; }
   getInputFocusState(field: 'email' | 'password'): string {
     const isFocused = field === 'email' ? this.emailFocused : this.passwordFocused;
     return isFocused ? 'focused' : 'normal';

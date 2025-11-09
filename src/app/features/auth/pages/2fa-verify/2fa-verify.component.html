@@ -1,0 +1,217 @@
+<div class="two-factor-verify-page">
+  <!-- ✅ ACTUALIZADO: Título dinámico basado en el tipo de factor -->
+  <h1 class="page-title" *ngIf="nextFactor === 'EMAIL_CODE'">Verificación de Triple Factor</h1>
+  <h1 class="page-title" *ngIf="nextFactor !== 'EMAIL_CODE'">Verificación de Doble Factor</h1>
+  
+  <p class="hint" *ngIf="nextFactor === 'EMAIL_CODE'">Introduce el código que hemos enviado a tu email</p>
+  <p class="hint" *ngIf="nextFactor !== 'EMAIL_CODE'">Introduce el código de tu autenticador para continuar</p>
+
+  <div class="card">
+    <!-- Indicador de email -->
+    <div class="email-display" *ngIf="email">
+      <span class="email-label">Verificando con:</span>
+      <span class="email-value">{{ email }}</span>
+    </div>
+
+    <!-- ✅ NUEVA SECCIÓN: EMAIL_CODE (Tercer Factor) -->
+    <div class="verify-section email-code-section" *ngIf="nextFactor === 'EMAIL_CODE'">
+      <div class="verify-header">
+        <h2 class="section-title">Código de Verificación por Email</h2>
+        <p class="section-description">Hemos enviado un código de 6 dígitos a <strong>{{ email }}</strong>. Introdúcelo a continuación.</p>
+      </div>
+
+      <div *ngIf="errorMessage()" 
+           [class.error-message]="hasError()" 
+           [class.success-message]="!hasError()" 
+           [@shakeError]="shakeForm">
+        {{ errorMessage() }}
+      </div>
+
+      <div class="code-inputs-container">
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(0, $event)" (keydown)="onKeyDown(0, $event)" (paste)="onPaste(0, $event)"
+               (focus)="onInputFocus(0)" [@inputFocus]="getInputFocusState(0)" 
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(1, $event)" (keydown)="onKeyDown(1, $event)" (paste)="onPaste(1, $event)"
+               (focus)="onInputFocus(1)" [@inputFocus]="getInputFocusState(1)"
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(2, $event)" (keydown)="onKeyDown(2, $event)" (paste)="onPaste(2, $event)"
+               (focus)="onInputFocus(2)" [@inputFocus]="getInputFocusState(2)"
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(3, $event)" (keydown)="onKeyDown(3, $event)" (paste)="onPaste(3, $event)"
+               (focus)="onInputFocus(3)" [@inputFocus]="getInputFocusState(3)"
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(4, $event)" (keydown)="onKeyDown(4, $event)" (paste)="onPaste(4, $event)"
+               (focus)="onInputFocus(4)" [@inputFocus]="getInputFocusState(4)"
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(5, $event)" (keydown)="onKeyDown(5, $event)" (paste)="onPaste(5, $event)"
+               (focus)="onInputFocus(5)" [@inputFocus]="getInputFocusState(5)"
+               [disabled]="isVerifying()" />
+      </div>
+
+      <div class="verify-button-container">
+        <app-action-button
+          [label]="isVerifying() ? 'Verificando...' : 'Verificar Código'"
+          [variant]="'primary'"
+          [size]="'large'"
+          [disabled]="isVerifyButtonDisabled"
+          (onClick)="onVerify()"
+          [@buttonHover]
+          [@buttonPress]="buttonState"
+        ></app-action-button>
+      </div>
+
+      <!-- ✅ CENTRADO: Sección de reenvío de código -->
+      <div class="email-resend-section centered">
+        <p class="resend-text">¿No recibiste el código?</p>
+        <a class="resend-link" 
+           [class.disabled]="isVerifying()" 
+           (click)="onResendCode(); $event.preventDefault()"
+           href="javascript:void(0)">
+          Reenviar código
+        </a>
+      </div>
+    </div>
+
+    <!-- Sección TOTP -->
+    <div class="verify-section" [class.hidden]="useBackupCode() || nextFactor === 'EMAIL_CODE'">
+      <div class="verify-header">
+        <h2 class="section-title">Introduce el código de autenticación</h2>
+        <p class="section-description">Escribe el código de 6 dígitos de tu app de autenticación</p>
+      </div>
+
+      <div *ngIf="errorMessage()" 
+           [class.error-message]="hasError()" 
+           [class.success-message]="!hasError()" 
+           [@shakeError]="shakeForm">
+        {{ errorMessage() }}
+      </div>
+
+      <div class="code-inputs-container">
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(0, $event)" (keydown)="onKeyDown(0, $event)" (paste)="onPaste(0, $event)"
+               (focus)="onInputFocus(0)" [@inputFocus]="getInputFocusState(0)" 
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(1, $event)" (keydown)="onKeyDown(1, $event)" (paste)="onPaste(1, $event)"
+               (focus)="onInputFocus(1)" [@inputFocus]="getInputFocusState(1)"
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(2, $event)" (keydown)="onKeyDown(2, $event)" (paste)="onPaste(2, $event)"
+               (focus)="onInputFocus(2)" [@inputFocus]="getInputFocusState(2)"
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(3, $event)" (keydown)="onKeyDown(3, $event)" (paste)="onPaste(3, $event)"
+               (focus)="onInputFocus(3)" [@inputFocus]="getInputFocusState(3)"
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(4, $event)" (keydown)="onKeyDown(4, $event)" (paste)="onPaste(4, $event)"
+               (focus)="onInputFocus(4)" [@inputFocus]="getInputFocusState(4)"
+               [disabled]="isVerifying()" />
+        <input #codeInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onInput(5, $event)" (keydown)="onKeyDown(5, $event)" (paste)="onPaste(5, $event)"
+               (focus)="onInputFocus(5)" [@inputFocus]="getInputFocusState(5)"
+               [disabled]="isVerifying()" />
+      </div>
+
+      <div class="verify-button-container">
+        <app-action-button
+          [label]="isVerifying() ? 'Verificando...' : 'Verificar Código'"
+          [variant]="'primary'"
+          [size]="'large'"
+          [disabled]="isVerifyButtonDisabled"
+          (onClick)="onVerify()"
+          [@buttonHover]
+          [@buttonPress]="buttonState"
+        ></app-action-button>
+      </div>
+
+      <!-- Separator y toggle -->
+      <div class="toggle-separator" *ngIf="nextFactor !== 'EMAIL_CODE'"></div>
+      
+      <div class="toggle-link-section" *ngIf="nextFactor !== 'EMAIL_CODE'">
+        <span class="toggle-text">¿No tienes acceso a tu autenticador?</span>
+        <a class="toggle-link" (click)="toggleBackupCode()" [class.disabled]="isVerifying()">Usar código de respaldo</a>
+      </div>
+    </div>
+
+    <!-- Sección Código de Respaldo -->
+    <div class="verify-section" [class.hidden]="!useBackupCode() || nextFactor === 'EMAIL_CODE'">
+      <div class="verify-header">
+        <h2 class="section-title">Introduce el código de respaldo</h2>
+        <p class="section-description">Escribe el código de 8 digitos que guardaste durante la configuración</p>
+      </div>
+
+      <div *ngIf="errorMessage()" 
+           [class.error-message]="hasError()" 
+           [class.success-message]="!hasError()" 
+           [@shakeError]="shakeForm">
+        {{ errorMessage() }}
+      </div>
+
+      <div class="code-inputs-container backup-code-inputs">
+        <input #backupInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onBackupInput(0, $event)" (keydown)="onBackupKeyDown(0, $event)" (paste)="onBackupPaste(0, $event)"
+               (focus)="onBackupInputFocus(0)" [@inputFocus]="getBackupInputFocusState(0)"
+               [disabled]="isVerifying()" />
+        <input #backupInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onBackupInput(1, $event)" (keydown)="onBackupKeyDown(1, $event)" (paste)="onBackupPaste(1, $event)"
+               (focus)="onBackupInputFocus(1)" [@inputFocus]="getBackupInputFocusState(1)"
+               [disabled]="isVerifying()" />
+        <input #backupInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onBackupInput(2, $event)" (keydown)="onBackupKeyDown(2, $event)" (paste)="onBackupPaste(2, $event)"
+               (focus)="onBackupInputFocus(2)" [@inputFocus]="getBackupInputFocusState(2)"
+               [disabled]="isVerifying()" />
+        <input #backupInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onBackupInput(3, $event)" (keydown)="onBackupKeyDown(3, $event)" (paste)="onBackupPaste(3, $event)"
+               (focus)="onBackupInputFocus(3)" [@inputFocus]="getBackupInputFocusState(3)"
+               [disabled]="isVerifying()" />
+        <input #backupInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onBackupInput(4, $event)" (keydown)="onBackupKeyDown(4, $event)" (paste)="onBackupPaste(4, $event)"
+               (focus)="onBackupInputFocus(4)" [@inputFocus]="getBackupInputFocusState(4)"
+               [disabled]="isVerifying()" />
+        <input #backupInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onBackupInput(5, $event)" (keydown)="onBackupKeyDown(5, $event)" (paste)="onBackupPaste(5, $event)"
+               (focus)="onBackupInputFocus(5)" [@inputFocus]="getBackupInputFocusState(5)"
+               [disabled]="isVerifying()" />
+        <input #backupInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onBackupInput(6, $event)" (keydown)="onBackupKeyDown(6, $event)" (paste)="onBackupPaste(6, $event)"
+               (focus)="onBackupInputFocus(6)" [@inputFocus]="getBackupInputFocusState(6)"
+               [disabled]="isVerifying()" />
+        <input #backupInput type="text" inputmode="numeric" maxlength="1"
+               (input)="onBackupInput(7, $event)" (keydown)="onBackupKeyDown(7, $event)" (paste)="onBackupPaste(7, $event)"
+               (focus)="onBackupInputFocus(7)" [@inputFocus]="getBackupInputFocusState(7)"
+               [disabled]="isVerifying()" />
+      </div>
+
+      <div class="backup-code-hint" *ngIf="backupCodeInput() && !isValidBackupCode()">
+        El código debe tener exactamente 8 digitos
+      </div>
+
+      <div class="verify-button-container">
+        <app-action-button
+          [label]="isVerifying() ? 'Verificando...' : 'Verificar Código'"
+          [variant]="'primary'"
+          [size]="'large'"
+          [disabled]="isVerifyButtonDisabled"
+          (onClick)="onVerify()"
+          [@buttonHover]
+          [@buttonPress]="buttonState"
+        ></app-action-button>
+      </div>
+
+      <!-- Separator y toggle -->
+      <div class="toggle-separator" *ngIf="nextFactor !== 'EMAIL_CODE'"></div>
+      
+      <div class="toggle-link-section" *ngIf="nextFactor !== 'EMAIL_CODE'">
+        <span class="toggle-text">¿Tienes acceso a tu autenticador?</span>
+        <a class="toggle-link" (click)="toggleBackupCode()" [class.disabled]="isVerifying()">Usar código de autenticador</a>
+      </div>
+    </div>
+  </div>
+</div>

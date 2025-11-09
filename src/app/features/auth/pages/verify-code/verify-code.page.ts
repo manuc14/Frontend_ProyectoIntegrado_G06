@@ -34,11 +34,10 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    const tokenParam = this.route.snapshot.queryParamMap.get('token');
-    this.token.set(tokenParam ?? '');
-
-    // Early return if no token
-    if (isEmpty(this.token())) {
+    const token = sessionStorage.getItem('verificationToken');
+    this.token.set(token ?? '');
+    
+    if (!this.token()) {
       this.router.navigate(['/signup']);
       return;
     }

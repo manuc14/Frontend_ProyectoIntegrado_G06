@@ -21,10 +21,6 @@ import { FORM_LIMITS } from '../../../../core/constants/form-limits';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
 import { allConditionsTrue, isEmpty } from '../../../../core/utils/validation.helpers';
 
-/*
- * Interfaz tipada para el formulario de registro
- * Define la estructura y tipos de todos los controles del formulario
- */
 interface RegisterForm {
   nombre: FormControl<string>;
   apellidos: FormControl<string>;
@@ -37,13 +33,6 @@ interface RegisterForm {
   fotoElegida: FormControl<string | null>;
 }
 
-/*
- * RegisterComponent
- * Formulario completo de registro de usuario con validación en tiempo real,
- * selección de avatar, promoción VIP y manejo de errores del backend.
- * Incluye navegación automática a verificación de email tras registro exitoso.
- */
-
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -53,49 +42,23 @@ interface RegisterForm {
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
 export class RegisterComponent implements OnInit, OnDestroy {
-  /* RegisterComponent: pantalla de registro de usuario. Gestiona formulario, avatar, promoción VIP y envío al backend; maneja 201/400/409 y navega a verificación de email tras éxito. */
-  readonly maxAlias = FORM_LIMITS.aliasMax; // usado en template
-  readonly maxNombre = FORM_LIMITS.nombreMax; // usado en template
-  readonly maxApellidos = FORM_LIMITS.apellidosMax; // usado en template
-  readonly maxEmail = FORM_LIMITS.emailMax; // usado en template
-  readonly MIN_BIRTH_YEAR = MIN_BIRTH_YEAR; // usado en template
+  readonly maxAlias = FORM_LIMITS.aliasMax;
+  readonly maxNombre = FORM_LIMITS.nombreMax;
+  readonly maxApellidos = FORM_LIMITS.apellidosMax;
+  readonly maxEmail = FORM_LIMITS.emailMax;
+  readonly MIN_BIRTH_YEAR = MIN_BIRTH_YEAR;
 
-  // Estado del formulario gestionado por FormBaseService
   formState: FormState | null = null;
   formState$: Observable<FormState> | null = null;
 
-  // Propiedades calculadas para compatibilidad con template
-  get avatars(): string[] {
-    return this.formState?.imageState.images ?? [];
-  }
-
-  get defaultAvatar(): string {
-    return this.formState?.imageState.defaultImage ?? '';
-  }
-
-  get selectedAvatar(): string {
-    return this.formState?.imageState.selectedImage ?? '';
-  }
-
-  get loadingAvatars(): boolean {
-    return this.formState?.imageState.loading ?? false;
-  }
-
-  get avatarLoadError(): boolean {
-    return this.formState?.imageState.error ?? false;
-  }
-
-  get loading(): boolean {
-    return this.formState?.isSubmitting ?? false;
-  }
-
-  get bannerKind(): 'success' | 'error' | null {
-    return this.formState?.error ? 'error' : null;
-  }
-
-  get bannerText(): string {
-    return this.formState?.error ?? '';
-  }
+  get avatars(): string[] { return this.formState?.imageState.images ?? []; }
+  get defaultAvatar(): string { return this.formState?.imageState.defaultImage ?? ''; }
+  get selectedAvatar(): string { return this.formState?.imageState.selectedImage ?? ''; }
+  get loadingAvatars(): boolean { return this.formState?.imageState.loading ?? false; }
+  get avatarLoadError(): boolean { return this.formState?.imageState.error ?? false; }
+  get loading(): boolean { return this.formState?.isSubmitting ?? false; }
+  get bannerKind(): 'success' | 'error' | null { return this.formState?.error ? 'error' : null; }
+  get bannerText(): string { return this.formState?.error ?? ''; }
 
   form: FormGroup;
 
@@ -116,69 +79,37 @@ export class RegisterComponent implements OnInit, OnDestroy {
   // VIP promo modal estado
   showVipPromo = false;
   promptedVipOnce = false;
-  // Animation estados
   shakeForm = false;
   buttonState = 'normal';
   focusedFields: {[key: string]: boolean} = {};
-  // Tooltip estado
   showPasswordTooltip = false;
-  // Password visibilidad estados
   showPassword = false;
   showRepeatPassword = false;
 
   private formStateSubscription?: Subscription;
 
-  constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private imageSelectorService: ImageSelectorService, public formBaseService: FormBaseService) {
-    // Crear formulario usando FormBaseService
+  constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private imageSelectorService: ImageSelectorService, private formBaseService: FormBaseService) {
     this.form = this.formBaseService.createFormGroup({
-      nombre: '',
-      apellidos: '',
-      email: '',
-      alias: '',
-      fechaNacimiento: '',
-      password: '',
-      repeatPassword: '',
-      vip: false,
-      fotoElegida: null
+      nombre: '', apellidos: '', email: '', alias: '', fechaNacimiento: '', password: '', repeatPassword: '', vip: false, fotoElegida: null
     }, [matchPasswordsValidator('password', 'repeatPassword')], 'register');
-
-    // Estado del formulario gestionado por FormBaseService
-    // Nota: formState$ se asignará en ngOnInit después de crear el estado
   }
 
-  /* Inicializa el componente cargando avatares del backend. */
   ngOnInit() {
-    // Crear estado del formulario
     this.formBaseService.createFormState('register', {
-      nombre: '',
-      apellidos: '',
-      email: '',
-      alias: '',
-      fechaNacimiento: '',
-      password: '',
-      repeatPassword: '',
-      vip: false,
-      fotoElegida: null
+      nombre: '', apellidos: '', email: '', alias: '', fechaNacimiento: '', password: '', repeatPassword: '', vip: false, fotoElegida: null
     });
-
-    // Asignar el observable del estado después de crearlo
     this.formState$ = this.formBaseService.getFormState('register');
 
     // Suscribirse al estado del formulario
     this.formStateSubscription = this.formState$?.subscribe((state: FormState) => {
       this.formState = state;
-      // Actualizar formulario con avatar seleccionado
       this.form.patchValue({ fotoElegida: state.imageState.selectedImage || null });
     });
-
-    // Cargar avatares
     this.formBaseService.loadImages('avatar');
   }
 
   ngOnDestroy(): void {
-    if (this.formStateSubscription) {
-      this.formStateSubscription.unsubscribe();
-    }
+    if (this.formStateSubscription) this.formStateSubscription.unsubscribe();
     this.formBaseService.destroyFormState('register');
   }
 
@@ -192,7 +123,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
     return !vip && !this.promptedVipOnce;
   }
 
-  /* Valida y decide si mostrar la promo VIP o continuar con el alta. */
   submit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) {
@@ -201,7 +131,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
     }
 
     this.buttonState = 'pressed';
-    
     const v = this.form.value;
     if (this.shouldShowVipPromo(v.vip)) {
       this.showVipPromo = true;
@@ -211,15 +140,12 @@ export class RegisterComponent implements OnInit, OnDestroy {
     }
   }
 
-  // VIP promo actions
-  /* Continúa con plan estándar tras mostrar la promo. */
   continueAsStandard() {
     this.promptedVipOnce = true;
     this.showVipPromo = false;
     this.doRegister();
   }
 
-  /* Acepta plan VIP y prosigue con el alta. */
   upgradeToVip() {
     this.form.patchValue({ vip: true });
     this.promptedVipOnce = true;
@@ -227,7 +153,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.doRegister();
   }
 
-  /* Construye el payload final para el registro basado en los valores del formulario. */
   private buildPayload(v: any): any {
     const isVip = Boolean(v.vip);
     const alias = v.alias?.trim() || v.nombre?.trim() || '';
@@ -275,20 +200,13 @@ export class RegisterComponent implements OnInit, OnDestroy {
   private handleErrorResponse(err: unknown): void {
     this.formBaseService.handleBackendError('register', this.form, err);
     this.triggerShakeError();
-    console.error('Error de registro', err);
   }
 
-  /* Construye el payload final y envía la petición de registro al backend. */
   private doRegister() {
     const v = this.form.value;
     const payload = this.buildPayload(v);
 
-    // Limpiar errores previos y marcar como submitting
-    this.formBaseService.updateFormState('register', {
-      error: null,
-      fieldErrors: {},
-      isSubmitting: true
-    });
+    this.formBaseService.updateFormState('register', { error: null, fieldErrors: {}, isSubmitting: true });
     this.form.disable();
 
     this.api.registerUser(payload)
@@ -307,48 +225,13 @@ export class RegisterComponent implements OnInit, OnDestroy {
       });
   }
 
-  /**
-   * Dispara la animación de shake para errores
-   */
-  triggerShakeError(): void {
-    this.shakeForm = !this.shakeForm;
-  }
+  triggerShakeError(): void { this.shakeForm = !this.shakeForm; }
+  onFieldFocus(field: string, focused: boolean): void { this.focusedFields[field] = focused; }
+  getInputFocusState(field: string): string { return this.focusedFields[field] ? 'focused' : 'normal'; }
+  togglePasswordTooltip(): void { this.showPasswordTooltip = !this.showPasswordTooltip; }
+  togglePasswordVisibility(): void { this.showPassword = !this.showPassword; }
+  toggleRepeatPasswordVisibility(): void { this.showRepeatPassword = !this.showRepeatPassword; }
 
-  /**
-   * Maneja el estado de focus de los inputs
-   */
-  onFieldFocus(field: string, focused: boolean): void {
-    this.focusedFields[field] = focused;
-  }
-
-  /**
-   * Estado de animación para inputs
-   */
-  getInputFocusState(field: string): string {
-    return this.focusedFields[field] ? 'focused' : 'normal';
-  }
-
-  /**
-   * Alterna la visibilidad del tooltip de contraseña
-   */
-  togglePasswordTooltip(): void {
-    this.showPasswordTooltip = !this.showPasswordTooltip;
-  }
-
-  /**
-   * Alterna la visibilidad de las contraseñas
-   */
-  togglePasswordVisibility(): void {
-    this.showPassword = !this.showPassword;
-  }
-
-  toggleRepeatPasswordVisibility(): void {
-    this.showRepeatPassword = !this.showRepeatPassword;
-  }
-
-  /**
-   * Cierra el tooltip cuando se hace click fuera de él
-   */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;

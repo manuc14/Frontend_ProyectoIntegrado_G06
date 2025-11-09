@@ -119,6 +119,8 @@ export interface BackendUser {
  * Interfaz para la respuesta de login exitoso.
  * Incluye usuario autenticado, token de sesión y mensaje de confirmación.
  *
+ * Soporta autenticación en dos pasos (2FA) con twoFactorSessionToken y requiresTwoFactor.
+ * 
  * @interface LoginResponse
  */
 export interface LoginResponse {
@@ -126,14 +128,31 @@ export interface LoginResponse {
   message: string;
   /** Detalles adicionales del login */
   details: any;
-  /** Access Token JWT para autenticación (15 minutos) */
-  token: string;
-  /** Refresh Token para renovar el Access Token (7 días) */
-  refreshToken: string;
+  /** Access Token JWT para autenticación (15 minutos) - solo si 2FA completado */
+  token?: string;
+  /** Refresh Token para renovar el Access Token (7 días) - solo si 2FA completado */
+  refreshToken?: string;
   /** Información del usuario autenticado */
   user: BackendUser;
   /** Número de errores de validación (0 si es exitoso) */
   validationErrorCount: number;
+  /** Tiempo de inactividad permitido (en milisegundos) desde el backend */
+  idleTimeoutMillis?: number;
+  /** Tiempo máximo de sesión (en milisegundos) desde el backend */
+  absoluteTimeoutMillis?: number;
+  /** Indica si requiere verificación de dos factores (2FA) */
+  requiresTwoFactor?: boolean;
+  /** Token temporal para verificación de 2FA (válido solo para /auth/verify-otp) */
+  twoFactorSessionToken?: string;
+  /** Tipo de 2FA: "SETUP" para nuevo usuario sin 2FA, "VERIFY" para usuario con 2FA existente */
+  twoFactorType?: 'SETUP' | 'VERIFY';
+  /** Datos de setup de 2FA (QR, secret, códigos respaldo) - solo cuando twoFactorType es "SETUP" */
+  setupData?: {
+    qrCode: string;
+    secret: string;
+    backupCodes: string[];
+    message?: string;
+  };
 }
 
 /**
