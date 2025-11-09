@@ -69,7 +69,7 @@
               [initialType]="selectedContentType"
               [preselectedIds]="preselectedIds"
               (typeChange)="selectedContentType = $event"
-              (selectedChange)="addedContent = $event">
+              (selectedChange)="onContentSelectionChange($event)">
             </app-content-selector>
           </ng-container>
         </div>
@@ -86,7 +86,7 @@
           <button
             type="submit"
             class="btn-save"
-            [disabled]="currentFormState?.isSubmitting || isLoadingList || addedContent.length === 0"
+            [disabled]="currentFormState?.isSubmitting || isLoadingList || !hasChanges"
             [@buttonHover]
             [@buttonPress]>
             <svg *ngIf="!currentFormState?.isSubmitting" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

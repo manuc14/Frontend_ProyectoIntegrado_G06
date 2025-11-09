@@ -46,6 +46,7 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
   isVisible: boolean = true;
   isLoadingList = false;
   preselectedIds: string[] = [];
+  hasUnsavedChanges: boolean = false;
   ngOnInit(): void {
     initializeListComponent(this.router, this.route, (listId) => {
       this.listId = listId;
@@ -80,6 +81,11 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
         this.selectedContentType = lista.dominantType as 'VIDEO' | 'AUDIO';
         this.preselectedIds = lista.items.map(item => item._id);
         this.isLoadingList = false;
+
+        // Suscribirse a cambios en el formulario
+        this.listForm.valueChanges.subscribe(() => {
+          this.hasUnsavedChanges = true;
+        });
       },
       error: (error) => {
         this.formBaseService.updateFormState(this.formId, {
@@ -91,12 +97,18 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
   }
   onVisibilityChange(visible: boolean): void {
     this.isVisible = visible;
+    this.hasUnsavedChanges = true;
   }
   onContentTypeChange(type: 'VIDEO' | 'AUDIO'): void {
     this.selectedContentType = type;
+    this.hasUnsavedChanges = true;
   }
-  onSelectedChange(selected: SuggestedContent[]): void {
+  onContentSelectionChange(selected: SuggestedContent[]): void {
     this.addedContent = selected;
+    this.hasUnsavedChanges = true;
+  }
+  get hasChanges(): boolean {
+    return this.hasUnsavedChanges;
   }
   onSubmit(): void {
     const request = handleListSubmit(
@@ -124,7 +136,7 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
     }
   }
   goBack(): void {
-    if (this.listForm.dirty || this.addedContent.length > 0) {
+    if (this.hasChanges) {
       if (confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.')) {
         this.router.navigate(['/creator/catalog']);
       }

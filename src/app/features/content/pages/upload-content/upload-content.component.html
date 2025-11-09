@@ -58,7 +58,7 @@
                         [class.selected]="selectedThumbnail === thumbnail"
                         (click)="selectThumbnail(thumbnail)"
                         [attr.aria-pressed]="selectedThumbnail === thumbnail">
-                  <img [src]="getThumbnailUrl(thumbnail)" [alt]="'Miniatura ' + (i + 1)" />
+                  <img [src]="thumbnail" [alt]="'Miniatura ' + (i + 1)" />
                   <span class="check" *ngIf="selectedThumbnail === thumbnail">✓</span>
                 </button>
 
@@ -253,18 +253,6 @@
          </button>
       </div>
     </form>
-  </div>
-
-  <!-- SUCCESS MESSAGE -->
-  <div class="success-toast" 
-       [class.show]="showSuccessMessage" 
-       [class.hide]="hideSuccessMessage">
-    <div class="success-content">
-      <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>Contenido subido correctamente</span>
-    </div>
   </div>
     </div>
   </main>

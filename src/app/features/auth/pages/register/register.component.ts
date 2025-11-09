@@ -98,44 +98,18 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   form: FormGroup;
 
-  get nombreControl(): FormControl {
-    return this.form.get('nombre') as FormControl;
-  }
-
-  get apellidosControl(): FormControl {
-    return this.form.get('apellidos') as FormControl;
-  }
-
-  get emailControl(): FormControl {
-    return this.form.get('email') as FormControl;
-  }
-
-  get aliasControl(): FormControl {
-    return this.form.get('alias') as FormControl;
-  }
-
-  get fechaNacimientoControl(): FormControl {
-    return this.form.get('fechaNacimiento') as FormControl;
-  }
-
-  get passwordControl(): FormControl {
-    return this.form.get('password') as FormControl;
-  }
-
-  get repeatPasswordControl(): FormControl {
-    return this.form.get('repeatPassword') as FormControl;
-  }
+  get f() { return this.form.controls; }
+  get nombreControl() { return this.f['nombre'] as FormControl; }
+  get apellidosControl() { return this.f['apellidos'] as FormControl; }
+  get emailControl() { return this.f['email'] as FormControl; }
+  get aliasControl() { return this.f['alias'] as FormControl; }
+  get fechaNacimientoControl() { return this.f['fechaNacimiento'] as FormControl; }
+  get passwordControl() { return this.f['password'] as FormControl; }
+  get repeatPasswordControl() { return this.f['repeatPassword'] as FormControl; }
+  get vipControl() { return this.f['vip'] as FormControl; }
 
   get repeatPasswordErrors() {
-    const errors = { ...this.f['repeatPassword'].errors };
-    if (this.form.errors?.['mismatch']) {
-      errors['mismatch'] = true;
-    }
-    return errors;
-  }
-
-  get vipControl(): FormControl {
-    return this.form.get('vip') as FormControl;
+    return { ...this.f['repeatPassword'].errors, ...(this.form.errors?.['mismatch'] && { mismatch: true }) };
   }
 
   // VIP promo modal estado
@@ -153,7 +127,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   private formStateSubscription?: Subscription;
 
-  constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private imageSelectorService: ImageSelectorService, private formBaseService: FormBaseService) {
+  constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private imageSelectorService: ImageSelectorService, public formBaseService: FormBaseService) {
     // Crear formulario usando FormBaseService
     this.form = this.formBaseService.createFormGroup({
       nombre: '',
@@ -170,8 +144,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
     // Estado del formulario gestionado por FormBaseService
     // Nota: formState$ se asignará en ngOnInit después de crear el estado
   }
-
-  get f() { return this.form.controls; }
 
   /* Inicializa el componente cargando avatares del backend. */
   ngOnInit() {
@@ -192,7 +164,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.formState$ = this.formBaseService.getFormState('register');
 
     // Suscribirse al estado del formulario
-    this.formStateSubscription = this.formState$?.subscribe(state => {
+    this.formStateSubscription = this.formState$?.subscribe((state: FormState) => {
       this.formState = state;
       // Actualizar formulario con avatar seleccionado
       this.form.patchValue({ fotoElegida: state.imageState.selectedImage || null });
@@ -214,15 +186,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.formBaseService.selectImage(avatarPath, 'avatar');
   }
 
-  /* Obtiene la URL completa del avatar para mostrar la imagen. */
-  getAvatarUrl(relativePath: string): string {
-    return this.formBaseService.getFullImageUrl(relativePath, 'avatar');
-  }
-
   /* Determina si se debe mostrar la promoción VIP basada en la selección del usuario. */
-  private shouldShowVipPromo(vip: any): boolean {
-    const isVip = (vip === true) || ((vip as unknown as string) === 'true');
-    return !isVip && !this.promptedVipOnce;
+  private shouldShowVipPromo(vip: unknown): boolean {
+    return !vip && !this.promptedVipOnce;
   }
 
   /* Valida y decide si mostrar la promo VIP o continuar con el alta. */
@@ -239,9 +205,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
     if (this.shouldShowVipPromo(v.vip)) {
       this.showVipPromo = true;
       this.buttonState = 'normal';
-      return;
+    } else {
+      this.doRegister();
     }
-    this.doRegister();
   }
 
   // VIP promo actions
@@ -262,12 +228,11 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   /* Construye el payload final para el registro basado en los valores del formulario. */
   private buildPayload(v: any): any {
-    const isVip = (v.vip === true) || ((v.vip as unknown as string) === 'true');
-    const alias = (v.alias && v.alias.trim().length > 0) ? v.alias.trim() : v.nombre?.trim() ?? '';
-
+    const isVip = Boolean(v.vip);
+    const alias = v.alias?.trim() || v.nombre?.trim() || '';
     const fotoNombre = this.formBaseService.extractImageFileName(v.fotoElegida);
 
-    const payload: any = {
+    return {
       nombre: v.nombre!,
       apellidos: v.apellidos!,
       email: v.email!,
@@ -277,44 +242,33 @@ export class RegisterComponent implements OnInit, OnDestroy {
       repetirPassword: v.repeatPassword!,
       esVip: isVip,
       activo: false,
+      ...(fotoNombre && fotoNombre !== 'default-avatar.png' && { foto: fotoNombre })
     };
-
-    // Solo incluir foto si se ha seleccionado un avatar y no es el por defecto
-    if (fotoNombre && fotoNombre !== 'default-avatar.png') {
-      payload.foto = fotoNombre;
-    }
-
-    return payload;
   }
 
   /* Maneja la respuesta exitosa del registro (201/200). */
-  private handleSuccessResponse(res: HttpResponse<any>): void {
-    const body: any = res.body || {};
-    const verificationToken = body?.verificationToken;
+  private handleSuccessResponse(res: HttpResponse<unknown>): void {
+    const body: unknown = res.body || {};
+    const verificationToken = (body as any)?.verificationToken;
 
-    if (res.status === 201 || res.status === 200) {
-      console.log('Registro OK', body);
-      this.formBaseService.resetFormState('register');
-
-      if (verificationToken) {
-        this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
-      } else {
-        console.error('No se recibió verificationToken del backend');
-        this.formBaseService.updateFormState('register', {
-          error: 'Error en el proceso de registro. Intenta nuevamente.'
-        });
-      }
+    if (res.status !== 201 && res.status !== 200) {
+      this.formBaseService.updateFormState('register', { error: 'No se pudo crear la cuenta.' });
       return;
     }
-    
-    // Status inesperado, tratar como error
-    this.formBaseService.updateFormState('register', {
-      error: 'No se pudo crear la cuenta.'
-    });
+
+    console.log('Registro OK', body);
+    this.formBaseService.resetFormState('register');
+
+    if (verificationToken) {
+      this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
+    } else {
+      console.error('No se recibió verificationToken del backend');
+      this.formBaseService.updateFormState('register', { error: 'Error en el proceso de registro. Intenta nuevamente.' });
+    }
   }
 
   /* Maneja la respuesta de error del registro usando el servicio genérico. */
-  private handleErrorResponse(err: any): void {
+  private handleErrorResponse(err: unknown): void {
     this.formBaseService.handleBackendError('register', this.form, err);
     this.triggerShakeError();
     console.error('Error de registro', err);
@@ -340,7 +294,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
         this.buttonState = 'normal';
       }))
       .subscribe({
-        next: (res: HttpResponse<any>) => {
+        next: (res: HttpResponse<unknown>) => {
           this.handleSuccessResponse(res);
         },
         error: (err) => {
@@ -394,8 +348,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.help') && this.showPasswordTooltip) {
-      this.showPasswordTooltip = false;
-    }
+    !target.closest('.help') && this.showPasswordTooltip && (this.showPasswordTooltip = false);
   }
 }

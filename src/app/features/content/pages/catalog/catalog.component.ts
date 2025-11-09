@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -21,15 +21,13 @@ type EdadPermitida = 0 | 7 | 13 | 18;
   templateUrl: './catalog.component.html',
   styleUrls: ['./catalog.component.scss']
 })
-export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
+export class CatalogComponent implements OnInit {
   @Input() isCreatorView = false;
   @Output() editList = new EventEmitter<string>();
   @Output() deleteList = new EventEmitter<string>();
 
-  // Listas dinámicas cargadas desde BD
   listasPublicas: ListaPublicaResponse[] = [];
   errorCarga: string | null = null;
-  
   seccionActiva: SeccionActiva = 'VIDEO';
   contenidoDestacado: Contenido | null = null;
   filtroPremium = false;
@@ -39,13 +37,7 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly opcionesCalidad: ResolucionVideo[] = ['4K', '1080p', '720p', '480p'];
   dropdownEdadAbierto = false;
   dropdownCalidadAbierto = false;
-
-  private edadUsuario = 18; // Edad por defecto
-
-  @ViewChild('carouselContainer', { read: ElementRef }) carouselContainer?: ElementRef;
-  private carouselInterval?: number;
-  private readonly CAROUSEL_INTERVAL_MS = 3000;
-  private readonly CAROUSEL_SCROLL_AMOUNT = 240;
+  private edadUsuario = 18;
 
   constructor(
     private publicListService: PublicListService,
@@ -54,26 +46,10 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    // Obtener la edad del usuario desde AuthService
     this.edadUsuario = this.authService.getUserAge();
-    console.log('👤 Edad del usuario:', this.edadUsuario);
-    
     this.cargarListasPublicas();
   }
 
-  ngAfterViewInit(): void {
-    this.carouselInterval = window.setInterval(() => this.autoScroll(), this.CAROUSEL_INTERVAL_MS);
-  }
-
-  ngOnDestroy(): void {
-    if (this.carouselInterval) clearInterval(this.carouselInterval);
-  }
-
-  /**
-   * Carga las listas desde la base de datos
-   * - Vista creador: GET /api/content-creator/listas (todas las listas, visibles y no visibles)
-   * - Vista pública: GET /api/listas (solo listas públicas y visibles)
-   */
   private cargarListasPublicas(): void {
     const observable = this.isCreatorView 
       ? this.publicListService.getMyLists()
@@ -81,48 +57,39 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
 
     observable.subscribe({
       next: (listas) => {
-        this.errorCarga = listas.length === 0 ? 'No hay listas disponibles en este momento.' : null;
         this.listasPublicas = this.filtrarListas(listas);
+        this.errorCarga = this.listasPublicas.length === 0 ? 'No hay listas disponibles en este momento.' : null;
         this.seleccionarContenidoDestacado();
       },
       error: () => {
         this.errorCarga = 'Error al cargar el catálogo. Por favor, intenta más tarde.';
         this.listasPublicas = [];
+        this.contenidoDestacado = null;
       }
     });
   }
 
-  /**
-   * Filtra listas por tipo de contenido y aplica filtros activos
-   */
   private filtrarListas(listas: ListaPublicaResponse[]): ListaPublicaResponse[] {
     return listas
       .map(lista => ({ ...lista, items: lista.items.filter(item => this.cumpleFiltros(item)) }))
       .filter(lista => lista.items.length > 0);
   }
 
-  /**
-   * Verifica si un contenido cumple con todos los filtros activos
-   */
   private cumpleFiltros(item: Contenido): boolean {
-    const cumpleTipo = item.tipo === this.seccionActiva;
-    const cumpleEdadUsuario = this.isCreatorView || item.restriccionEdad <= this.edadUsuario;
-    const cumpleFiltroEdad = this.filtroEdad === null || item.restriccionEdad === this.filtroEdad;
-    const cumplePremium = !this.filtroPremium || item.contenidoVip;
-    const cumpleCalidad = this.seccionActiva === 'AUDIO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad;
-    
-    return cumpleTipo && cumpleEdadUsuario && cumpleFiltroEdad && cumplePremium && cumpleCalidad;
+    return [
+      item.tipo === this.seccionActiva,
+      this.isCreatorView || item.restriccionEdad <= this.edadUsuario,
+      this.filtroEdad === null || item.restriccionEdad === this.filtroEdad,
+      !this.filtroPremium || item.contenidoVip,
+      this.seccionActiva !== 'VIDEO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad
+    ].every(Boolean);
   }
 
-  /**
-   * Selecciona un contenido destacado aleatorio
-   */
   private seleccionarContenidoDestacado(): void {
     const todosLosContenidos = this.listasPublicas.flatMap(lista => lista.items);
-    if (todosLosContenidos.length > 0) {
-      const randomIndex = Math.floor(Math.random() * todosLosContenidos.length);
-      this.contenidoDestacado = todosLosContenidos[randomIndex];
-    }
+    this.contenidoDestacado = todosLosContenidos.length > 0 
+      ? todosLosContenidos[Math.floor(Math.random() * todosLosContenidos.length)]
+      : null;
   }
 
   cambiarSeccion(seccion: SeccionActiva): void {
@@ -148,13 +115,6 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
     this.cargarListasPublicas();
   }
 
-  private autoScroll(): void {
-    const container = this.carouselContainer?.nativeElement;
-    if (!container) return;
-    const isAtEnd = container.scrollLeft >= container.scrollWidth - container.clientWidth - 10;
-    container.scrollBy({ left: isAtEnd ? -container.scrollLeft : this.CAROUSEL_SCROLL_AMOUNT, behavior: 'smooth' });
-  }
-
   irABusqueda(): void {
     this.router.navigate(['/search']);
   }
@@ -176,35 +136,19 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.listasPublicas;
   }
 
-  /**
-   * Edita una lista existente
-   * Almacena el ID en sessionStorage y navega a /edit-list
-   */
   onEditList(listId: string): void {
     sessionStorage.setItem('editListId', listId);
     this.router.navigate(['/edit-list']);
   }
 
-  /**
-   * Elimina una lista después de confirmación
-   * DELETE /api/content-creator/listas/eliminar/{id}
-   */
   onDeleteList(listId: string): void {
     const lista = this.listasPublicas.find(l => l.id === listId);
-    if (!lista) return;
-
-    const confirmDelete = confirm(
-      `¿Estás seguro de que quieres eliminar la lista "${lista.nombre}"?\n\nEsta acción no se puede deshacer.`
-    );
-    
-    if (confirmDelete) {
-      this.publicListService.deleteList(listId).subscribe({
-        next: () => {
-          alert(`Lista "${lista.nombre}" eliminada correctamente.`);
-          this.cargarListasPublicas();
-        },
-        error: () => alert('Error al eliminar la lista. Por favor, intenta de nuevo.')
-      });
-    }
+    lista && confirm(`¿Estás seguro de que quieres eliminar la lista "${lista.nombre}"?\n\nEsta acción no se puede deshacer.`) && this.publicListService.deleteList(listId).subscribe({
+      next: () => {
+        alert(`Lista "${lista.nombre}" eliminada correctamente.`);
+        this.cargarListasPublicas();
+      },
+      error: () => alert('Error al eliminar la lista. Por favor, intenta de nuevo.')
+    });
   }
 }
