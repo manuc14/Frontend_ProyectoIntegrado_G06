@@ -6,7 +6,7 @@
     <!-- Título de la página -->
     <div class="container2">
       <div class="container3">
-        <div class="text">Tu perfil</div>
+        <div class="text">Mi Perfil de Creador</div>
       </div>
     </div>
 
@@ -15,6 +15,19 @@
       <div class="success-content">
         <img src="assets/icons/check-circle.svg" alt="Éxito" class="success-icon" />
         {{ successMessage }}
+      </div>
+    </div>
+
+    <!-- Estado de carga del FormBaseService -->
+    <div *ngIf="formState$ | async as formState" class="form-status">
+      <!-- Indicador de carga -->
+      <div *ngIf="formState.isLoading" class="loading-indicator">
+        Cargando perfil...
+      </div>
+      
+      <!-- Mensaje de error general -->
+      <div *ngIf="formState.error" class="error-message global-error">
+        {{ formState.error }}
       </div>
     </div>
 
@@ -31,7 +44,7 @@
         </app-avatar-selector>
       </div>
 
-      <!-- Columna derecha - Detalles del administrador -->
+      <!-- Columna derecha - Detalles del creador -->
       <div class="container9">
         <div class="margin">
           <div class="container5">
@@ -56,7 +69,7 @@
                 label="Nombre"
                 type="text"
                 [maxlength]="maxNombre"
-                placeholder="Escribe aquí tu nombre"
+                placeholder="Ingresa tu nombre"
                 [required]="true"
                 formControlName="firstName"
                 [errors]="firstNameControl?.errors ?? null"
@@ -64,13 +77,13 @@
                 [disabled]="!isEditMode">
               </app-form-input>
             </div>
-            
+
             <div class="field-container">
               <app-form-input
                 label="Apellidos"
                 type="text"
                 [maxlength]="maxApellidos"
-                placeholder="Escribe aquí tus apellidos"
+                placeholder="Ingresa tus apellidos"
                 [required]="true"
                 formControlName="lastName"
                 [errors]="lastNameControl?.errors ?? null"
@@ -79,47 +92,78 @@
               </app-form-input>
             </div>
           </div>
-          
-          <!-- Segunda fila: Email -->
+
+          <!-- Segunda fila: Alias y Email -->
           <div class="form-row">
-            <div class="field-container full-width">
+            <div class="field-container">
+              <app-form-input
+                label="Alias"
+                type="text"
+                [maxlength]="maxAlias"
+                placeholder="Tu nombre artístico o creativo"
+                [required]="false"
+                formControlName="alias"
+                [errors]="aliasControl?.errors ?? null"
+                [touched]="aliasControl?.touched || false"
+                [disabled]="!isEditMode">
+              </app-form-input>
+              <!-- Mensaje de error específico para alias con formato estándar -->
+              <div class="error-message alias-error" *ngIf="aliasErrorMessage">
+                {{ aliasErrorMessage }}
+              </div>
+            </div>
+
+            <div class="field-container">
               <app-form-input
                 label="Email"
                 type="email"
                 [maxlength]="maxEmail"
-                placeholder="email@empresa.com"
+                placeholder="email@ejemplo.com"
                 [required]="false"
                 formControlName="email"
+                [errors]="profileForm.get('email')?.errors ?? null"
+                [touched]="profileForm.get('email')?.touched || false"
                 [disabled]="true">
               </app-form-input>
             </div>
           </div>
-          
-          <!-- Tercera fila: Fecha de alta -->
+
+          <!-- Tercera fila: Especialidad y Tipo de Contenido -->
           <div class="form-row">
-            <div class="field-container full-width">
-              <app-form-date
-                label="Fecha de alta"
-                placeholder="Fecha de registro"
+            <div class="field-container">
+              <app-select-field
+                label="Especialidad"
+                formControlName="specialty"
+                placeholder="Selecciona tu especialidad"
+                [disabled]="!isEditMode"
+                class="specialty-select">
+                <option value="">Selecciona tu especialidad</option>
+                <option *ngFor="let option of specialtyOptions" [value]="option.value">{{ option.label }}</option>
+              </app-select-field>
+            </div>
+
+            <div class="field-container">
+              <app-form-input
+                label="Tipo de Contenido"
+                type="text"
+                placeholder="Tu tipo de contenido principal"
                 [required]="false"
-                formControlName="startDate"
+                formControlName="contentType"
                 [disabled]="true">
-              </app-form-date>
+              </app-form-input>
             </div>
           </div>
-          
-          <!-- Cuarta fila: Departamento -->
+
+          <!-- Cuarta fila: Descripción (campo amplio) -->
           <div class="form-row">
             <div class="field-container full-width">
-              <label class="field-label" for="department-select">Departamento</label>
-              <app-select-field
-                id="department-select"
-                formControlName="department"
-                placeholder="Selecciona tu departamento"
-                [disabled]="!isEditMode"
-                class="text16 department-select">
-                <option *ngFor="let dept of departmentOptions" [value]="dept.value">{{ dept.label }}</option>
-              </app-select-field>
+              <app-textarea-field
+                label="Descripción"
+                placeholder="Describe tu trabajo como creador de contenido"
+                formControlName="description"
+                [maxlength]="maxDescripcion.toString()"
+                [disabled]="!isEditMode">
+              </app-textarea-field>
             </div>
           </div>
         </form>
@@ -139,9 +183,16 @@
           <button 
             type="button" 
             class="background-border14"
-            [disabled]="!hasUnsavedChanges"
+            [disabled]="!hasUnsavedChanges || (formState$ | async)?.isSubmitting"
             (click)="onSaveChanges()">
-            <div class="text18">Guardar cambios</div>
+            <div class="text18">
+              <ng-container *ngIf="(formState$ | async)?.isSubmitting; else normalSave">
+                Guardando...
+              </ng-container>
+              <ng-template #normalSave>
+                Guardar cambios
+              </ng-template>
+            </div>
           </button>
         </div>
       </div>

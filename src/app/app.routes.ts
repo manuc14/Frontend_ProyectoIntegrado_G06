@@ -21,6 +21,9 @@ import { AdminCreatorsEditPage } from './features/admin/pages/ad-creators-edit/a
 // Perfil de Administrador
 import { AdConsultprofileComponent } from './features/admin/pages/ad-consultprofile/ad-consultprofile.component';
 
+// Perfil de Creador de Contenido
+import { ContentCreatorConsultprofileComponent } from './features/content/pages/content-creator-consultprofile/content-creator-consultprofile.component';
+
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
 import { UploadContentComponent } from './features/content/pages/upload-content/upload-content.component';
@@ -52,6 +55,9 @@ export const routes: Routes = [
 
   // Perfil de Administrador
   { path: 'ad-consultprofile', component: AdConsultprofileComponent, canActivate: [authGuard] },
+
+  // Perfil de Creador de Contenido
+  { path: 'content-creator-consultprofile', component: ContentCreatorConsultprofileComponent, canActivate: [authGuard] },
 
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },

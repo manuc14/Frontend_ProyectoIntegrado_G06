@@ -213,6 +213,52 @@ export interface AdminProfileResponse {
 }
 
 /**
+ * Interfaz para la petición de actualización del perfil de creador de contenido.
+ * Define los campos que se pueden actualizar en el perfil.
+ * 
+ * @interface UpdateCreatorProfileRequest
+ */
+export interface UpdateCreatorProfileRequest {
+  /** Nombre del creador */
+  nombre: string;
+  /** Apellidos del creador */
+  apellidos: string;
+  /** Alias del creador */
+  alias: string;
+  /** Descripción del creador */
+  descripcion: string;
+  /** Especialidad del creador */
+  especialidad: string;
+  /** Ruta del avatar seleccionado (opcional) */
+  avatar?: string;
+}
+
+/**
+ * Interfaz para la respuesta del perfil de creador de contenido.
+ * @interface CreatorProfileResponse
+ */
+export interface CreatorProfileResponse {
+  /** Nombre del creador */
+  nombre: string;
+  /** Apellidos del creador */
+  apellidos: string;
+  /** Alias del creador */
+  alias: string;
+  /** Email del creador */
+  email: string;
+  /** Descripción del creador */
+  descripcion: string;
+  /** Especialidad del creador */
+  especialidad: string;
+  /** Tipo de contenido que crea */
+  contentType: string;
+  /** Avatar actual del creador */
+  avatar: string;
+  /** Lista de avatares disponibles */
+  availableAvatars: string[];
+}
+
+/**
  * Servicio centralizado para todas las comunicaciones HTTP con el backend.
  * 
  * Proporciona métodos para:
@@ -387,6 +433,71 @@ export class ApiService {
     const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
     return this.http.get<AdminProfileResponse>(`${this.base}/admin/profile`, { headers }).pipe(
       catchError(this.handleError('obtener perfil de administrador', 'No se pudo cargar el perfil del administrador'))
+    );
+  }
+
+  /**
+   * Actualiza el perfil del creador de contenido autenticado.
+   * 
+   * Envía los datos actualizados del perfil al backend. Permite actualizar
+   * información personal y configuración de avatar del creador.
+   * 
+   * @param {UpdateCreatorProfileRequest} payload - Datos actualizados del perfil
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   * 
+   * @example
+   * ```typescript
+   * const updateData: UpdateCreatorProfileRequest = {
+   *   firstName: 'Ana María',
+   *   lastName: 'López García',
+   *   alias: 'analopez',
+   *   description: 'Creadora de contenido educativo',
+   *   specialty: 'video',
+   *   avatar: 'creator_avatar_2.png'
+   * };
+   * 
+   * this.apiService.updateCreatorProfile(updateData).subscribe({
+   *   next: (response) => {
+   *     console.log('Perfil actualizado:', response);
+   *     this.showSuccessMessage('Perfil actualizado correctamente');
+   *   },
+   *   error: (error) => console.error('Error al actualizar perfil:', error)
+   * });
+   * ```
+   */
+  updateCreatorProfile(payload: UpdateCreatorProfileRequest): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    
+    // Enviar directamente el payload ya que las interfaces coinciden con el backend
+    return this.http.put(`${this.base}/creators/profile`, payload, { headers }).pipe(
+      catchError(this.handleError('actualizar perfil de creador', 'No se pudo actualizar el perfil del creador'))
+    );
+  }
+
+  /**
+   * Obtiene el perfil del creador de contenido autenticado.
+   * 
+   * Recupera toda la información personal del creador incluyendo
+   * datos básicos, especialidad, tipo de contenido y configuración de avatar.
+   * 
+   * @returns {Observable<CreatorProfileResponse>} Observable con datos del perfil
+   * 
+   * @example
+   * ```typescript
+   * this.apiService.getCreatorProfile().subscribe({
+   *   next: (profile) => {
+   *     console.log('Creador:', profile.firstName, profile.lastName);
+   *     console.log('Especialidad:', profile.specialty);
+   *     this.loadProfileForm(profile);
+   *   },
+   *   error: (error) => console.error('Error al cargar perfil:', error)
+   * });
+   * ```
+   */
+  getCreatorProfile(): Observable<CreatorProfileResponse> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.get<CreatorProfileResponse>(`${this.base}/creators/profile`, { headers }).pipe(
+      catchError(this.handleError('obtener perfil de creador', 'No se pudo cargar el perfil del creador'))
     );
   }
 

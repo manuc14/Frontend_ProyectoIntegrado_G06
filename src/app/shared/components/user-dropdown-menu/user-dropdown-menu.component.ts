@@ -42,7 +42,7 @@ export class UserDropdownMenuComponent implements OnInit {
     },
     creator: {
       homeRoute: '/content-creator',
-      profileRoute: '/profile',
+      profileRoute: '/content-creator-consultprofile',
       additionalOptions: [
         {
           iconSvg: 'upload',
