@@ -32,13 +32,28 @@ import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.pa
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
 import { ResetPasswordCodePage } from './features/auth/pages/reset-password-code/reset-password-code.page';
 import { NewPasswordPage } from './features/auth/pages/new-password/new-password.page';
+import { TwoFactorContainerComponent } from './features/auth/pages/2fa-container/2fa-container.component';
 
 export const routes: Routes = [
-	{ path: '', component: HomeComponent, canActivate: [publicGuard] },
+	// Home es accesible para todos (autenticados y no autenticados)
+	{ path: '', component: HomeComponent },
 	{ path: 'signup', component: RegisterComponent, canActivate: [publicGuard] },
 	{ path: 'login', component: LoginComponent, canActivate: [publicGuard] },
-	{ path: 'verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
-	{ path: 'verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
+	
+	// ===== Verificación de Email (1FA) =====
+	{ path: 'auth/verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
+	{ path: 'auth/verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
+	
+	// ===== Segundo Factor (2FA - Login y Setup) =====
+	{ path: 'auth/2fa', component: TwoFactorContainerComponent, canActivate: [publicGuard] },
+	
+	// ===== Redirects para compatibilidad (rutas legacy) =====
+	{ path: 'verify-email', redirectTo: 'auth/verify-email', pathMatch: 'full' },
+	{ path: 'verify-code', redirectTo: 'auth/verify-code', pathMatch: 'full' },
+	{ path: 'qr-code-setup', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'verify-otp', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'auth/2fa/setup', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'auth/2fa/verify-otp', redirectTo: 'auth/2fa', pathMatch: 'full' },
 
 	// Rutas de Admin (protegidas)
 	{ path: 'ad-users', component: AdminUsersPage, canActivate: [authGuard] },
@@ -65,8 +80,13 @@ export const routes: Routes = [
 	{ path: 'content/preview', component: ContentPreviewComponent, canActivate: [authGuard] },
 	{ path: 'player', component: MediaPlayerComponent, canActivate: [authGuard] },
 	
-	// Rutas de recuperación de contraseña (públicas)
-	{ path: 'forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
-	{ path: 'reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
-	{ path: 'new-password', component: NewPasswordPage, canActivate: [publicGuard] },
+	// ===== Recuperación de Contraseña =====
+	{ path: 'auth/forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
+	{ path: 'auth/reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
+	{ path: 'auth/new-password', component: NewPasswordPage, canActivate: [publicGuard] },
+	
+	// Redirects para rutas legacy de recuperación
+	{ path: 'forgot-password', redirectTo: 'auth/forgot-password', pathMatch: 'full' },
+	{ path: 'reset-password-code', redirectTo: 'auth/reset-password-code', pathMatch: 'full' },
+	{ path: 'new-password', redirectTo: 'auth/new-password', pathMatch: 'full' },
 ];
