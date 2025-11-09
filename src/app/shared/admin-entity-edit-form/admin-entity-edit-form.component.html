@@ -20,14 +20,20 @@
                 label="Nombre"
                 formControlName="nombre"
                 placeholder="Nombre"
-                [required]="true">
+                [required]="true"
+                [errors]="form.get('nombre')?.errors ?? null"
+                [touched]="form.get('nombre')?.touched ?? false"
+                [maxlength]="50">
               </app-form-input>
 
               <app-form-input
                 label="Apellidos"
                 formControlName="apellidos"
                 placeholder="Apellidos"
-                [required]="true">
+                [required]="true"
+                [errors]="form.get('apellidos')?.errors ?? null"
+                [touched]="form.get('apellidos')?.touched ?? false"
+                [maxlength]="80">
               </app-form-input>
             </div>
 
@@ -45,7 +51,11 @@
               <app-form-input
                 label="Alias"
                 formControlName="alias"
-                placeholder="Alias">
+                placeholder="Alias"
+                [required]="true"
+                [errors]="form.get('alias')?.errors ?? null"
+                [touched]="form.get('alias')?.touched ?? false"
+                [maxlength]="12">
               </app-form-input>
 
               <app-textarea-field

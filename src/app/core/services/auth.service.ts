@@ -30,8 +30,8 @@ export class AuthService {
   public sessionExpiredObservable = this.sessionExpired$.asObservable();
   
   private readonly allowedRoutesByRole: Record<UserRole, string[]> = {
-    admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit'],
-    creator: ['/content-creator', '/upload-content'],
+    admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content'],
+    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile'],
     user: ['/catalog', '/content', '/player']
   };
 

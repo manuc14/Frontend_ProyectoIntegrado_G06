@@ -1,6 +1,7 @@
 // src/app/core/constants/admin-config.constants.ts
 import { FilterGroup } from '../../shared/filter-buttons/filter-buttons.component';
 import { SortOption } from '../../shared/sort-dropdown/sort-dropdown.component';
+import { ResolucionVideo } from '../models/contenido.models';
 
 // Configuraciones compartidas para componentes de administración
 export const ADMIN_CONFIG = {
@@ -33,6 +34,12 @@ export const ADMIN_CONFIG = {
       { id: 'alias-desc', label: 'Alias Z-A', field: 'alias', direction: 'desc' },
       { id: 'category-asc', label: 'Categoría A-Z', field: 'especialidad', direction: 'asc' },
       { id: 'category-desc', label: 'Categoría Z-A', field: 'especialidad', direction: 'desc' }
+    ] as SortOption[],
+    content: [
+      { id: 'title-asc', label: 'Título A-Z', field: 'title', direction: 'asc' },
+      { id: 'title-desc', label: 'Título Z-A', field: 'title', direction: 'desc' },
+      { id: 'rating-desc', label: 'Valoración (mayor)', field: 'rating', direction: 'desc' },
+      { id: 'rating-asc', label: 'Valoración (menor)', field: 'rating', direction: 'asc' }
     ] as SortOption[]
   },
 
@@ -106,8 +113,18 @@ export const ADMIN_CONFIG = {
           { id: 'blocked', label: 'Bloqueados', value: false, active: false }
         ]
       }
-    ] as FilterGroup[]
+    ] as FilterGroup[],
+    content: [] as FilterGroup[] // Contenido usa filtros custom (pills)
   },
+
+  // Opciones de calidad de video
+  qualityOptions: ['4K', '1080p', '720p', '480p'] as ResolucionVideo[],
+
+  // Opciones de categorías para contenido
+  categoryOptions: ['Música', 'Educación', 'Tecnología', 'Cocina', 'Deportes', 'Arte', 'Ciencia', 'Viajes', 'Naturaleza', 'Fitness'],
+
+  // Opciones de restricción de edad (en años)
+  ageRestrictionOptions: [7, 13, 18],
 
   // Rutas de navegación
   navRoutes: {
@@ -132,20 +149,23 @@ export const ADMIN_CONFIG = {
   searchFields: {
     users: ['name', 'lastName', 'alias', 'email', 'fullName'],
     admins: ['nombre', 'apellidos', 'correo', 'departamento', 'fullName'],
-    creators: ['nombre', 'apellidos', 'alias', 'correo', 'especialidad', 'fullName']
+    creators: ['nombre', 'apellidos', 'alias', 'correo', 'especialidad', 'fullName'],
+    content: ['title', 'creator', 'category']
   } as const,
 
   // Nombres de entidad
   entityNames: {
     users: 'usuarios',
     admins: 'administradores',
-    creators: 'creadores'
+    creators: 'creadores',
+    content: 'contenido'
   } as const,
 
   // Rutas actuales
   currentRoutes: {
     users: '/ad-users',
     admins: '/ad-admin',
-    creators: '/ad-creators'
+    creators: '/ad-creators',
+    content: '/ad-content'
   } as const
 };

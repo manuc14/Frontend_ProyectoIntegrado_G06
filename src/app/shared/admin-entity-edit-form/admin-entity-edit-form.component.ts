@@ -88,7 +88,7 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
 
   private createForm(): void {
     const config = ENTITY_CONFIGS[this.entityType];
-    this.form = this.formBaseService.createFormGroup<EntityData>(config.formConfig, []);
+    this.form = this.formBaseService.createFormGroup<EntityData>(config.formConfig, [], `edit-${this.entityType}`);
   }
 
   private initializeEntity(): void {

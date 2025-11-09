@@ -12,6 +12,16 @@
       </div>
     </div>
   </button>
+  <button class="container6" type="button" (click)="goTo('content')" [@buttonHover] [@buttonPress] [attr.aria-pressed]="activeKey === 'content'" [class.active]="activeKey === 'content'">
+    <div class="container5">
+      <div class="iconify-icon">
+        <img class="svg3" src="assets/icons/play.svg" alt="icono contenido" height="18" width="18"/>
+      </div>
+      <div class="container2">
+        <div class="text4">Contenido</div>
+      </div>
+    </div>
+  </button>
   <button class="container6" type="button" (click)="goTo('admins')" [@buttonHover] [@buttonPress] [attr.aria-pressed]="activeKey === 'admins'" [class.active]="activeKey === 'admins'">
     <div class="container5">
       <div class="iconify-icon">

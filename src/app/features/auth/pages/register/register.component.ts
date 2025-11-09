@@ -90,7 +90,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private imageSelectorService: ImageSelectorService, private formBaseService: FormBaseService) {
     this.form = this.formBaseService.createFormGroup({
       nombre: '', apellidos: '', email: '', alias: '', fechaNacimiento: '', password: '', repeatPassword: '', vip: false, fotoElegida: null
-    }, [matchPasswordsValidator('password', 'repeatPassword')]);
+    }, [matchPasswordsValidator('password', 'repeatPassword')], 'register');
   }
 
   ngOnInit() {

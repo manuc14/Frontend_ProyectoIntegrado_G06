@@ -8,6 +8,61 @@
   </div>
 
   <div class="header-actions">
+    <!-- Botón de crear contenido (dropdown) -->
+    <div class="create-dropdown-container">
+      <button
+        class="create-button"
+        (click)="toggleCreateDropdown()"
+        [attr.aria-expanded]="isCreateDropdownOpen"
+        aria-label="Crear nuevo contenido"
+        type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <!-- Dropdown menu -->
+      <div
+        class="create-dropdown-menu"
+        [class.open]="isCreateDropdownOpen"
+        role="menu"
+        aria-orientation="vertical">
+        <button
+          class="create-dropdown-option"
+          (click)="navigateToUploadContent()"
+          role="menuitem"
+          type="button">
+          <div class="option-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="option-label">Subir contenido</span>
+        </button>
+        
+        <button
+          class="create-dropdown-option"
+          (click)="navigateToCreateList()"
+          role="menuitem"
+          type="button">
+          <div class="option-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 6L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M4 6.01L4.01 5.99889" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M4 12.01L4.01 11.9989" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M4 18.01L4.01 17.9989" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M9 12L20 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M9 18L20 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="option-label">Crear lista</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Avatar del usuario -->
     <app-user-dropdown-menu
       [currentUser]="currentUser"
       [avatarUrl]="getAvatarUrl()"

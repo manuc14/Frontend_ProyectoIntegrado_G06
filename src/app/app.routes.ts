@@ -12,6 +12,7 @@ import { AdminUsersEditPage } from './features/admin/pages/ad-users/ad-users-edi
 import { AdminAdmsPage } from './features/admin/pages/ad-admin/ad-admin.component';
 import { AdminAdmsAddPage } from './features/admin/pages/ad-admin-add/ad-admin-add.component';
 import { AdminAdmsEditPage } from './features/admin/pages/ad-admin-edit/ad-admin-edit.component';
+import { AdminContentPage } from './features/admin/pages/ad-content/ad-content.component';
 
 // Administración de Creadores de Contenido
 import { AdminCreatorsPage } from './features/admin/pages/ad-creators/ad-creators.component';
@@ -24,8 +25,8 @@ import { UploadContentComponent } from './features/content/pages/upload-content/
 import { CatalogComponent } from './features/content/pages/catalog/catalog.component';
 import { ContentPreviewComponent } from './features/content/pages/content-preview/content-preview.component';
 import { MediaPlayerComponent } from './features/content/pages/media-player/media-player.component';
-
-// Autenticación y verificación
+import { CreatorCatalogComponent } from './features/creator/pages/creator-catalog/creator-catalog.component';
+import { CreatorStatsComponent } from './features/creator/pages/creator-stats/creator-stats.component';
 import { VerifyEmailPage } from './features/auth/pages/verify-email/verify-email.page';
 import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.page';
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
@@ -66,9 +67,13 @@ export const routes: Routes = [
   { path: 'ad-creators-add', component: AdminCreatorsAddPage, canActivate: [authGuard] },
   { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage, canActivate: [authGuard] },
 
+  { path: 'ad-content', component: AdminContentPage, canActivate: [authGuard] },
+
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },
 	{ path: 'upload-content', component: UploadContentComponent, canActivate: [authGuard] },
+	{ path: 'creator/catalog', component: CreatorCatalogComponent, canActivate: [authGuard] },
+	{ path: 'creator/estadisticas', component: CreatorStatsComponent, canActivate: [authGuard] },
 	
 	// Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },

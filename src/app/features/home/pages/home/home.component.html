@@ -16,20 +16,282 @@
 
 <main class="home" [@fadeIn] [class.content-visible]="hasScrolled">
   <div class="page-container">
-    <app-hero [@slideInFromTop]></app-hero>
-
-    <section class="section" [@fadeIn]>
-      <app-section-list title="Top Vídeos" subtitle="Vídeos" [items]="topVideos"></app-section-list>
+    <!-- Hero Rediseñado -->
+    <section class="hero-modern" [class.animate]="hasScrolled">
+      <div class="hero-background">
+        <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200&h=600&fit=crop" alt="Featured" class="hero-image" />
+        <div class="hero-overlay"></div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-badges">
+          <span class="hero-badge featured">⭐ Destacado</span>
+          <span class="hero-badge vip">⚡ VIP Exclusivo</span>
+          <span class="hero-badge age">🛡️ 16+</span>
+        </div>
+        <h1 class="hero-title">Nightfall: Rise of the City</h1>
+        <p class="hero-description">
+          Sumérgete en nuestro blockbuster más visto. Streaming en 4K con audio inmersivo.
+          Contenido exclusivo disponible según tu suscripción.
+        </p>
+        <div class="hero-actions">
+          <button class="hero-btn primary">
+            <span class="btn-icon">▶</span>
+            <span>Ver Ahora</span>
+          </button>
+          <button class="hero-btn secondary" (click)="navigateToVip()">
+            <span class="btn-icon">👑</span>
+            <span>Hazte VIP</span>
+          </button>
+        </div>
+        <div class="hero-info">
+          <span class="info-item">🎬 Película</span>
+          <span class="info-item">⏱️ 2h 15m</span>
+          <span class="info-item">⭐ 8.9/10</span>
+        </div>
+      </div>
     </section>
 
-    <section class="section" [@fadeIn]>
-      <app-section-list title="Audios Destacados" subtitle="Audios" [items]="trendingAudios"></app-section-list>
+    <!-- Contenido Popular - Carrusel Moderno -->
+    <section class="content-carousel-section" [class.animate]="isContentVisible">
+      <div class="section-header">
+        <div class="header-left">
+          <h2 class="section-title">🔥 Top Videos</h2>
+          <p class="section-subtitle">Lo más visto esta semana</p>
+        </div>
+        <button class="view-all-btn">
+          Ver todos →
+        </button>
+      </div>
+      <div class="content-carousel">
+        <div class="carousel-track">
+          <div class="content-card featured" *ngFor="let video of topVideos; let i = index" [style.animation-delay]="i * 0.1 + 's'">
+            <div class="card-image-wrapper">
+              <img [src]="video.image" [alt]="video.title" class="card-image" />
+              <div class="card-overlay">
+                <button class="play-button">
+                  <span class="play-icon">▶</span>
+                </button>
+              </div>
+              <div class="card-badges">
+                <span class="card-badge vip" *ngIf="video.tagLeft === 'VIP'">👑 VIP</span>
+                <span class="card-badge new" *ngIf="video.tagLeft === 'New'">✨ Nuevo</span>
+                <span class="card-badge hd" *ngIf="video.tagLeft === 'HD'">HD</span>
+                <span class="card-badge top" *ngIf="video.tagLeft === 'Top Rated'">⭐ Top</span>
+              </div>
+              <div class="card-quality">{{ video.badgeRight }}</div>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">{{ video.title }}</h3>
+              <div class="card-meta">
+                <span class="meta-item">{{ video.tagRight }}</span>
+                <span class="meta-dot">•</span>
+                <span class="meta-item">2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="section" [@fadeIn]>
-      <app-section-list title="Películas de Halloween" subtitle="De Temporada" [items]="halloweenFilms"></app-section-list>
+    <!-- Sección de Estadísticas vs Competencia -->
+    <section class="stats-section" [class.animate]="isStatsVisible">
+      <div class="stats-header">
+        <h2 class="stats-title">¿Por qué ESIMedia?</h2>
+        <p class="stats-subtitle">Los números hablan por sí solos</p>
+      </div>
+      
+      <div class="stats-comparison">
+        <div class="stats-card esimedia-card">
+          <div class="platform-logo">
+            <img src="assets/icons/logo_v2.png" alt="ESIMedia" class="logo-stats" />
+          </div>
+          <h3 class="platform-name">ESIMedia</h3>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value highlight">{{ animatedStats.esiPrice }}€</div>
+              <div class="stat-label">Precio mensual</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value highlight">{{ animatedStats.esiContent }}K+</div>
+              <div class="stat-label">Contenidos</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value highlight">{{ animatedStats.esiQuality }}</div>
+              <div class="stat-label">Calidad máxima</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value highlight">{{ animatedStats.esiScreens }}</div>
+              <div class="stat-label">Pantallas simultáneas</div>
+            </div>
+          </div>
+          <div class="badge-winner">🏆 Mejor Opción</div>
+        </div>
+
+        <div class="stats-card competitor-card">
+          <h3 class="platform-name">Competencia</h3>
+          <p class="platform-avg">Promedio del mercado</p>
+          <div class="competitor-logos">
+            <div class="competitor-logo">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix" />
+            </div>
+            <div class="competitor-logo">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg" alt="Disney+" />
+            </div>
+            <div class="competitor-logo">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/f/f1/Prime_Video.png" alt="Prime Video" />
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">15.99€</div>
+              <div class="stat-label">Precio mensual</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">8K+</div>
+              <div class="stat-label">Contenidos</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">HD</div>
+              <div class="stat-label">Calidad máxima</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">2-3</div>
+              <div class="stat-label">Pantallas simultáneas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-benefits">
+        <div class="benefit-item" *ngFor="let benefit of statsBenefits; let i = index" [style.animation-delay]="i * 0.1 + 's'">
+          <div class="benefit-icon">{{ benefit.icon }}</div>
+          <div class="benefit-content">
+            <h4 class="benefit-title">{{ benefit.title }}</h4>
+            <p class="benefit-description">{{ benefit.description }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audios Destacados - Grid Moderno -->
+    <section class="content-grid-section" [class.animate]="isAudiosVisible">
+      <div class="section-header">
+        <div class="header-left">
+          <h2 class="section-title">🎧 Audios Destacados</h2>
+          <p class="section-subtitle">Podcasts y audiolibros exclusivos</p>
+        </div>
+        <button class="view-all-btn">
+          Ver todos →
+        </button>
+      </div>
+      <div class="content-grid">
+        <div class="grid-card" *ngFor="let audio of trendingAudios; let i = index" [style.animation-delay]="i * 0.1 + 's'">
+          <div class="grid-card-image">
+            <img [src]="audio.image" [alt]="audio.title" />
+            <div class="grid-overlay">
+              <button class="grid-play-btn">▶</button>
+            </div>
+            <span class="grid-badge" *ngIf="audio.tagLeft === 'VIP'">👑</span>
+            <span class="grid-badge new" *ngIf="audio.tagLeft === 'New'">✨</span>
+          </div>
+          <div class="grid-card-content">
+            <h3 class="grid-title">{{ audio.title }}</h3>
+            <p class="grid-category">{{ audio.badgeRight }}</p>
+            <div class="grid-rating">
+              <span class="stars">⭐⭐⭐⭐⭐</span>
+              <span class="rating-text">4.8</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Películas de Halloween - Estilo Showcase -->
+    <section class="showcase-section" [class.animate]="isHalloweenVisible">
+      <div class="section-header">
+        <div class="header-left">
+          <h2 class="section-title">🎃 Películas de Halloween</h2>
+          <p class="section-subtitle">Especial de temporada</p>
+        </div>
+        <button class="view-all-btn">
+          Ver colección →
+        </button>
+      </div>
+      <div class="showcase-grid">
+        <div class="showcase-card large" *ngIf="halloweenFilms[0]">
+          <img [src]="halloweenFilms[0].image" [alt]="halloweenFilms[0].title" class="showcase-image" />
+          <div class="showcase-overlay">
+            <div class="showcase-content">
+              <span class="showcase-badge">{{ halloweenFilms[0].tagLeft }}</span>
+              <h3 class="showcase-title">{{ halloweenFilms[0].title }}</h3>
+              <p class="showcase-description">Una experiencia aterradora que no olvidarás</p>
+              <button class="showcase-btn">Ver ahora →</button>
+            </div>
+          </div>
+        </div>
+        <div class="showcase-small-grid">
+          <div class="showcase-card small" *ngFor="let film of halloweenFilms.slice(1, 3)">
+            <img [src]="film.image" [alt]="film.title" class="showcase-image" />
+            <div class="showcase-overlay">
+              <div class="showcase-content">
+                <span class="showcase-badge small">{{ film.tagLeft }}</span>
+                <h4 class="showcase-title small">{{ film.title }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Testimonios -->
+    <section class="testimonials-section" [class.animate]="isTestimonialsVisible">
+      <h2 class="testimonials-title">Lo que dicen nuestros usuarios</h2>
+      <p class="testimonials-subtitle">Miles de personas ya disfrutan de ESIMedia</p>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card" *ngFor="let testimonial of testimonials; let i = index" [style.animation-delay]="i * 0.15 + 's'">
+          <div class="testimonial-rating">
+            <span class="star" *ngFor="let star of [1,2,3,4,5]">⭐</span>
+          </div>
+          <p class="testimonial-text">"{{ testimonial.text }}"</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">{{ testimonial.avatar }}</div>
+            <div class="author-info">
+              <div class="author-name">{{ testimonial.name }}</div>
+              <div class="author-role">{{ testimonial.role }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action Final -->
+    <section class="cta-section">
+      <div class="cta-content">
+        <h2 class="cta-title">¿Listo para comenzar?</h2>
+        <p class="cta-subtitle">Únete a miles de usuarios que ya disfrutan del mejor contenido</p>
+        <div class="cta-buttons">
+          <button class="cta-primary" (click)="navigateToRegister()">
+            <span>Empieza Gratis</span>
+          </button>
+          <button class="cta-secondary" (click)="navigateToVip()">
+            <span>Ver Planes VIP</span>
+          </button>
+        </div>
+      </div>
     </section>
   </div>
 </main>
 
 <app-footer></app-footer>
+
+<!-- Modal VIP -->
+<ng-container *ngIf="showVipModal">
+  <app-vip-promo-modal 
+    [showFromHome]="true"
+    [heroImageUrl]="'https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=800&h=400&fit=crop'"
+    (upgrade)="handleVipUpgrade()"
+    (continue)="handleContinueStandard()"
+    (close)="closeVipModal()">
+  </app-vip-promo-modal>
+</ng-container>
