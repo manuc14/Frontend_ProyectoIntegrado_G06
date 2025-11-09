@@ -22,6 +22,7 @@ export interface Contenido {
     avatar: string;
   };
   categoria?: string;
+  disponibleHasta: Date | null;
 }
 
 export interface FiltrosCatalogo {

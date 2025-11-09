@@ -8,7 +8,11 @@
   <!-- Main Content -->
   <main class="creator-layout__main">
     <!-- Reusamos el componente de catálogo con vista de creador -->
-    <app-catalog [isCreatorView]="true"></app-catalog>
+    <app-catalog
+      [isCreatorView]="true"
+      (editList)="onEditList($event)"
+      (deleteList)="onDeleteList($event)">
+    </app-catalog>
   </main>
 </div>
 

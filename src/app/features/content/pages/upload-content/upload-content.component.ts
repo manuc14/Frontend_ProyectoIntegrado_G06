@@ -10,12 +10,13 @@ import { FormToggleComponent } from '../../../../shared/form-components/form-tog
 import { FormInputComponent } from '../../../../shared/form-components/form-input/form-input.component';
 import { FormDateComponent } from '../../../../shared/form-components/form-date/form-date.component';
 import { ApiService, BackendUser } from '../../../../core/services/api.service';
-import { ImageSelectorService } from '../../../../core/services/image-selector.service';
-import { FormBaseService } from '../../../../core/services/form-base.service';
+import { ImageSelectorService, ImageSelectorState } from '../../../../core/services/image-selector.service';
+import { FormBaseService, FormState } from '../../../../core/services/form-base.service';
 import { UploadService } from '../../../../core/services/upload-services/upload.service';
 import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { UPLOAD_LIMITS, UPLOAD_FILE_TYPES } from '../../../../core/constants/form-limits';
+import { executeAsyncOperation } from '../../../../core/utils/observable.helpers';
 
 // Interface tipada para el formulario de upload
 export interface UploadContentForm {
@@ -79,11 +80,14 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   newTag = '';
 
   // UI state
-  showSuccessMessage = false;
-  hideSuccessMessage = false;
   minDate = '';
 
   private imageStateSubscription?: Subscription;
+
+  get is4KWithoutVip(): boolean {
+    const formValue = this.uploadForm?.value;
+    return formValue?.type === 'video' && formValue?.resolution === '4K' && formValue?.vip !== 'si';
+  }
 
   // Getters simplificados
   get thumbnails() { return this.currentFormState?.imageState?.images || []; }
@@ -99,7 +103,6 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   addTag() {
     const candidate = this.newTag.trim();
     if (!candidate || this.tags.includes(candidate)) return;
-    
     this.tags.push(candidate);
     this.newTag = '';
     this.updateTagsInForm();
@@ -130,70 +133,49 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
-
-    const fileName = file.name.trim();
-    const maxSizeBytes = UPLOAD_LIMITS.fileMaxSizeMB * 1024 * 1024;
-    const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/aac', 'audio/ogg', 'audio/flac', 'audio/mp3'];
-
-    // Validaciones consolidadas
-    if (!fileName || fileName.startsWith('.') || fileName.includes('..')) {
-      this.audioFileValidationError = 'Nombre de archivo inválido';
+    const validationError = file && this.validateAudioFile(file);
+    if (validationError) {
+      this.audioFileValidationError = validationError;
       this.file = null;
-      input.value = '';
-      return;
+      this.resetFileInput(input);
+    } else if (file) {
+      this.file = file;
+      this.audioFileValidationError = null;
+      this.uploadForm.patchValue({ audioUrl: '' });
     }
+  }
 
-    if (file.size > maxSizeBytes) {
-      this.audioFileValidationError = `Archivo demasiado grande. Máximo: ${UPLOAD_LIMITS.fileMaxSizeMB}MB`;
-      this.file = null;
-      input.value = '';
-      return;
-    }
-
-    if (!allowedTypes.includes(file.type)) {
-      this.audioFileValidationError = 'Formato no válido. Permitidos: MP3, WAV, AAC, OGG, FLAC';
-      this.file = null;
-      input.value = '';
-      return;
-    }
-
-    // Archivo válido
-    this.file = file;
-    this.audioFileValidationError = null;
-    this.uploadForm.patchValue({ audioUrl: '' });
+  private validateAudioFile(file: File): string | null {
+    const result = this.uploadService.validateAudioFile(file);
+    return result.ok ? null : result.error!;
   }
 
   onThumbnailSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    
-    if (!file) return;
-
-    // Validar tipo de archivo
-    const allowedTypes = UPLOAD_FILE_TYPES.image;
-    if (!(allowedTypes as readonly string[]).includes(file.type)) {
-      this.thumbnailValidationError = 'Formato no válido. Permitidos: JPEG, PNG';
+    const validationError = file && this.validateThumbnailFile(file);
+    if (validationError) {
+      this.thumbnailValidationError = validationError;
       this.localThumbnailFile = null;
       this.localThumbnailUrl = null;
-      input.value = '';
-      return;
+      this.resetFileInput(input);
+    } else if (file) {
+      this.thumbnailValidationError = null;
+      this.localThumbnailFile = file;
+      this.loadThumbnailPreview(file);
     }
+  }
 
-    // Validar tamaño (5MB máximo para imágenes)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      this.thumbnailValidationError = 'Imagen demasiado grande. Máximo: 5MB';
-      this.localThumbnailFile = null;
-      this.localThumbnailUrl = null;
-      input.value = '';
-      return;
-    }
+  private resetFileInput(input: HTMLInputElement): void {
+    input.value = '';
+  }
 
-    // Archivo válido
-    this.thumbnailValidationError = null;
-    this.localThumbnailFile = file;
-    
+  private validateThumbnailFile(file: File): string | null {
+    const result = this.uploadService.validateThumbnailFile(file);
+    return result.ok ? null : result.error!;
+  }
+
+  private loadThumbnailPreview(file: File): void {
     const reader = new FileReader();
     reader.onload = (e) => {
       this.localThumbnailUrl = e.target?.result as string;
@@ -207,90 +189,46 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   async upload() {
     this.submitted = true;
     this.formBaseService.updateFormState(this.formId, { error: null });
-
-    // Sincronizar tags antes de validar
     this.uploadForm.patchValue({ tags: this.tags });
 
-    // Validar campos según el tipo de contenido
-    const formValue = this.uploadForm.value;
-    const isVideo = formValue.type === 'video';
-    const isAudio = formValue.type === 'audio';
-
-    // Validación personalizada según el tipo
-    const errors = this.validateForm(formValue, isVideo, isAudio);
-    if (errors.length > 0) {
-      console.error('Errores de validación:', errors);
-      this.formBaseService.updateFormState(this.formId, {
-        error: 'Por favor, revisa los campos marcados.'
-      });
+    // Early return si el formulario es inválido
+    if (this.uploadForm.invalid || this.validateForm(this.uploadForm.value).length > 0) {
+      this.formBaseService.updateFormState(this.formId, { error: 'Por favor, revisa los campos marcados.' });
       return;
     }
 
-    this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
-
-    try {
-      const uploadResult = await this.uploadFilesIfNeeded();
-      const payload = this.buildPayload(uploadResult);
-      await firstValueFrom(this.api.createContent(payload));
-      this.handleUploadSuccess();
-    } catch (error: any) {
-      // Distinguir entre errores de validación del frontend y errores del backend
-      if (error instanceof Error && !error.message.includes('HTTP') && !error.message.includes('status')) {
-        // Error de validación del frontend (uploadService) - mostrar directamente
-        this.formBaseService.updateFormState(this.formId, { error: error.message });
-      } else {
-        // Error del backend - procesar con handleBackendError
-        this.formBaseService.handleBackendError(this.formId, this.uploadForm, error);
+    await executeAsyncOperation(
+      async () => {
+        const uploadResult = await this.uploadFilesIfNeeded();
+        const payload = this.buildPayload(uploadResult);
+        await firstValueFrom(this.api.createContent(payload));
+      },
+      {
+        formId: this.formId,
+        formService: this.formBaseService,
+        form: this.uploadForm,
+        router: this.router,
+        successRoute: '/content-creator'
       }
-    } finally {
-      this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
-    }
+    );
   }
 
-  private validateForm(formValue: any, isVideo: boolean, isAudio: boolean): string[] {
-    const errors: string[] = [];
-    
-    // Campos comunes requeridos
-    const requiredCommonFields = ['title', 'vip', 'duration', 'estado', 'ageRestriction'];
-    requiredCommonFields.forEach(field => {
-      if (!formValue[field]?.trim?.() && !formValue[field]) errors.push(field);
-    });
-    
-    if (!this.tags.length) errors.push('tags');
-
-    // Validaciones específicas por tipo
-    if (isVideo && !formValue.url?.trim()) errors.push('url');
-    if (isVideo && !formValue.resolution) errors.push('resolution');
-    if (isAudio && !this.file && !formValue.audioUrl) errors.push('audioFile');
-
-    return errors;
+  private validateForm(formValue: Partial<UploadContentForm>): string[] {
+    const isAudio = formValue.type === 'audio';
+    const isVideo = formValue.type === 'video';
+    const checks = [
+      { condition: this.tags.length === 0, error: 'tags' },
+      { condition: isAudio && !this.file && !formValue.audioUrl?.trim(), error: 'audioFile' },
+      { condition: isVideo && formValue.resolution === '4K' && formValue.vip !== 'si', error: '4kRequiresVip' }
+    ];
+    return checks.filter(check => check.condition).map(check => check.error);
   }
 
   private async uploadFilesIfNeeded(): Promise<{audioUrl?: string, thumbnailUrl?: string}> {
-    const result: {audioUrl?: string, thumbnailUrl?: string} = {};
-
-    // Subir archivo de audio si existe (el servicio ya valida)
-    if (this.file) {
-      const audioResponse = await firstValueFrom(this.uploadService.uploadFile(this.file, 'audio'));
-      if (!audioResponse?.url) {
-        throw new Error('Respuesta inválida del servidor para archivo de audio');
-      }
-      result.audioUrl = audioResponse.url;
-    }
-
-    // Subir thumbnail local si existe (el servicio ya valida)
-    if (this.localThumbnailFile) {
-      const thumbnailResponse = await firstValueFrom(this.uploadService.uploadFile(this.localThumbnailFile, 'thumbnail'));
-      if (!thumbnailResponse?.url) {
-        throw new Error('Respuesta inválida del servidor para miniatura');
-      }
-      result.thumbnailUrl = thumbnailResponse.url;
-    }
-
-    return result;
+    return firstValueFrom(this.uploadService.uploadMultipleFiles(this.file || undefined, this.localThumbnailFile || undefined));
   }
 
-  private buildPayload(uploadResult: {audioUrl?: string, thumbnailUrl?: string} = {}): any {
+  private buildPayload(uploadResult: {audioUrl?: string, thumbnailUrl?: string} = {}): Record<string, unknown> {
     const formValue = this.uploadForm.value;
     const isVideo = formValue.type === 'video';
     const ageRestriction = formValue.ageRestriction ? parseInt(formValue.ageRestriction.replace('+', '')) : null;
@@ -304,68 +242,39 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       estado: formValue.estado,
       esUsuarioVip: formValue.vip === 'si',
       tags: this.tags,
-      fecha: formValue.fechaExpiracion || null,
       resolucion: isVideo ? formValue.resolution : null,
       restriccionEdad: ageRestriction,
-      duracion: formValue.duration
+      duracion: formValue.duration,
+      ...(formValue.fechaExpiracion && { disponibleHasta: formValue.fechaExpiracion })
     };
   }
 
-  private handleUploadSuccess(): void {
-    this.showSuccessMessage = true;
-    this.hideSuccessMessage = false;
-    
-    setTimeout(() => {
-      this.hideSuccessMessage = true;
-      setTimeout(() => {
-        this.router.navigate(['/content-creator']);
-      }, 300);
-    }, 3000);
+  ngOnInit(): void {
+    this.initializeMinDate();
+    this.initializeForm();
+    this.loadCurrentUser();
+    this.imageSelectorService.loadImages('thumbnail');
   }
 
-  ngOnInit(): void {
-    // Crear fecha mínima
+  private initializeMinDate(): void {
     const t = new Date();
-    const yyyy = t.getFullYear();
-    const mm = String(t.getMonth() + 1).padStart(2, '0');
-    const dd = String(t.getDate()).padStart(2, '0');
-    this.minDate = `${yyyy}-${mm}-${dd}`;
+    this.minDate = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  }
 
-    // Crear formulario reactivo
+  private initializeForm(): void {
     this.uploadForm = this.formBaseService.createFormGroup<UploadContentForm>({
-      title: '',
-      description: '',
-      type: '',
-      vip: '',
-      url: '',
-      audioUrl: '',
-      duration: '',
-      estado: '',
-      ageRestriction: '',
-      resolution: '',
-      fechaExpiracion: '',
-      tags: []
+      title: '', description: '', type: '', vip: '', url: '', audioUrl: '',
+      duration: '', estado: '', ageRestriction: '', resolution: '', fechaExpiracion: '', tags: []
     });
 
-    // Crear estado del formulario
     this.formBaseService.createFormState(this.formId, {});
-
-    // Suscribirse al estado del formulario
-    this.formBaseService.getFormState(this.formId)?.subscribe((state: any) => {
+    this.formBaseService.getFormState(this.formId)?.subscribe((state: FormState) => {
       this.currentFormState = state;
     });
 
-    // Suscribirse al estado de imágenes
-    this.imageStateSubscription = this.imageSelectorService.getState().subscribe((state: any) => {
-      // Actualizar el estado del formulario con el estado de imágenes
+    this.imageStateSubscription = this.imageSelectorService.getState().subscribe((state: ImageSelectorState) => {
       this.formBaseService.updateFormState(this.formId, { imageState: state });
     });
-
-    // Load current user
-    this.loadCurrentUser();
-
-    // Cargar thumbnails
-    this.imageSelectorService.loadImages('thumbnail');
   }
 
   ngOnDestroy(): void {
@@ -379,27 +288,13 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     const userData = sessionStorage.getItem('currentUser');
     if (!userData) return;
 
-    this.currentUser = JSON.parse(userData);
-    const tipoContenido = this.currentUser?.tipoContenido?.toLowerCase();
-    if (!tipoContenido) return;
-
-    // Map backend values to form values
-    const typeMap: Record<string, 'video' | 'audio'> = {
-      'video': 'video',
-      'vídeo': 'video',
-      'audio': 'audio'
-    };
-
-    const type = typeMap[tipoContenido];
+    this.currentUser = JSON.parse(userData) as BackendUser;
+    const tipo = this.currentUser?.tipoContenido?.toLowerCase();
+    const type = tipo && { 'video': 'video', 'vídeo': 'video', 'audio': 'audio' }[tipo];
     if (type) this.uploadForm.patchValue({ type });
   }
 
   cancel() {
     this.router.navigate(['/content-creator']);
-  }
-
-  // Métodos adicionales para compatibilidad con template
-  getThumbnailUrl(thumbnail: string): string {
-    return thumbnail;
   }
 }

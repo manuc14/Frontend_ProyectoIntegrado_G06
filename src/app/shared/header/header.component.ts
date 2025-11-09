@@ -82,22 +82,28 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
    */
   private checkSession() {
     this.isLoggedIn = this.authService.isAuthenticated();
-    if (this.isLoggedIn) {
-      const user = this.authService.getCurrentUser();
-      if (user) {
-        this.currentUser = user;
-      }
-    } else {
+
+    // Early return if not authenticated
+    if (!this.isLoggedIn) {
       this.currentUser = null;
+      return;
+    }
+
+    // Update current user if authenticated
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.currentUser = user;
     }
   }
 
   override getAvatarUrl(): string {
-    // Intentar con 'foto' (campo del backend)
     const fotoUrl = this.currentUser?.foto;
+
+    // Early return with full URL if foto exists
     if (fotoUrl) {
       return this.imageSelectorService.getFullImageUrl(fotoUrl, 'avatar');
     }
+
     return 'assets/admin/admin_default.png';
   }
 

@@ -60,7 +60,7 @@
                 *ngFor="let calidad of opcionesCalidad"
                 class="dropdown-item"
                 [class.active]="filtroCalidad === calidad"
-                (click)="seleccionarCalidad(calidad)">
+                (click)="toggleFiltro('calidad', calidad)">
                 {{ calidad }}
               </button>
             </div>
@@ -80,7 +80,7 @@
                 *ngFor="let categoria of opcionesCategorias"
                 class="dropdown-item"
                 [class.active]="filtroCategoria === categoria"
-                (click)="seleccionarCategoria(categoria)">
+                (click)="toggleFiltro('categoria', categoria)">
                 {{ categoria }}
               </button>
             </div>
@@ -107,7 +107,7 @@
                 *ngFor="let edad of opcionesEdad"
                 class="dropdown-item"
                 [class.active]="filtroEdad === edad"
-                (click)="seleccionarEdad(edad)">
+                (click)="toggleFiltro('edad', edad)">
                 {{ edad }}+
               </button>
             </div>
@@ -157,7 +157,7 @@
             <div class="container2"><div class="table-header-text">Calidad</div></div>
             <div class="container2"><div class="table-header-text">Etiquetas</div></div>
             <div class="container2"><div class="table-header-text">Edad</div></div>
-            <div class="container2"><div class="table-header-text">Disp.</div></div>
+            <div class="container2"><div class="table-header-text">Visible</div></div>
             <div class="container2"><div class="table-header-text">Expira</div></div>
           </div>
 
@@ -267,7 +267,7 @@
 
               <!-- Fecha de expiración -->
               <div class="container2 centered-cell">
-                <div class="table-cell-text expiry-text">{{ formatExpiryDate(content.fechaEstado) }}</div>
+                <div class="table-cell-text expiry-text">{{ formatExpiryDate(content.disponibleHasta) }}</div>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { CatalogComponent } from '../../../content/pages/catalog/catalog.component';
 import { ContentCreatorHeaderComponent } from '../../../../shared/components/content-creator-header/content-creator-header.component';
 import { CreatorSidebarComponent } from '../../../../shared/components/creator-sidebar/creator-sidebar.component';
@@ -17,18 +17,15 @@ export class CreatorCatalogComponent {
   // Estado del sidebar
   sidebarCollapsed = false;
 
-  toggleSidebar(): void {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
+  constructor(private router: Router) {}
+
+  onEditList(listId: string): void {
+    sessionStorage.setItem('editListId', listId);
+    this.router.navigate(['/edit-list']);
   }
 
-  // Métodos para los botones de acción (por ahora solo logs)
-  onAddContent(section: string): void {
-    console.log('Añadir contenido a:', section);
-    // TODO: Implementar lógica
-  }
-
-  onEditList(section: string): void {
-    console.log('Editar lista:', section);
-    // TODO: Implementar lógica
+  onDeleteList(listId: string): void {
+    // El componente catalog ya maneja la eliminación
+    console.log('DeleteList delegado al catalog component para:', listId);
   }
 }
