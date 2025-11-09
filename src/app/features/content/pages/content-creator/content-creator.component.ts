@@ -27,12 +27,12 @@ interface RecentEdit {
   styleUrls: ['./content-creator.component.scss']
 })
 export class ContentCreatorComponent implements OnInit {
-  
+
   private router = inject(Router);
 
   // Datos para las listas de contenido
   contentLists: ContentList[] = [];
-  
+
   // Datos para ediciones recientes
   recentEdits: RecentEdit[] = [];
 

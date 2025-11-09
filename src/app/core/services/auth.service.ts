@@ -16,8 +16,10 @@ export interface CurrentUser {
   rol: UserRole;
   tipo?: string;
   tipoContenido?: string;
-  foto?: string;
-  avatar?: string;
+  foto?: string; // Campo del backend para avatar
+  avatar?: string; // Alias del campo foto
+  edad?: number; // Edad del usuario para restricciones de contenido
+  esVip?: boolean; // Si el usuario tiene suscripción VIP
 }
 
 @Injectable({ providedIn: 'root' })
@@ -31,8 +33,8 @@ export class AuthService {
   
   private readonly allowedRoutesByRole: Record<UserRole, string[]> = {
     admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content'],
-    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile'],
-    user: ['/catalog', '/content', '/player']
+    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list'],
+    user: ['/catalog', '/content', '/player', '/my-lists', '/create-private-list', '/edit-private-list' ]
   };
 
   private readonly publicRoutes = ['/', '/login', '/signup', '/qr-code-setup', '/verify-email', '/verify-code', '/verify-otp', '/forgot-password', '/reset-password-code', '/new-password'];
@@ -91,7 +93,7 @@ export class AuthService {
       }),
       catchError(error => {
         const message = error.error?.message || error.message || 'Token expirado';
-        
+
         if (message.includes('inactividad')) {
           this.sessionExpired$.next({ reason: 'idle', message: 'Tu sesión expiró por inactividad' });
         } else if (message.includes('límite de tiempo')) {
@@ -166,6 +168,22 @@ export class AuthService {
   getCurrentRole(): UserRole | null {
     const decoded = this.decodeJWT();
     return decoded?.role ? this.normalizeRole(decoded.role) : null;
+  }
+
+   /**
+   * Obtiene la edad del usuario actual desde sessionStorage
+   */
+  getUserAge(): number {
+    const user = this.getCurrentUser();
+    return user?.edad ?? 0; // Por defecto 0 (sin restricciones)
+  }
+
+  /**
+   * Verifica si el usuario actual es VIP
+   */
+  isUserVip(): boolean {
+    const user = this.getCurrentUser();
+    return user?.esVip ?? false;
   }
 
   isRouteAllowedForCurrentUser(currentPath: string): boolean {

@@ -7,6 +7,7 @@ import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { ApiService } from '../../../../core/services/api.service';
 import { CodeInputBase } from '../../../../core/base/code-input.base';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
+import { isEmpty } from '../../../../core/utils/validation.helpers';
 
 @Component({
   selector: 'app-verify-code',
@@ -40,8 +41,8 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
       this.router.navigate(['/signup']);
       return;
     }
-    
-    // Validar que el token sea válido y la sesión exista
+
+    // Validate token and session
     this.api.validateVerificationToken(this.token()).subscribe({
       next: (response) => {
         if (!response.exists) {
@@ -56,23 +57,23 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
 
   /* Envía el código para verificación usando el token */
   onVerify() {
+    // Early return if cannot verify or already verifying
     if (!this.canVerify || this.isVerifying) {
       if (!this.canVerify) this.triggerShakeError();
       return;
     }
-    
+
     this.isVerifying = true;
     this.errorMessage = '';
     this.successMessage = '';
     this.hasError = false;
     this.buttonState = 'pressed';
-    
+
     this.api.verifyUserWithToken(this.token(), this.code).subscribe({
       next: () => {
         this.router.navigate(['/login']);
       },
       error: (error: any) => {
-        // Extraer mensaje del error procesado por el interceptor
         this.errorMessage = error?.error?.message || error?.message || 'Código de verificación incorrecto';
         this.hasError = true;
         this.isVerifying = false;
@@ -89,13 +90,14 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
 
   /* Reenvía un nuevo código de verificación usando el token actual */
   onResendCode() {
+    // Early return if already resending or disabled
     if (this.isResending || this.resendDisabled) return;
-    
+
     this.isResending = true;
     this.errorMessage = '';
     this.successMessage = '';
     this.hasError = false;
-    
+
     this.api.resendVerificationCode(this.token()).subscribe({
       next: (response: any) => {
         this.successMessage = response.message || 'Nuevo código enviado a tu email';
@@ -104,10 +106,9 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
         this.startResendCountdown();
       },
       error: (error: any) => {
-        // Extraer mensaje del error procesado por el interceptor
         this.errorMessage = error?.error?.message || error?.message || 'Error al reenviar el código';
         this.hasError = true;
-        this.isResending = false; // Restablecer estado en caso de error
+        this.isResending = false;
       },
       complete: () => {
         this.isResending = false;

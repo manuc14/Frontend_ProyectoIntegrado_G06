@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,8 +7,10 @@ import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { FilterPillComponent } from '../../../../shared/components/filter-pill/filter-pill.component';
 import { ContentCardComponent } from '../../../../shared/components/content-card/content-card.component';
 import { ListActionButtonsComponent } from '../../../../shared/components/list-action-buttons/list-action-buttons.component';
-import { CatalogoService } from '../../../../core/services/catalogo.service';
+import { PublicListService, ListaPublicaResponse } from '../../../../core/services/public-list.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Contenido, ResolucionVideo } from '../../../../core/models/contenido.models';
+import { allConditionsTrue } from '../../../../core/utils/validation.helpers';
 
 type SeccionActiva = 'VIDEO' | 'AUDIO';
 type EdadPermitida = 0 | 7 | 13 | 18;
@@ -20,97 +22,98 @@ type EdadPermitida = 0 | 7 | 13 | 18;
   templateUrl: './catalog.component.html',
   styleUrls: ['./catalog.component.scss']
 })
-export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
+export class CatalogComponent implements OnInit {
   @Input() isCreatorView = false;
-  
+  @Output() editList = new EventEmitter<string>();
+  @Output() deleteList = new EventEmitter<string>();
+
+  listasPublicas: ListaPublicaResponse[] = [];
+  errorCarga: string | null = null;
   seccionActiva: SeccionActiva = 'VIDEO';
   contenidoDestacado: Contenido | null = null;
-  contenidoFiltrado: Contenido[] = [];
-  
   filtroPremium = false;
   filtroEdad: EdadPermitida | null = null;
   filtroCalidad: ResolucionVideo | null = null;
-  
   readonly opcionesEdad: EdadPermitida[] = [7, 13, 18];
   readonly opcionesCalidad: ResolucionVideo[] = ['4K', '1080p', '720p', '480p'];
-  
   dropdownEdadAbierto = false;
   dropdownCalidadAbierto = false;
+  private edadUsuario = 18;
 
-  @ViewChild('carouselContainer', { read: ElementRef }) carouselContainer?: ElementRef;
-  private carouselInterval?: number;
-  private readonly CAROUSEL_INTERVAL_MS = 3000;
-  private readonly CAROUSEL_SCROLL_AMOUNT = 240;
-
-  constructor(private catalogoService: CatalogoService, private router: Router) {}
+  constructor(
+    private publicListService: PublicListService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.contenidoDestacado = this.catalogoService.getContenidoDestacado();
-    this.aplicarFiltros();
+    this.edadUsuario = this.authService.getUserAge();
+    this.cargarListasPublicas();
   }
 
-  ngAfterViewInit(): void {
-    this.carouselInterval = window.setInterval(() => this.autoScroll(), this.CAROUSEL_INTERVAL_MS);
+  private cargarListasPublicas(): void {
+    const observable = this.isCreatorView 
+      ? this.publicListService.getMyLists()
+      : this.publicListService.getPublicLists();
+
+    observable.subscribe({
+      next: (listas) => {
+        this.listasPublicas = this.filtrarListas(listas);
+        this.errorCarga = this.listasPublicas.length === 0 ? 'No hay listas disponibles en este momento.' : null;
+        this.seleccionarContenidoDestacado();
+      },
+      error: () => {
+        this.errorCarga = 'Error al cargar el catálogo. Por favor, intenta más tarde.';
+        this.listasPublicas = [];
+        this.contenidoDestacado = null;
+      }
+    });
   }
 
-  ngOnDestroy(): void {
-    if (this.carouselInterval) clearInterval(this.carouselInterval);
+  private filtrarListas(listas: ListaPublicaResponse[]): ListaPublicaResponse[] {
+    return listas
+      .map(lista => ({ ...lista, items: lista.items.filter(item => this.cumpleFiltros(item)) }))
+      .filter(lista => lista.items.length > 0);
+  }
+
+  private cumpleFiltros(item: Contenido): boolean {
+    return allConditionsTrue([
+      item.tipo === this.seccionActiva,
+      this.isCreatorView || item.restriccionEdad <= this.edadUsuario,
+      this.filtroEdad === null || item.restriccionEdad === this.filtroEdad,
+      !this.filtroPremium || item.contenidoVip,
+      this.seccionActiva !== 'VIDEO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad
+    ]);
+  }
+
+  private seleccionarContenidoDestacado(): void {
+    const todosLosContenidos = this.listasPublicas.flatMap(lista => lista.items);
+    this.contenidoDestacado = todosLosContenidos.length > 0 
+      ? todosLosContenidos[Math.floor(Math.random() * todosLosContenidos.length)]
+      : null;
   }
 
   cambiarSeccion(seccion: SeccionActiva): void {
     this.seccionActiva = seccion;
     if (seccion === 'AUDIO') this.filtroCalidad = null;
-    this.aplicarFiltros();
+    this.cargarListasPublicas();
   }
 
   toggleFiltroPremium(): void {
     this.filtroPremium = !this.filtroPremium;
-    this.aplicarFiltros();
+    this.cargarListasPublicas();
   }
 
   seleccionarEdad(edad: EdadPermitida): void {
     this.filtroEdad = this.filtroEdad === edad ? null : edad;
     this.dropdownEdadAbierto = false;
-    this.aplicarFiltros();
+    this.cargarListasPublicas();
   }
 
   seleccionarCalidad(calidad: ResolucionVideo): void {
     this.filtroCalidad = this.filtroCalidad === calidad ? null : calidad;
     this.dropdownCalidadAbierto = false;
-    this.aplicarFiltros();
-  }
-
-  private aplicarFiltros(): void {
-    const fuente = this.seccionActiva === 'VIDEO' 
-      ? this.catalogoService.getVideos() 
-      : this.catalogoService.getAudios();
-    
-    let resultado = this.catalogoService.filtrarPorEdad(fuente, 18);
-    
-    if (this.filtroEdad !== null) {
-      resultado = resultado.filter(c => c.restriccionEdad === this.filtroEdad);
-    }
-    
-    if (this.filtroPremium) {
-      resultado = this.catalogoService.filtrarPremium(resultado, true);
-    }
-    
-    if (this.seccionActiva === 'VIDEO' && this.filtroCalidad !== null) {
-      resultado = this.catalogoService.filtrarPorCalidad(resultado, [this.filtroCalidad]);
-    }
-    
-    this.contenidoFiltrado = resultado;
-  }
-
-  private autoScroll(): void {
-    const container = this.carouselContainer?.nativeElement;
-    if (!container) return;
-    
-    const scrollAmount = container.scrollLeft >= container.scrollWidth - container.clientWidth - 10
-      ? -container.scrollLeft
-      : this.CAROUSEL_SCROLL_AMOUNT;
-    
-    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    this.cargarListasPublicas();
   }
 
   irABusqueda(): void {
@@ -118,7 +121,8 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   cerrarDropdowns(): void {
-    this.dropdownEdadAbierto = this.dropdownCalidadAbierto = false;
+    this.dropdownEdadAbierto = false;
+    this.dropdownCalidadAbierto = false;
   }
 
   get textoBotonEdad(): string {
@@ -129,30 +133,32 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.filtroCalidad ?? 'Calidad';
   }
 
-  get contenidoTendencias(): Contenido[] {
-    return this.contenidoFiltrado.slice(0, 12);
+  get listasFiltradas(): ListaPublicaResponse[] {
+    return this.listasPublicas;
   }
 
-  get contenidoNuevosLanzamientos(): Contenido[] {
-    return this.contenidoFiltrado.slice(12, 20);
+  onEditList(listId: string): void {
+    sessionStorage.setItem('editListId', listId);
+    this.router.navigate(['/edit-list']);
   }
 
-  get contenidoRecomendado(): Contenido[] {
-    return this.contenidoFiltrado.slice(4, 12);
-  }
+  onDeleteList(listId: string): void {
+    const lista = this.listasPublicas.find(l => l.id === listId);
 
-  // Métodos para vista de creador - Simplificados
-  onAddContent(section: string): void {
-    alert(`Funcionalidad de añadir contenido a "${section}" en desarrollo`);
-  }
+    // Early return if list not found
+    if (!lista) return;
 
-  onEditList(section: string): void {
-    alert(`Funcionalidad de editar lista "${section}" en desarrollo`);
-  }
-
-  onDeleteList(section: string): void {
-    if (confirm(`¿Estás seguro de que deseas eliminar la lista "${section}"? Esta acción no se puede deshacer.`)) {
-      alert(`Lista "${section}" eliminada (funcionalidad en desarrollo)`);
+    // Early return if user cancels
+    if (!confirm(`¿Estás seguro de que quieres eliminar la lista "${lista.nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+      return;
     }
+
+    this.publicListService.deleteList(listId).subscribe({
+      next: () => {
+        alert(`Lista "${lista.nombre}" eliminada correctamente.`);
+        this.cargarListasPublicas();
+      },
+      error: () => alert('Error al eliminar la lista. Por favor, intenta de nuevo.')
+    });
   }
 }

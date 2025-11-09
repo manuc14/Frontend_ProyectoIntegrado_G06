@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, finalize } from 'rxjs/operators';
 import { buttonHover, buttonPress, fadeIn, shakeError } from '../../../../core/animations/animations';
 import { SearchBarComponent } from '../../../../shared/search-bar/search-bar.component';
 import { SortDropdownComponent } from '../../../../shared/sort-dropdown/sort-dropdown.component';
@@ -15,6 +15,7 @@ import { Contenido, ResolucionVideo, TipoContenido } from '../../../../core/mode
 import { FilterPillComponent } from '../../../../shared/components/filter-pill/filter-pill.component';
 import { ImageSelectorService } from '../../../../core/services/image-selector.service';
 import { ADMIN_CONFIG } from '../../../../core/constants/admin-config.constants';
+import { allConditionsTrue, anyConditionTrue, hasElements } from '../../../../core/utils/validation.helpers';
 
 // Interfaz para la tabla de contenidos
 interface ContentRow {
@@ -33,6 +34,7 @@ interface ContentRow {
   tipo: TipoContenido;
   duration: number;
   ageRestriction: number;
+  disponibleHasta: Date | null;
 }
 
 @Component({
@@ -58,8 +60,7 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
   filtroPremium = false;
   filtroCalidad: ResolucionVideo | null = null;
   filtroCategoria: string | null = null;
-  filtroEdad: number | null = null; // Filtro de restricción de edad (>= valor)
-  private readonly edadesCiclo: number[] = [0, 7, 13, 18];
+  filtroEdad: number | null = null;
   
   // Opciones para filtros usando constantes
   readonly opcionesCalidad = ADMIN_CONFIG.qualityOptions;
@@ -92,28 +93,28 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
   }
   
   loadData(): void {
-    this.isLoading = true;
-    this.error = null;
-    
-    forkJoin({
-      publicos: this.catalogoService.getContenidosPublicos(),
-      privados: this.catalogoService.getContenidosPrivados()
-    }).pipe(
-      map(({ publicos, privados }) => this.mapContentData([...publicos, ...privados]))
-    ).subscribe({
-      next: (data) => {
-        this.allItems = data;
-        this.applyContentFilters();
-        this.isLoading = false;
-      },
-      error: () => {
-        this.error = 'Error al cargar los contenidos.';
-        this.isLoading = false;
-        this.allItems = [];
-        this.filteredItems = [];
-      }
-    });
-  }
+  this.isLoading = true;
+  this.error = null;
+
+  forkJoin({
+    publicos: this.catalogoService.getContenidosPublicos(),
+    privados: this.catalogoService.getContenidosPrivados()
+  }).pipe(
+    map(({ publicos, privados }) => this.mapContentData([...publicos, ...privados])),
+    finalize(() => this.isLoading = false)
+  ).subscribe({
+    next: (data) => {
+      this.allItems = data;
+      this.applyContentFilters();
+    },
+    error: () => {
+      this.error = 'Error al cargar los contenidos.';
+      this.allItems = [];
+      this.filteredItems = [];
+      this.totalItems = 0;
+    }
+  });
+}
   
   private mapContentData(data: Contenido[]): ContentRow[] {
     return data.map(contenido => this.mapSingleContent(contenido));
@@ -135,7 +136,8 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
       fechaEstado: contenido.fechaEstado,
       tipo: contenido.tipo,
       duration: contenido.duracion,
-      ageRestriction: contenido.restriccionEdad
+      ageRestriction: contenido.restriccionEdad,
+      disponibleHasta: contenido.disponibleHasta
     };
   }
   
@@ -149,24 +151,32 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
     this.filtroPremium = !this.filtroPremium;
     this.applyContentFilters();
   }
-  
-  seleccionarCalidad(calidad: ResolucionVideo): void {
-    this.filtroCalidad = this.filtroCalidad === calidad ? null : calidad;
-    this.dropdownCalidadAbierto = false;
-    this.applyContentFilters();
-  }
-  
-  seleccionarCategoria(categoria: string): void {
-    this.filtroCategoria = this.filtroCategoria === categoria ? null : categoria;
-    this.dropdownCategoriaAbierto = false;
-    this.applyContentFilters();
+
+  toggleFiltro(tipo: 'calidad' | 'categoria' | 'edad', valor: any): void {
+    // Early return for calidad filter
+    if (tipo === 'calidad') {
+      this.filtroCalidad = this.filtroCalidad === valor ? null : valor;
+      this.dropdownCalidadAbierto = false;
+      this.applyContentFilters();
+      return;
+    }
+
+    // Early return for categoria filter
+    if (tipo === 'categoria') {
+      this.filtroCategoria = this.filtroCategoria === valor ? null : valor;
+      this.dropdownCategoriaAbierto = false;
+      this.applyContentFilters();
+      return;
+    }
+
+    // Early return for edad filter
+    if (tipo === 'edad') {
+      this.filtroEdad = this.filtroEdad === valor ? null : valor;
+      this.dropdownEdadAbierto = false;
+      this.applyContentFilters();
+    }
   }
 
-  seleccionarEdad(edad: number): void {
-    this.filtroEdad = this.filtroEdad === edad ? null : edad;
-    this.dropdownEdadAbierto = false;
-    this.applyContentFilters();
-  }
   
   cerrarDropdowns(): void {
     this.dropdownCalidadAbierto = false;
@@ -186,39 +196,31 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
     return this.filtroEdad !== null ? `${this.filtroEdad}+` : 'Edad';
   }
   
+  private matchesAllFilters(item: ContentRow): boolean {
+    const searchTerm = this.searchTerm?.toLowerCase();
+    const searchMatch = !searchTerm ||
+      anyConditionTrue([
+        item.title.toLowerCase().includes(searchTerm),
+        item.creator.toLowerCase().includes(searchTerm),
+        item.category.toLowerCase().includes(searchTerm)
+      ]);
+
+    return allConditionsTrue([
+      item.tipo === this.selectedContentType,
+      !this.filtroPremium || item.isPremium,
+      !this.filtroCalidad || item.quality === this.filtroCalidad,
+      !this.filtroCategoria || item.category === this.filtroCategoria,
+      this.filtroEdad === null || item.ageRestriction === this.filtroEdad,
+      searchMatch
+    ]);
+  }
+
   private applyContentFilters(): void {
-    this.filteredItems = this.allItems.filter(item => {
-      const matchesType = item.tipo === this.selectedContentType;
-      const matchesPremium = !this.filtroPremium || item.isPremium;
-      const matchesQuality = !this.filtroCalidad || item.quality === this.filtroCalidad;
-      const matchesCategory = !this.filtroCategoria || item.category === this.filtroCategoria;
-      const matchesAge = this.filtroEdad === null || item.ageRestriction === this.filtroEdad;
-      const matchesSearchTerm = this.matchesSearch(item);
-
-      return matchesType && matchesPremium && matchesQuality && 
-             matchesCategory && matchesAge && matchesSearchTerm;
-    });
-
+    this.filteredItems = this.allItems.filter(item => this.matchesAllFilters(item));
     this.currentPage = 1;
     this.totalItems = this.filteredItems.length;
   }
 
-  private matchesSearch(item: ContentRow): boolean {
-    if (!this.searchTerm) return true;
-    const term = this.searchTerm.toLowerCase();
-    return [item.title, item.creator, item.category]
-      .some(field => field.toLowerCase().includes(term));
-  }
-  
-  override onSearch(searchTerm: string): void {
-    this.searchTerm = searchTerm;
-    this.applyContentFilters();
-  }
-  
-  override onClearSearch(): void {
-    this.searchTerm = '';
-    this.applyContentFilters();
-  }
   
   // Métodos abstractos requeridos por AdminListBase
   getSearchFields(): string[] {
@@ -258,20 +260,12 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
   }
   
   override getClearButtonText(): string {
-    if (this.error) return 'Reintentar';
-    return this.hasActiveFilters() ? 'Limpiar filtros' : '';
-  }
-
-  private hasActiveFilters(): boolean {
-    return !!(this.searchTerm || this.filtroPremium || this.filtroCalidad || 
-              this.filtroCategoria || this.filtroEdad);
+    const activeFilters = [this.searchTerm, this.filtroPremium, this.filtroCalidad,
+                           this.filtroCategoria, this.filtroEdad];
+    return hasElements(activeFilters.filter(f => f)) ? 'Limpiar filtros' : '';
   }
   
   override clearSearchAndFilters(): void {
-    if (this.error) {
-      this.loadData();
-      return;
-    }
     this.searchTerm = '';
     this.filtroPremium = false;
     this.filtroCalidad = null;
@@ -289,18 +283,13 @@ export class AdminContentPage extends AdminListBase<ContentRow> implements OnIni
 
   override handleNav(event: string): void {
     this.closeSidebar();
-    const route = (ADMIN_CONFIG.navRoutes as any)[event as keyof typeof ADMIN_CONFIG.navRoutes]?.base;
-    if (route) {
-      this.router.navigate([route]);
-    }
+    const route = ADMIN_CONFIG.navRoutes[event as keyof typeof ADMIN_CONFIG.navRoutes]?.base;
+    if (route) this.router.navigate([route]);
   }
   
-  formatExpiryDate(date: Date): string {
+  formatExpiryDate(date: Date | null): string {
     if (!date) return '—';
     const d = new Date(date);
-    const day = d.getDate().toString().padStart(2, '0');
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
   }
 }

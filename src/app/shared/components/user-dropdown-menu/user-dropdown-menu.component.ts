@@ -30,7 +30,7 @@ export class UserDropdownMenuComponent implements OnInit {
 
   // Mapeo directo de rutas por rol - simplificado
   private readonly roleRoutes: Record<UserRole, { home: string; profile: string }> = {
-    user: { home: '/catalog', profile: '/profile' },
+    user: { home: '/catalog', profile: '/my-lists' },
     creator: { home: '/content-creator', profile: '/profile' },
     admin: { home: '/ad-users', profile: '/profile' }
   };
@@ -73,7 +73,11 @@ export class UserDropdownMenuComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onClickOutside(event: MouseEvent) {
     const isOutside = !(event.target as HTMLElement).closest('.user-dropdown-container');
-    if (isOutside) this.isDropdownOpen = false;
+
+    // Early return if click is inside dropdown
+    if (!isOutside) return;
+
+    this.isDropdownOpen = false;
   }
 
   executeMenuAction(option: MenuOption) {
