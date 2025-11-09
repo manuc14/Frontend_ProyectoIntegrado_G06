@@ -18,18 +18,7 @@
       </div>
     </div>
 
-    <!-- Estado de carga del FormBaseService -->
-    <div *ngIf="formState$ | async as formState" class="form-status">
-      <!-- Indicador de carga -->
-      <div *ngIf="formState.isLoading" class="loading-indicator">
-        Cargando perfil...
-      </div>
-      
-      <!-- Mensaje de error general -->
-      <div *ngIf="formState.error" class="error-message global-error">
-        {{ formState.error }}
-      </div>
-    </div>
+
 
     <!-- Contenedor principal con fondo blanco -->
     <div class="background-border-shadow">
@@ -183,16 +172,9 @@
           <button 
             type="button" 
             class="background-border14"
-            [disabled]="!hasUnsavedChanges || (formState$ | async)?.isSubmitting"
+            [disabled]="!hasUnsavedChanges"
             (click)="onSaveChanges()">
-            <div class="text18">
-              <ng-container *ngIf="(formState$ | async)?.isSubmitting; else normalSave">
-                Guardando...
-              </ng-container>
-              <ng-template #normalSave>
-                Guardar cambios
-              </ng-template>
-            </div>
+            <div class="text18">Guardar cambios</div>
           </button>
         </div>
       </div>

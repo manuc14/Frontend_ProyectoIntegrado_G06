@@ -227,6 +227,7 @@ export class BaseProfileComponent implements OnInit {
    */
   protected handleAuthError(error: any): void {
     if (error.status === 401 || error.status === 403) {
+      console.error('❌ [Profile] Error de autorización - cerrando sesión');
       this.authService.logout();
     }
   }

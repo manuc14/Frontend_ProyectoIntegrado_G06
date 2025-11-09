@@ -128,13 +128,6 @@ export class AdConsultprofileComponent extends BaseProfileComponent {
 
   // ========= MÉTODOS ESPECÍFICOS DEL ADMIN =========
 
-  protected override handleAuthError(error: any): void {
-    if (error.status === 401 || error.status === 403) {
-      console.error('❌ [Profile] Error de autorización - cerrando sesión');
-      this.authService.logout(true);
-    }
-  }
-
   private loadFallbackData(): void {
     this.profileForm.get('startDate')?.disable();
     this.profileForm.get('email')?.disable();
