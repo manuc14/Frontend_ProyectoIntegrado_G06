@@ -34,6 +34,7 @@ import { UploadContentComponent } from './features/content/pages/upload-content/
 import { CatalogComponent } from './features/content/pages/catalog/catalog.component';
 import { ContentPreviewComponent } from './features/content/pages/content-preview/content-preview.component';
 import { MediaPlayerComponent } from './features/content/pages/media-player/media-player.component';
+import { SearchComponent } from './features/content/pages/search/search.component';
 import { CreatorCatalogComponent } from './features/creator/pages/creator-catalog/creator-catalog.component';
 import { CreatorStatsComponent } from './features/creator/pages/creator-stats/creator-stats.component';
 import { VerifyEmailPage } from './features/auth/pages/verify-email/verify-email.page';
@@ -95,6 +96,7 @@ export const routes: Routes = [
 
   // Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },
+	{ path: 'search', component: SearchComponent, canActivate: [authGuard] },
 	{ path: 'content/preview', component: ContentPreviewComponent, canActivate: [authGuard] },
 	{ path: 'player', component: MediaPlayerComponent, canActivate: [authGuard] },
 	

@@ -88,7 +88,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   private formStateSubscription?: Subscription;
 
-  constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private imageSelectorService: ImageSelectorService, private formBaseService: FormBaseService) {
+  constructor(private fb: FormBuilder, private api: ApiService, private router: Router, private imageSelectorService: ImageSelectorService, public formBaseService: FormBaseService) {
     this.form = this.formBaseService.createFormGroup({
       nombre: '', apellidos: '', email: '', alias: '', fechaNacimiento: '', password: '', repeatPassword: '', vip: false, fotoElegida: null
     }, [matchPasswordsValidator('password', 'repeatPassword')], 'register');

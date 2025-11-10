@@ -324,6 +324,16 @@ label span {
 }
 
 /* make the preview image slightly rounded and more prominent */
+.thumbnail-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
+}
 
 .thumbnail-slot.empty {
   color: var(--muted-foreground);
@@ -377,48 +387,33 @@ label span {
   gap: 12px;
 }
 
-.tags-display {
+.tags-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.tag {
+.tag-pill {
   background: #f3f4f6; /* light neutral gray */
   color: var(--foreground);
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(0,0,0,0.06);
-}
-
-.remove-tag {
-  background: transparent;
-  border: none;
-  color: var(--muted-foreground);
-  cursor: pointer;
-  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 20px;
   font-size: 14px;
-  line-height: 1;
-  padding: 0 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+  font-weight: 500;
+  border: 1px solid rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
 
   &:hover {
-    color: var(--destructive);
+    background: #e5e7eb;
+    border-color: rgba(0,0,0,0.12);
   }
-}
 
-.tag-input-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+  &.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
 }
 
 .tags-container .field-error {

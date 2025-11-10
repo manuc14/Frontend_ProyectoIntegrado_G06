@@ -30,7 +30,7 @@
     </div>
     
     <!-- Badge de Edad -->
-    <div *ngIf="contenido.restriccionEdad > 0" class="content-card__badge content-card__badge--age">
+    <div *ngIf="contenido.restriccionEdad !== null && contenido.restriccionEdad !== undefined" class="content-card__badge content-card__badge--age">
       {{ contenido.restriccionEdad }}+
     </div>
   </div>
