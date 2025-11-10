@@ -7,8 +7,6 @@ import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { ApiService } from '../../../../core/services/api.service';
 import { CodeInputBase } from '../../../../core/base/code-input.base';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
-import { isEmpty } from '../../../../core/utils/validation.helpers';
-
 @Component({
   selector: 'app-verify-code',
   standalone: true,

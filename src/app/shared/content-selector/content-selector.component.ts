@@ -154,6 +154,7 @@ export class ContentSelectorComponent implements OnInit {
   @Input() showSelectedCount = false;
   @Input() initialType: ContentType = 'VIDEO';
   @Input() preselectedIds: string[] = [];
+  @Input() preselectedContent: SuggestedContent[] = [];
   @Input() isPrivateMode = false; // Nuevo input para modo privado
 
   @Output() selectedChange = new EventEmitter<SuggestedContent[]>();
@@ -189,7 +190,18 @@ export class ContentSelectorComponent implements OnInit {
 
     observable.subscribe({
       next: (contenidos: any[]) => {
-        this.allContent = contenidos.map(c => this.mapContenidoToSuggestedContent(c));
+        const availableContent = contenidos.map(c => this.mapContenidoToSuggestedContent(c));
+        
+        // Combinar contenidos disponibles con contenidos preseleccionados
+        const combinedContent = [...availableContent];
+        this.preselectedContent.forEach(preselected => {
+          // Solo agregar si no existe ya en los contenidos disponibles
+          if (!combinedContent.some(c => c.id === preselected.id)) {
+            combinedContent.push(preselected);
+          }
+        });
+        
+        this.allContent = combinedContent;
         this.isLoadingContent = false;
         this.selectedChange.emit(this.selectedContent);
       },

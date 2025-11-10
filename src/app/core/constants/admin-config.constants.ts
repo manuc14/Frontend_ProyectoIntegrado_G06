@@ -124,7 +124,7 @@ export const ADMIN_CONFIG = {
   categoryOptions: ['Música', 'Educación', 'Tecnología', 'Cocina', 'Deportes', 'Arte', 'Ciencia', 'Viajes', 'Naturaleza', 'Fitness'],
 
   // Opciones de restricción de edad (en años)
-  ageRestrictionOptions: [7, 13, 18],
+  ageRestrictionOptions: [0, 7, 13, 18],
 
   // Rutas de navegación
   navRoutes: {
