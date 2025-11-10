@@ -15,7 +15,7 @@ import { FormBaseService, FormState } from '../../../../core/services/form-base.
 import { UploadService } from '../../../../core/services/upload-services/upload.service';
 import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
-import { UPLOAD_LIMITS, UPLOAD_FILE_TYPES } from '../../../../core/constants/form-limits';
+import { UPLOAD_LIMITS, UPLOAD_FILE_TYPES, PREDEFINED_TAGS } from '../../../../core/constants/form-limits';
 import { executeAsyncOperation } from '../../../../core/utils/observable.helpers';
 
 // Interface tipada para el formulario de upload
@@ -54,6 +54,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   // Constants for template access
   readonly UPLOAD_LIMITS = UPLOAD_LIMITS;
   readonly UPLOAD_FILE_TYPES = UPLOAD_FILE_TYPES;
+  readonly PREDEFINED_TAGS = PREDEFINED_TAGS;
 
   // Formulario reactivo
   uploadForm!: FormGroup;
@@ -76,8 +77,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   submitted = false;
 
   // Tags
-  tags: string[] = [];
-  newTag = '';
+  selectedTags: string[] = [];
 
   // UI state
   minDate = '';
@@ -100,21 +100,22 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   // Métodos simplificados para el formulario
 
-  addTag() {
-    const candidate = this.newTag.trim();
-    if (!candidate || this.tags.includes(candidate)) return;
-    this.tags.push(candidate);
-    this.newTag = '';
+  toggleTag(tag: string) {
+    const index = this.selectedTags.indexOf(tag);
+    if (index > -1) {
+      this.selectedTags.splice(index, 1);
+    } else {
+      this.selectedTags.push(tag);
+    }
     this.updateTagsInForm();
   }
 
-  removeTag(index: number) {
-    this.tags.splice(index, 1);
-    this.updateTagsInForm();
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags.includes(tag);
   }
 
   private updateTagsInForm(): void {
-    this.uploadForm.patchValue({ tags: this.tags });
+    this.uploadForm.patchValue({ tags: this.selectedTags });
     this.uploadForm.get('tags')?.updateValueAndValidity();
   }
 
@@ -189,7 +190,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   async upload() {
     this.submitted = true;
     this.formBaseService.updateFormState(this.formId, { error: null });
-    this.uploadForm.patchValue({ tags: this.tags });
+    this.uploadForm.patchValue({ tags: this.selectedTags });
 
     // Early return si el formulario es inválido
     if (this.uploadForm.invalid || this.validateForm(this.uploadForm.value).length > 0) {
@@ -217,7 +218,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     const isAudio = formValue.type === 'audio';
     const isVideo = formValue.type === 'video';
     const checks = [
-      { condition: this.tags.length === 0, error: 'tags' },
+      { condition: this.selectedTags.length === 0, error: 'tags' },
       { condition: isAudio && !this.file && !formValue.audioUrl?.trim(), error: 'audioFile' },
       { condition: isVideo && formValue.resolution === '4K' && formValue.vip !== 'si', error: '4kRequiresVip' }
     ];
@@ -241,7 +242,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       urlMiniatura: uploadResult.thumbnailUrl ?? this.localThumbnailUrl ?? this.selectedThumbnailUrl,
       estado: formValue.estado,
       esUsuarioVip: formValue.vip === 'si',
-      tags: this.tags,
+      tags: this.selectedTags,
       resolucion: isVideo ? formValue.resolution : null,
       restriccionEdad: ageRestriction,
       duracion: formValue.duration,

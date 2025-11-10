@@ -33,8 +33,8 @@ export class AuthService {
   
   private readonly allowedRoutesByRole: Record<UserRole, string[]> = {
     admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content'],
-    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list'],
-    user: ['/catalog', '/content', '/player', '/my-lists', '/create-private-list', '/edit-private-list' ]
+    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search'],
+    user: ['/catalog', '/content', '/player', '/my-lists', '/create-private-list', '/edit-private-list', '/search']
   };
 
   private readonly publicRoutes = ['/', '/login', '/signup', '/qr-code-setup', '/verify-email', '/verify-code', '/verify-otp', '/forgot-password', '/reset-password-code', '/new-password'];
@@ -52,7 +52,7 @@ export class AuthService {
       sessionStorage.setItem('tokenExpiry', expiryTime.toString());
       this.startTokenExpiryTimer(expiryTime);
     } catch (error) {
-      // Error decodificando token JWT
+      console.error('Error decodificando token JWT:', error);
     }
   }
 
@@ -68,11 +68,7 @@ export class AuthService {
   private getSessionConfig(): { idleTimeout: number; absoluteTimeout: number } | null {
     const configData = sessionStorage.getItem('sessionConfig');
     if (!configData) return null;
-    try {
-      return JSON.parse(configData);
-    } catch (error) {
-      return null;
-    }
+    return JSON.parse(configData);
   }
 
   refreshAccessToken(): Observable<{ accessToken: string; refreshToken: string; message: string }> {
@@ -110,50 +106,20 @@ export class AuthService {
 
   getCurrentUser(): CurrentUser | null {
     const userData = sessionStorage.getItem('currentUser');
-    if (userData) {
-      if (userData === 'undefined' || userData === 'null') {
-        sessionStorage.removeItem('currentUser');
-        return null;
-      }
-      try {
-        return JSON.parse(userData) as CurrentUser;
-      } catch (error) {
-        sessionStorage.removeItem('currentUser');
-        return null;
-      }
+    if (!userData) return null;
+
+    try {
+      const user = JSON.parse(userData) as CurrentUser;
+      return user;
+    } catch (error) {
+      console.error('Error parsing currentUser from sessionStorage:', error);
+      sessionStorage.removeItem('currentUser');
+      return null;
     }
-    
-    const decoded = this.decodeJWT();
-    if (decoded?.email) {
-      const userFromJWT: CurrentUser = {
-        id: decoded.sub || decoded.userId || 'unknown',
-        email: decoded.email,
-        nombre: decoded.name || decoded.nombre || decoded.email.split('@')[0],
-        apellidos: decoded.apellidos || decoded.apellido || '',
-        rol: this.normalizeRole(decoded.role) || 'user',
-        tipo: decoded.tipo || decoded.role,
-        avatar: decoded.avatar || decoded.foto
-      };
-      sessionStorage.setItem('currentUser', JSON.stringify(userFromJWT));
-      return userFromJWT;
-    }
-    return null;
   }
 
   isAuthenticated(): boolean {
     return !!this.getToken() && !!this.getCurrentUser();
-  }
-
-  private decodeJWT(): any {
-    const token = this.getToken();
-    if (!token) return null;
-    try {
-      const parts = token.split('.');
-      if (parts.length !== 3) throw new Error('JWT inválido: debe tener 3 partes');
-      return JSON.parse(atob(parts[1]));
-    } catch (error) {
-      return null;
-    }
   }
 
   private normalizeRole(backendRole: string): UserRole | null {
@@ -166,8 +132,8 @@ export class AuthService {
   }
 
   getCurrentRole(): UserRole | null {
-    const decoded = this.decodeJWT();
-    return decoded?.role ? this.normalizeRole(decoded.role) : null;
+    const user = this.getCurrentUser();
+    return user?.tipo ? this.normalizeRole(user.tipo) : null;
   }
 
    /**
@@ -175,7 +141,7 @@ export class AuthService {
    */
   getUserAge(): number {
     const user = this.getCurrentUser();
-    return user?.edad ?? 0; // Por defecto 0 (sin restricciones)
+    return user?.edad ?? 0;
   }
 
   /**
@@ -184,6 +150,14 @@ export class AuthService {
   isUserVip(): boolean {
     const user = this.getCurrentUser();
     return user?.esVip ?? false;
+  }
+
+  /**
+   * Verifica si el usuario actual es un creador de contenido
+   */
+  isCreator(): boolean {
+    const role = this.getCurrentRole();
+    return role === 'creator';
   }
 
   isRouteAllowedForCurrentUser(currentPath: string): boolean {

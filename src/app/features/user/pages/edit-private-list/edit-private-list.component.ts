@@ -46,6 +46,7 @@ export class EditPrivateListComponent implements OnInit, OnDestroy {
   listId: string = '';
   initialList?: ListaPublicaResponse;
   preselectedIds: string[] = [];
+  preselectedContent: SuggestedContent[] = [];
 
   ngOnInit(): void {
     if (!checkAuthenticationOrRedirect(this.router)) return;
@@ -93,6 +94,7 @@ export class EditPrivateListComponent implements OnInit, OnDestroy {
 
         this.selectedContentType = lista.dominantType as 'VIDEO' | 'AUDIO';
         this.preselectedIds = lista.items.map(item => item._id);
+        this.preselectedContent = lista.items.map(item => this.mapContenidoToSuggestedContent(item));
       },
       error: () => {
         this.formBaseService.updateFormState(this.formId, {
@@ -100,6 +102,30 @@ export class EditPrivateListComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  private mapContenidoToSuggestedContent(contenido: any): SuggestedContent {
+    const { _id, titulo, descripcion, ficheroUrl, miniaturaUrl, duracion, tipoArchivo, creador } = contenido;
+    const channel = creador?.nombre || 'Desconocido';
+
+    return {
+      id: _id,
+      thumbnail: miniaturaUrl || 'assets/default-thumbnail.png',
+      title: titulo,
+      channel,
+      duration: this.formatDuration(duracion),
+      added: true, // Los contenidos de la lista ya están seleccionados
+      tipo: tipoArchivo,
+      ficheroUrl,
+      autorId: channel,
+      descripcion
+    };
+  }
+
+  private formatDuration(duracion: number): string {
+    const minutos = Math.floor(duracion / 60).toString().padStart(2, '0');
+    const segundos = (duracion % 60).toString().padStart(2, '0');
+    return `${minutos}:${segundos}`;
   }
 
   onSubmit(): void {

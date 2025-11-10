@@ -12,7 +12,6 @@ import { finalize } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
 import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
 import { FormSubmitComponent } from '../../../../shared/form-components/form-submit/form-submit.component';
-import { isEmpty } from '../../../../core/utils/validation.helpers';
 
 interface LoginForm {
   email: FormControl<string>;

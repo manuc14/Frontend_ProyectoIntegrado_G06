@@ -11,6 +11,7 @@ import { PublicListService, ListaPublicaResponse } from '../../../../core/servic
 import { AuthService } from '../../../../core/services/auth.service';
 import { Contenido, ResolucionVideo } from '../../../../core/models/contenido.models';
 import { allConditionsTrue } from '../../../../core/utils/validation.helpers';
+import { PREDEFINED_TAGS } from '../../../../core/constants/form-limits';
 
 type SeccionActiva = 'VIDEO' | 'AUDIO';
 type EdadPermitida = 0 | 7 | 13 | 18;
@@ -34,10 +35,16 @@ export class CatalogComponent implements OnInit {
   filtroPremium = false;
   filtroEdad: EdadPermitida | null = null;
   filtroCalidad: ResolucionVideo | null = null;
-  readonly opcionesEdad: EdadPermitida[] = [7, 13, 18];
+  filtroEtiquetas: string[] = [];
+  filtroEspecialidad: string | null = null;
+  readonly opcionesEdad: EdadPermitida[] = [0, 7, 13, 18];
   readonly opcionesCalidad: ResolucionVideo[] = ['4K', '1080p', '720p', '480p'];
+  readonly opcionesEtiquetas: readonly string[] = PREDEFINED_TAGS;
+  readonly opcionesEspecialidad: string[] = ['Música', 'Educación', 'Tecnología', 'Cocina', 'Deportes', 'Arte', 'Ciencia', 'Viajes'];
   dropdownEdadAbierto = false;
   dropdownCalidadAbierto = false;
+  dropdownEtiquetasAbierto = false;
+  dropdownEspecialidadAbierto = false;
   private edadUsuario = 18;
 
   constructor(
@@ -58,7 +65,12 @@ export class CatalogComponent implements OnInit {
 
     observable.subscribe({
       next: (listas) => {
-        this.listasPublicas = this.filtrarListas(listas);
+        // En vista de creador, filtrar solo listas públicas
+        const listasFiltradas = this.isCreatorView 
+          ? listas.filter(lista => lista.publica)
+          : listas;
+        
+        this.listasPublicas = this.filtrarListas(listasFiltradas);
         this.errorCarga = this.listasPublicas.length === 0 ? 'No hay listas disponibles en este momento.' : null;
         this.seleccionarContenidoDestacado();
       },
@@ -82,7 +94,9 @@ export class CatalogComponent implements OnInit {
       this.isCreatorView || item.restriccionEdad <= this.edadUsuario,
       this.filtroEdad === null || item.restriccionEdad === this.filtroEdad,
       !this.filtroPremium || item.contenidoVip,
-      this.seccionActiva !== 'VIDEO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad
+      this.seccionActiva !== 'VIDEO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad,
+      this.filtroEtiquetas.length === 0 || this.filtroEtiquetas.some(etiqueta => item.tags.includes(etiqueta)),
+      this.filtroEspecialidad === null || item.categoria === this.filtroEspecialidad
     ]);
   }
 
@@ -116,6 +130,26 @@ export class CatalogComponent implements OnInit {
     this.cargarListasPublicas();
   }
 
+  toggleEtiqueta(etiqueta: string): void {
+    const index = this.filtroEtiquetas.indexOf(etiqueta);
+    if (index > -1) {
+      this.filtroEtiquetas.splice(index, 1);
+    } else {
+      this.filtroEtiquetas.push(etiqueta);
+    }
+    this.cargarListasPublicas();
+  }
+
+  isEtiquetaSeleccionada(etiqueta: string): boolean {
+    return this.filtroEtiquetas.includes(etiqueta);
+  }
+
+  seleccionarEspecialidad(especialidad: string): void {
+    this.filtroEspecialidad = this.filtroEspecialidad === especialidad ? null : especialidad;
+    this.dropdownEspecialidadAbierto = false;
+    this.cargarListasPublicas();
+  }
+
   irABusqueda(): void {
     this.router.navigate(['/search']);
   }
@@ -123,6 +157,8 @@ export class CatalogComponent implements OnInit {
   cerrarDropdowns(): void {
     this.dropdownEdadAbierto = false;
     this.dropdownCalidadAbierto = false;
+    this.dropdownEtiquetasAbierto = false;
+    this.dropdownEspecialidadAbierto = false;
   }
 
   get textoBotonEdad(): string {
@@ -131,6 +167,16 @@ export class CatalogComponent implements OnInit {
 
   get textoBotonCalidad(): string {
     return this.filtroCalidad ?? 'Calidad';
+  }
+
+  get textoBotonEtiquetas(): string {
+    if (this.filtroEtiquetas.length === 0) return 'Etiquetas';
+    if (this.filtroEtiquetas.length === 1) return this.filtroEtiquetas[0];
+    return `${this.filtroEtiquetas.length} seleccionadas`;
+  }
+
+  get textoBotonEspecialidad(): string {
+    return this.filtroEspecialidad ?? 'Especialidad';
   }
 
   get listasFiltradas(): ListaPublicaResponse[] {

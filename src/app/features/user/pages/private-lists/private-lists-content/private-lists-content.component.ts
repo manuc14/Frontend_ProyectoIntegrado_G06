@@ -37,7 +37,7 @@ export class PrivateListsContentComponent implements OnInit {
   filtroPremium = false;
   filtroEdad: EdadPermitida | null = null;
   filtroCalidad: ResolucionVideo | null = null;
-  readonly opcionesEdad: EdadPermitida[] = [7, 13, 18];
+  readonly opcionesEdad: EdadPermitida[] = [0, 7, 13, 18];
   readonly opcionesCalidad: ResolucionVideo[] = ['4K', '1080p', '720p', '480p'];
   dropdownEdadAbierto = false;
   dropdownCalidadAbierto = false;

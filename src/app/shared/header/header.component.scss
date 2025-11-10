@@ -172,6 +172,37 @@
     order: 3;
 }
 
+/* Botón de búsqueda */
+.search-btn {
+    background: var(--secondary);
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 44px;
+    height: 44px;
+
+    svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+        color: var(--foreground);
+    }
+
+    &:hover {
+        background: var(--muted);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
 /* Base común para botones */
 .link3,
 .link4 { 
