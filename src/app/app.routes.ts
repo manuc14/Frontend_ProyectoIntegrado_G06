@@ -44,8 +44,8 @@ import { NewPasswordPage } from './features/auth/pages/new-password/new-password
 import { TwoFactorContainerComponent } from './features/auth/pages/2fa-container/2fa-container.component';
 
 export const routes: Routes = [
-	// Home es accesible para todos (autenticados y no autenticados)
-	{ path: '', component: HomeComponent },
+	// Home con publicGuard - bloqueado para autenticados (como login)
+	{ path: '', component: HomeComponent, canActivate: [publicGuard] },
 	{ path: 'signup', component: RegisterComponent, canActivate: [publicGuard] },
 	{ path: 'login', component: LoginComponent, canActivate: [publicGuard] },
 	
