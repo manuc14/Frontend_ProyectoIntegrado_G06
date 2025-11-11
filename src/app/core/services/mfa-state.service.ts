@@ -53,11 +53,13 @@ export class MFAStateService {
   }
 
   public completeAuth(accessToken: string, refreshToken: string): void {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+    // Los tokens ya se guardaron en setAccessToken() y setRefreshTokenPublic()
+    // Solo limpiar los datos temporales de 2FA
     sessionStorage.removeItem('twoFactorSessionToken');
     sessionStorage.removeItem('twoFactorType');
     sessionStorage.removeItem('loginEmail');
+    sessionStorage.removeItem('verificationToken');
+    sessionStorage.removeItem('nextFactor');
   }
 
   public setError(error: MFAError): void { this.updateState({ ...this.currentState, error: error.message, isLoading: false }); }

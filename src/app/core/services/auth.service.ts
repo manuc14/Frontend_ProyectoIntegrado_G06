@@ -250,4 +250,32 @@ export class AuthService {
     };
     return redirectMap[role] || '/';
   }
+
+  /**
+   * Extrae la información del usuario desde un token JWT
+   * Método centralizado para ser usado en diferentes puntos de login
+   */
+  extractUserFromJWT(token: string): CurrentUser | null {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const tipo = payload.role || payload.tipo || 'USUARIOEV';
+
+      const user: CurrentUser = {
+        id: payload.sub || payload.userId || '',
+        email: payload.email || '',
+        nombre: payload.name || payload.nombre || payload.email?.split('@')[0] || 'Usuario',
+        apellidos: payload.apellidos || '',
+        tipo,
+        rol: this.normalizeRole(tipo) || 'user',
+        avatar: payload.avatar || payload.foto,
+        edad: payload.edad,
+        esVip: payload.esVip
+      };
+
+      return user;
+    } catch (error) {
+      console.error('❌ [AuthService] Error extrayendo usuario del JWT:', error);
+      return null;
+    }
+  }
 }
