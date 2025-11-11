@@ -25,6 +25,12 @@ export class VerifyEmailPage {
   private timerId: any;
 
   constructor(private route: ActivatedRoute, private router: Router) {
+    // Extraer token de query parameters y guardarlo en sessionStorage
+    const token = this.route.snapshot.queryParams['token'];
+    if (token) {
+      sessionStorage.setItem('verificationToken', token);
+    }
+
     // Extraer email de sessionStorage
     const email = sessionStorage.getItem('pendingVerificationEmail');
     this.email.set(email ?? '');
