@@ -122,6 +122,21 @@ export class TwoFactorContainerComponent implements OnInit, OnDestroy {
       this.authService.setRefreshTokenPublic(tokens.refreshToken);
     }
 
+    // Extraer usuario del JWT si no viene en la respuesta
+    if (!tokens.user) {
+      const userFromToken = this.authService.extractUserFromJWT(tokens.accessToken);
+      if (userFromToken) {
+        sessionStorage.setItem('currentUser', JSON.stringify(userFromToken));
+        console.log('✅ [2FA-Container] Usuario guardado desde JWT:', userFromToken);
+      } else {
+        console.error('❌ [2FA-Container] No se pudo extraer usuario del JWT');
+      }
+    } else {
+      // Si viene en la respuesta, guardarlo directamente
+      sessionStorage.setItem('currentUser', JSON.stringify(tokens.user));
+      console.log('✅ [2FA-Container] Usuario guardado desde respuesta:', tokens.user);
+    }
+
     if (tokens.idleTimeoutMillis && tokens.absoluteTimeoutMillis) {
       this.authService.saveSessionConfig(tokens.idleTimeoutMillis, tokens.absoluteTimeoutMillis);
     }

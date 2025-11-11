@@ -61,6 +61,8 @@ export const authGuard: CanActivateFn = (route, state) => {
  * Guard para rutas públicas (login, signup, etc)
  * Redirige a la página correspondiente si ya está autenticado
  * EXCEPTO si el usuario está en el flujo de verificación (2FA, OTP, etc)
+ * 
+ * También bloquea el acceso a home (/) si estás autenticado
  */
 export const publicGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
@@ -70,9 +72,12 @@ export const publicGuard: CanActivateFn = (route, state) => {
 
   // ✅ Usar helper centralizado para verificar rutas flexibles
   const isFlexibleRoute = isFlexibleAuthRoute(state.url);
+  
+  // 🔒 Home (/) está bloqueado para usuarios autenticados
+  const isHomeRoute = state.url === '/';
 
   // Si está autenticado Y NO está en una ruta flexible, redirigir según el rol
-  if (authService.isAuthenticated() && !isFlexibleRoute) {
+  if (authService.isAuthenticated() && (!isFlexibleRoute || isHomeRoute)) {
     console.log('⚠️ [publicGuard] Usuario ya autenticado - redirigiendo');
     const role = authService.getCurrentRole();
     if (role) {

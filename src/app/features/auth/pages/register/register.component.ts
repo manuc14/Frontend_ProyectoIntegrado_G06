@@ -177,8 +177,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
     const body: unknown = res.body || {};
     const verificationToken = (body as any)?.verificationToken;
 
-    // Early return si el status no es exitoso
-    if (!allConditionsTrue([res.status === 201, res.status === 200])) {
+    // Early return si el status no es exitoso (201 para creado, 200 para OK)
+    if (res.status !== 201 && res.status !== 200) {
       this.formBaseService.updateFormState('register', { error: 'No se pudo crear la cuenta.' });
       return;
     }
@@ -193,6 +193,13 @@ export class RegisterComponent implements OnInit, OnDestroy {
     // Registro exitoso
     console.log('Registro OK', body);
     this.formBaseService.resetFormState('register');
+    
+    // Guardar email en sessionStorage para mostrar en verify-email
+    const emailValue = this.form.get('email')?.value;
+    if (emailValue) {
+      sessionStorage.setItem('pendingVerificationEmail', emailValue);
+    }
+    
     this.router.navigate(['/verify-email'], { queryParams: { token: verificationToken } });
   }
 
