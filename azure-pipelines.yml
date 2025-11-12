@@ -175,6 +175,14 @@ stages:
                 - script: |
                     set -eux
                     echo "==> DEPLOY a LIVE sin flag --site"
+                    echo "Directorio actual: $(pwd)"
+                    echo "Contenido del directorio actual:"
+                    ls -la
+                    echo "Contenido de firebase.json:"
+                    cat firebase.json
+                    echo "Contenido del directorio public ($(DIST_PATH)):"
+                    ls -la "$(DIST_PATH)" || echo "Directorio $(DIST_PATH) no existe"
+                    
                     firebase deploy \
                       --only hosting \
                       --project esimedia-frontend-g06 \
