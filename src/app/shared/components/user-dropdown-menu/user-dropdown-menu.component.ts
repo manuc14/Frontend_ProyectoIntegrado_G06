@@ -37,7 +37,7 @@ export class UserDropdownMenuComponent implements OnInit {
   private readonly roleMenuConfigs: Record<UserRole, RoleMenuConfig> = {
     user: {
       homeRoute: '/catalog',
-      profileRoute: '/profile',
+      profileRoute: '/user-consultprofile',
       additionalOptions: []
     },
     creator: {

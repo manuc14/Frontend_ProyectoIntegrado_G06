@@ -259,6 +259,50 @@ export interface CreatorProfileResponse {
 }
 
 /**
+ * Interfaz para la petición de actualización del perfil de usuario.
+ * Define los campos que se pueden actualizar en el perfil de usuario.
+ * 
+ * @interface UpdateUserProfileRequest
+ */
+export interface UpdateUserProfileRequest {
+  /** Nombre del usuario */
+  nombre: string;
+  /** Apellidos del usuario */
+  apellidos: string;
+  /** Alias del usuario */
+  alias: string;
+  /** Avatar del usuario (opcional) */
+  avatar?: string;
+}
+
+/**
+ * Interfaz para la respuesta del perfil de usuario.
+ * @interface UserProfileResponse
+ */
+export interface UserProfileResponse {
+  /** ID del usuario */
+  id: string;
+  /** Email del usuario */
+  email: string;
+  /** Nombre del usuario */
+  nombre: string;
+  /** Apellidos del usuario */
+  apellidos: string;
+  /** Alias del usuario */
+  alias: string;
+  /** Fecha de nacimiento */
+  fechaNacimiento: string | null;
+  /** Estado VIP del usuario */
+  estadoVIP: boolean;
+  /** Fecha de registro en formato ISO */
+  registrationDate: string;
+  /** Avatar actual del usuario (opcional) */
+  avatar?: string;
+  /** Lista de avatares disponibles (opcional) */
+  availableAvatars?: string[];
+}
+
+/**
  * Servicio centralizado para todas las comunicaciones HTTP con el backend.
  * 
  * Proporciona métodos para:
@@ -498,6 +542,68 @@ export class ApiService {
     const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
     return this.http.get<CreatorProfileResponse>(`${this.base}/creators/profile`, { headers }).pipe(
       catchError(this.handleError('obtener perfil de creador', 'No se pudo cargar el perfil del creador'))
+    );
+  }
+
+  /**
+   * Actualiza el perfil del usuario autenticado.
+   * 
+   * Envía los datos actualizados del perfil al backend. Permite actualizar
+   * información personal del usuario (nombre, apellidos, alias).
+   * 
+   * @param {UpdateUserProfileRequest} payload - Datos actualizados del perfil
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   * 
+   * @example
+   * ```typescript
+   * const updateData: UpdateUserProfileRequest = {
+   *   nombre: 'Juan',
+   *   apellidos: 'García López',
+   *   alias: 'juangarcia'
+   * };
+   * 
+   * this.apiService.updateUserProfile(updateData).subscribe({
+   *   next: (response) => {
+   *     console.log('Perfil actualizado:', response);
+   *     this.showSuccessMessage('Perfil actualizado correctamente');
+   *   },
+   *   error: (error) => console.error('Error al actualizar perfil:', error)
+   * });
+   * ```
+   */
+  updateUserProfile(payload: UpdateUserProfileRequest): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    
+    // Enviar directamente el payload ya que las interfaces coinciden con el backend
+    return this.http.put(`${this.base}/users/profile`, payload, { headers }).pipe(
+      catchError(this.handleError('actualizar perfil de usuario', 'No se pudo actualizar el perfil del usuario'))
+    );
+  }
+
+  /**
+   * Obtiene el perfil del usuario autenticado.
+   * 
+   * Recupera toda la información personal del usuario incluyendo
+   * datos básicos, fecha de nacimiento, estado VIP y fecha de registro.
+   * 
+   * @returns {Observable<UserProfileResponse>} Observable con datos del perfil
+   * 
+   * @example
+   * ```typescript
+   * this.apiService.getUserProfile().subscribe({
+   *   next: (profile) => {
+   *     console.log('Usuario:', profile.nombre, profile.apellidos);
+   *     console.log('Estado VIP:', profile.estadoVIP);
+   *     this.loadProfileForm(profile);
+   *   },
+   *   error: (error) => console.error('Error al cargar perfil:', error)
+   * });
+   * ```
+   */
+  getUserProfile(): Observable<UserProfileResponse> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.get<UserProfileResponse>(`${this.base}/users/profile`, { headers }).pipe(
+      catchError(this.handleError('obtener perfil de usuario', 'No se pudo cargar el perfil del usuario'))
     );
   }
 

@@ -168,7 +168,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   /**
    * Detecta el primer scroll para cambiar el logo permanentemente (solo en home)
    */
-  @HostListener('window:scroll', ['$event'])
+  @HostListener('window:scroll')
   onWindowScroll() {
     // Solo aplicar lógica de scroll en la página home
     if (!this.isHomePage) return;

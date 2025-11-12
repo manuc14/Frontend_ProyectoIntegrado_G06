@@ -51,10 +51,12 @@ export class AuthService {
     ],
     creator: [
       '/content-creator',
-      '/upload-content'
+      '/upload-content',
+      '/content-creator-consultprofile'
     ],
     user: [
-      '/catalog'
+      '/catalog',
+      '/user-consultprofile'
     ]
   };
 
