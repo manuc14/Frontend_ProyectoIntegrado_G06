@@ -166,31 +166,28 @@ stages:
 
                 - script: |
                     echo "==> Últimas versiones (antes de deploy)"
-                    firebase hosting:versions:list --site esimedia-frontend-g06 --project esimedia-frontend-g06 --limit 5 --token "${FIREBASE_TOKEN}"
-                  displayName: 'List Firebase versions (before deploy)'
+                    firebase hosting:channel:list --project esimedia-frontend-g06 --token "${FIREBASE_TOKEN}" || echo "No channels found or error listing"
+                  displayName: 'List Firebase channels (before deploy)'
                   env:
                     FIREBASE_TOKEN: $(FIREBASE_TOKEN)
                   continueOnError: true
 
                 - script: |
                     set -eux
-                    echo "==> DEPLOY a LIVE forzando siteId"
+                    echo "==> DEPLOY a LIVE sin flag --site"
                     firebase deploy \
                       --only hosting \
                       --project esimedia-frontend-g06 \
-                      --site esimedia-frontend-g06 \
-                      --config ./firebase.json \
                       --non-interactive \
-                      --token "${FIREBASE_TOKEN}" \
-                      --debug
+                      --token "${FIREBASE_TOKEN}"
                   displayName: 'Deploy to Firebase Hosting'
                   env:
                     FIREBASE_TOKEN: $(FIREBASE_TOKEN)
 
                 - script: |
                     echo "==> Últimas versiones (después de deploy)"
-                    firebase hosting:versions:list --site esimedia-frontend-g06 --project esimedia-frontend-g06 --limit 5 --token "${FIREBASE_TOKEN}"
-                  displayName: 'List Firebase versions (after deploy)'
+                    firebase hosting:channel:list --project esimedia-frontend-g06 --token "${FIREBASE_TOKEN}" || echo "No channels found or error listing"
+                  displayName: 'List Firebase channels (after deploy)'
                   env:
                     FIREBASE_TOKEN: $(FIREBASE_TOKEN)
                   continueOnError: true
