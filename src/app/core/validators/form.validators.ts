@@ -241,18 +241,48 @@ export function minDateValidator(): ValidatorFn {
  * Verifica:
  * - Que la URL no esté vacía (es requerida)
  * - Que comience con http:// o https://
+ * - Que sea de una plataforma soportada (YouTube, Vimeo, Dailymotion)
  * 
  * @returns {ValidatorFn} Función validadora
  * 
  * @example
  * ```typescript
- * videoUrl: ['', videoUrlValidator()] // Debe ser una URL válida
+ * videoUrl: ['', videoUrlValidator()] // Debe ser una URL válida de plataforma soportada
  * ```
  */
 export function videoUrlValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    const url = control.value?.trim();
-    if (!url) return { required: true };
-    return /^https?:\/\/.+/i.test(url) ? null : { invalidUrl: true };
+    // Si no hay valor, no validar
+    if (!control.value) {
+      return null;
+    }
+    
+    // Asegurar que es string antes de hacer trim
+    const url = typeof control.value === 'string' ? control.value.trim() : String(control.value).trim();
+    
+    if (!url) {
+      return { required: true };
+    }
+    
+    // Validar formato básico de URL
+    if (!/^https?:\/\/.+/i.test(url)) {
+      return { invalidUrl: true };
+    }
+    
+    // Patrones para plataformas soportadas
+    const supportedPatterns = {
+      youtube: /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{11})/i,
+      vimeo: /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/\d+/i,
+      dailymotion: /(?:https?:\/\/)?(?:www\.)?(?:dailymotion\.com\/video\/|dai\.ly\/)([\w-]+)/i
+    };
+    
+    // Verificar que la URL corresponda a una plataforma soportada
+    const isSupportedPlatform = Object.values(supportedPatterns).some(pattern => pattern.test(url));
+    
+    if (!isSupportedPlatform) {
+      return { unsupportedVideoUrl: true };
+    }
+    
+    return null;
   };
 }

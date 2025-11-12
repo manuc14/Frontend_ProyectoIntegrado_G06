@@ -115,11 +115,28 @@
             label="URL"
             [required]="true"
             formControlName="url"
-            placeholder="https://example.com/video.mp4"
+            placeholder="https://youtube.com/watch?v=... o https://vimeo.com/... o https://dailymotion.com/..."
             [maxlength]="200"
-            [errors]="uploadForm.get('url')?.errors ?? null"
+            [errors]="null"
             [touched]="submitted">
           </app-form-input>
+          
+          <!-- Feedback de validación de URL de video -->
+          <div *ngIf="uploadForm.value.type === 'video' && (uploadForm.get('url')?.value || uploadForm.get('url')?.touched)" class="url-validation-feedback">
+            <div *ngIf="uploadForm.get('url')?.hasError('invalidUrl')" class="validation-error">
+              URL inválida. Debe comenzar con http:// o https://
+            </div>
+            <div *ngIf="uploadForm.get('url')?.hasError('unsupportedVideoUrl')" class="validation-error">
+              Plataforma no soportada. Solo YouTube, Vimeo y Dailymotion
+            </div>
+            <div *ngIf="uploadForm.get('url')?.hasError('required') && uploadForm.get('url')?.touched" class="validation-error">
+              La URL es requerida para contenido de video
+            </div>
+            <div *ngIf="uploadForm.get('url')?.valid && uploadForm.get('url')?.value" class="validation-success">
+              URL válida de YouTube, Vimeo o Dailymotion
+            </div>
+          </div>
+          
           <div class="char-count" *ngIf="uploadForm.value.type === 'video'">{{ (uploadForm.get('url')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.urlLimit }}</div>
 
           <div class="form-field" *ngIf="uploadForm.value.type === 'audio'">

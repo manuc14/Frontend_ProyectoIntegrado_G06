@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { ContentCreatorHeaderComponent } from '../../../../shared/components/content-creator-header/content-creator-header.component';
 import { CreatorSidebarComponent } from '../../../../shared/components/creator-sidebar/creator-sidebar.component';
@@ -17,6 +17,7 @@ import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { UPLOAD_LIMITS, UPLOAD_FILE_TYPES, PREDEFINED_TAGS } from '../../../../core/constants/form-limits';
 import { executeAsyncOperation } from '../../../../core/utils/observable.helpers';
+import { videoUrlValidator } from '../../../../core/validators/form.validators';
 
 // Interface tipada para el formulario de upload
 export interface UploadContentForm {
@@ -83,6 +84,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   minDate = '';
 
   private imageStateSubscription?: Subscription;
+  private typeChangeSubscription?: Subscription;
 
   get is4KWithoutVip(): boolean {
     const formValue = this.uploadForm?.value;
@@ -192,8 +194,11 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.formBaseService.updateFormState(this.formId, { error: null });
     this.uploadForm.patchValue({ tags: this.selectedTags });
 
+    // Validar formulario
+    const formErrors = this.validateForm(this.uploadForm.value);
+
     // Early return si el formulario es inválido
-    if (this.uploadForm.invalid || this.validateForm(this.uploadForm.value).length > 0) {
+    if (this.uploadForm.invalid || formErrors.length > 0) {
       this.formBaseService.updateFormState(this.formId, { error: 'Por favor, revisa los campos marcados.' });
       return;
     }
@@ -267,6 +272,26 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       title: '', description: '', type: '', vip: '', url: '', audioUrl: '',
       duration: '', estado: '', ageRestriction: '', resolution: '', fechaExpiracion: '', tags: []
     });
+    
+    // Escuchar cambios en el tipo de contenido para aplicar/quitar validadores dinámicamente
+    this.typeChangeSubscription = this.uploadForm.get('type')?.valueChanges.subscribe((type: string) => {
+      const urlControl = this.uploadForm.get('url');
+      const resolutionControl = this.uploadForm.get('resolution');
+
+      if (type === 'video') {
+        // Para video: aplicar validadores
+        urlControl?.setValidators([videoUrlValidator()]);
+        resolutionControl?.setValidators([Validators.required]);
+      } else {
+        // Para audio: sin validadores
+        urlControl?.clearValidators();
+        resolutionControl?.clearValidators();
+      }
+      
+      urlControl?.updateValueAndValidity();
+      resolutionControl?.updateValueAndValidity();
+    }) ?? new Subscription();
+
 
     this.formBaseService.createFormState(this.formId, {});
     this.formBaseService.getFormState(this.formId)?.subscribe((state: FormState) => {
@@ -281,6 +306,9 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.imageStateSubscription) {
       this.imageStateSubscription.unsubscribe();
+    }
+    if (this.typeChangeSubscription) {
+      this.typeChangeSubscription.unsubscribe();
     }
     this.formBaseService.destroyFormState(this.formId);
   }
