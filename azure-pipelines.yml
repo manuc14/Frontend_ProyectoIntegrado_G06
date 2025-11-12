@@ -83,6 +83,10 @@ stages:
       steps:
         - checkout: self
         - task: SonarQubePrepare@6
+          env:
+            BUILD_SOURCEBRANCH: ''        # <- evita que Prepare setee sonar.branch.name
+            BUILD_SOURCEBRANCHNAME: ''
+            SYSTEM_PULLREQUEST_PULLREQUESTID: ''
           inputs:
             SonarQube: 'sonarqube-esi'
             scannerMode: 'CLI'
@@ -90,16 +94,23 @@ stages:
             cliProjectKey: '2025-g06-frontend'
             cliProjectName: '2025-g06-frontend'
             cliSources: 'src'
-            jdkVersionOption: '17'   # <- para silenciar el warning
+            jdkVersionOption: '17'
             extraProperties: |
               sonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts
               sonar.sourceEncoding=UTF-8
+
         - task: SonarQubeAnalyze@6
+          env:
+            BUILD_SOURCEBRANCH: ''
+            BUILD_SOURCEBRANCHNAME: ''
+            SYSTEM_PULLREQUEST_PULLREQUESTID: ''
           inputs:
-            jdkVersionOption: '17'   # <- idem
+            jdkVersionOption: '17'
+
         - task: SonarQubePublish@6
           inputs:
             pollingTimeoutSec: '300'
+
 
 
   # --- DEPLOY (Hosted, NodeTool + Firebase CLI) ------------------------------
@@ -158,12 +169,39 @@ stages:
                   displayName: 'Install firebase-tools'
 
                 - script: |
+                    echo "==> Pre-deploy verification:"
+                    echo "Current directory: $(pwd)"
+                    echo "firebase.json exists: $(test -f firebase.json && echo 'YES' || echo 'NO')"
+                    echo "firebase.json content:"
+                    cat firebase.json
+                    echo ""
+                    echo ".firebaserc exists: $(test -f .firebaserc && echo 'YES' || echo 'NO')"
+                    echo ".firebaserc content:"
+                    cat .firebaserc
+                    echo ""
+                    echo "dist/frontend_g06/browser contents:"
+                    ls -lah dist/frontend_g06/browser/ || echo "Directory does not exist!"
+                    echo ""
+                    echo "Total files in dist/frontend_g06/browser:"
+                    find dist/frontend_g06/browser -type f | wc -l
+                  displayName: 'Pre-deploy verification'
+
+                - script: |
                     set -eux
                     firebase deploy \
                       --only hosting \
                       --project esimedia-frontend-g06 \
                       --non-interactive \
-                      --token "${FIREBASE_TOKEN}"
+                      --token "${FIREBASE_TOKEN}" \
+                      --debug
                   displayName: 'Deploy to Firebase Hosting'
                   env:
                     FIREBASE_TOKEN: $(FIREBASE_TOKEN)
+
+                - script: |
+                    echo "==> Post-deploy verification:"
+                    firebase hosting:channel:list --project esimedia-frontend-g06 --token "${FIREBASE_TOKEN}" || echo "Could not list channels"
+                  displayName: 'Post-deploy verification'
+                  env:
+                    FIREBASE_TOKEN: $(FIREBASE_TOKEN)
+                  continueOnError: true
