@@ -13,6 +13,7 @@ import { Contenido } from '../../../core/models/contenido.models';
 export class ContentCardComponent {
   @Input() contenido!: Contenido;
   @Input() isCreatorView: boolean = false;
+  @Input() navigationOrigin: string = 'catalog'; // 'catalog', 'private-lists', etc.
 
   constructor(private router: Router) {}
 
@@ -24,14 +25,19 @@ export class ContentCardComponent {
   }
 
   /**
-   * Navega al preview guardando el ID en localStorage (sin mostrarlo en URL)
+   * Navega al preview guardando la información necesaria en localStorage
    */
   navigateToPreview(event: Event): void {
     event.preventDefault();
-    // Guardar ID en localStorage de forma segura
+    // Guardar información del creador en localStorage
+    localStorage.setItem('currentContentCreatorAlias', this.contenido.creadorAlias || '');
+    localStorage.setItem('currentContentCreatorSpecialty', this.contenido.creadorEspecialidad || '');
+    // Guardar ID en localStorage
     localStorage.setItem('currentContentId', this.contenido._id);
-    // Navegar sin ID en la URL
-    this.router.navigate(['/content/preview']);
+    // Navegar con query parameter para el origen
+    this.router.navigate(['/content/preview'], {
+      queryParams: { origin: this.navigationOrigin }
+    });
   }
 
   /**

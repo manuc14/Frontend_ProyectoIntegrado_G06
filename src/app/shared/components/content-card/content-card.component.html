@@ -41,11 +41,11 @@
     <h3 class="content-card__title">{{ contenido.titulo }}</h3>
     
     <!-- Información del creador y categoría (más pequeño) -->
-    <p *ngIf="contenido.creador || contenido.categoria" class="content-card__meta">
-      <span *ngIf="contenido.creador" class="content-card__creator">
-        {{ contenido.creador.nombre }}
+    <p *ngIf="contenido.creadorAlias || contenido.categoria" class="content-card__meta">
+      <span *ngIf="contenido.creadorAlias" class="content-card__creator">
+        {{ contenido.creadorAlias }}
       </span>
-      <span *ngIf="contenido.creador && contenido.categoria" class="content-card__separator">•</span>
+      <span *ngIf="contenido.creadorAlias && contenido.categoria" class="content-card__separator">•</span>
       <span *ngIf="contenido.categoria" class="content-card__category">
         {{ contenido.categoria }}
       </span>

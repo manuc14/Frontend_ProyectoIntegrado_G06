@@ -23,6 +23,7 @@ stages:
         container:
           image: node:20-alpine
           options: --cpus 1 --memory 2048m
+          entrypoint: sh
         steps:
           - checkout: self
 
@@ -64,6 +65,7 @@ stages:
         container:
           image: node:20-alpine
           options: --cpus 2 --memory 4096m
+          entrypoint: sh
         steps:
           - checkout: self
 
@@ -94,6 +96,7 @@ stages:
         container:
           image: node:20-alpine
           options: --cpus 2 --memory 4096m
+          entrypoint: sh
         steps:
           - checkout: self
 
@@ -108,10 +111,6 @@ stages:
               sonar-scanner \
                 -Dsonar.token=$(SONAR_TOKEN) \
                 -Dsonar.host.url=$(SONAR_HOST_URL) \
-                -Dsonar.projectKey=2025-g06-frontend \
-                -Dsonar.projectName=2025-g06-frontend \
-                -Dsonar.sources=src \
-                -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/*.spec.ts"
             displayName: 'Run SonarQube analysis'
             continueOnError: true
 
