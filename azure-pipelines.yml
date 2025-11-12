@@ -78,41 +78,29 @@ stages:
     dependsOn: Build
     condition: succeeded()
     jobs:
-      - job: SonarJob
-        displayName: 'Analyze in SonarQube via service connection'
-        pool:
-          name: 'UCLM-VPN'     # <--- tu pool self-hosted con la VPN/campus
-        steps:
-          - checkout: self
+    - job: SonarJob
+      pool: { name: 'UCLM-VPN' }
+      steps:
+        - checkout: self
+        - task: SonarQubePrepare@6
+          inputs:
+            SonarQube: 'sonarqube-esi'
+            scannerMode: 'CLI'
+            configMode: 'manual'
+            cliProjectKey: '2025-g06-frontend'
+            cliProjectName: '2025-g06-frontend'
+            cliSources: 'src'
+            jdkVersionOption: '17'   # <- para silenciar el warning
+            extraProperties: |
+              sonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts
+              sonar.sourceEncoding=UTF-8
+        - task: SonarQubeAnalyze@6
+          inputs:
+            jdkVersionOption: '17'   # <- idem
+        - task: SonarQubePublish@6
+          inputs:
+            pollingTimeoutSec: '300'
 
-          # (Opcional) Reachability check desde el agente con VPN
-          - script: |
-              echo "Agent: $(Agent.Name)"
-              echo "Probing SonarQube en http://seralu4.esi.uclm.es:1521 ..."
-              curl -sS --max-time 5 http://seralu4.esi.uclm.es:1521/api/server/version || true
-            displayName: 'Check Sonar reachability'
-
-          # Requiere extensión "SonarQube" instalada y Service Connection creada
-          - task: SonarQubePrepare@5
-            displayName: 'Prepare SonarQube analysis'
-            inputs:
-              SonarQube: 'sonarqube-esi'       # <--- NOMBRE EXACTO de tu Service Connection
-              scannerMode: 'CLI'
-              configMode: 'manual'
-              cliProjectKey: '2025-g06-frontend'
-              cliProjectName: '2025-g06-frontend'
-              cliSources: 'src'
-              extraProperties: |
-                sonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts
-                sonar.sourceEncoding=UTF-8
-
-          - task: SonarQubeAnalyze@5
-            displayName: 'Run SonarQube analysis'
-
-          - task: SonarQubePublish@5
-            displayName: 'Publish Quality Gate'
-            inputs:
-              pollingTimeoutSec: '300'
 
   # --- DEPLOY (Hosted, NodeTool + Firebase CLI) ------------------------------
   - stage: Deploy
@@ -141,14 +129,21 @@ stages:
 
                 - script: |
                     set -euxo pipefail
-                    rm -rf "$(DIST_PATH)"
-                    mkdir -p "$(DIST_PATH)"
-                    cp -r "$(System.ArtifactsDirectory)/dist/." "$(DIST_PATH)/"
-
-                    echo "==> Comprobando contenido de $(DIST_PATH)"
-                    ls -la "$(DIST_PATH)"
-                    test -f "$(DIST_PATH)/index.html"
-                    test -s "$(DIST_PATH)/index.html"  # no vacío
+                    echo "Working directory: $(pwd)"
+                    echo "Artifacts directory: $(System.ArtifactsDirectory)"
+                    echo "Listing artifacts:"
+                    ls -la "$(System.ArtifactsDirectory)/"
+                    
+                    # Copy from artifacts to hosting public directory
+                    rm -rf dist/frontend_g06/browser
+                    mkdir -p dist/frontend_g06
+                    cp -r "$(System.ArtifactsDirectory)/dist/." dist/frontend_g06/browser
+                    
+                    echo "==> Verifying content in dist/frontend_g06/browser:"
+                    ls -la dist/frontend_g06/browser/
+                    test -f dist/frontend_g06/browser/index.html || { echo "ERROR: index.html not found!"; exit 1; }
+                    test -s dist/frontend_g06/browser/index.html || { echo "ERROR: index.html is empty!"; exit 1; }
+                    wc -c dist/frontend_g06/browser/index.html
                   displayName: 'Place artifact under hosting.public'
 
                 - task: NodeTool@0
