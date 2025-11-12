@@ -74,35 +74,42 @@ stages:
 
   # --- SONAR (self-hosted + extensión oficial) ------------------------------
   - stage: Sonarqube
-    displayName: 'SonarQube (UCLM/VPN, CLI sin ramas)'
+    displayName: 'SonarQube (UCLM/VPN)'
     dependsOn: Build
-    condition: succeeded()
-    variables:
-      - group: sonarqube-secrets   # SONAR_HOST_URL, SONAR_TOKEN
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
     jobs:
-    - job: SonarCLI
+    - job: SonarJob
       pool: { name: 'UCLM-VPN' }
       steps:
         - checkout: self
-        - powershell: |
-            $ErrorActionPreference = "Stop"
-            $ver  = '5.0.1.3006'
-            $zip  = "sonar-scanner-cli-$ver-windows.zip"
-            $url  = "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/$zip"
-            $dest = "$(Agent.TempDirectory)\scanner.zip"
-            Invoke-WebRequest $url -OutFile $dest
-            Expand-Archive $dest -DestinationPath "$(Agent.TempDirectory)\scanner" -Force
-            $scanner = Get-ChildItem "$(Agent.TempDirectory)\scanner" -Directory | Select-Object -First 1
-            $exe = Join-Path $scanner.FullName 'bin\sonar-scanner.bat'
-            & $exe `
-              -D"sonar.host.url=$(SONAR_HOST_URL)" `
-              -D"sonar.login=$(SONAR_TOKEN)" `
-              -D"sonar.projectKey=2025-g06-frontend" `
-              -D"sonar.projectName=2025-g06-frontend" `
-              -D"sonar.sources=src" `
-              -D"sonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts" `
-              -D"sonar.sourceEncoding=UTF-8"
+        - task: SonarQubePrepare@6
+          env:
+            BUILD_SOURCEBRANCH: ''        # <- evita que Prepare setee sonar.branch.name
+            BUILD_SOURCEBRANCHNAME: ''
+            SYSTEM_PULLREQUEST_PULLREQUESTID: ''
+          inputs:
+            SonarQube: 'sonarqube-esi'
+            scannerMode: 'CLI'
+            configMode: 'manual'
+            cliProjectKey: '2025-g06-frontend'
+            cliProjectName: '2025-g06-frontend'
+            cliSources: 'src'
+            jdkVersionOption: '17'
+            extraProperties: |
+              sonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts
+              sonar.sourceEncoding=UTF-8
 
+        - task: SonarQubeAnalyze@6
+          env:
+            BUILD_SOURCEBRANCH: ''
+            BUILD_SOURCEBRANCHNAME: ''
+            SYSTEM_PULLREQUEST_PULLREQUESTID: ''
+          inputs:
+            jdkVersionOption: '17'
+
+        - task: SonarQubePublish@6
+          inputs:
+            pollingTimeoutSec: '300'
 
 
 
