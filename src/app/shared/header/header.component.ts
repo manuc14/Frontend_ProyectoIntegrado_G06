@@ -146,7 +146,39 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
    * Actualiza la visibilidad del logo basado en la página actual
    */
   private updateLogoVisibility() {
-    // Logo siempre visible a la izquierda, no hay lógica de visibilidad dinámica
+    const logoLarge = this.elementRef.nativeElement.querySelector('.desktop-logo');
+    const logoSmall = this.elementRef.nativeElement.querySelector('.desktop-logo-small');
+    
+    if (logoLarge && logoSmall) {
+      if (this.isHomePage && !this.hasScrolled) {
+        // En home sin scroll: mostrar logo grande
+        logoLarge.classList.remove('hidden');
+        logoSmall.classList.remove('visible');
+        // Reset scroll state cuando se vuelve a home
+        this.hasScrolled = false;
+      } else {
+        // En otras páginas o home con scroll: mostrar logo pequeño
+        logoLarge.classList.add('hidden');
+        logoSmall.classList.add('visible');
+      }
+    }
+  }
+
+  /**
+   * Detecta el primer scroll para cambiar el logo permanentemente (solo en home)
+   */
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    // Solo aplicar lógica de scroll en la página home
+    if (!this.isHomePage) return;
+    
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    
+    // Solo cambiar una vez cuando se hace el primer scroll en home
+    if (scrollTop > 50 && !this.hasScrolled) {
+      this.hasScrolled = true;
+      this.updateLogoVisibility();
+    }
   }
 
   /**

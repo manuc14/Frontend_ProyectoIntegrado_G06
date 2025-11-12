@@ -27,6 +27,14 @@ import { EditPublicListComponent } from './features/content/pages/edit-public-li
 import { PrivateListsComponent } from './features/user/pages/private-lists/private-lists.component';
 import { CreatePrivateListComponent } from './features/user/pages/create-private-list/create-private-list.component';
 import { EditPrivateListComponent } from './features/user/pages/edit-private-list/edit-private-list.component';
+// Perfil de Administrador
+import { AdConsultprofileComponent } from './features/admin/pages/ad-consultprofile/ad-consultprofile.component';
+
+// Perfil de Creador de Contenido
+import { ContentCreatorConsultprofileComponent } from './features/content/pages/content-creator-consultprofile/content-creator-consultprofile.component';
+
+// Perfil de Usuario
+import { UserConsultprofileComponent } from './features/user/pages/user-consultprofile/user-consultprofile.component';
 
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
@@ -78,6 +86,14 @@ export const routes: Routes = [
   { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage, canActivate: [authGuard] },
 
   { path: 'ad-content', component: AdminContentPage, canActivate: [authGuard] },
+  // Perfil de Administrador
+  { path: 'ad-consultprofile', component: AdConsultprofileComponent, canActivate: [authGuard] },
+
+  // Perfil de Creador de Contenido
+  { path: 'content-creator-consultprofile', component: ContentCreatorConsultprofileComponent, canActivate: [authGuard] },
+
+  // Perfil de Usuario
+  { path: 'user-consultprofile', component: UserConsultprofileComponent, canActivate: [authGuard] },
 
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },

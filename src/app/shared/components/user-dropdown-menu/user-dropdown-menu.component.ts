@@ -33,6 +33,33 @@ export class UserDropdownMenuComponent implements OnInit {
     user: { home: '/catalog', profile: '/my-lists' },
     creator: { home: '/content-creator', profile: '/profile' },
     admin: { home: '/ad-users', profile: '/profile' }
+  private readonly roleMenuConfigs: Record<UserRole, RoleMenuConfig> = {
+    user: {
+      homeRoute: '/catalog',
+      profileRoute: '/user-consultprofile',
+      additionalOptions: []
+    },
+    creator: {
+      homeRoute: '/content-creator',
+      profileRoute: '/content-creator-consultprofile',
+      additionalOptions: [
+        {
+          iconSvg: 'upload',
+          label: 'Subir contenido',
+          action: () => this.navigate('/upload-content')
+        },
+        {
+          iconSvg: 'list',
+          label: 'Crear lista',
+          action: () => this.navigate('/create-list')
+        }
+      ]
+    },
+    admin: {
+      homeRoute: '/ad-users',
+      profileRoute: '/ad-consultprofile',
+      additionalOptions: []
+    }
   };
 
   constructor(private router: Router, private authService: AuthService) {}
