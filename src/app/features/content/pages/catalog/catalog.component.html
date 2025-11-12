@@ -1,5 +1,5 @@
-<!-- Header -->
-<app-header></app-header>
+<!-- Header (solo en vista de usuario) -->
+<app-header *ngIf="!isCreatorView"></app-header>
 
 <div class="catalog" (click)="cerrarDropdowns()" (keydown)="$event.key === 'Escape' && cerrarDropdowns()">
   
@@ -42,7 +42,7 @@
               [label]="textoBotonEdad"
               icon="assets/icons/age.svg"
               [isActive]="filtroEdad !== null"
-              (onClick)="dropdownEdadAbierto = !dropdownEdadAbierto; dropdownCalidadAbierto = false">
+              (onClick)="dropdownEdadAbierto = !dropdownEdadAbierto; dropdownCalidadAbierto = false; dropdownEtiquetasAbierto = false; dropdownEspecialidadAbierto = false">
             </app-filter-pill>
             
             <div class="catalog__dropdown" *ngIf="dropdownEdadAbierto">
@@ -61,34 +61,60 @@
             <app-filter-pill
               [label]="textoBotonCalidad"
               icon="assets/icons/quality.svg"
-              [isActive]="filtroCalidad.length > 0"
-              (onClick)="dropdownCalidadAbierto = !dropdownCalidadAbierto; dropdownEdadAbierto = false">
+              [isActive]="filtroCalidad !== null"
+              (onClick)="dropdownCalidadAbierto = !dropdownCalidadAbierto; dropdownEdadAbierto = false; dropdownEtiquetasAbierto = false; dropdownEspecialidadAbierto = false">
             </app-filter-pill>
             
             <div class="catalog__dropdown" *ngIf="dropdownCalidadAbierto">
               <button
                 *ngFor="let calidad of opcionesCalidad"
                 class="catalog__dropdown-item"
-                [class.active]="filtroCalidad.includes(calidad)"
-                (click)="toggleCalidad(calidad)">
+                [class.active]="filtroCalidad === calidad"
+                (click)="seleccionarCalidad(calidad)">
                 {{ calidad }}
               </button>
             </div>
           </div>
 
-          <!-- Filtro Especialidad (sin funcionalidad) -->
-          <app-filter-pill
-            label="Especialidad"
-            icon="assets/icons/specialty.svg"
-            [isActive]="false">
-          </app-filter-pill>
+          <!-- Filtro Especialidad -->
+          <div class="catalog__filter-dropdown" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonEspecialidad"
+              icon="assets/icons/specialty.svg"
+              [isActive]="filtroEspecialidad !== null"
+              (onClick)="dropdownEspecialidadAbierto = !dropdownEspecialidadAbierto; dropdownEdadAbierto = false; dropdownCalidadAbierto = false; dropdownEtiquetasAbierto = false">
+            </app-filter-pill>
+            
+            <div class="catalog__dropdown" *ngIf="dropdownEspecialidadAbierto">
+              <button
+                *ngFor="let especialidad of opcionesEspecialidad"
+                class="catalog__dropdown-item"
+                [class.active]="filtroEspecialidad === especialidad"
+                (click)="seleccionarEspecialidad(especialidad)">
+                {{ especialidad }}
+              </button>
+            </div>
+          </div>
 
-          <!-- Filtro Etiquetas (sin funcionalidad) -->
-          <app-filter-pill
-            label="Etiquetas"
-            icon="assets/icons/tags.svg"
-            [isActive]="false">
-          </app-filter-pill>
+          <!-- Filtro Etiquetas -->
+          <div class="catalog__filter-dropdown" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonEtiquetas"
+              icon="assets/icons/tags.svg"
+              [isActive]="filtroEtiquetas.length > 0"
+              (onClick)="dropdownEtiquetasAbierto = !dropdownEtiquetasAbierto; dropdownEdadAbierto = false; dropdownCalidadAbierto = false; dropdownEspecialidadAbierto = false">
+            </app-filter-pill>
+            
+            <div class="catalog__dropdown" *ngIf="dropdownEtiquetasAbierto">
+              <button
+                *ngFor="let etiqueta of opcionesEtiquetas"
+                class="catalog__dropdown-item"
+                [class.active]="isEtiquetaSeleccionada(etiqueta)"
+                (click)="toggleEtiqueta(etiqueta)">
+                {{ etiqueta }}
+              </button>
+            </div>
+          </div>
 
           <!-- Botón de búsqueda -->
           <button class="catalog__search-btn" (click)="irABusqueda()">
@@ -102,12 +128,12 @@
     </section>
 
     <!-- Contenido destacado -->
-    <section class="catalog__hero" *ngIf="contenidoDestacado">
+    <section class="catalog__hero" *ngIf="contenidoDestacado; else noHero">
       <div class="catalog__hero-card">
         <img [src]="contenidoDestacado.miniaturaUrl" [alt]="contenidoDestacado.titulo" class="catalog__hero-img">
         <div class="catalog__hero-overlay">
           <div class="catalog__hero-content">
-            <h2 class="catalog__hero-title">Destacado de hoy: {{ contenidoDestacado.titulo }}</h2>
+            <h2 class="catalog__hero-title">Destacado: {{ contenidoDestacado.titulo }}</h2>
             <div class="catalog__hero-meta">
               <span *ngIf="contenidoDestacado.tipo === 'VIDEO' && contenidoDestacado.resolucion">{{ contenidoDestacado.resolucion }}</span>
               <span *ngIf="contenidoDestacado.tipo === 'VIDEO' && contenidoDestacado.resolucion">•</span>
@@ -119,55 +145,61 @@
         </div>
       </div>
     </section>
+    <ng-template #noHero>
+      <div style="height: 200px;"></div>
+    </ng-template>
 
     <!-- Listas de contenido -->
     <main class="catalog__content">
-    <!-- Tendencias (Carrusel Automático) -->
-    <section class="catalog__section" *ngIf="contenidoTendencias.length > 0">
-      <h2 class="catalog__section-title">Tendencias</h2>
+    
+    <!-- Mensaje de error si no se pueden cargar listas -->
+    <div class="catalog__error" *ngIf="errorCarga && listasFiltradas.length === 0">
+      <p>{{ errorCarga }}</p>
+    </div>
+    
+    <!-- Listas dinámicas desde la base de datos -->
+    <section class="catalog__section" *ngFor="let lista of listasFiltradas; let i = index">
+      <div class="catalog__section-header">
+        <h2 class="catalog__section-title">
+          {{ lista.nombre }}
+          <span *ngIf="isCreatorView && !lista.visible" class="catalog__hidden-badge" title="No visible para usuarios">🔒</span>
+        </h2>
+        <app-list-action-buttons 
+          *ngIf="isCreatorView"
+          [section]="lista.id"
+          (editList)="onEditList($event)"
+          (deleteList)="onDeleteList($event)">
+        </app-list-action-buttons>
+      </div>
+      
+      <!-- Usar carrusel para la primera lista, grid para el resto -->
       <div 
+        *ngIf="i === 0"
         #carouselContainer
-        class="catalog__carousel"
-        (mouseenter)="pausarCarrusel()"
-        (mouseleave)="reanudarCarrusel()"
-        (touchstart)="pausarCarrusel()"
-        (touchend)="reanudarCarrusel()">
+        class="catalog__carousel">
         <app-content-card
-          *ngFor="let contenido of contenidoTendencias"
-          [contenido]="contenido">
+          *ngFor="let contenido of lista.items"
+          [contenido]="contenido"
+          [isCreatorView]="isCreatorView">
         </app-content-card>
       </div>
-    </section>
-
-    <!-- Nuevos lanzamientos -->
-    <section class="catalog__section" *ngIf="contenidoNuevosLanzamientos.length > 0">
-      <h2 class="catalog__section-title">Nuevos lanzamientos</h2>
-      <div class="catalog__grid">
+      
+      <div *ngIf="i !== 0" class="catalog__grid">
         <app-content-card
-          *ngFor="let contenido of contenidoNuevosLanzamientos"
-          [contenido]="contenido">
-        </app-content-card>
-      </div>
-    </section>
-
-    <!-- Recomendado -->
-    <section class="catalog__section" *ngIf="contenidoRecomendado.length > 0">
-      <h2 class="catalog__section-title">Recomendado para ti</h2>
-      <div class="catalog__grid">
-        <app-content-card
-          *ngFor="let contenido of contenidoRecomendado"
-          [contenido]="contenido">
+          *ngFor="let contenido of lista.items"
+          [contenido]="contenido"
+          [isCreatorView]="isCreatorView">
         </app-content-card>
       </div>
     </section>
 
     <!-- Mensaje si no hay contenido -->
-    <div class="catalog__empty" *ngIf="contenidoFiltrado.length === 0">
+    <div class="catalog__empty" *ngIf="listasFiltradas.length === 0">
       <p>No se encontró contenido con los filtros seleccionados.</p>
     </div>
   </main>
   </div>
 </div>
 
-<!-- Footer -->
-<app-footer></app-footer>
+<!-- Footer (solo en vista de usuario) -->
+<app-footer *ngIf="!isCreatorView"></app-footer>

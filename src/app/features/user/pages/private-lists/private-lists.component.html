@@ -1,0 +1,18 @@
+<!-- Header del usuario -->
+<app-header></app-header>
+
+<div class="user-layout">
+  <!-- Sidebar Navigation -->
+  <app-user-sidebar [collapsed]="sidebarCollapsed"></app-user-sidebar>
+
+  <!-- Main Content -->
+  <main class="user-layout__main">
+    <app-private-lists-content
+      (editList)="onEditList($event)"
+      (deleteList)="onDeleteList($event)">
+    </app-private-lists-content>
+  </main>
+</div>
+
+<!-- Footer -->
+<app-footer></app-footer>

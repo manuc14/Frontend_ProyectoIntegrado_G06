@@ -25,10 +25,6 @@
     border-color: #1e40af;
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    
-    .filter-pill__icon {
-      filter: brightness(0) invert(1);
-    }
   }
   
   &.primary {
@@ -38,11 +34,35 @@
   }
   
   &__icon {
-    width: 18px;
-    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    transition: transform 0.3s ease, filter 0.3s ease;
-    filter: none; // Negro por defecto
+    transition: transform 0.3s ease;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+      color: #64748b;
+      transition: color 0.3s ease;
+    }
+    
+    img {
+      width: 18px;
+      height: 18px;
+      filter: none;
+      transition: filter 0.3s ease;
+    }
+  }
+
+  &.active &__icon {
+    svg {
+      color: #ffffff;
+    }
+    
+    img {
+      filter: brightness(0) invert(1);
+    }
   }
 
   &:hover &__icon {

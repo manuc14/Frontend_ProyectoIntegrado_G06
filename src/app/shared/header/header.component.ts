@@ -1,4 +1,4 @@
-import { Component, inject, HostListener, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -29,10 +29,9 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   private renderer = inject(Renderer2);
   protected override apiService = inject(ApiService);
   protected override imageSelectorService = inject(ImageSelectorService);
-  private authService = inject(AuthService);
+  protected override authService = inject(AuthService);
   currentRoute = '';
   isMenuOpen = false;
-  hasScrolled = false; // Una vez que se hace scroll, se mantiene true
   isHomePage = false; // Para detectar si estamos en home
   isLoggedIn = false;
 
@@ -83,22 +82,28 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
    */
   private checkSession() {
     this.isLoggedIn = this.authService.isAuthenticated();
-    if (this.isLoggedIn) {
-      const user = this.authService.getCurrentUser();
-      if (user) {
-        this.currentUser = user;
-      }
-    } else {
+
+    // Early return if not authenticated
+    if (!this.isLoggedIn) {
       this.currentUser = null;
+      return;
+    }
+
+    // Update current user if authenticated
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.currentUser = user;
     }
   }
 
   override getAvatarUrl(): string {
-    // Intentar con 'foto' (campo del backend)
     const fotoUrl = this.currentUser?.foto;
+
+    // Early return with full URL if foto exists
     if (fotoUrl) {
       return this.imageSelectorService.getFullImageUrl(fotoUrl, 'avatar');
     }
+
     return 'assets/admin/admin_default.png';
   }
 
@@ -134,13 +139,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
    * Verifica si estamos en la página home
    */
   private checkIfHomePage() {
-    const wasHomePage = this.isHomePage;
     this.isHomePage = this.currentRoute === '/' || this.currentRoute === '';
-    
-    // Si acabamos de llegar a home desde otra página, resetear estado
-    if (this.isHomePage && !wasHomePage) {
-      this.hasScrolled = false;
-    }
   }
 
   /**

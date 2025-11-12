@@ -53,51 +53,27 @@
     align-items: center;
 }
 
-/* Logo para desktop - grande arriba, desaparece con scroll */
-.desktop-logo {
-    position: absolute;
-    left: 50%;
-    top: -40px; /* Se solape con el main de la página */
-    transform: translateX(-50%);
-    z-index: 15;
-    opacity: 1;
-    transition: opacity 0.5s ease, transform 0.5s ease; /* Transición más suave */
-}
-
-/* Cuando se hace scroll, ocultar el logo grande con transición */
-.desktop-logo.hidden,
-.desktop-logo.force-hidden {
-    opacity: 0;
-    transform: translateX(-50%) scale(0.8); /* Efecto de escala al desaparecer */
-    pointer-events: none;
-}
-
-/* Logo pequeño a la izquierda que aparece después del scroll */
+/* Logo pequeño a la izquierda (siempre visible en desktop) */
 .desktop-logo-small {
-    display: flex; /* Siempre flex para que esté preparado */
+    display: flex;
     order: 1;
     align-items: center;
     gap: 12px;
-    opacity: 0;
-    transform: translateX(-20px); /* Inicia desde la izquierda */
-    transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s; /* Delay para secuencia */
-    margin-right: auto; /* Empuja a la izquierda */
-}
-
-/* Mostrar logo pequeño cuando se hace scroll */
-.desktop-logo-small.visible,
-.desktop-logo-small.force-visible {
     opacity: 1;
-    transform: translateX(0); /* Se mueve a su posición final */
+    transform: translateX(0);
+    margin-right: auto; /* Empuja a la izquierda */
+    animation: logoAppear 0.6s ease-out;
 }
 
-/* Para páginas que no son home, mostrar inmediatamente sin animación */
-.desktop-logo-small.force-visible {
-    transition: none; /* Sin transición para aparecer inmediatamente */
-}
-
-.desktop-logo-small.force-visible .text {
-    transition: none; /* Sin transición para el texto también */
+@keyframes logoAppear {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* Contenedor del logo grande */
@@ -142,13 +118,6 @@
 
 /* Texto específico del logo pequeño con efecto de entrada */
 .desktop-logo-small .text {
-    opacity: 0;
-    transform: translateY(5px);
-    transition: opacity 0.4s ease 0.5s, transform 0.4s ease 0.5s;
-}
-
-.desktop-logo-small.visible .text,
-.desktop-logo-small.force-visible .text {
     opacity: 1;
     transform: translateY(0);
 }
@@ -201,6 +170,37 @@
 
 .container.actions {
     order: 3;
+}
+
+/* Botón de búsqueda */
+.search-btn {
+    background: var(--secondary);
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 44px;
+    height: 44px;
+
+    svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+        color: var(--foreground);
+    }
+
+    &:hover {
+        background: var(--muted);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
 }
 
 /* Base común para botones */

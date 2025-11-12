@@ -25,19 +25,25 @@ export class VerifyEmailPage {
   private timerId: any;
 
   constructor(private route: ActivatedRoute, private router: Router) {
-    // Extraer email de los parámetros de consulta
-    const emailParam = this.route.snapshot.queryParamMap.get('email');
-    this.email.set(emailParam ?? '');
+    // Extraer token de query parameters y guardarlo en sessionStorage
+    const token = this.route.snapshot.queryParams['token'];
+    if (token) {
+      sessionStorage.setItem('verificationToken', token);
+    }
+
+    // Extraer email de sessionStorage
+    const email = sessionStorage.getItem('pendingVerificationEmail');
+    this.email.set(email ?? '');
   }
 
   /* Navega a la página de introducción de código (necesita token válido). */
   onEnterCode() {
-    // Verificar si hay token en los parámetros de consulta
-    const token = this.route.snapshot.queryParamMap.get('token');
+    // Verificar si hay token en sessionStorage
+    const token = sessionStorage.getItem('verificationToken');
     
     if (token) {
-      // Con token: Ir a verify-code manteniendo el token
-      this.router.navigate(['/verify-code'], { queryParams: { token } });
+      // Con token: Ir a verify-code manteniendo el token en sessionStorage
+      this.router.navigate(['/auth/verify-code']);
     } else {
       // Sin token: Ir a signup para reiniciar el flujo
       this.router.navigate(['/signup']);

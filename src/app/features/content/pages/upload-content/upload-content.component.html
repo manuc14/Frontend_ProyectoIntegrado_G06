@@ -1,7 +1,13 @@
 <app-content-creator-header />
 
-<main class="upload-page">
-  <div class="container">
+<div class="creator-layout">
+  <!-- Sidebar Navigation Compartido -->
+  <app-creator-sidebar></app-creator-sidebar>
+
+  <!-- Main Content -->
+  <main class="creator-layout__main">
+    <div class="upload-page">
+      <div class="container">
     <h1>Subir contenido</h1>
     <p class="hint">Comparte tu contenido multimedia con la comunidad.</p>
 
@@ -52,7 +58,7 @@
                         [class.selected]="selectedThumbnail === thumbnail"
                         (click)="selectThumbnail(thumbnail)"
                         [attr.aria-pressed]="selectedThumbnail === thumbnail">
-                  <img [src]="getThumbnailUrl(thumbnail)" [alt]="'Miniatura ' + (i + 1)" />
+                  <img [src]="thumbnail" [alt]="'Miniatura ' + (i + 1)" />
                   <span class="check" *ngIf="selectedThumbnail === thumbnail">✓</span>
                 </button>
 
@@ -146,21 +152,17 @@
           <div class="form-field">
             <span class="field-label">Tags <span class="required tags-asterisk">*</span></span>
             <div class="tags-container" [class.error-border]="uploadForm.get('tags')?.invalid && submitted">
-              <div class="tags-display" *ngIf="tags.length > 0">
-                <span class="tag" *ngFor="let tag of tags; let i = index">
+              <div class="tags-pills">
+                <button type="button" 
+                        class="tag-pill" 
+                        *ngFor="let tag of PREDEFINED_TAGS"
+                        [class.selected]="isTagSelected(tag)"
+                        (click)="toggleTag(tag)">
                   {{ tag }}
-                  <button type="button" class="remove-tag" (click)="removeTag(i)">×</button>
-                </span>
-              </div>
-              <div class="tag-input-row">
-                <input type="text" [(ngModel)]="newTag" [ngModelOptions]="{standalone: true}" placeholder="Añadir tag" 
-                  (keydown.enter)="addTag()" aria-label="Nuevo tag" />
-                <button type="button" class="btn secondary small" (click)="addTag()">
-                  + Añadir
                 </button>
               </div>
               <div class="field-error" *ngIf="uploadForm.get('tags')?.invalid && submitted" aria-live="polite">
-                Debe agregar al menos un tag
+                Debe seleccionar al menos un tag
               </div>
             </div>
           </div>
@@ -189,12 +191,13 @@
 
           <!-- Video fields row -->
           <div class="form-row" *ngIf="uploadForm.value.type === 'video'">
-            <app-select-field 
-              label="Resolución" 
+            <app-select-field
+              label="Resolución"
               formControlName="resolution"
-              [hasError]="(uploadForm.get('resolution')?.invalid ?? false) && submitted"
-              errorMessage="Resolución es requerida">
+              [hasError]="((uploadForm.get('resolution')?.invalid ?? false) && submitted) || is4KWithoutVip"
+              [errorMessage]="is4KWithoutVip ? 'La calidad 4K solo está disponible para contenido VIP' : 'Resolución es requerida'">
               <option value="">Seleccionar</option>
+              <option value="4K">4K</option>
               <option value="1080p">1080p</option>
               <option value="720p">720p</option>
               <option value="480p">480p</option>
@@ -206,6 +209,7 @@
               [hasError]="(uploadForm.get('ageRestriction')?.invalid ?? false) && submitted"
               errorMessage="Restricción de edad es requerida">
               <option value="">Seleccionar</option>
+              <option value="+0">+0</option>
               <option value="+7">+7</option>
               <option value="+13">+13</option>
               <option value="+18">+18</option>
@@ -220,6 +224,7 @@
               [hasError]="(uploadForm.get('ageRestriction')?.invalid ?? false) && submitted"
               errorMessage="Restricción de edad es requerida">
               <option value="">Seleccionar</option>
+              <option value="+0">+0</option>
               <option value="+7">+7</option>
               <option value="+13">+13</option>
               <option value="+18">+18</option>
@@ -248,17 +253,8 @@
       </div>
     </form>
   </div>
-
-  <!-- SUCCESS MESSAGE -->
-  <div class="success-toast" 
-       [class.show]="showSuccessMessage" 
-       [class.hide]="hideSuccessMessage">
-    <div class="success-content">
-      <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>Contenido subido correctamente</span>
     </div>
-  </div>
-</main>
+  </main>
+</div>
+
 <app-footer />

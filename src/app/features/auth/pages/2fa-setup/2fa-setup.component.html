@@ -1,0 +1,150 @@
+<div class="two-factor-setup-page">
+  <h1 class="page-title">Configurar Autenticación de Doble Factor</h1>
+  <p class="hint">Protege tu cuenta con una capa adicional de seguridad</p>
+
+  <div class="card">
+    <!-- PASO 1: QR + Códigos de Respaldo -->
+    <div class="setup-step" *ngIf="currentStep() === 1">
+      <div class="step-header">
+        <span class="step-badge">Paso 1 de 2</span>
+      </div>
+
+      <!-- QR Section -->
+      <div class="qr-section">
+        <h2 class="section-title">Escanea el Código QR</h2>
+        <p class="section-description">Abre Google Authenticator, Authy o cualquier app de autenticación y escanea este código:</p>
+        
+        <div class="qr-container" *ngIf="setupResponse?.qrCode">
+          <img [src]="'data:image/png;base64,' + setupResponse.qrCode" alt="QR Code" class="qr-code" />
+        </div>
+        
+        <div *ngIf="!setupResponse?.qrCode" class="qr-container">
+          <div class="loading-placeholder">Cargando código QR...</div>
+        </div>
+
+        <app-action-button
+          [label]="qrScanned() ? '✓ QR Escaneado' : 'Confirmar QR Escaneado'"
+          [variant]="qrScanned() ? 'secondary' : 'primary'"
+          [size]="'medium'"
+          [disabled]="qrScanned()"
+          (onClick)="markQrAsScanned()"
+        ></app-action-button>
+
+        <div *ngIf="!qrScanned()" class="secret-code-section">
+          <p><strong>¿No funciona?</strong> Ingresa manualmente el secreto:</p>
+          <span class="secret-code">{{ setupResponse?.secret || 'Cargando...' }}</span>
+        </div>
+      </div>
+
+      <!-- Backup Codes Section -->
+      <div class="backup-section">
+        <h2 class="section-title">Guarda los Códigos de Respaldo</h2>
+        <p class="section-description">Si pierdes acceso a tu autenticador, necesitarás estos códigos para acceder a tu cuenta:</p>
+
+        <app-action-button
+          [label]="showBackupCodes() ? 'Ocultar Códigos de Respaldo' : 'Mostrar Códigos de Respaldo'"
+          [variant]="'secondary'"
+          [size]="'medium'"
+          (onClick)="toggleBackupCodes()"
+        ></app-action-button>
+
+        <div *ngIf="showBackupCodes()" class="backup-codes">
+          <div *ngFor="let code of formatBackupCodes()" class="backup-code-item">
+            {{ code }}
+          </div>
+        </div>
+
+        <div class="backup-actions" *ngIf="showBackupCodes()">
+          <app-action-button
+            [label]="backupCodesCopied() ? '✓ Copiado' : 'Copiar Códigos'"
+            [variant]="backupCodesCopied() ? 'secondary' : 'primary'"
+            [size]="'medium'"
+            (onClick)="copyBackupCodes()"
+          ></app-action-button>
+
+          <app-action-button
+            [label]="codesAcknowledged() ? '✓ Códigos Guardados' : 'He Guardado los Códigos'"
+            [variant]="codesAcknowledged() ? 'secondary' : 'primary'"
+            [size]="'medium'"
+            [disabled]="codesAcknowledged()"
+            (onClick)="markCodesAsAcknowledged()"
+          ></app-action-button>
+        </div>
+      </div>
+
+      <!-- Botón Continuar -->
+      <div class="step-footer">
+        <app-action-button
+          [label]="'Continuar'"
+          [variant]="'primary'"
+          [size]="'large'"
+          [disabled]="!canProceedToStep2"
+          (onClick)="proceedToVerification()"
+        ></app-action-button>
+      </div>
+    </div>
+
+    <!-- PASO 2: Verificar Código OTP -->
+    <div class="setup-step" *ngIf="currentStep() === 2">
+      <div class="step-header">
+        <span class="step-badge">Paso 2 de 2</span>
+      </div>
+
+      <!-- Sección TOTP -->
+      <div class="verify-section" [class.hidden]="useBackupCode()">
+        <div class="verify-header">
+          <h2 class="section-title">Introduce el código de autenticación</h2>
+          <p class="section-description">Escribe el código de 6 dígitos que ves en tu app de autenticación</p>
+        </div>
+
+        <div *ngIf="hasError()" class="error-message">
+          {{ errorMessage() }}
+        </div>
+
+        <div class="code-inputs-container">
+          <input #codeInput type="text" inputmode="numeric" maxlength="1"
+                 (input)="onInput(0, $event)" (keydown)="onKeyDown(0, $event)" (paste)="onPaste(0, $event)"
+                 (focus)="onInputFocus(0)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1"
+                 (input)="onInput(1, $event)" (keydown)="onKeyDown(1, $event)" (paste)="onPaste(1, $event)"
+                 (focus)="onInputFocus(1)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1"
+                 (input)="onInput(2, $event)" (keydown)="onKeyDown(2, $event)" (paste)="onPaste(2, $event)"
+                 (focus)="onInputFocus(2)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1"
+                 (input)="onInput(3, $event)" (keydown)="onKeyDown(3, $event)" (paste)="onPaste(3, $event)"
+                 (focus)="onInputFocus(3)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1"
+                 (input)="onInput(4, $event)" (keydown)="onKeyDown(4, $event)" (paste)="onPaste(4, $event)"
+                 (focus)="onInputFocus(4)" />
+          <input #codeInput type="text" inputmode="numeric" maxlength="1"
+                 (input)="onInput(5, $event)" (keydown)="onKeyDown(5, $event)" (paste)="onPaste(5, $event)"
+                 (focus)="onInputFocus(5)" />
+        </div>
+
+        <div class="verify-actions">
+          <app-back-button
+            [label]="'Atrás'"
+            (onClick)="goBackToStep1()"
+          ></app-back-button>
+
+          <app-action-button
+            [label]="isVerifying() ? 'Verificando...' : 'Verificar y Habilitar 2FA'"
+            [variant]="'primary'"
+            [size]="'large'"
+            [disabled]="!canVerify || isVerifying()"
+            (onClick)="verifyAndEnable()"
+          ></app-action-button>
+        </div>
+
+        <!-- Nota informativa sobre códigos de respaldo -->
+        <div class="backup-info-note">
+          <p class="info-text">
+            <strong>RECORDATORIO IMPORTANTE</strong><br>
+            Usa los códigos de respaldo que guardaste en el Paso 1 para recuperar tu cuenta en futuros inicios de sesión.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

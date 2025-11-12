@@ -16,8 +16,8 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { UPLOAD_LIMITS, UPLOAD_FILE_TYPES } from '../../constants/form-limits';
 
@@ -215,19 +215,17 @@ export class UploadService {
    * ```
    */
   private validateFile(file: File | null | undefined, config: UploadConfig): { ok: boolean; error?: string } {
-    if (!file) {
-      return { ok: false, error: 'Archivo inválido' };
-    }
+    if (!file) return { ok: false, error: 'Archivo inválido' };
 
-    // Validar tipo MIME
-    if (!config.validTypes.includes(file.type)) {
-      return { ok: false, error: config.errorMessages.invalidFile };
-    }
+    const fileName = file.name.trim();
+    const isInvalidName = !fileName || fileName.startsWith('.') || fileName.includes('..');
+    if (isInvalidName) return { ok: false, error: 'Nombre de archivo inválido' };
 
-    // Validar tamaño
-    if (file.size > config.maxSizeInBytes) {
-      return { ok: false, error: config.errorMessages.tooLarge };
-    }
+    const isInvalidType = !config.validTypes.includes(file.type);
+    if (isInvalidType) return { ok: false, error: config.errorMessages.invalidFile };
+
+    const isTooLarge = file.size > config.maxSizeInBytes;
+    if (isTooLarge) return { ok: false, error: config.errorMessages.tooLarge };
 
     return { ok: true };
   }
@@ -472,5 +470,62 @@ export class UploadService {
    */
   validateThumbnailFile(file: File): { ok: boolean; error?: string } {
     return this.validateFile(file, this.uploadConfigs['thumbnail']);
+  }
+
+  /**
+   * Valida un archivo de miniatura antes de subirlo.
+   * 
+   * Permite validar la imagen sin subirla, útil para feedback inmediato.
+   * 
+   * @param {File} file - Archivo de imagen a validar
+   * @returns {{ ok: boolean; error?: string }} Resultado de la validación
+   * 
+   * @example
+   * ```typescript
+   * onThumbnailSelected(event: any) {
+   *   const file = event.target.files[0];
+   *   const validation = this.uploadService.validateThumbnailFile(file);
+   *   
+   *   if (!validation.ok) {
+   *     this.showError(validation.error!);
+   *     return;
+   *   }
+   *   
+   *   // Mostrar preview
+   *   this.previewThumbnail(file);
+   * }
+   * ```
+   */
+  /**
+   * Sube múltiples archivos (audio y/o thumbnail) en paralelo.
+   * 
+   * @param {File} [audioFile] - Archivo de audio opcional
+   * @param {File} [thumbnailFile] - Archivo de thumbnail opcional
+   * @returns {Observable<{audioUrl?: string, thumbnailUrl?: string}>} URLs de los archivos subidos
+   */
+  uploadMultipleFiles(audioFile?: File, thumbnailFile?: File): Observable<{audioUrl?: string, thumbnailUrl?: string}> {
+    const uploads: Observable<{key: 'audioUrl' | 'thumbnailUrl', url: string}>[] = [];
+
+    if (audioFile) {
+      uploads.push(
+        this.uploadFile(audioFile, 'audio').pipe(
+          map(res => ({ key: 'audioUrl' as const, url: res.url }))
+        )
+      );
+    }
+
+    if (thumbnailFile) {
+      uploads.push(
+        this.uploadFile(thumbnailFile, 'thumbnail').pipe(
+          map(res => ({ key: 'thumbnailUrl' as const, url: res.url }))
+        )
+      );
+    }
+
+    if (uploads.length === 0) return of({});
+
+    return forkJoin(uploads).pipe(
+      map(results => results.reduce((acc, {key, url}) => ({ ...acc, [key]: url }), {}))
+    );
   }
 }

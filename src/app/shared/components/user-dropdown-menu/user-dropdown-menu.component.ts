@@ -9,12 +9,6 @@ export interface MenuOption {
   action: () => void;
 }
 
-interface RoleMenuConfig {
-  homeRoute: string;
-  profileRoute: string;
-  additionalOptions: MenuOption[];
-}
-
 /**
  * Componente de menú desplegable de usuario
  * Reutilizable en todos los headers con opciones específicas según rol
@@ -34,6 +28,11 @@ export class UserDropdownMenuComponent implements OnInit {
   isDropdownOpen = false;
   menuOptions: MenuOption[] = [];
 
+  // Mapeo directo de rutas por rol - simplificado
+  private readonly roleRoutes: Record<UserRole, { home: string; profile: string }> = {
+    user: { home: '/catalog', profile: '/my-lists' },
+    creator: { home: '/content-creator', profile: '/profile' },
+    admin: { home: '/ad-users', profile: '/profile' }
   private readonly roleMenuConfigs: Record<UserRole, RoleMenuConfig> = {
     user: {
       homeRoute: '/catalog',
@@ -63,45 +62,34 @@ export class UserDropdownMenuComponent implements OnInit {
     }
   };
 
-  constructor(
-    private router: Router,
-    private authService: AuthService
-  ) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
-    this.buildMenuOptions();
+    this.menuOptions = this.buildMenuOptions();
   }
 
-  private buildMenuOptions() {
-    const config = this.getMenuConfig();
+  private buildMenuOptions(): MenuOption[] {
+    const role = this.currentUser?.rol ?? 'user';
+    const routes = this.roleRoutes[role];
     
-    this.menuOptions = [
-      {
-        iconSvg: 'home',
-        label: 'Inicio',
-        action: () => this.navigate(config.homeRoute)
-      },
-      {
-        iconSvg: 'user',
-        label: 'Mi perfil',
-        action: () => this.navigate(config.profileRoute)
-      },
-      ...config.additionalOptions,
-      {
-        iconSvg: 'logout',
-        label: 'Cerrar sesión',
-        action: () => this.logout()
-      }
+    // Opciones base (comunes para todos)
+    const baseOptions: MenuOption[] = [
+      { iconSvg: 'home', label: 'Inicio', action: () => this.navigate(routes.home) },
+      { iconSvg: 'user', label: 'Mi perfil', action: () => this.navigate(routes.profile) }
     ];
-  }
 
-  private getMenuConfig(): RoleMenuConfig {
-    const userRole = this.currentUser?.rol || 'user';
-    return this.roleMenuConfigs[userRole];
+    // Opción de logout
+    const logoutOption: MenuOption = {
+      iconSvg: 'logout',
+      label: 'Cerrar sesión',
+      action: () => this.logout()
+    };
+
+    return [...baseOptions, logoutOption];
   }
 
   private navigate(route: string) {
-    this.closeDropdown();
+    this.isDropdownOpen = false;
     this.router.navigate([route]);
   }
 
@@ -109,16 +97,14 @@ export class UserDropdownMenuComponent implements OnInit {
     this.isDropdownOpen = !this.isDropdownOpen;
   }
 
-  closeDropdown() {
-    this.isDropdownOpen = false;
-  }
-
   @HostListener('document:click', ['$event'])
   onClickOutside(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.user-dropdown-container')) {
-      this.closeDropdown();
-    }
+    const isOutside = !(event.target as HTMLElement).closest('.user-dropdown-container');
+
+    // Early return if click is inside dropdown
+    if (!isOutside) return;
+
+    this.isDropdownOpen = false;
   }
 
   executeMenuAction(option: MenuOption) {
@@ -126,18 +112,17 @@ export class UserDropdownMenuComponent implements OnInit {
   }
 
   logout() {
-    this.closeDropdown();
+    this.isDropdownOpen = false;
     this.logoutEvent.emit();
     this.authService.logout(true);
   }
 
   getUserDisplayName(): string {
-    if (!this.currentUser) return 'Usuario';
-    return `@${this.currentUser.nombre?.toLowerCase() || 'usuario'}`;
+    return this.currentUser ? `@${this.currentUser.nombre?.toLowerCase() ?? 'usuario'}` : 'Usuario';
   }
 
   getUserEmail(): string {
-    return this.currentUser?.email || 'usuario@esimedia.com';
+    return this.currentUser?.email ?? 'usuario@esimedia.com';
   }
 
   isLogoutOption(option: MenuOption): boolean {

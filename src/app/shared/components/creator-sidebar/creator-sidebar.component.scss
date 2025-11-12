@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.creator-sidebar {
+  background: #f7f8fc;
+  border-right: 1px solid #dbe0ea;
+  width: 240px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+  min-height: 100vh; // Altura completa de la ventana
+  position: sticky;
+  top: 0;
+  align-self: flex-start; // Esto asegura que se pegue arriba pero se extienda
+
+  @media (max-width: 768px) {
+    position: fixed;
+    left: 0;
+    top: 80px;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    
+    &:not(.collapsed) {
+      transform: translateX(0);
+    }
+  }
+
+  &.collapsed {
+    width: 80px;
+    
+    .creator-sidebar__nav-item span {
+      display: none;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 8px;
+  }
+
+  &__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+
+    svg {
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    &:hover {
+      background: #e6eeff;
+      transform: translateX(2px);
+
+      svg {
+        transform: scale(1.1);
+      }
+    }
+
+    &.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 60%;
+        background: #ffffff;
+        border-radius: 0 4px 4px 0;
+      }
+    }
+  }
+
+  &__badge {
+    margin-top: auto;
+    background: linear-gradient(135deg, #ffe7b0 0%, #ffd97d 100%);
+    border-radius: 16px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid #f5c150;
+    box-shadow: 0 4px 12px rgba(245, 193, 80, 0.3);
+
+    &-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      
+      svg {
+        color: #5b3b00;
+      }
+    }
+
+    span {
+      color: #5b3b00;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+    }
+  }
+}
