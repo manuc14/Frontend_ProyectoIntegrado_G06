@@ -32,9 +32,9 @@ export class AuthService {
   public sessionExpiredObservable = this.sessionExpired$.asObservable();
   
   private readonly allowedRoutesByRole: Record<UserRole, string[]> = {
-    admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content'],
-    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search'],
-    user: ['/catalog', '/content', '/player', '/my-lists', '/create-private-list', '/edit-private-list', '/search']
+    admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content', /ad-consultprofile],
+    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search', '/content-creator-consultprofile'],
+    user: ['/catalog', '/content', '/player', '/my-lists', '/create-private-list', '/edit-private-list', '/search', '/user-consultprofile']
   };
 
   private readonly publicRoutes = ['/', '/login', '/signup', '/qr-code-setup', '/verify-email', '/verify-code', '/verify-otp', '/forgot-password', '/reset-password-code', '/new-password'];
