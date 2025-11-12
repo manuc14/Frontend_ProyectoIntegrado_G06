@@ -197,6 +197,21 @@ export interface ResetPasswordResponse {
 }
 
 /**
+ * Interfaz para la respuesta de toggle favorito.
+ * @interface ToggleFavoritoResponse
+ */
+export interface ToggleFavoritoResponse {
+  /** Indica si la operación fue exitosa */
+  success: boolean;
+  /** Mensaje descriptivo */
+  message: string;
+  /** Estado resultante (true=agregado, false=quitado) */
+  agregado: boolean;
+  /** ID del contenido afectado */
+  contenidoId: string;
+}
+
+/**
  * Servicio centralizado para todas las comunicaciones HTTP con el backend.
  *
  * Proporciona métodos para:
@@ -465,6 +480,62 @@ export class ApiService {
    */
   getAvatarUrl(foto?: string): string {
     return foto ? this.getFullAvatarUrl(foto) : 'assets/admin/admin_default.png';
+  }
+
+  // ==================== FAVORITOS ====================
+
+  /**
+   * Alterna el estado de favorito de un contenido.
+   *
+   * Agrega o quita un contenido de los favoritos del usuario autenticado.
+   * Devuelve el estado resultante de la operación.
+   *
+   * @param {string} contenidoId - ID del contenido a marcar/desmarcar como favorito
+   * @returns {Observable<ToggleFavoritoResponse>} Observable con resultado de la operación
+   *
+   * @example
+   * ```typescript
+   * this.apiService.toggleFavorito('content123').subscribe({
+   *   next: (response) => {
+   *     if (response.agregado) {
+   *       console.log('Agregado a favoritos');
+   *     } else {
+   *       console.log('Quitado de favoritos');
+   *     }
+   *   },
+   *   error: (error) => console.error('Error al cambiar favorito:', error)
+   * });
+   * ```
+   */
+  toggleFavorito(contenidoId: string): Observable<ToggleFavoritoResponse> {
+    return this.http.post<ToggleFavoritoResponse>(`${this.base}/contenido-viewer/${contenidoId}/favorito`, { contenidoId }).pipe(
+      catchError(this.handleError('toggle favorito', 'No se pudo cambiar el estado del favorito'))
+    );
+  }
+
+  /**
+   * Verifica si un contenido está marcado como favorito.
+   *
+   * Consulta el estado de favorito de un contenido para el usuario autenticado.
+   *
+   * @param {string} contenidoId - ID del contenido a verificar
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   *
+   * @example
+   * ```typescript
+   * this.apiService.isFavorito('content123').subscribe({
+   *   next: (response) => {
+   *     this.isFavorito = response.isFavorito || response;
+   *     console.log('Es favorito:', this.isFavorito);
+   *   },
+   *   error: (error) => console.error('Error al verificar favorito:', error)
+   * });
+   * ```
+   */
+  isFavorito(contenidoId: string): Observable<any> {
+    return this.http.get(`${this.base}/contenido-viewer/${contenidoId}/es-favorito`).pipe(
+      catchError(this.handleError('verificar favorito', 'No se pudo verificar el estado del favorito'))
+    );
   }
 
   // ==================== RECUPERACIÓN DE CONTRASEÑA ====================

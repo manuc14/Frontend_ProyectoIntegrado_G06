@@ -96,7 +96,7 @@ export class CatalogComponent implements OnInit {
       !this.filtroPremium || item.contenidoVip,
       this.seccionActiva !== 'VIDEO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad,
       this.filtroEtiquetas.length === 0 || this.filtroEtiquetas.some(etiqueta => item.tags.includes(etiqueta)),
-      this.filtroEspecialidad === null || item.categoria === this.filtroEspecialidad
+      this.filtroEspecialidad === null || item.creadorEspecialidad === this.filtroEspecialidad
     ]);
   }
 
