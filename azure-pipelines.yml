@@ -151,15 +151,15 @@ stages:
                   displayName: 'Use Node 20.x'
 
                 - script: |
-                    set -euxo pipefail
+                    set -eux
                     npm i -g firebase-tools
                     firebase --version
 
                     echo "==> Sites del proyecto (debug)"
-                    firebase hosting:sites:list --project esimedia-frontend-g06 --token "$FIREBASE_TOKEN" || true
+                    firebase hosting:sites:list --project esimedia-frontend-g06 --token "${FIREBASE_TOKEN}" || echo "No se pudo listar sites"
 
                     echo "==> Últimas versiones (antes de deploy)"
-                    firebase hosting:versions:list --site esimedia-frontend-g06 --project esimedia-frontend-g06 --limit 5 --token "$FIREBASE_TOKEN" || true
+                    firebase hosting:versions:list --site esimedia-frontend-g06 --project esimedia-frontend-g06 --limit 5 --token "${FIREBASE_TOKEN}" || echo "No hay versiones previas o error al listar"
 
                     echo "==> DEPLOY a LIVE forzando siteId"
                     firebase deploy \
@@ -168,11 +168,13 @@ stages:
                       --site esimedia-frontend-g06 \
                       --config ./firebase.json \
                       --non-interactive \
-                      --token "$FIREBASE_TOKEN" \
+                      --token "${FIREBASE_TOKEN}" \
                       --debug
 
                     echo "==> Últimas versiones (después de deploy)"
-                    firebase hosting:versions:list --site esimedia-frontend-g06 --project esimedia-frontend-g06 --limit 5 --token "$FIREBASE_TOKEN" || true
+                    firebase hosting:versions:list --site esimedia-frontend-g06 --project esimedia-frontend-g06 --limit 5 --token "${FIREBASE_TOKEN}" || echo "Error al listar versiones post-deploy"
+                    
+                    echo "==> Deploy completado exitosamente"
                   displayName: 'Deploy to Firebase Hosting (site forzado)'
                   env:
                     FIREBASE_TOKEN: $(FIREBASE_TOKEN)
