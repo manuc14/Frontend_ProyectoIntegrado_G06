@@ -5,6 +5,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { tokenRefreshInterceptor } from './core/interceptors/token-refresh.interceptor';
+import { FirebaseService } from './core/services/firebase.service';
 
 import { routes } from './app.routes';
 
@@ -15,5 +16,6 @@ export const appConfig: ApplicationConfig = {
     // authInterceptor DEBE ir primero para agregar el token a todas las peticiones
     provideHttpClient(withInterceptors([authInterceptor, tokenRefreshInterceptor, errorInterceptor])),
     provideAnimations(),
+    FirebaseService,
   ]
 };

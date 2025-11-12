@@ -163,24 +163,7 @@ stages:
                   displayName: 'Install firebase-tools'
 
                 - script: |
-                    echo "==> Sites del proyecto (debug)"
-                    firebase hosting:sites:list --project esimedia-frontend-g06 --token "${FIREBASE_TOKEN}"
-                  displayName: 'List Firebase sites'
-                  env:
-                    FIREBASE_TOKEN: $(FIREBASE_TOKEN)
-                  continueOnError: true
-
-                - script: |
-                    echo "==> Últimas versiones (antes de deploy)"
-                    firebase hosting:channel:list --project esimedia-frontend-g06 --token "${FIREBASE_TOKEN}" || echo "No channels found or error listing"
-                  displayName: 'List Firebase channels (before deploy)'
-                  env:
-                    FIREBASE_TOKEN: $(FIREBASE_TOKEN)
-                  continueOnError: true
-
-                - script: |
                     set -eux
-                    echo "==> DEPLOY a LIVE sin flag --site"
                     firebase deploy \
                       --only hosting \
                       --project esimedia-frontend-g06 \
@@ -189,15 +172,3 @@ stages:
                   displayName: 'Deploy to Firebase Hosting'
                   env:
                     FIREBASE_TOKEN: $(FIREBASE_TOKEN)
-
-                - script: |
-                    echo "==> Últimas versiones (después de deploy)"
-                    firebase hosting:channel:list --project esimedia-frontend-g06 --token "${FIREBASE_TOKEN}" || echo "No channels found or error listing"
-                  displayName: 'List Firebase channels (after deploy)'
-                  env:
-                    FIREBASE_TOKEN: $(FIREBASE_TOKEN)
-                  continueOnError: true
-
-                - script: |
-                    echo "✓ Deploy completado exitosamente"
-                  displayName: 'Deploy confirmation'
