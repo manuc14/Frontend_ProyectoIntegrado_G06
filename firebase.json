@@ -1,16 +1,9 @@
 {
   "hosting": {
+    "site": "esimedia-frontend-g06",
     "public": "dist/frontend_g06/browser",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [{ "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
   }
 }
