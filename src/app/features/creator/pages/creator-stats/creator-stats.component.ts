@@ -80,8 +80,6 @@ export class CreatorStatsComponent implements OnInit {
       )
     }).subscribe({
       next: (data) => {
-        console.log('✅ Datos recibidos del backend:', data); // ✅ AÑADE ESTO
-
         this.topReproductions = data.reproducciones.map((item: TopContent, index: number) => ({
           title: item.title,
           views: item.metricValue,
@@ -102,17 +100,12 @@ export class CreatorStatsComponent implements OnInit {
           thumbnail: item.thumbnail,
           rank: index + 1
         }));
-
-        console.log('✅ Reproducciones:', this.topReproductions); // ✅ AÑADE ESTO
-        console.log('✅ Valoraciones:', this.topRatings); // ✅ AÑADE ESTO
-        console.log('✅ Especialidades:', this.topSpecialties); // ✅ AÑADE ESTO
       },
       error: (error) => {
-        console.error('❌ Error al cargar estadísticas:', error); // ✅ AÑADE ESTO
+        console.error('Error al cargar estadísticas:', error);
       }
     });
   }
-
 
   calcularRangoFechas(): { fechaInicio?: string; fechaFin?: string } {
     const hoy = new Date();
