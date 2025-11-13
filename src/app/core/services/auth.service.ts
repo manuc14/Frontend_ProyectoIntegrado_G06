@@ -30,9 +30,9 @@ export class AuthService {
   private tokenExpiryTimer: any = null;
   private sessionExpired$ = new BehaviorSubject<{ reason: string; message: string } | null>(null);
   public sessionExpiredObservable = this.sessionExpired$.asObservable();
-  
+
   private readonly allowedRoutesByRole: Record<UserRole, string[]> = {
-    admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content', /ad-consultprofile],
+    admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content', '/ad-consultprofile'],
     creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search', '/content-creator-consultprofile', '/creator/estadisticas'],
     user: ['/catalog', '/content', '/player', '/my-lists', '/create-private-list', '/edit-private-list', '/search', '/user-consultprofile']
   };
@@ -77,7 +77,7 @@ export class AuthService {
       this.logout(true);
       return throwError(() => new Error('No refresh token available'));
     }
-    
+
     return this.http.post<{ accessToken: string; refreshToken: string; message: string }>(
       `${environment.baseApiUrl}/auth/refresh`,
       { refreshToken }
@@ -97,7 +97,7 @@ export class AuthService {
         } else {
           this.sessionExpired$.next({ reason: 'invalid', message: 'Tu sesión es inválida' });
         }
-        
+
         this.logout(true, true);
         return throwError(() => error);
       })
@@ -171,17 +171,17 @@ export class AuthService {
   logout(redirect: boolean = true, skipBackendInvalidation: boolean = false): void {
     this.stopAllTimers();
     const refreshToken = this.getRefreshToken();
-    
+
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem('sessionConfig');
     sessionStorage.removeItem('tokenExpiry');
     localStorage.removeItem('refreshToken');
-    
+
     if (refreshToken && !skipBackendInvalidation) {
       this.http.post(`${environment.baseApiUrl}/auth/logout`, { refreshToken }).subscribe();
     }
-    
+
     if (redirect) this.router.navigate(['/']);
   }
 

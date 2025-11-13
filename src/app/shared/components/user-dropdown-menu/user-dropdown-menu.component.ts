@@ -9,6 +9,13 @@ export interface MenuOption {
   action: () => void;
 }
 
+// Nueva interfaz que define la configuración del menú por rol
+export interface RoleMenuConfig {
+  homeRoute: string;
+  profileRoute: string;
+  additionalOptions: MenuOption[];
+}
+
 /**
  * Componente de menú desplegable de usuario
  * Reutilizable en todos los headers con opciones específicas según rol
@@ -30,9 +37,11 @@ export class UserDropdownMenuComponent implements OnInit {
 
   // Mapeo directo de rutas por rol - simplificado
   private readonly roleRoutes: Record<UserRole, { home: string; profile: string }> = {
-    user: { home: '/catalog', profile: '/my-lists' },
-    creator: { home: '/content-creator', profile: '/profile' },
-    admin: { home: '/ad-users', profile: '/profile' }
+    user: {home: '/catalog', profile: '/my-lists'},
+    creator: {home: '/content-creator', profile: '/profile'},
+    admin: {home: '/ad-users', profile: '/profile'}
+  }
+
   private readonly roleMenuConfigs: Record<UserRole, RoleMenuConfig> = {
     user: {
       homeRoute: '/catalog',
@@ -71,7 +80,7 @@ export class UserDropdownMenuComponent implements OnInit {
   private buildMenuOptions(): MenuOption[] {
     const role = this.currentUser?.rol ?? 'user';
     const routes = this.roleRoutes[role];
-    
+
     // Opciones base (comunes para todos)
     const baseOptions: MenuOption[] = [
       { iconSvg: 'home', label: 'Inicio', action: () => this.navigate(routes.home) },

@@ -16,9 +16,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, throwError } from 'rxjs';
+import {Observable, of, throwError} from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AvatarsResponseDto } from '../models/media.models';
+import {AvatarsResponseDto, SectionDto} from '../models/media.models';
 import { isAbsoluteUrl, startsWithPrefix, hasElements } from '../utils/validation.helpers';
 
 /**
@@ -118,9 +118,8 @@ export interface BackendUser {
 /**
  * Interfaz para la respuesta de login exitoso.
  * Incluye usuario autenticado, token de sesión y mensaje de confirmación.
- *
  * Soporta autenticación en dos pasos (2FA) con twoFactorSessionToken y requiresTwoFactor.
- * 
+ *
  * @interface LoginResponse
  */
 export interface LoginResponse {
@@ -209,11 +208,12 @@ export interface ToggleFavoritoResponse {
   agregado: boolean;
   /** ID del contenido afectado */
   contenidoId: string;
- * Interfaz para la petición de actualización del perfil de administrador.
- * Define los campos que se pueden actualizar en el perfil.
- * 
- * @interface UpdateAdminProfileRequest
- */
+}
+  /**
+   * Interfaz para la petición de actualización del perfil de administrador.
+   * Define los campos que se pueden actualizar en el perfil.
+   * @interface UpdateAdminProfileRequest
+   */
 export interface UpdateAdminProfileRequest {
   /** Nombre del administrador */
   firstName: string;
@@ -253,7 +253,6 @@ export interface AdminProfileResponse {
 /**
  * Interfaz para la petición de actualización del perfil de creador de contenido.
  * Define los campos que se pueden actualizar en el perfil.
- * 
  * @interface UpdateCreatorProfileRequest
  */
 export interface UpdateCreatorProfileRequest {
@@ -299,7 +298,6 @@ export interface CreatorProfileResponse {
 /**
  * Interfaz para la petición de actualización del perfil de usuario.
  * Define los campos que se pueden actualizar en el perfil de usuario.
- * 
  * @interface UpdateUserProfileRequest
  */
 export interface UpdateUserProfileRequest {
@@ -378,11 +376,11 @@ export class ApiService {
    */
   private extractUserMessageFromError(error: any): string {
     const errorObj = error.error;
-    
+
     if (hasElements(errorObj.details)) {
       return errorObj.details[0].message;
     }
-    
+
     return errorObj.message || '';
   }
 
@@ -421,8 +419,7 @@ export class ApiService {
    * @example
    * ```typescript
    * return this.http.post('/api/register', data).pipe(
-   *   catchError(this.handleError('registro', 'Error al registrar usuario'))
-   * );
+   *   catchError(this.handleError('registro', 'Error al registrar usuario'))   * );
    * ```
    */
   private handleError(operation = 'operación', defaultMessage = 'Ha ocurrido un error inesperado') {
@@ -451,14 +448,14 @@ export class ApiService {
 
   /**
    * Actualiza el perfil del administrador autenticado.
-   * 
+   *
    * Envía los datos actualizados del perfil al backend. Este método
    * centraliza la comunicación y reutiliza la lógica de validación
    * similar a la de ad-users-edit.
-   * 
+   *
    * @param {UpdateAdminProfileRequest} payload - Datos actualizados del perfil
    * @returns {Observable<any>} Observable con la respuesta del servidor
-   * 
+   *
    * @example
    * ```typescript
    * const updateData: UpdateAdminProfileRequest = {
@@ -468,7 +465,7 @@ export class ApiService {
    *   department: 'Marketing',
    *   avatar: 'admin_avatar_3.png'
    * };
-   * 
+   *
    * this.apiService.updateAdminProfile(updateData).subscribe({
    *   next: (response) => {
    *     console.log('Perfil actualizado:', response);
@@ -480,7 +477,7 @@ export class ApiService {
    */
   updateAdminProfile(payload: UpdateAdminProfileRequest): Observable<any> {
     const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
-    
+
     // Preparar datos en el formato esperado por el backend (similar a editarEntidad)
     const updateData = {
       nombre: payload.firstName,
@@ -488,7 +485,7 @@ export class ApiService {
       departamento: payload.department,
       foto: payload.avatar || ''
     };
-    
+
     return this.http.put(`${this.base}/admin/profile`, updateData, { headers }).pipe(
       catchError(this.handleError('actualizar perfil de administrador', 'No se pudo actualizar el perfil del administrador'))
     );
@@ -496,12 +493,12 @@ export class ApiService {
 
   /**
    * Obtiene el perfil del administrador autenticado.
-   * 
+   *
    * Recupera toda la información personal del administrador incluyendo
    * datos básicos, fechas importantes y configuración de avatar.
-   * 
+   *
    * @returns {Observable<AdminProfileResponse>} Observable con datos del perfil
-   * 
+   *
    * @example
    * ```typescript
    * this.apiService.getAdminProfile().subscribe({
@@ -522,13 +519,13 @@ export class ApiService {
 
   /**
    * Actualiza el perfil del creador de contenido autenticado.
-   * 
+   *
    * Envía los datos actualizados del perfil al backend. Permite actualizar
    * información personal y configuración de avatar del creador.
-   * 
+   *
    * @param {UpdateCreatorProfileRequest} payload - Datos actualizados del perfil
    * @returns {Observable<any>} Observable con la respuesta del servidor
-   * 
+   *
    * @example
    * ```typescript
    * const updateData: UpdateCreatorProfileRequest = {
@@ -539,7 +536,7 @@ export class ApiService {
    *   specialty: 'video',
    *   avatar: 'creator_avatar_2.png'
    * };
-   * 
+   *
    * this.apiService.updateCreatorProfile(updateData).subscribe({
    *   next: (response) => {
    *     console.log('Perfil actualizado:', response);
@@ -551,7 +548,7 @@ export class ApiService {
    */
   updateCreatorProfile(payload: UpdateCreatorProfileRequest): Observable<any> {
     const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
-    
+
     // Enviar directamente el payload ya que las interfaces coinciden con el backend
     return this.http.put(`${this.base}/creators/profile`, payload, { headers }).pipe(
       catchError(this.handleError('actualizar perfil de creador', 'No se pudo actualizar el perfil del creador'))
@@ -560,12 +557,12 @@ export class ApiService {
 
   /**
    * Obtiene el perfil del creador de contenido autenticado.
-   * 
+   *
    * Recupera toda la información personal del creador incluyendo
    * datos básicos, especialidad, tipo de contenido y configuración de avatar.
-   * 
+   *
    * @returns {Observable<CreatorProfileResponse>} Observable con datos del perfil
-   * 
+   *
    * @example
    * ```typescript
    * this.apiService.getCreatorProfile().subscribe({
@@ -587,13 +584,13 @@ export class ApiService {
 
   /**
    * Actualiza el perfil del usuario autenticado.
-   * 
+   *
    * Envía los datos actualizados del perfil al backend. Permite actualizar
    * información personal del usuario (nombre, apellidos, alias).
-   * 
+   *
    * @param {UpdateUserProfileRequest} payload - Datos actualizados del perfil
    * @returns {Observable<any>} Observable con la respuesta del servidor
-   * 
+   *
    * @example
    * ```typescript
    * const updateData: UpdateUserProfileRequest = {
@@ -601,7 +598,7 @@ export class ApiService {
    *   apellidos: 'García López',
    *   alias: 'juangarcia'
    * };
-   * 
+   *
    * this.apiService.updateUserProfile(updateData).subscribe({
    *   next: (response) => {
    *     console.log('Perfil actualizado:', response);
@@ -613,7 +610,7 @@ export class ApiService {
    */
   updateUserProfile(payload: UpdateUserProfileRequest): Observable<any> {
     const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
-    
+
     // Enviar directamente el payload ya que las interfaces coinciden con el backend
     return this.http.put(`${this.base}/users/profile`, payload, { headers }).pipe(
       catchError(this.handleError('actualizar perfil de usuario', 'No se pudo actualizar el perfil del usuario'))
@@ -622,12 +619,12 @@ export class ApiService {
 
   /**
    * Obtiene el perfil del usuario autenticado.
-   * 
+   *
    * Recupera toda la información personal del usuario incluyendo
    * datos básicos, fecha de nacimiento, estado VIP y fecha de registro.
-   * 
+   *
    * @returns {Observable<UserProfileResponse>} Observable con datos del perfil
-   * 
+   *
    * @example
    * ```typescript
    * this.apiService.getUserProfile().subscribe({
@@ -649,13 +646,13 @@ export class ApiService {
 
   /**
    * Obtiene las secciones de contenido para la página principal.
-   * 
+   *
    * Recupera todas las secciones disponibles con su contenido multimedia
    * (audios, videos, álbumes). Se usa principalmente en la página de inicio
    * para mostrar el contenido destacado.
-   * 
+   *
    * @returns {Observable<SectionDto[]>} Observable con array de secciones
-   * 
+   *
    * @example
    * ```typescript
    * this.apiService.getSections().subscribe({
