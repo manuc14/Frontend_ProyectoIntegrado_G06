@@ -71,7 +71,8 @@ export class AuthService {
       '/creator/profile',
       '/create-list',
       '/edit-list',
-      '/add-content'
+      '/add-content',
+      '/creator/estadisticas'
     ],
     user: [
       '/catalog',

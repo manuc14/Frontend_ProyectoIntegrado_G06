@@ -1,33 +1,105 @@
 <!-- Header del creador -->
 <app-content-creator-header></app-content-creator-header>
 
-<div class="creator-layout">
+<div class="creator-layout"
+     (click)="cerrarDropdowns()"
+     (keydown.enter)="cerrarDropdowns()">
   <!-- Sidebar Navigation Compartido -->
   <app-creator-sidebar></app-creator-sidebar>
 
   <!-- Main Content -->
   <main class="creator-layout__main">
     <div class="stats-dashboard">
-      <!-- Header -->
+      <!-- Header con filtros -->
       <div class="stats-dashboard__header">
-        <h1 class="stats-dashboard__title">Estadísticas</h1>
-        <p class="stats-dashboard__subtitle">Análisis detallado del rendimiento de tu contenido</p>
-      </div>
-
-      <!-- Stats Overview -->
-      <div class="stats-overview">
-        <div class="stat-box">
-          <div class="stat-box__icon stat-box__icon--blue">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-            </svg>
-          </div>
-          <div class="stat-box__content">
-            <div class="stat-box__label">Total Visualizaciones</div>
-            <div class="stat-box__value">{{ statsData.totalViews | number }}</div>
-          </div>
+        <div class="stats-dashboard__header-left">
+          <h1 class="stats-dashboard__title">Estadísticas</h1>
+          <p class="stats-dashboard__subtitle">Análisis detallado del rendimiento de tu contenido</p>
         </div>
 
+        <div class="stats-dashboard__filters">
+          <!-- Filtro TOP -->
+          <div class="stats-dashboard__filter-dropdown"
+               (click)="$event.stopPropagation()"
+               (keydown.enter)="$event.stopPropagation()">
+            <button
+              class="stats-dashboard__filter-btn"
+              [class.active]="dropdownTopAbierto"
+              (click)="dropdownTopAbierto = !dropdownTopAbierto; dropdownTiempoAbierto = false; dropdownTipoAbierto = false">
+              <span class="stats-dashboard__filter-label">TOP</span>
+              <span class="stats-dashboard__filter-value">{{ textoBotonTop }}</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="stats-dashboard__filter-icon">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <div class="stats-dashboard__dropdown" *ngIf="dropdownTopAbierto">
+              <button
+                *ngFor="let top of topOptions"
+                class="stats-dashboard__dropdown-item"
+                [class.active]="selectedTop === top"
+                (click)="seleccionarTop(top)">
+                {{ top }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro Tiempo -->
+          <div class="stats-dashboard__filter-dropdown"
+               (click)="$event.stopPropagation()"
+               (keydown.enter)="$event.stopPropagation()">
+            <button
+              class="stats-dashboard__filter-btn"
+              [class.active]="dropdownTiempoAbierto"
+              (click)="dropdownTiempoAbierto = !dropdownTiempoAbierto; dropdownTopAbierto = false; dropdownTipoAbierto = false">
+              <span class="stats-dashboard__filter-label">Tiempo</span>
+              <span class="stats-dashboard__filter-value">{{ textoBotonTiempo }}</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="stats-dashboard__filter-icon">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <div class="stats-dashboard__dropdown" *ngIf="dropdownTiempoAbierto">
+              <button
+                *ngFor="let tiempo of timeOptions"
+                class="stats-dashboard__dropdown-item"
+                [class.active]="selectedTime === tiempo.value"
+                (click)="seleccionarTiempo(tiempo.value)">
+                {{ tiempo.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro Tipo -->
+          <div class="stats-dashboard__filter-dropdown"
+               (click)="$event.stopPropagation()"
+               (keydown.enter)="$event.stopPropagation()">
+            <button
+              class="stats-dashboard__filter-btn"
+              [class.active]="dropdownTipoAbierto"
+              (click)="dropdownTipoAbierto = !dropdownTipoAbierto; dropdownTopAbierto = false; dropdownTiempoAbierto = false">
+              <span class="stats-dashboard__filter-label">Tipo</span>
+              <span class="stats-dashboard__filter-value">{{ textoBotonTipo }}</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="stats-dashboard__filter-icon">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <div class="stats-dashboard__dropdown" *ngIf="dropdownTipoAbierto">
+              <button
+                *ngFor="let tipo of typeOptions"
+                class="stats-dashboard__dropdown-item"
+                [class.active]="selectedType === tipo"
+                (click)="seleccionarTipo(tipo)">
+                {{ tipo }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Overview (primero) -->
+      <div class="stats-overview">
         <div class="stat-box">
           <div class="stat-box__icon stat-box__icon--purple">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -65,20 +137,92 @@
         </div>
       </div>
 
+      <!-- Top 5 Cards -->
+      <div class="top-cards-section">
+        <!-- TOP 5 Reproducciones -->
+        <div class="top-card">
+          <div class="top-card__header">
+            <h2 class="top-card__title">TOP {{ selectedTop }} Reproducciones</h2>
+            <span class="top-card__period">{{ textoPeriodoGrafica }}</span>
+          </div>
+          <div class="top-card__content">
+            @for (item of topReproductions.slice(0, selectedTop); track item.rank) {
+              <div class="top-item">
+                <div class="top-item__rank">{{ item.rank }}</div>
+                <div class="top-item__thumbnail-wrapper">
+                  <img [src]="item.thumbnail" [alt]="item.title" class="top-item__thumbnail">
+                </div>
+                <div class="top-item__info">
+                  <div class="top-item__title">{{ item.title }}</div>
+                </div>
+                <div class="top-item__badge">{{ item.views }}</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- TOP 5 Valoración -->
+        <div class="top-card">
+          <div class="top-card__header">
+            <h2 class="top-card__title">TOP {{ selectedTop }} Valoración media</h2>
+            <span class="top-card__period">{{ textoPeriodoGrafica }}</span>
+          </div>
+          <div class="top-card__content">
+            @for (item of topRatings.slice(0, selectedTop); track item.rank) {
+              <div class="top-item">
+                <div class="top-item__rank">{{ item.rank }}</div>
+                <div class="top-item__thumbnail-wrapper">
+                  <img [src]="item.thumbnail" [alt]="item.title" class="top-item__thumbnail">
+                </div>
+                <div class="top-item__info">
+                  <div class="top-item__title">{{ item.title }}</div>
+                </div>
+                <div class="top-item__badge">{{ item.rating }}</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- TOP 5 Especialidades -->
+        <div class="top-card">
+          <div class="top-card__header">
+            <h2 class="top-card__title">TOP {{ selectedTop }} Especialidades</h2>
+            <span class="top-card__period">{{ textoPeriodoGrafica }}</span>
+          </div>
+          <div class="top-card__content">
+            @for (item of topSpecialties.slice(0, selectedTop); track item.rank) {
+              <div class="top-item">
+                <div class="top-item__rank">{{ item.rank }}</div>
+                <div class="top-item__thumbnail-wrapper">
+                  <img [src]="item.thumbnail" [alt]="item.title" class="top-item__thumbnail">
+                </div>
+                <div class="top-item__info">
+                  <div class="top-item__title">{{ item.title }}</div>
+                </div>
+                <div class="top-item__badge">{{ item.engagement }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
       <!-- Chart Section -->
       <div class="chart-section">
+        <!-- Gráfico de barras - Visualizaciones mensuales -->
         <div class="chart-card">
           <div class="chart-card__header">
             <h2>Visualizaciones mensuales</h2>
-            <span class="chart-card__period">Últimos 6 meses</span>
+            <span class="chart-card__period">{{ textoPeriodoGrafica }}</span>
           </div>
           <div class="chart-card__content">
             <div class="bar-chart">
-              @for (data of monthlyViewsData; track data.month) {
+              @for (data of monthlyViewsData; track data.month; let i = $index) {
                 <div class="bar-chart__item">
                   <div class="bar-chart__bar-container">
-                    <div class="bar-chart__bar" [style.height.%]="(data.views / 8000) * 100" [style.background]="data.color"></div>
-                    <span class="bar-chart__value">{{ data.views / 1000 }}k</span>
+                    <div class="bar-chart__bar"
+                         [style.height.%]="(data.views / maxBarValue) * 100"
+                         [style.background]="data.color"></div>
+                    <span class="bar-chart__value">{{ data.views >= 1000 ? (data.views / 1000).toFixed(1) + 'k' : data.views }}</span>
                   </div>
                   <span class="bar-chart__label">{{ data.month }}</span>
                 </div>
@@ -87,24 +231,23 @@
           </div>
         </div>
 
-        <!-- Top Content -->
+        <!-- Gráfico de curva - Reproducciones mensuales -->
         <div class="chart-card">
           <div class="chart-card__header">
-            <h2>Contenido más visto</h2>
-            <span class="chart-card__period">Este mes</span>
+            <h2>Reproducciones mensuales</h2>
+            <span class="chart-card__period">{{ textoPeriodoGrafica }}</span>
           </div>
           <div class="chart-card__content">
-            <div class="top-content-list">
-              @for (content of topContent; track content.title; let i = $index) {
-                <div class="top-content-item">
-                  <span class="top-content-item__rank">{{ i + 1 }}</span>
-                  <img [src]="content.thumbnail" [alt]="content.title" class="top-content-item__thumbnail">
-                  <div class="top-content-item__info">
-                    <div class="top-content-item__title">{{ content.title }}</div>
-                    <div class="top-content-item__views">{{ content.views | number }} visualizaciones</div>
-                  </div>
+            <div class="curve-chart">
+              @for (data of monthlyReproductionsData; track data.month; let i = $index) {
+                <div class="curve-chart__item">
+                  <span class="curve-chart__label">{{ data.month }}</span>
                 </div>
               }
+              <!-- SVG para la curva de conexión -->
+              <svg class="curve-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path [attr.d]="getCurvePathSimple()" fill="none" stroke="#2563eb" stroke-width="3" vector-effect="non-scaling-stroke"/>
+              </svg>
             </div>
           </div>
         </div>
