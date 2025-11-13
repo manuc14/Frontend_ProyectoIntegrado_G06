@@ -2,7 +2,8 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { buttonHover, buttonPress } from '../../core/animations/animations';
-import { PublicListService, Contenido } from '../../core/services/public-list.service';
+import { PublicListService } from '../../core/services/public-list.service';
+import { environment } from '../../../environments/environment';
 
 export interface SuggestedContent {
   id: string;
@@ -16,6 +17,8 @@ export interface SuggestedContent {
   autorId?: string;
   descripcion?: string;
 }
+
+type ContentType = 'VIDEO' | 'AUDIO';
 
 @Component({
   selector: 'app-content-selector',
@@ -53,6 +56,7 @@ export interface SuggestedContent {
         </div>
       </div>
     </ng-container>
+
     <div class="search-container">
       <div class="search-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9aa3ad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -65,7 +69,6 @@ export interface SuggestedContent {
         class="search-input"
         placeholder="Buscar contenido…"
         [(ngModel)]="searchTerm"
-        (input)="onSearchChange($event)"
       />
       <button
         type="button"
@@ -75,9 +78,11 @@ export interface SuggestedContent {
         ✕
       </button>
     </div>
+
     <div *ngIf="isLoadingContent" class="loading-state">
       <p>Cargando contenido disponible...</p>
     </div>
+
     <div *ngIf="!isLoadingContent" class="content-list-container">
       <div class="content-list">
         <div
@@ -130,11 +135,13 @@ export interface SuggestedContent {
             </ng-template>
           </button>
         </div>
+
         <div *ngIf="filteredContent.length === 0" class="no-results">
           <p>No hay {{ selectedContentType === 'VIDEO' ? 'videos' : 'audios' }} disponibles</p>
         </div>
       </div>
     </div>
+
     <div *ngIf="showSelectedCount && selectedContent.length > 0" class="selected-count">
       {{ selectedContent.length }} {{ selectedContent.length === 1 ? 'contenido seleccionado' : 'contenidos seleccionados' }}
     </div>
@@ -145,67 +152,108 @@ export interface SuggestedContent {
 export class ContentSelectorComponent implements OnInit {
   @Input() showTypeToggle = false;
   @Input() showSelectedCount = false;
-  @Input() initialType: 'VIDEO' | 'AUDIO' = 'VIDEO';
+  @Input() initialType: ContentType = 'VIDEO';
   @Input() preselectedIds: string[] = [];
+  @Input() preselectedContent: SuggestedContent[] = [];
+  @Input() isPrivateMode = false; // Nuevo input para modo privado
+
   @Output() selectedChange = new EventEmitter<SuggestedContent[]>();
-  @Output() typeChange = new EventEmitter<'VIDEO' | 'AUDIO'>();
+  @Output() typeChange = new EventEmitter<ContentType>();
+
   private readonly publicListService = inject(PublicListService);
+
   allContent: SuggestedContent[] = [];
   searchTerm = '';
-  selectedContentType: 'VIDEO' | 'AUDIO' = 'VIDEO';
+  selectedContentType: ContentType = 'VIDEO';
   isLoadingContent = false;
+
   get filteredContent(): SuggestedContent[] {
-    let filtered = this.allContent.filter(c => c.tipo?.toUpperCase() === this.selectedContentType);
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(content =>
-        content.title.toLowerCase().includes(term) ||
-        content.channel.toLowerCase().includes(term)
-      );
-    }
-    return filtered;
+    const term = this.searchTerm.trim().toLowerCase();
+    return this.allContent.filter(content =>
+      (content.tipo ?? '').toUpperCase() === this.selectedContentType &&
+      (!term || content.title.toLowerCase().includes(term) || content.channel.toLowerCase().includes(term))
+    );
   }
+
   get selectedContent(): SuggestedContent[] {
     return this.allContent.filter(c => c.added);
   }
+
   ngOnInit(): void {
     this.selectedContentType = this.initialType;
     this.isLoadingContent = true;
-    this.publicListService.getAvailableContent().subscribe({
-      next: (contenidos: Contenido[]) => {
-        this.allContent = contenidos.map(c => ({
-          id: c.id,
-          thumbnail: c.miniaturaUrl || 'assets/default-thumbnail.png',
-          title: c.titulo,
-          channel: c.autorId || 'Desconocido',
-          duration: c.duracion ? `${Math.floor(c.duracion / 60).toString().padStart(2, '0')}:${(c.duracion % 60).toString().padStart(2, '0')}` : '00:00',
-          added: this.preselectedIds.includes(c.id),
-          tipo: c.tipo,
-          ficheroUrl: c.ficheroUrl,
-          autorId: c.autorId,
-          descripcion: c.descripcion
-        }));
+
+    // Usar el endpoint apropiado según el modo
+    const observable = this.isPrivateMode 
+      ? this.publicListService.getAvailableContentForUser()
+      : this.publicListService.getAvailableContent();
+
+    observable.subscribe({
+      next: (contenidos: any[]) => {
+        const availableContent = contenidos.map(c => this.mapContenidoToSuggestedContent(c));
+        
+        // Combinar contenidos disponibles con contenidos preseleccionados
+        const combinedContent = [...availableContent];
+        this.preselectedContent.forEach(preselected => {
+          // Solo agregar si no existe ya en los contenidos disponibles
+          if (!combinedContent.some(c => c.id === preselected.id)) {
+            combinedContent.push(preselected);
+          }
+        });
+        
+        this.allContent = combinedContent;
         this.isLoadingContent = false;
+        this.selectedChange.emit(this.selectedContent);
       },
       error: () => {
         this.isLoadingContent = false;
       }
     });
   }
-  onContentTypeChange(type: 'VIDEO' | 'AUDIO'): void {
-    if (this.selectedContentType !== type) {
-      this.allContent.forEach(c => c.added = false);
-      this.selectedChange.emit(this.selectedContent);
+
+  private mapContenidoToSuggestedContent(contenido: any): SuggestedContent {
+    const { id, titulo, descripcion, ficheroUrl, miniaturaUrl, duracion, tipo, creador } = contenido;
+    const contentId = id || contenido._id;
+    const channel = creador?.nombre || 'Desconocido';
+
+    return {
+      id: contentId,
+      thumbnail: this.buildThumbnailUrl(miniaturaUrl),
+      title: titulo,
+      channel,
+      duration: this.formatDuration(duracion),
+      added: this.preselectedIds.includes(contentId),
+      tipo: contenido.tipoArchivo || tipo,
+      ficheroUrl,
+      autorId: channel,
+      descripcion
+    };
+  }
+
+  private formatDuration(duracion: number): string {
+    const minutos = Math.floor(duracion / 60).toString().padStart(2, '0');
+    const segundos = (duracion % 60).toString().padStart(2, '0');
+    return `${minutos}:${segundos}`;
+  }
+
+  private buildThumbnailUrl(miniaturaUrl?: string): string {
+    if (!miniaturaUrl || miniaturaUrl.startsWith('http') || miniaturaUrl.startsWith('/')) {
+      return miniaturaUrl ?? 'assets/default-thumbnail.png';
     }
+    return `${environment.baseResourceUrl}/miniaturas/${miniaturaUrl}`;
+  }
+
+  onContentTypeChange(type: ContentType): void {
     this.selectedContentType = type;
+    this.allContent.forEach(c => (c.added = false));
+    this.selectedChange.emit(this.selectedContent);
     this.typeChange.emit(type);
   }
-  onSearchChange(event: Event): void {
-    this.searchTerm = (event.target as HTMLInputElement).value;
-  }
+
   onClearSearch(): void {
     this.searchTerm = '';
   }
+
   toggleContent(contentId: string): void {
     const content = this.allContent.find(c => c.id === contentId);
     if (content) {

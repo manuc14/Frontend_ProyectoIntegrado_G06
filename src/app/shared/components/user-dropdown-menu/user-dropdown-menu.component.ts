@@ -30,9 +30,36 @@ export class UserDropdownMenuComponent implements OnInit {
 
   // Mapeo directo de rutas por rol - simplificado
   private readonly roleRoutes: Record<UserRole, { home: string; profile: string }> = {
-    user: { home: '/catalog', profile: '/profile' },
+    user: { home: '/catalog', profile: '/my-lists' },
     creator: { home: '/content-creator', profile: '/profile' },
     admin: { home: '/ad-users', profile: '/profile' }
+  private readonly roleMenuConfigs: Record<UserRole, RoleMenuConfig> = {
+    user: {
+      homeRoute: '/catalog',
+      profileRoute: '/user-consultprofile',
+      additionalOptions: []
+    },
+    creator: {
+      homeRoute: '/content-creator',
+      profileRoute: '/content-creator-consultprofile',
+      additionalOptions: [
+        {
+          iconSvg: 'upload',
+          label: 'Subir contenido',
+          action: () => this.navigate('/upload-content')
+        },
+        {
+          iconSvg: 'list',
+          label: 'Crear lista',
+          action: () => this.navigate('/create-list')
+        }
+      ]
+    },
+    admin: {
+      homeRoute: '/ad-users',
+      profileRoute: '/ad-consultprofile',
+      additionalOptions: []
+    }
   };
 
   constructor(private router: Router, private authService: AuthService) {}
@@ -73,7 +100,11 @@ export class UserDropdownMenuComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onClickOutside(event: MouseEvent) {
     const isOutside = !(event.target as HTMLElement).closest('.user-dropdown-container');
-    if (isOutside) this.isDropdownOpen = false;
+
+    // Early return if click is inside dropdown
+    if (!isOutside) return;
+
+    this.isDropdownOpen = false;
   }
 
   executeMenuAction(option: MenuOption) {

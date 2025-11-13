@@ -23,12 +23,26 @@ import { AdminCreatorsEditPage } from './features/admin/pages/ad-creators-edit/a
 import { CreatePublicListComponent } from './features/content/pages/create-public-list/create-public-list.component';
 import { EditPublicListComponent } from './features/content/pages/edit-public-list/edit-public-list.component';
 
+// Listas Privadas del Usuario
+import { PrivateListsComponent } from './features/user/pages/private-lists/private-lists.component';
+import { CreatePrivateListComponent } from './features/user/pages/create-private-list/create-private-list.component';
+import { EditPrivateListComponent } from './features/user/pages/edit-private-list/edit-private-list.component';
+// Perfil de Administrador
+import { AdConsultprofileComponent } from './features/admin/pages/ad-consultprofile/ad-consultprofile.component';
+
+// Perfil de Creador de Contenido
+import { ContentCreatorConsultprofileComponent } from './features/content/pages/content-creator-consultprofile/content-creator-consultprofile.component';
+
+// Perfil de Usuario
+import { UserConsultprofileComponent } from './features/user/pages/user-consultprofile/user-consultprofile.component';
+
 // Lightweight placeholders for routes we redirect to; replace them with real pages later.
 import { ContentCreatorComponent } from './features/content/pages/content-creator/content-creator.component';
 import { UploadContentComponent } from './features/content/pages/upload-content/upload-content.component';
 import { CatalogComponent } from './features/content/pages/catalog/catalog.component';
 import { ContentPreviewComponent } from './features/content/pages/content-preview/content-preview.component';
 import { MediaPlayerComponent } from './features/content/pages/media-player/media-player.component';
+import { SearchComponent } from './features/content/pages/search/search.component';
 import { CreatorCatalogComponent } from './features/creator/pages/creator-catalog/creator-catalog.component';
 import { CreatorStatsComponent } from './features/creator/pages/creator-stats/creator-stats.component';
 import { VerifyEmailPage } from './features/auth/pages/verify-email/verify-email.page';
@@ -36,14 +50,28 @@ import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.pa
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
 import { ResetPasswordCodePage } from './features/auth/pages/reset-password-code/reset-password-code.page';
 import { NewPasswordPage } from './features/auth/pages/new-password/new-password.page';
-import {AddContentComponent} from './features/content/pages/add-content/add-content.component';
+import { TwoFactorContainerComponent } from './features/auth/pages/2fa-container/2fa-container.component';
 
 export const routes: Routes = [
+	// Home con publicGuard - bloqueado para autenticados (como login)
 	{ path: '', component: HomeComponent, canActivate: [publicGuard] },
 	{ path: 'signup', component: RegisterComponent, canActivate: [publicGuard] },
 	{ path: 'login', component: LoginComponent, canActivate: [publicGuard] },
-	{ path: 'verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
-	{ path: 'verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
+	
+	// ===== Verificación de Email (1FA) =====
+	{ path: 'auth/verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
+	{ path: 'auth/verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
+	
+	// ===== Segundo Factor (2FA - Login y Setup) =====
+	{ path: 'auth/2fa', component: TwoFactorContainerComponent, canActivate: [publicGuard] },
+	
+	// ===== Redirects para compatibilidad (rutas legacy) =====
+	{ path: 'verify-email', redirectTo: 'auth/verify-email', pathMatch: 'full' },
+	{ path: 'verify-code', redirectTo: 'auth/verify-code', pathMatch: 'full' },
+	{ path: 'qr-code-setup', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'verify-otp', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'auth/2fa/setup', redirectTo: 'auth/2fa', pathMatch: 'full' },
+	{ path: 'auth/2fa/verify-otp', redirectTo: 'auth/2fa', pathMatch: 'full' },
 
 	// Rutas de Admin (protegidas)
 	{ path: 'ad-users', component: AdminUsersPage, canActivate: [authGuard] },
@@ -58,6 +86,14 @@ export const routes: Routes = [
   { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage, canActivate: [authGuard] },
 
   { path: 'ad-content', component: AdminContentPage, canActivate: [authGuard] },
+  // Perfil de Administrador
+  { path: 'ad-consultprofile', component: AdConsultprofileComponent, canActivate: [authGuard] },
+
+  // Perfil de Creador de Contenido
+  { path: 'content-creator-consultprofile', component: ContentCreatorConsultprofileComponent, canActivate: [authGuard] },
+
+  // Perfil de Usuario
+  { path: 'user-consultprofile', component: UserConsultprofileComponent, canActivate: [authGuard] },
 
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },
@@ -67,16 +103,26 @@ export const routes: Routes = [
 
   // Rutas de Listas Públicas (protegidas)
   { path: 'create-list', component: CreatePublicListComponent, canActivate: [authGuard] },
-  { path: 'edit-list/:id', component: EditPublicListComponent, canActivate: [authGuard] },
-  { path: 'add-content/:id', component: AddContentComponent, canActivate: [authGuard] },
+  { path: 'edit-list', component: EditPublicListComponent, canActivate: [authGuard] },
+
+  // Rutas de Listas Privadas (protegidas)
+  { path: 'my-lists', component: PrivateListsComponent, canActivate: [authGuard] },
+  { path: 'create-private-list', component: CreatePrivateListComponent, canActivate: [authGuard] },
+  { path: 'edit-private-list', component: EditPrivateListComponent, canActivate: [authGuard] },
 
   // Rutas de User (protegidas)
 	{ path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },
+	{ path: 'search', component: SearchComponent, canActivate: [authGuard] },
 	{ path: 'content/preview', component: ContentPreviewComponent, canActivate: [authGuard] },
 	{ path: 'player', component: MediaPlayerComponent, canActivate: [authGuard] },
-
-	// Rutas de recuperación de contraseña (públicas)
-	{ path: 'forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
-	{ path: 'reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
-	{ path: 'new-password', component: NewPasswordPage, canActivate: [publicGuard] },
+	
+	// ===== Recuperación de Contraseña =====
+	{ path: 'auth/forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
+	{ path: 'auth/reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
+	{ path: 'auth/new-password', component: NewPasswordPage, canActivate: [publicGuard] },
+	
+	// Redirects para rutas legacy de recuperación
+	{ path: 'forgot-password', redirectTo: 'auth/forgot-password', pathMatch: 'full' },
+	{ path: 'reset-password-code', redirectTo: 'auth/reset-password-code', pathMatch: 'full' },
+	{ path: 'new-password', redirectTo: 'auth/new-password', pathMatch: 'full' },
 ];

@@ -248,6 +248,7 @@ export class FormBaseService {
       duration: [Validators.required],
       estado: [Validators.required],
       ageRestriction: [Validators.required],
+      resolution: [Validators.required],
       vip: [Validators.required],
       url: [videoUrlValidator()],
       tags: [this.tagsValidator()]

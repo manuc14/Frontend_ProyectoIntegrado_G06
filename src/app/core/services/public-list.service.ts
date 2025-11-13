@@ -1,37 +1,20 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable, throwError, of } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { Contenido } from '../models/contenido.models';
 
-/**
- * Interfaz para el contenido disponible del backend
- */
-export interface Contenido {
-  id: string;
-  titulo: string;
-  descripcion?: string;
-  ficheroUrl: string;
-  miniaturaUrl: string;
-  duracion?: number;
-  autorId: string;
-  tipo: string; // 👈 VIDEO o AUDIO
-}
+export type { Contenido } from '../models/contenido.models';
 
-/**
- * Interfaz para la petición de creación/actualización de lista
- */
 export interface ListaCreateRequest {
   nombre: string;
   descripcion: string;
   visible: boolean;
   dominantType: string;
-  items: Contenido[];
+  items: any[];
 }
 
-/**
- * Interfaz para la respuesta del backend de lista pública
- */
 export interface ListaPublicaResponse {
   id: string;
   creatorId: string;
@@ -45,186 +28,201 @@ export interface ListaPublicaResponse {
   updatedAt?: string;
 }
 
+const DEFAULT_VALUES = {
+  ESTADO: 'PUBLICO' as const,
+  TIPO: 'VIDEO' as const,
+  RESTRICCION_EDAD: 0,
+  DURACION: 0,
+  EMPTY_STRING: '',
+  EMPTY_ARRAY: [] as string[]
+} as const;
+
 @Injectable({
   providedIn: 'root'
 })
 export class PublicListService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.baseApiUrl}/content-creator/listas`;
+  private readonly creatorApiUrl = `${environment.baseApiUrl}/content-creator/listas`;
+  private readonly userPrivateApiUrl = `${environment.baseApiUrl}/me/listas`;
+  private readonly catalogUrl = `${environment.baseApiUrl}/listas`;
 
-  /**
-   * Obtiene todas las listas del creador
-   * GET /api/content-creator/listas
-   */
-  getMyLists(): Observable<ListaPublicaResponse[]> {
-    console.log('🌐 Obteniendo listas del creador...');
-    return this.http.get<ListaPublicaResponse[]>(this.apiUrl, {
+  // Listas públicas del catálogo
+  getPublicLists(): Observable<ListaPublicaResponse[]> {
+    console.log('🌐 Obteniendo listas públicas del catálogo...');
+    return this.http.get<ListaPublicaResponse[]>(this.catalogUrl, {
       headers: this.getAuthHeaders()
     }).pipe(
-      map(listas => {
-        console.log('✅ Listas obtenidas:', listas);
-        // Mapear items de cada lista
-        return listas.map(lista => ({
-          ...lista,
-          items: lista.items.map(item => this.mapBackendToContenido(item))
-        }));
-      }),
+      map(listas => this.processPublicLists(listas)),
+      catchError(error => this.handleCatalogError(error))
+    );
+  }
+
+  // Listas del creador (públicas del creador)
+  getMyLists(): Observable<ListaPublicaResponse[]> {
+    console.log('🌐 Obteniendo listas del creador...');
+    return this.http.get<ListaPublicaResponse[]>(this.creatorApiUrl, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      map(listas => this.processCreatorLists(listas)),
       catchError(this.handleError('obtener mis listas'))
     );
   }
 
-  /**
-   * Obtiene contenido disponible para crear lista
-   * GET /api/content-creator/listas/crear
-   */
-  getAvailableContent(): Observable<Contenido[]> {
-    console.log('🌐 Obteniendo contenido disponible...');
-    return this.http.get<any[]>(`${this.apiUrl}/crear`, {
+  // Listas privadas del usuario
+  getPrivateLists(): Observable<ListaPublicaResponse[]> {
+    console.log('🌐 Obteniendo listas privadas del usuario...');
+    return this.http.get<ListaPublicaResponse[]>(this.userPrivateApiUrl, {
       headers: this.getAuthHeaders()
     }).pipe(
-      map(contenidos => {
-        const mapped = contenidos.map(c => this.mapBackendToContenido(c));
-        console.log('✅ Contenido disponible obtenido:', mapped.length, 'elementos');
-        return mapped;
-      }),
+      map(listas => this.processCreatorLists(listas)),
+      catchError(this.handleError('obtener listas privadas'))
+    );
+  }
+
+  // Contenido disponible para creador
+  getAvailableContent(): Observable<any[]> {
+    console.log('🌐 Obteniendo contenido disponible para creador...');
+    return this.http.get<any[]>(`${this.creatorApiUrl}/crear`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      tap(contenidos => console.log('✅ Contenido disponible obtenido:', contenidos.length, 'elementos')),
       catchError(this.handleError('obtener contenido disponible'))
     );
   }
 
-  /**
-   * Obtiene lista por ID
-   * GET /api/content-creator/listas/{id}
-   */
-  getListById(id: string): Observable<ListaPublicaResponse> {
-    console.log('🌐 Obteniendo lista con ID:', id);
-    return this.http.get<any>(`${this.apiUrl}/${id}`, {
+  // Contenido disponible para usuario (listas privadas)
+  getAvailableContentForUser(): Observable<any[]> {
+    console.log('🌐 Obteniendo contenido disponible para usuario...');
+    return this.http.get<any[]>(`${this.userPrivateApiUrl}/crear`, {
       headers: this.getAuthHeaders()
     }).pipe(
-      map(lista => {
-        console.log('✅ Lista obtenida:', lista);
-        // Mapear items de la lista
-        return {
-          ...lista,
-          items: lista.items.map((item: any) => this.mapBackendToContenido(item))
-        };
-      }),
+      tap(contenidos => console.log('✅ Contenido disponible para usuario obtenido:', contenidos.length, 'elementos')),
+      catchError(this.handleError('obtener contenido disponible'))
+    );
+  }
+
+  getListById(id: string): Observable<ListaPublicaResponse> {
+    console.log('🌐 Obteniendo lista con ID:', id);
+    return this.getMyLists().pipe(
+      map(listas => this.findListById(listas, id)),
       catchError(this.handleError('obtener detalles de lista'))
     );
   }
 
-  /**
-   * Crea lista pública
-   * POST /api/content-creator/listas/crear
-   */
+  // Crear lista pública (creador)
   createPublicList(request: ListaCreateRequest): Observable<ListaPublicaResponse> {
     console.log('🌐 Creando lista pública:', request);
-    return this.http.post<ListaPublicaResponse>(`${this.apiUrl}/crear`, request, {
+    return this.http.post<ListaPublicaResponse>(`${this.creatorApiUrl}/crear`, request, {
       headers: this.getAuthHeaders()
     }).pipe(
-      map(response => {
-        console.log('✅ Lista creada exitosamente:', response);
-        return response;
-      }),
+      tap(response => console.log('✅ Lista creada exitosamente:', response)),
       catchError(this.handleError('crear lista pública'))
     );
   }
 
-  /**
-   * Actualiza lista pública
-   * PUT /api/content-creator/listas/editar/{id}
-   */
-  updatePublicList(id: string, request: ListaCreateRequest): Observable<ListaPublicaResponse> {
-    console.log('🌐 Actualizando lista con ID:', id, request);
-    return this.http.put<ListaPublicaResponse>(`${this.apiUrl}/editar/${id}`, request, {
+  // Crear lista privada (usuario)
+  createPrivateList(request: ListaCreateRequest): Observable<ListaPublicaResponse> {
+    console.log('🌐 Creando lista privada:', request);
+    return this.http.post<ListaPublicaResponse>(`${this.userPrivateApiUrl}/crear`, request, {
       headers: this.getAuthHeaders()
     }).pipe(
-      map(response => {
-        console.log('✅ Lista actualizada exitosamente:', response);
-        return response;
-      }),
+      tap(response => console.log('✅ Lista privada creada exitosamente:', response)),
+      catchError(this.handleError('crear lista privada'))
+    );
+  }
+
+  // Actualizar lista pública (creador)
+  updatePublicList(id: string, request: ListaCreateRequest): Observable<ListaPublicaResponse> {
+    console.log('🌐 Actualizando lista con ID:', id, request);
+    return this.http.put<ListaPublicaResponse>(`${this.creatorApiUrl}/editar/${id}`, request, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      tap(response => console.log('✅ Lista actualizada exitosamente:', response)),
       catchError(this.handleError('actualizar lista pública'))
     );
   }
 
-  /**
-   * Elimina lista
-   * DELETE /api/content-creator/listas/eliminar/{id}
-   */
-  deleteList(id: string): Observable<void> {
-    console.log('🌐 Eliminando lista con ID:', id);
-    return this.http.delete<void>(`${this.apiUrl}/eliminar/${id}`, {
+  // Actualizar lista privada (usuario)
+  updatePrivateList(id: string, request: ListaCreateRequest): Observable<ListaPublicaResponse> {
+    console.log('🌐 Actualizando lista privada con ID:', id, request);
+    return this.http.put<ListaPublicaResponse>(`${this.userPrivateApiUrl}/editar/${id}`, request, {
       headers: this.getAuthHeaders()
     }).pipe(
-      map(() => {
-        console.log('✅ Lista eliminada exitosamente');
-      }),
+      tap(response => console.log('✅ Lista privada actualizada exitosamente:', response)),
+      catchError(this.handleError('actualizar lista privada'))
+    );
+  }
+
+  // Eliminar lista pública (creador)
+  deleteList(id: string): Observable<void> {
+    console.log('🌐 Eliminando lista con ID:', id);
+    return this.http.delete<void>(`${this.creatorApiUrl}/eliminar/${id}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      tap(() => console.log('✅ Lista eliminada exitosamente')),
       catchError(this.handleError('eliminar lista'))
     );
   }
 
-  /**
-   * Obtiene candidatos para agregar a lista existente
-   * GET /api/content-creator/listas/agregar/{id}
-   */
-  getAddCandidates(id: string): Observable<Contenido[]> {
-    console.log('🌐 Obteniendo candidatos para lista:', id);
-    return this.http.get<any[]>(`${this.apiUrl}/agregar/${id}`, {
+  // Eliminar lista privada (usuario)
+  deletePrivateList(id: string): Observable<void> {
+    console.log('🌐 Eliminando lista privada con ID:', id);
+    return this.http.delete<void>(`${this.userPrivateApiUrl}/eliminar/${id}`, {
       headers: this.getAuthHeaders()
     }).pipe(
-      map(contenidos => {
-        const mapped = contenidos.map(c => this.mapBackendToContenido(c));
-        console.log('✅ Candidatos obtenidos:', mapped.length, 'elementos');
-        console.log('🔍 Tipos de candidatos:', mapped.map(c => c.tipo));
-        return mapped;
-      }),
-      catchError(this.handleError('obtener candidatos'))
+      tap(() => console.log('✅ Lista privada eliminada exitosamente')),
+      catchError(this.handleError('eliminar lista privada'))
     );
   }
 
-  /**
-   * Añade contenidos a lista existente
-   * PATCH /api/content-creator/listas/agregar-contenidos/{id}
-   */
-  addContentsToList(id: string, contenidos: Contenido[]): Observable<Contenido[]> {
-    console.log('🌐 Añadiendo contenidos a lista:', id, contenidos);
-    return this.http.patch<any[]>(`${this.apiUrl}/agregar-contenidos/${id}`, contenidos, {
-      headers: this.getAuthHeaders()
-    }).pipe(
-      map(response => {
-        console.log('✅ Contenidos añadidos exitosamente:', response);
-        return response.map(c => this.mapBackendToContenido(c));
-      }),
-      catchError(this.handleError('añadir contenidos'))
-    );
+  private processPublicLists(listas: ListaPublicaResponse[]): ListaPublicaResponse[] {
+    console.log('✅ Listas públicas obtenidas:', listas);
+    return listas
+      .filter(lista => lista.visible)
+      .map(lista => ({
+        ...lista,
+        items: lista.items
+          .filter((item: any) => item.estado === 'PUBLICO')
+          .map(item => this.mapBackendToContenido(item))
+      }));
   }
 
-  /**
-   * 🔥 Mapea contenido del backend al formato del frontend
-   * CRÍTICO: Convierte tipoArchivo → tipo
-   */
+  private processCreatorLists(listas: ListaPublicaResponse[]): ListaPublicaResponse[] {
+    console.log('✅ Listas obtenidas:', listas);
+    return listas.map(lista => ({
+      ...lista,
+      items: lista.items.map(item => this.mapBackendToContenido(item))
+    }));
+  }
+
   private mapBackendToContenido(backend: any): Contenido {
-    const mapped: Contenido = {
-      id: backend.id,
-      titulo: backend.titulo,
-      descripcion: backend.descripcion,
-      ficheroUrl: backend.ficheroUrl,
-      miniaturaUrl: backend.miniaturaUrl || backend.foto || '',
-      duracion: backend.duracion,
-      autorId: backend.creador?.nombre || backend.autorId || 'Desconocido',
-      tipo: backend.tipoArchivo || backend.tipo || 'VIDEO'
-    };
-
-    // Log de debugging
-    if (!backend.tipoArchivo && !backend.tipo) {
-      console.warn('⚠️ Contenido sin tipo:', backend);
-    }
-
-    return mapped;
+    if (!backend) throw new Error('Contenido vacío');
+    const { id: backendId, tipoArchivo, ...rest } = backend;
+    return {
+      ...rest,
+      _id: backendId ?? rest._id,
+      tipo: tipoArchivo || rest.tipo,
+      foto: rest.miniaturaUrl,
+      fechaEstado: new Date(rest.fechaEstado),
+      disponibleHasta: rest.disponibleHasta ? new Date(rest.disponibleHasta) : null,
+      creador: this.normalizeCreador(backend)
+    } as Contenido;
   }
 
-  /**
-   * Obtiene headers HTTP con token de autenticación
-   */
+  private normalizeCreador(backend: any): { nombre: string; avatar: string } | undefined {
+    const nombreCreador = backend.creador?.nombre || backend.autorId;
+    return nombreCreador ? {
+      nombre: nombreCreador,
+      avatar: backend.creador?.avatar || DEFAULT_VALUES.EMPTY_STRING
+    } : undefined;
+  }
+
+  private findListById(listas: ListaPublicaResponse[], id: string): ListaPublicaResponse {
+    const lista = listas.find(l => l.id === id);
+    if (!lista) throw new Error(`Lista con ID ${id} no encontrada`);
+    return lista;
+  }
+
   private getAuthHeaders(): HttpHeaders {
     const token = sessionStorage.getItem('authToken');
     return new HttpHeaders({
@@ -233,18 +231,21 @@ export class PublicListService {
     });
   }
 
-  /**
-   * Maneja errores HTTP
-   */
-  private handleError(operation: string) {
-    return (error: any): Observable<never> => {
-      console.error(`❌ Error en ${operation}:`, error);
-      console.error('❌ Status:', error.status);
-      console.error('❌ Message:', error.message);
-      console.error('❌ Error completo:', error);
-
-      const message = error.error?.message || error.message || `Error al ${operation}`;
-      return throwError(() => ({ ...error, message }));
-    };
+  private logError(context: string, error: any): void {
+    console.error(`❌ Error en ${context}:`, error);
+    console.error('❌ Status:', error.status);
+    console.error('❌ Message:', error.message);
+    console.error('❌ Error completo:', error);
   }
+
+  private handleCatalogError(error: any): Observable<ListaPublicaResponse[]> {
+    this.logError('obtener listas públicas del catálogo', error);
+    return of([]);
+  }
+
+  private handleError = (operation: string) => (error: any): Observable<never> => {
+    this.logError(operation, error);
+    const message = error.error?.message || error.message || `Error al ${operation}`;
+    return throwError(() => ({ ...error, message }));
+  };
 }

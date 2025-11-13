@@ -11,6 +11,7 @@ import { ErrorContainerComponent } from '../../../../shared/error-container/erro
 import { PublicListService } from '../../../../core/services/public-list.service';
 import { ContentSelectorComponent, SuggestedContent } from '../../../../shared/content-selector/content-selector.component';
 import { initializeListComponent , handleListSubmit } from '../../../../shared/utils/list-init.util';
+import { executeObservableOperation, navigateWithUnsavedCheck } from '../../../../core/utils/observable.helpers';
 
 export interface PublicListForm {
   nombre: string;
@@ -46,9 +47,13 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
   isVisible: boolean = true;
   isLoadingList = false;
   preselectedIds: string[] = [];
+  hasUnsavedChanges: boolean = false;
   ngOnInit(): void {
     initializeListComponent(this.router, this.route, (listId) => {
       this.listId = listId;
+      // Limpiar sessionStorage después de obtener el ID
+      sessionStorage.removeItem('editListId');
+      
       this.formBaseService.createFormState(this.formId, {});
       this.formBaseService.getFormState(this.formId)?.subscribe(state => {
         this.currentFormState = state;
@@ -75,8 +80,13 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
         });
         this.isVisible = lista.visible;
         this.selectedContentType = lista.dominantType as 'VIDEO' | 'AUDIO';
-        this.preselectedIds = lista.items.map(item => item.id);
+        this.preselectedIds = lista.items.map(item => item._id);
         this.isLoadingList = false;
+
+        // Suscribirse a cambios en el formulario
+        this.listForm.valueChanges.subscribe(() => {
+          this.hasUnsavedChanges = true;
+        });
       },
       error: (error) => {
         this.formBaseService.updateFormState(this.formId, {
@@ -88,12 +98,18 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
   }
   onVisibilityChange(visible: boolean): void {
     this.isVisible = visible;
+    this.hasUnsavedChanges = true;
   }
   onContentTypeChange(type: 'VIDEO' | 'AUDIO'): void {
     this.selectedContentType = type;
+    this.hasUnsavedChanges = true;
   }
-  onSelectedChange(selected: SuggestedContent[]): void {
+  onContentSelectionChange(selected: SuggestedContent[]): void {
     this.addedContent = selected;
+    this.hasUnsavedChanges = true;
+  }
+  get hasChanges(): boolean {
+    return this.hasUnsavedChanges;
   }
   onSubmit(): void {
     const request = handleListSubmit(
@@ -104,29 +120,28 @@ export class EditPublicListComponent implements OnInit, OnDestroy {
       this.formBaseService,
       this.formId
     );
-    if (request) {
-      this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
-      this.publicListService.updatePublicList(this.listId, request).subscribe({
-        next: () => {
-          this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
-          this.router.navigate(['/creator/catalog']);
-        },
-        error: (error) => {
-          this.formBaseService.updateFormState(this.formId, {
-            error: error.message || 'Error al actualizar la lista. Inténtalo de nuevo.',
-            isSubmitting: false
-          });
-        }
-      });
-    }
-  }
-  goBack(): void {
-    if (this.listForm.dirty || this.addedContent.length > 0) {
-      if (confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.')) {
-        this.router.navigate(['/creator/catalog']);
+
+    if (!request) return;
+
+    executeObservableOperation(
+      this.publicListService.updatePublicList(this.listId, request),
+      {
+        formId: this.formId,
+        formService: this.formBaseService,
+        successRoute: '/creator/catalog',
+        router: this.router,
+        defaultErrorMessage: 'Error al actualizar la lista. Inténtalo de nuevo.'
       }
-    } else {
-      this.router.navigate(['/creator/catalog']);
-    }
+    );
+  }
+
+  goBack(): void {
+    navigateWithUnsavedCheck(
+      this.hasChanges,
+      {
+        targetRoute: '/creator/catalog',
+        router: this.router
+      }
+    );
   }
 }

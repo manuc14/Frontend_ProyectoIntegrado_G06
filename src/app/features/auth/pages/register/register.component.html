@@ -40,7 +40,7 @@
                     [@buttonHover]
                     [attr.aria-pressed]="avatar === selectedAvatar"
                     [attr.aria-label]="'Seleccionar avatar ' + (i + 1)">
-              <img [src]="getAvatarUrl(avatar)" 
+              <img [src]="formBaseService.getFullImageUrl(avatar, 'avatar')" 
                    [alt]="'Avatar ' + (i + 1)"
                    loading="lazy"
                    draggable="false" />

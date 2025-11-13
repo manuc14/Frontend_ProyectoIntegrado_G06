@@ -129,8 +129,9 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Verificar que haya token en sessionStorage
     const storedToken = sessionStorage.getItem('authToken');
+
+    // Early return if no auth token
     if (!storedToken) {
       this.router.navigate(['/login']);
       return;
@@ -185,6 +186,7 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     this.formBaseService.updateFormState(this.formId, { error: null });
 
+    // Early return if form is invalid
     if (this.entityForm.invalid) {
       this.formBaseService.updateFormState(this.formId, {
         error: 'Por favor revisa los campos que son obligatorios.'
@@ -270,11 +272,11 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
 
   private handleError(error: any): void {
     console.error(`Error al crear ${this.entityType}:`, error);
-    
-    // Si es un error de autenticación (401), el interceptor ya redirigió
+
+    // Early return if 401 (interceptor already redirected)
     if (error.status === 401) return;
-    
-    // Para otros errores, delegar al FormBaseService
+
+    // For other errors, delegate to FormBaseService
     this.formBaseService.handleBackendError(this.formId, this.entityForm, error);
     this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
   }
@@ -289,12 +291,15 @@ export class AdminEntityFormComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    if (this.entityForm.dirty) {
-      const confirmLeave = confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.');
-      if (confirmLeave) {
-        this.router.navigate([this.backRoute]);
-      }
-    } else {
+    // Early return if form is pristine
+    if (!this.entityForm.dirty) {
+      this.router.navigate([this.backRoute]);
+      return;
+    }
+
+    // Confirm before leaving with unsaved changes
+    const confirmLeave = confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.');
+    if (confirmLeave) {
       this.router.navigate([this.backRoute]);
     }
   }

@@ -19,37 +19,13 @@ export class CreatorCatalogComponent {
 
   constructor(private router: Router) {}
 
-  onAddContent(listId: string): void {
-    console.log('➕ Añadir contenido a lista:', listId);
-    this.router.navigate(['/add-content', listId]);
+  onEditList(listId: string): void {
+    sessionStorage.setItem('editListId', listId);
+    this.router.navigate(['/edit-list']);
   }
 
-
-  onEditList(section: string): void {
-    console.log('CreatorCatalog: Received editList for', section);
-    let id: string | undefined;
-    switch(section) {
-      case 'tendencias':
-        id = '1';
-        break;
-      case 'nuevos':
-        id = '2';
-        break;
-      case 'recomendado':
-        id = '3';
-        break;
-      default:
-        console.warn('Sección no mapeada:', section);
-        return;
-    }
-
-    if (id) {
-      console.log('Navigating to edit-list/', id);
-      this.router.navigate(['/edit-list', id]);
-    }
-  }
-
-  onDeleteList(section: string): void {
-    console.log('CreatorCatalog: Received deleteList for', section);
+  onDeleteList(listId: string): void {
+    // El componente catalog ya maneja la eliminación
+    console.log('DeleteList delegado al catalog component para:', listId);
   }
 }

@@ -13,7 +13,7 @@
     <!-- Botón Volver (arriba a la izquierda) -->
     <app-back-button 
       class="back-button-position"
-      [navigateTo]="'/catalog'">
+      (onClick)="navigateBack()">
     </app-back-button>
 
     <!-- Tarjetas principales (abajo) -->
@@ -30,6 +30,7 @@
                 icon="heart"
                 variant="icon"
                 size="medium"
+                [filled]="isFavorito"
                 (onClick)="addToFavorites()">
               </app-action-button>
               
@@ -44,12 +45,19 @@
 
           <!-- Metadatos: Creador, Premium, Calidad, Edad -->
           <div class="metadata-row">
-            <div class="metadata-pill creator-pill" *ngIf="contenido.creador">
-              <img [src]="contenido.creador.avatar" 
-                   [alt]="contenido.creador.nombre" 
-                   class="creator-avatar" 
-                   (error)="onImageError($event)" />
-              <span>{{ contenido.creador.nombre }}</span>
+            <div class="metadata-pill creator-pill" *ngIf="contenido.creadorAlias">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"/>
+              </svg>
+              <span>{{ contenido.creadorAlias }}</span>
+            </div>
+
+            <div class="metadata-pill specialty-pill" *ngIf="contenido.creadorEspecialidad">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L13.09 5.26L16 4.27L14.91 7.53L18 8.52L14.91 9.51L16 12.77L13.09 11.78L12 15L10.91 11.78L8 12.77L9.09 9.51L6 8.52L9.09 7.53L8 4.27L10.91 5.26L12 2Z"/>
+                <path d="M19 13H17L16 11H14L15 13H13V15H15L14 17H16L17 15H19V13Z"/>
+              </svg>
+              <span>{{ contenido.creadorEspecialidad }}</span>
             </div>
 
             <div class="metadata-pill" *ngIf="contenido.contenidoVip">
@@ -146,3 +154,23 @@
     </div>
   </div>
 </div>
+
+<!-- Modal VIP -->
+<app-vip-promo-modal
+  *ngIf="showVipModal"
+  [title]="'🔒 Contenido Exclusivo VIP'"
+  [benefits]="[
+    'Acceso ilimitado a todo el contenido premium',
+    'Calidad de transmisión en 4K',
+    'Descargas sin límite',
+    'Sin anuncios',
+    'Soporte prioritario 24/7'
+  ]"
+  [primaryLabel]="'Mejorar a VIP'"
+  [secondaryLabel]="'Continuar sin VIP'"
+  [planPriceLabel]="'VIP\n$12.99/mes'"
+  [planDescription]="'Cancela cuando quieras.\nAcceso total a contenido VIP.'"
+  (upgrade)="onUpgradeToVip()"
+  (continue)="onContinueWithoutVip()"
+  (close)="onCloseVipModal()">
+</app-vip-promo-modal>

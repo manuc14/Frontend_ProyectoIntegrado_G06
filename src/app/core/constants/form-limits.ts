@@ -21,3 +21,18 @@ export const UPLOAD_FILE_TYPES = {
   video: ['video/mp4', 'video/webm', 'video/ogg'],
   image: ['image/jpeg', 'image/png']
 } as const;
+
+export const PREDEFINED_TAGS = [
+  'Entretenimiento',
+  'Educación',
+  'Tutorial',
+  'Documental',
+  'Música',
+  'Deportes',
+  'Tecnología',
+  'Arte',
+  'Ciencia',
+  'Viajes',
+  'Cocina',
+  'Salud'
+] as const;
