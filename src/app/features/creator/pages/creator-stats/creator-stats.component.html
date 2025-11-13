@@ -146,18 +146,16 @@
             <span class="top-card__period">{{ textoPeriodoGrafica }}</span>
           </div>
           <div class="top-card__content">
-            @for (item of topReproductions.slice(0, selectedTop); track item.rank) {
-              <div class="top-item">
-                <div class="top-item__rank">{{ item.rank }}</div>
-                <div class="top-item__thumbnail-wrapper">
-                  <img [src]="item.thumbnail" [alt]="item.title" class="top-item__thumbnail">
-                </div>
-                <div class="top-item__info">
-                  <div class="top-item__title">{{ item.title }}</div>
-                </div>
-                <div class="top-item__badge">{{ item.views }}</div>
+            <div *ngFor="let item of topReproductions.slice(0, selectedTop); trackBy: trackByRank" class="top-item">
+              <div class="top-item__rank">{{ item.rank }}</div>
+              <div class="top-item__thumbnail-wrapper">
+                <img [src]="item.thumbnail" [alt]="item.title" class="top-item__thumbnail">
               </div>
-            }
+              <div class="top-item__info">
+                <div class="top-item__title">{{ item.title }}</div>
+              </div>
+              <div class="top-item__badge">{{ item.views }}</div>
+            </div>
           </div>
         </div>
 
