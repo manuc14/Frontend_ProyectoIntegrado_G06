@@ -14,17 +14,13 @@ COPY . .
 RUN npm run build
 
 # Runtime stage
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Install Firebase CLI globally
-RUN npm install -g firebase-tools
+FROM nginx:alpine
 
 # Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-COPY .firebaserc firebase.json ./
+COPY --from=builder /app/dist/frontend_g06/browser /usr/share/nginx/html
 
-# Run Firebase hosting deployment
-CMD ["firebase", "deploy", "--only", "hosting", "--non-interactive"]
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
