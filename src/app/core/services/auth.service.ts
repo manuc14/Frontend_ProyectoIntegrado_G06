@@ -33,7 +33,7 @@ export class AuthService {
   
   private readonly allowedRoutesByRole: Record<UserRole, string[]> = {
     admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content', /ad-consultprofile],
-    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search', '/content-creator-consultprofile'],
+    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search', '/content-creator-consultprofile', '/creator/estadisticas'],
     user: ['/catalog', '/content', '/player', '/my-lists', '/create-private-list', '/edit-private-list', '/search', '/user-consultprofile']
   };
 
