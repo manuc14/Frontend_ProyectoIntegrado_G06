@@ -104,7 +104,7 @@ stages:
               -D"sonar.projectKey=2025-g06-frontend" `
               -D"sonar.projectName=2025-g06-frontend" `
               -D"sonar.sources=src" `
-              -D"sonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts" `
+              -D"sonar.exclusions=**/shared/**" `
               -D"sonar.sourceEncoding=UTF-8"
 
             # --- Opción 2 (comentada): proyecto por rama en Community ---
