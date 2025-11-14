@@ -19,7 +19,7 @@ import { environment } from '../../../environments/environment';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AvatarsResponseDto } from '../models/media.models';
-import { isAbsoluteUrl, startsWithPrefix, hasElements } from '../utils/validation.helpers';
+import { isAbsoluteUrl, hasElements } from '../utils/validation.helpers';
 
 /**
  * Interfaz para la petición de registro de usuario.
@@ -237,6 +237,37 @@ export class ApiService {
   private resourceBase = environment.baseResourceUrl;
 
   /**
+   * Construye URLs completas para recursos estáticos.
+   * 
+   * En desarrollo: devuelve rutas relativas (el proxy las maneja)
+   * En producción: construye URLs absolutas completas
+   * 
+   * @param relativePath - Ruta relativa del recurso (ej: '/resources/avatars/avatar1.png')
+   * @returns URL completa del recurso
+   * @private
+   */
+  private buildFullResourceUrl(relativePath: string): string {
+    // Si ya es una URL absoluta, devolver tal cual
+    if (isAbsoluteUrl(relativePath)) {
+      return relativePath;
+    }
+
+    // En desarrollo, resourceBase es relativo (/resources), devolver tal cual
+    if (!isAbsoluteUrl(this.resourceBase)) {
+      return relativePath;
+    }
+
+    // En producción, resourceBase es absoluto, construir URL completa
+    // Ej: https://backend-proyectointegrado-g06.onrender.com/resources + /avatars/avatar1.png
+    // Pero si relativePath ya incluye /resources/, quitarlo para evitar duplicados
+    const cleanPath = relativePath.startsWith('/resources/') 
+      ? relativePath.substring('/resources'.length) 
+      : relativePath;
+    
+    return `${this.resourceBase}${cleanPath}`;
+  }
+
+  /**
    * Extrae el mensaje de error más relevante del backend.
    *
    * Prioriza mensajes detallados sobre mensajes generales para proporcionar
@@ -420,42 +451,25 @@ export class ApiService {
   /**
    * Construye la URL completa para un avatar dado su ruta relativa.
    *
-   * Maneja diferentes formatos de rutas:
-   * - Rutas absolutas con /resources/: Se devuelven sin modificar
-   * - Rutas relativas con /: Se añade el prefijo resourceBase
-   * - Solo nombre de archivo: Se construye la ruta completa con /avatars/
-   *
-   * El proxy de desarrollo redirige /resources/* al backend automáticamente.
+   * Maneja diferentes formatos de rutas y construye URLs completas
+   * que funcionan tanto en desarrollo (con proxy) como en producción.
    *
    * @param {string} relativePath - Ruta relativa del avatar
    * @returns {string} URL completa del avatar
    *
    * @example
    * ```typescript
-   * // Ruta absoluta
+   * // Ruta del backend (desarrollo)
    * this.apiService.getFullAvatarUrl('/resources/avatars/avatar1.png');
-   * // => '/resources/avatars/avatar1.png'
+   * // => '/resources/avatars/avatar1.png' (proxy lo redirige)
    *
-   * // Ruta relativa
-   * this.apiService.getFullAvatarUrl('/avatars/avatar1.png');
-   * // => '/resources/avatars/avatar1.png'
-   *
-   * // Solo nombre
-   * this.apiService.getFullAvatarUrl('avatar1.png');
-   * // => '/resources/avatars/avatar1.png'
+   * // Ruta del backend (producción)
+   * this.apiService.getFullAvatarUrl('/resources/avatars/avatar1.png');
+   * // => 'https://backend-proyectointegrado-g06.onrender.com/resources/avatars/avatar1.png'
    * ```
    */
   getFullAvatarUrl(relativePath: string): string {
-    // Si la ruta ya incluye /resources/, devolver tal cual
-    if (startsWithPrefix(relativePath, '/resources/')) {
-      return relativePath;
-    }
-    // Si la ruta es relativa (ej: /avatars/avatar1.png), agregar /resources/
-    if (startsWithPrefix(relativePath, '/')) {
-      return `${this.resourceBase}${relativePath}`;
-    }
-    // Si es solo el nombre del archivo, construir la ruta completa
-    return `${this.resourceBase}/avatars/${relativePath}`;
+    return this.buildFullResourceUrl(relativePath);
   }
 
   /**
@@ -725,7 +739,7 @@ export class ApiService {
    * a la página de verificación sin haberse registrado correctamente.
    *
    * @param {string} token - Token de verificación a validar
-   * @returns {Observable<VerifyTokenValidationResponse>} Observable con estado de validación
+   * @returns {Observable<VerificationTokenValidationResponse>} Observable con estado de validación
    *
    * @example
    * ```typescript
@@ -805,34 +819,27 @@ export class ApiService {
   /**
    * Obtiene la URL completa para una miniatura.
    *
-   * Maneja diferentes formatos de rutas para miniaturas:
-   * - URLs absolutas (http/https): Se devuelven sin modificar
-   * - Rutas relativas: Se construye la URL completa con resourceBase
+   * Construye la URL completa para una miniatura dada su ruta relativa.
    *
-   * @param {string} relativePath - Ruta relativa o absoluta de la miniatura
+   * Maneja diferentes formatos de rutas y construye URLs completas
+   * que funcionan tanto en desarrollo (con proxy) como en producción.
+   *
+   * @param {string} relativePath - Ruta relativa de la miniatura
    * @returns {string} URL completa de la miniatura
    *
    * @example
    * ```typescript
-   * // URL absoluta
-   * const url1 = this.apiService.getFullThumbnailUrl('https://cdn.example.com/thumb.jpg');
-   * // => 'https://cdn.example.com/thumb.jpg'
+   * // Ruta del backend (desarrollo)
+   * this.apiService.getFullThumbnailUrl('/resources/thumbnails/thumb1.jpg');
+   * // => '/resources/thumbnails/thumb1.jpg' (proxy lo redirige)
    *
-   * // Ruta relativa
-   * const url2 = this.apiService.getFullThumbnailUrl('/thumbnails/thumb1.jpg');
-   * // => '/resources/thumbnails/thumb1.jpg'
-   *
-   * // Sin barra inicial
-   * const url3 = this.apiService.getFullThumbnailUrl('thumbnails/thumb2.jpg');
-   * // => '/resources/thumbnails/thumb2.jpg'
+   * // Ruta del backend (producción)
+   * this.apiService.getFullThumbnailUrl('/resources/thumbnails/thumb1.jpg');
+   * // => 'https://backend-proyectointegrado-g06.onrender.com/resources/thumbnails/thumb1.jpg'
    * ```
    */
   getFullThumbnailUrl(relativePath: string): string {
-    if (isAbsoluteUrl(relativePath)) {
-      return relativePath;
-    }
-    const cleanPath = startsWithPrefix(relativePath, '/') ? relativePath : `/${relativePath}`;
-    return `${this.base.replace('/api', '')}${cleanPath}`;
+    return this.buildFullResourceUrl(relativePath);
   }
 }
 
