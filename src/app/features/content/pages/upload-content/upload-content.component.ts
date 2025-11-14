@@ -401,95 +401,98 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   
   private loadContentForEdit(): void {
     if (!this.contentId) return;
-    
+
     this.catalogoService.getContenidoById(this.contentId).subscribe({
       next: (content) => {
-        const contentType = content.tipo === 'VIDEO' ? 'video' : 'audio';
-        this.originalContentType = contentType;
-        this.isVideoContent = contentType === 'video'; // Establecer bandera aquí
-        
-        const creatorType = this.currentUser?.tipoContenido?.toLowerCase();
-        const normalizedCreatorType = creatorType === 'vídeo' ? 'video' : creatorType;
-        this.canEditContent = normalizedCreatorType === contentType;
-        
-        // Pre-select tags - esto es importante para que aparezcan marcados
+        this.setContentType(content);
         this.selectedTags = [...(content.tags || [])];
-        
-        // Format fecha for input[type="date"] (YYYY-MM-DD)
-        let fechaFormateada = '';
-        if (content.disponibleHasta) {
-          const fecha = new Date(content.disponibleHasta);
-          if (!isNaN(fecha.getTime())) {
-            fechaFormateada = fecha.toISOString().split('T')[0];
-          }
-        }
-        
-        // Normalize estado value (backend: PUBLICO/PRIVADO, form: Publico/Privado)
-        let estadoNormalizado: string = content.estado;
-        if (content.estado === 'PUBLICO') {
-          estadoNormalizado = 'Publico';
-        } else if (content.estado === 'PRIVADO') {
-          estadoNormalizado = 'Privado';
-        }
-        
-        // Populate form with existing data
-        this.uploadForm.patchValue({
-          title: content.titulo,
-          description: content.descripcion,
-          type: contentType,
-          vip: content.contenidoVip ? 'si' : 'no',
-          url: contentType === 'video' ? content.ficheroUrl : '',
-          audioUrl: contentType === 'audio' ? content.ficheroUrl : '',
-          duration: content.duracion?.toString() || '',
-          estado: estadoNormalizado,
-          ageRestriction: content.restriccionEdad !== null && content.restriccionEdad !== undefined ? `+${content.restriccionEdad}` : '',
-          resolution: content.resolucion || '',
-          fechaExpiracion: fechaFormateada,
-          tags: this.selectedTags
-        });
-        
-        // Forzar actualización del componente de fecha
-        this.uploadForm.get('fechaExpiracion')?.updateValueAndValidity();
-        
-        // Set thumbnail if available
-        if (content.miniaturaUrl) {
-          this.imageSelectorService.selectImage(content.miniaturaUrl, 'thumbnail');
-        }
-        
-        // Force change detection to update tags UI
+        const fechaFormateada = this.formatExpirationDate(content.disponibleHasta);
+        const estadoNormalizado = this.normalizeEstado(content.estado);
+        this.populateForm(content, fechaFormateada, estadoNormalizado);
+        this.handleThumbnail(content);
+        this.disableFieldsForEdit();
         this.cdr.detectChanges();
-        
-        // Disable restricted fields in edit mode (solo tipo, URL y archivo NO se pueden cambiar)
-        // Resolution y ageRestriction SÍ son editables
-        this.uploadForm.get('type')?.disable();
-        this.uploadForm.get('url')?.disable();
-        this.uploadForm.get('audioUrl')?.disable();
-        
-        // Clear validators from disabled fields
-        this.uploadForm.get('type')?.clearValidators();
-        this.uploadForm.get('url')?.clearValidators();
-        this.uploadForm.get('audioUrl')?.clearValidators();
-        this.uploadForm.get('type')?.updateValueAndValidity();
-        this.uploadForm.get('url')?.updateValueAndValidity();
-        this.uploadForm.get('audioUrl')?.updateValueAndValidity();
-        
-        // If content type doesn't match creator type, disable ALL fields (read-only mode)
-        if (!this.canEditContent) {
-          Object.keys(this.uploadForm.controls).forEach(key => {
-            this.uploadForm.get(key)?.disable();
-          });
-          this.formBaseService.updateFormState(this.formId, { 
-            error: 'No puedes editar este contenido porque no coincide con tu tipo de creador.' 
-          });
-        }
       },
       error: (err) => {
         console.error('Error loading content for edit:', err);
-        this.formBaseService.updateFormState(this.formId, { 
-          error: 'No se pudo cargar el contenido para editar' 
+        this.formBaseService.updateFormState(this.formId, {
+          error: 'No se pudo cargar el contenido para editar'
         });
       }
     });
+  }
+
+  private setContentType(content: any): void {
+    const contentType = content.tipo === 'VIDEO' ? 'video' : 'audio';
+    this.originalContentType = contentType;
+    this.isVideoContent = contentType === 'video';
+
+    const creatorType = this.currentUser?.tipoContenido?.toLowerCase();
+    const normalizedCreatorType = creatorType === 'vídeo' ? 'video' : creatorType;
+    this.canEditContent = normalizedCreatorType === contentType;
+  }
+
+  private formatExpirationDate(disponibleHasta: any): string {
+    if (!disponibleHasta) return '';
+    const fecha = new Date(disponibleHasta);
+    return !isNaN(fecha.getTime()) ? fecha.toISOString().split('T')[0] : '';
+  }
+
+  private normalizeEstado(estado: string): string {
+    if (estado === 'PUBLICO') return 'Publico';
+    if (estado === 'PRIVADO') return 'Privado';
+    return estado;
+  }
+
+  private populateForm(content: any, fechaFormateada: string, estadoNormalizado: string): void {
+    const contentType = this.originalContentType;
+    this.uploadForm.patchValue({
+      title: content.titulo,
+      description: content.descripcion,
+      type: contentType,
+      vip: content.contenidoVip ? 'si' : 'no',
+      url: contentType === 'video' ? content.ficheroUrl : '',
+      audioUrl: contentType === 'audio' ? content.ficheroUrl : '',
+      duration: content.duracion?.toString() || '',
+      estado: estadoNormalizado,
+      ageRestriction: content.restriccionEdad !== null && content.restriccionEdad !== undefined ? `+${content.restriccionEdad}` : '',
+      resolution: content.resolucion || '',
+      fechaExpiracion: fechaFormateada,
+      tags: this.selectedTags
+    });
+
+    this.uploadForm.get('fechaExpiracion')?.updateValueAndValidity();
+  }
+
+  private handleThumbnail(content: any): void {
+    if (content.miniaturaUrl) {
+      this.imageSelectorService.selectImage(content.miniaturaUrl, 'thumbnail');
+    }
+  }
+
+  private disableFieldsForEdit(): void {
+    // Disable restricted fields in edit mode
+    this.uploadForm.get('type')?.disable();
+    this.uploadForm.get('url')?.disable();
+    this.uploadForm.get('audioUrl')?.disable();
+
+    // Clear validators from disabled fields
+    this.uploadForm.get('type')?.clearValidators();
+    this.uploadForm.get('url')?.clearValidators();
+    this.uploadForm.get('audioUrl')?.clearValidators();
+    this.uploadForm.get('type')?.updateValueAndValidity();
+    this.uploadForm.get('url')?.updateValueAndValidity();
+    this.uploadForm.get('audioUrl')?.updateValueAndValidity();
+
+    // If content type doesn't match creator type, disable ALL fields
+    if (!this.canEditContent) {
+      Object.keys(this.uploadForm.controls).forEach(key => {
+        this.uploadForm.get(key)?.disable();
+      });
+      this.formBaseService.updateFormState(this.formId, {
+        error: 'No puedes editar este contenido porque no coincide con tu tipo de creador.'
+      });
+    }
   }
 
   /**
