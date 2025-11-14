@@ -8,8 +8,6 @@ coverage
 .DS_Store
 .env
 .env.local
-.firebaserc
-firebase-debug.log
 *.swp
 *.swo
 *~

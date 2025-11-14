@@ -99,15 +99,15 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   override getAvatarUrl(): string {
     const fotoUrl = this.currentUser?.foto;
 
-    // Early return with full URL if foto exists
-    if (fotoUrl) {
-      return this.imageSelectorService.getFullImageUrl(fotoUrl, 'avatar');
+    // If foto is just a filename (like "avatar2.png"), convert to full path
+    let fullPath = fotoUrl;
+    if (!fotoUrl.includes('/') && !fotoUrl.includes('http')) {
+      fullPath = `/resources/avatars/${fotoUrl}`;
     }
 
-    return 'assets/admin/admin_default.png';
+    // Return full URL using ApiService
+    return this.apiService.getFullResourceUrl(fullPath);
   }
-
-
   /**
    * Cierra la sesión del usuario usando AuthService
    */

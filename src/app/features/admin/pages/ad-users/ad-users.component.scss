@@ -1,5 +1,5 @@
-@import '../../../../shared/admin-mixins.scss';
-@import '../../../../shared/admin-shared.scss';
+@use '../../../../shared/admin-mixins.scss' as *;
+@use '../../../../shared/admin-shared.scss' as *;
 
 // ========================================
 // SOBRESCRITURAS ESPECÍFICAS PARA AD-USERS

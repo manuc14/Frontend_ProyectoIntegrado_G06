@@ -1,6 +1,7 @@
 {
   "projects": {
-    "default": "esimedia-frontend-g06"
+    "default": "frontend-g06",
+    "deploy": "frontend-g06"
   },
   "targets": {},
   "etags": {}

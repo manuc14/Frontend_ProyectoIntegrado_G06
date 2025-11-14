@@ -21,6 +21,8 @@ export interface Contenido {
     nombre: string;
     avatar: string;
   };
+  creadorAlias?: string;
+  creadorEspecialidad?: string;
   categoria?: string;
   disponibleHasta: Date | null;
 }

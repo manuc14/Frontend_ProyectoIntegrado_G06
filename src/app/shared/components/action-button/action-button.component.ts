@@ -17,6 +17,7 @@ export class ActionButtonComponent {
   @Input() variant: ActionButtonVariant = 'primary';
   @Input() size: ActionButtonSize = 'medium';
   @Input() disabled: boolean = false;
+  @Input() filled: boolean = false; // Para iconos que pueden estar llenos
   @Output() onClick = new EventEmitter<void>();
 
   handleClick(): void {

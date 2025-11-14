@@ -15,6 +15,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/auth/verify-email',
     '/auth/verify-code',
     '/auth/forgot-password',
+    '/auth/reset-password',
+    '/resources/',
+    '/assets/',
+    '/api/files/' // Para thumbnails y archivos estáticos
     '/auth/reset-password'
   ];
 

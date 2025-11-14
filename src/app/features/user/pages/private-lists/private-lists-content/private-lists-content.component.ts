@@ -138,4 +138,8 @@ export class PrivateListsContentComponent implements OnInit {
   crearLista(): void {
     this.router.navigate(['/create-private-list']);
   }
+
+  isFavoritosList(id: string): boolean {
+    return id.startsWith('FAVORITOS::');
+  }
 }
