@@ -134,12 +134,24 @@ stages:
           - checkout: self
             fetchDepth: 1  # Solo la última commit para velocidad
 
+          - script: |
+              mkdir -p dist/frontend_g06/browser
+            displayName: 'Create Firebase public directory'
+
           - task: DownloadBuildArtifacts@0
             inputs:
               downloadType: 'single'
               artifactName: 'dist'
               downloadPath: 'dist/frontend_g06/browser'
             displayName: 'Download build artifacts directly to Firebase public directory'
+
+          - script: |
+              ls -la dist/frontend_g06/browser/
+              if [ ! -f dist/frontend_g06/browser/index.html ]; then
+                echo "ERROR: index.html not found in public directory"
+                exit 1
+              fi
+            displayName: 'Verify index.html exists in public directory'
 
           - script: |
               npm install -g firebase-tools
