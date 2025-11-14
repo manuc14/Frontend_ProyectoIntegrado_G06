@@ -57,12 +57,13 @@ export const ROUTE_CONFIG = {
    * 
    * Razón: Estas rutas están diseñadas para usuarios NO autenticados o
    * en proceso de autenticación temporal (session tokens).
+   * 
+   * IMPORTANTE: NO incluir '/auth/refresh' aquí porque requiere refresh token
    */
   PUBLIC_AUTH_ROUTES: [
     // ===== Endpoints de autenticación básica =====
     '/auth/login',
     '/auth/register',
-    '/auth/refresh',            // Renovación de token (no reintentar)
     
     // ===== Endpoints de verificación de email =====
     '/auth/verify-email',

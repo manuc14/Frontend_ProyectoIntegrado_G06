@@ -6,10 +6,11 @@ import { forkJoin } from 'rxjs';
 import { map, finalize, tap } from 'rxjs/operators';
 import { HeaderComponent } from '../../../../shared/header/header.component';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
+import { InfoModalComponent } from '../../../../shared/components/info-modal/info-modal.component';
 import { CatalogoService } from '../../../../core/services/catalogo.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ImageSelectorService } from '../../../../core/services/image-selector.service';
-import { TipoContenido } from '../../../../core/models/contenido.models';
+import { TipoContenido, Contenido } from '../../../../core/models/contenido.models';
 
 interface SearchResult {
   id: string;
@@ -18,12 +19,13 @@ interface SearchResult {
   creator: string;
   tipo: TipoContenido;
   tags: string[];
+  contenido?: Contenido; // Guardar el contenido completo para validación de creador
 }
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent, InfoModalComponent],
   templateUrl: './search.component.html',
   styleUrl: './search.component.scss'
 })
@@ -32,6 +34,9 @@ export class SearchComponent implements OnInit {
   allContent: SearchResult[] = [];
   displayedResults: SearchResult[] = [];
   isLoading = false;
+  isCreatorView = false;
+  showIncompatibleModal = false;
+  incompatibleMessage = '';
 
   constructor(
     private catalogoService: CatalogoService,
@@ -41,7 +46,12 @@ export class SearchComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    (this.authService.isCreator()
+    this.isCreatorView = this.authService.isCreator();
+    this.loadContent();
+  }
+
+  private loadContent(): void {
+    (this.isCreatorView
       ? forkJoin([
           this.catalogoService.getContenidosPublicos(),
           this.catalogoService.getContenidosPrivados()
@@ -54,7 +64,8 @@ export class SearchComponent implements OnInit {
         title: c.titulo,
         creator: c.creador?.nombre ?? 'Desconocido',
         tipo: c.tipo,
-        tags: c.tags ?? []
+        tags: c.tags ?? [],
+        contenido: c // Guardar el contenido completo
       }))),
       tap(d => this.displayedResults = this.allContent = d),
       finalize(() => this.isLoading = false)
@@ -69,15 +80,37 @@ export class SearchComponent implements OnInit {
   };
 
   navigateToContent = (item: SearchResult) => {
-    const isC = this.authService.isCreator();
-    if (!isC) {
+    if (this.isCreatorView) {
+      this.handleCreatorClick(item);
+    } else {
       localStorage.setItem('currentContentId', item.id);
+      this.router.navigate(['/content/preview']);
     }
-    this.router.navigate(
-      isC ? ['/creator/catalog'] : ['/content/preview'],
-      { queryParams: isC ? {} : { id: item.id } }
-    );
   };
+
+  /**
+   * Maneja el click cuando es vista de creador
+   * Valida que el tipo de contenido coincida antes de permitir edición
+   */
+  private handleCreatorClick(item: SearchResult): void {
+    const user = this.authService.getCurrentUser();
+    const creatorType = user?.tipoContenido?.toUpperCase();
+    const contentType = item.tipo?.toUpperCase();
+
+    // Si el creador y el contenido son del mismo tipo, permitir edición
+    if (creatorType === contentType) {
+      localStorage.setItem('currentContentId', item.id);
+      this.router.navigate(['/edit-content']);
+    } else {
+      // Mostrar modal indicando incompatibilidad
+      this.incompatibleMessage = `Eres un creador de ${creatorType?.toLowerCase() || 'contenido'} y este es un contenido de tipo ${contentType?.toLowerCase() || item.tipo}. Solo puedes editar contenido de tu mismo tipo.`;
+      this.showIncompatibleModal = true;
+    }
+  }
+
+  closeIncompatibleModal(): void {
+    this.showIncompatibleModal = false;
+  }
 
   get hasResults() { return !!this.displayedResults.length; }
 }

@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CatalogoService } from '../../../../core/services/catalogo.service';
 import { Contenido } from '../../../../core/models/contenido.models';
@@ -13,31 +14,27 @@ import { BackButtonComponent } from '../../../../shared/components/back-button/b
   templateUrl: './media-player.component.html',
   styleUrls: ['./media-player.component.scss']
 })
-export class MediaPlayerComponent implements OnInit {
-  @ViewChild('mediaElement', { static: false }) mediaElement!: ElementRef<HTMLVideoElement | HTMLAudioElement>;
+export class MediaPlayerComponent implements OnInit, OnDestroy {
+  // Solo necesario para AUDIO (que usa reproductor nativo)
+  @ViewChild('audioElement', { static: false }) audioElement?: ElementRef<HTMLAudioElement>;
 
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private catalogoService = inject(CatalogoService);
+  private http = inject(HttpClient);
   private sanitizer = inject(DomSanitizer);
 
   contenido: Contenido | null = null;
+  
+  // Propiedades solo para AUDIO (reproductor nativo)
   isPlaying = false;
   currentTime = 0;
   duration = 0;
   volume = 1;
   isMuted = false;
-  isFullscreen = false;
-  showControls = true;
-  controlsTimeout: any;
-
-  // URLs embebidas sanitizadas
-  embedUrl: SafeResourceUrl | null = null;
+  audioUrl: string | null = null;
   
-  // Alias para compatibilidad (deprecado)
-  get youtubeEmbedUrl(): SafeResourceUrl | null {
-    return this.embedUrl;
-  }
+  // Propiedad solo para VIDEO (reproductor embebido)
+  embedUrl: SafeResourceUrl | null = null;
 
   ngOnInit(): void {
     const contentId = localStorage.getItem('currentContentId');
@@ -45,200 +42,125 @@ export class MediaPlayerComponent implements OnInit {
       this.router.navigate(['/catalog']);
       return;
     }
-    this.loadContent(contentId);
-  }
-
-  loadContent(id: string): void {
-    this.catalogoService.getContenidoById(id).subscribe({
+    
+    this.catalogoService.getContenidoById(contentId).subscribe({
       next: (contenido) => {
         this.contenido = contenido;
-        this.prepareEmbedUrl();
+        // Solo generar embedUrl para VIDEOS (que siempre son URLs externas)
+        if (contenido.tipo === 'VIDEO' && contenido.ficheroUrl) {
+          this.generateEmbedUrl(contenido.ficheroUrl);
+        }
+        // Para AUDIO, descargar el archivo con autenticación
+        if (contenido.tipo === 'AUDIO' && contenido.ficheroUrl) {
+          this.loadAudioFile(contenido.ficheroUrl);
+        }
       },
       error: () => { this.router.navigate(['/catalog']); }
     });
   }
 
-  private prepareEmbedUrl(): void {
-    if (!this.contenido?.ficheroUrl) return;
+  /**
+   * Carga el archivo de audio a través de HttpClient para que pase por los interceptores (autenticación)
+   */
+  private loadAudioFile(fileUrl: string): void {
+    this.http.get(fileUrl, { responseType: 'blob' }).subscribe({
+      next: (blob: Blob) => {
+        // Crear una URL local (Object URL) que apunta al blob descargado
+        this.audioUrl = URL.createObjectURL(blob);
+      },
+      error: (err) => {
+        console.error('Error cargando archivo de audio:', err);
+      }
+    });
+  }
 
-    const embedStrategies: Record<string, () => void> = {
-      youtube: () => this.createEmbedUrl(this.extractYouTubeId, id => `https://www.youtube.com/embed/${id}`),
-      vimeo: () => this.createEmbedUrl(this.extractVimeoId, id => `https://player.vimeo.com/video/${id}`),
-      dailymotion: () => this.createEmbedUrl(this.extractDailymotionId, id => `https://www.dailymotion.com/embed/video/${id}`),
-      twitch: () => {
-        const twitchData = this.extractTwitchId(this.contenido!.ficheroUrl);
-        if (twitchData) {
-          const url = twitchData.type === 'video'
-            ? `https://player.twitch.tv/?video=${twitchData.id}&parent=${window.location.hostname}`
-            : `https://player.twitch.tv/?channel=${twitchData.id}&parent=${window.location.hostname}`;
-          this.embedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        }
+  /**
+   * Genera URL embebida para reproductores de plataformas externas (solo para VIDEO)
+   * Soporta: YouTube, Vimeo, Dailymotion
+   */
+  private generateEmbedUrl(url: string): void {
+    const configs: Record<string, { regex: RegExp; build: (match: RegExpExecArray) => string }> = {
+      youtube: { 
+        regex: /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^#&?]*)/,
+        build: m => `https://www.youtube.com/embed/${m[1]}`
       },
-      soundcloud: () => {
-        const encodedUrl = this.extractSoundCloudUrl(this.contenido!.ficheroUrl);
-        this.embedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-          `https://w.soundcloud.com/player/?url=${encodedUrl}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`
-        );
+      vimeo: { 
+        regex: /vimeo\.com\/(\d+)/,
+        build: m => `https://player.vimeo.com/video/${m[1]}`
       },
-      spotify: () => {
-        const spotifyData = this.extractSpotifyId(this.contenido!.ficheroUrl);
-        if (spotifyData) {
-          this.embedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(`https://open.spotify.com/embed/${spotifyData.type}/${spotifyData.id}`);
-        }
+      dailymotion: { 
+        regex: /dailymotion\.com\/video\/([a-zA-Z0-9]+)/,
+        build: m => `https://www.dailymotion.com/embed/video/${m[1]}`
       }
     };
 
-    embedStrategies[this.playerType]?.();
-  }
-
-  private createEmbedUrl(extractor: (url: string) => string | null, urlBuilder: (id: string) => string): void {
-    const id = extractor.call(this, this.contenido!.ficheroUrl);
-    if (id) {
-      this.embedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(urlBuilder(id));
+    for (const [, config] of Object.entries(configs)) {
+      const match = config.regex.exec(url);
+      if (match) {
+        this.embedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(config.build(match));
+        return;
+      }
     }
   }
 
+  // ==================== MÉTODOS SOLO PARA AUDIO ====================
+  
   togglePlay(): void {
-    if (!this.mediaElement) return;
-    
-    const media = this.mediaElement.nativeElement;
+    if (!this.audioElement) return;
+    const audio = this.audioElement.nativeElement;
     if (this.isPlaying) {
-      media.pause();
+      audio.pause();
     } else {
-      media.play().catch(error => console.error('❌ Error reproduciendo:', error));
+      audio.play().catch(() => {});
     }
   }
 
   onTimeUpdate(): void {
-    const media = this.mediaElement.nativeElement;
-    this.currentTime = media.currentTime;
+    if (this.audioElement) {
+      this.currentTime = this.audioElement.nativeElement.currentTime;
+    }
   }
 
   onLoadedMetadata(): void {
-    const media = this.mediaElement.nativeElement;
-    this.duration = media.duration;
+    if (this.audioElement) {
+      this.duration = this.audioElement.nativeElement.duration;
+    }
   }
 
   seekTo(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const media = this.mediaElement.nativeElement;
-    media.currentTime = parseFloat(input.value);
+    if (this.audioElement) {
+      this.audioElement.nativeElement.currentTime = parseFloat((event.target as HTMLInputElement).value);
+    }
   }
 
   toggleMute(): void {
-    const media = this.mediaElement.nativeElement;
-    media.muted = !media.muted;
-    this.isMuted = media.muted;
+    if (this.audioElement) {
+      this.audioElement.nativeElement.muted = !this.audioElement.nativeElement.muted;
+      this.isMuted = this.audioElement.nativeElement.muted;
+    }
   }
 
   changeVolume(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const media = this.mediaElement.nativeElement;
-    this.volume = parseFloat(input.value);
-    media.volume = this.volume;
+    this.volume = parseFloat((event.target as HTMLInputElement).value);
+    if (this.audioElement) {
+      this.audioElement.nativeElement.volume = this.volume;
+    }
     this.isMuted = this.volume === 0;
   }
 
-  toggleFullscreen(): void {
-    const container = document.querySelector('.player-container') as HTMLElement;
-    if (!document.fullscreenElement) {
-      container.requestFullscreen();
-      this.isFullscreen = true;
-    } else {
-      document.exitFullscreen();
-      this.isFullscreen = false;
-    }
-  }
-
-  // Formateo de tiempo
   formatTime(seconds: number): string {
     if (!seconds || isNaN(seconds)) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
   }
 
-  // Control de visibilidad de controles
-  onMouseMove(): void {
-    this.showControls = true;
-    clearTimeout(this.controlsTimeout);
-    if (this.isPlaying) {
-      this.controlsTimeout = setTimeout(() => {
-        this.showControls = false;
-      }, 3000);
+  get isVideo(): boolean { return this.contenido?.tipo === 'VIDEO'; }
+  get isAudio(): boolean { return this.contenido?.tipo === 'AUDIO'; }
+  get progressPercentage(): number { return this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0; }
+
+  ngOnDestroy(): void {
+    // Limpiar URL de objeto para liberar memoria
+    if (this.audioUrl) {
+      URL.revokeObjectURL(this.audioUrl);
     }
-  }
-
-  onMouseLeave(): void {
-    if (this.isPlaying) {
-      this.showControls = false;
-    }
-  }
-
-  // Helpers
-  get isVideo(): boolean {
-    return this.contenido?.tipo === 'VIDEO';
-  }
-
-  get isAudio(): boolean {
-    return this.contenido?.tipo === 'AUDIO';
-  }
-
-  get playerType(): 'youtube' | 'vimeo' | 'dailymotion' | 'twitch' | 'soundcloud' | 'spotify' | 'native' {
-    if (!this.contenido?.ficheroUrl) return 'native';
-    
-    const url = this.contenido.ficheroUrl.toLowerCase();
-
-    // Early returns for each platform
-    if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
-    if (url.includes('vimeo.com')) return 'vimeo';
-    if (url.includes('dailymotion.com')) return 'dailymotion';
-    if (url.includes('twitch.tv')) return 'twitch';
-    if (url.includes('soundcloud.com')) return 'soundcloud';
-    if (url.includes('spotify.com')) return 'spotify';
-
-    return 'native';
-  }
-
-  get isNativePlayer(): boolean {
-    return this.playerType === 'native';
-  }
-
-  get isEmbedPlayer(): boolean {
-    return this.playerType !== 'native';
-  }
-
-  private extractYouTubeId(url: string): string | null {
-    const match = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/.exec(url);
-    return (match?.[2]?.length === 11) ? match[2] : null;
-  }
-
-  private extractVimeoId(url: string): string | null {
-    return /vimeo\.com\/(\d+)/.exec(url)?.[1] ?? null;
-  }
-
-  private extractDailymotionId(url: string): string | null {
-    return /(?:dailymotion\.com\/video\/|dai\.ly\/)([a-zA-Z0-9]+)/.exec(url)?.[1] ?? null;
-  }
-
-  private extractTwitchId(url: string): { type: 'channel' | 'video'; id: string } | null {
-    const videoMatch = /twitch\.tv\/videos\/(\d+)/.exec(url);
-    if (videoMatch) return { type: 'video', id: videoMatch[1] };
-    
-    const channelMatch = /twitch\.tv\/(\w+)/.exec(url);
-    return channelMatch ? { type: 'channel', id: channelMatch[1] } : null;
-  }
-
-  private extractSoundCloudUrl(url: string): string {
-    return encodeURIComponent(url);
-  }
-
-  private extractSpotifyId(url: string): { type: string; id: string } | null {
-    const match = /spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/.exec(url);
-    return match ? { type: match[1], id: match[2] } : null;
-  }
-
-  get progressPercentage(): number {
-    return this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0;
   }
 }

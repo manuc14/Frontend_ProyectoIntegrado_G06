@@ -69,6 +69,9 @@ export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
 
     this.api.verifyUserWithToken(this.token(), this.code).subscribe({
       next: () => {
+        // Limpiar sessionStorage después de verificación exitosa
+        sessionStorage.removeItem('pendingVerificationEmail');
+        sessionStorage.removeItem('verificationToken');
         this.router.navigate(['/login']);
       },
       error: (error: any) => {

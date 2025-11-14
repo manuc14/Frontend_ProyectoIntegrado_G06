@@ -12,8 +12,12 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    // authInterceptor DEBE ir primero para agregar el token a todas las peticiones
-    provideHttpClient(withInterceptors([authInterceptor, tokenRefreshInterceptor, errorInterceptor])),
+    // ORDEN CRÍTICO de interceptors:
+    // 1. authInterceptor: Agrega el token Bearer a las peticiones
+    // 2. errorInterceptor: Maneja errores generales (DEBE ir ANTES del token-refresh para errores)
+    // 3. tokenRefreshInterceptor: Renueva tokens en errores 401 (DEBE ir al final)
+    // NOTA: En catchError, los interceptors se ejecutan en orden INVERSO
+    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor, tokenRefreshInterceptor])),
     provideAnimations(),
   ]
 };

@@ -732,6 +732,85 @@ export class ApiService {
   }
 
   /**
+   * Actualiza contenido multimedia existente en el backend.
+   *
+   * Modifica los metadatos del contenido especificado. El backend valida que solo
+   * se editen campos permitidos (titulo, descripcion, urlMiniatura, estado, 
+   * esUsuarioVip, tags, duracion, restriccionEdad). Campos inmutables como 
+   * ficheroUrl, urlContenido, resolucion y fechaEstado no se actualizan.
+   * 
+   * Requiere autenticación mediante token JWT y rol CREADOR.
+   * 
+   * Backend (PUT /api/contenidos/{id}):
+   * - Request Body: ContenidoUpdateRequest con campos editables
+   * - Validaciones: título, descripción, miniatura, estado, VIP, tags, duración, edad
+   * - Response 200: ContenidoResponse con contenido actualizado
+   * - Response 400: Bad Request si validaciones fallan
+   * - Response 403: Forbidden si no tienes permisos CREADOR
+   * - Response 404: Not Found si el ID no existe
+   * - Error handling: GlobalExceptionHandler del backend
+   *
+   * @param {string} contentId - ID del contenido a actualizar
+   * @param {any} payload - Datos editables (titulo, descripcion, estado, esUsuarioVip, tags, etc.)
+   * @returns {Observable<any>} Observable con ContenidoResponse actualizado
+   *
+   * @example
+   * ```typescript
+   * const updates = {
+   *   titulo: 'Mi canción editada',
+   *   descripcion: 'Nueva descripción',
+   *   estado: 'PUBLICO',
+   *   esUsuarioVip: false,
+   *   tags: ['pop', 'rock'],
+   *   duracion: 180,
+   *   restriccionEdad: 13
+   * };
+   *
+   * this.apiService.updateContent('123abc', updates).subscribe({
+   *   next: (response) => console.log('Contenido actualizado:', response),
+   *   error: (error) => {
+   *     if (error.status === 403) console.error('No tienes permisos');
+   *     if (error.status === 404) console.error('Contenido no encontrado');
+   *   }
+   * });
+   * ```
+   */
+  updateContent(contentId: string, payload: any): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.put(`${this.base}/contenidos/${contentId}`, payload, { headers })
+      .pipe(
+        catchError(this.handleError('actualizar contenido', 'No se pudo actualizar el contenido'))
+      );
+  }
+
+  /**
+   * Elimina un contenido existente.
+   *
+   * @param {string} contentId - ID único del contenido a eliminar
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   *
+   * @throws {HttpErrorResponse} En caso de error (404 si no existe, 400 si ID es inválido)
+   *
+   * @example
+   * ```typescript
+   * this.apiService.deleteContent('123abc').subscribe({
+   *   next: (response) => console.log('Contenido eliminado:', response),
+   *   error: (error) => {
+   *     if (error.status === 404) console.error('Contenido no encontrado');
+   *     if (error.status === 400) console.error('ID inválido');
+   *   }
+   * });
+   * ```
+   */
+  deleteContent(contentId: string): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.delete(`${this.base}/contenidos/${contentId}`, { headers, responseType: 'text' })
+      .pipe(
+        catchError(this.handleError('eliminar contenido', 'No se pudo eliminar el contenido'))
+      );
+  }
+
+  /**
    * Obtiene la URL completa para una miniatura.
    *
    * Maneja diferentes formatos de rutas para miniaturas:

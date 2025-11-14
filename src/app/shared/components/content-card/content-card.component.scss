@@ -11,6 +11,7 @@
   text-decoration: none;
   color: inherit;
   animation: fadeInUp 0.6s ease-out backwards;
+  cursor: pointer;
   
   &:hover {
     transform: translateY(-8px) scale(1.02);
@@ -24,6 +25,11 @@
     .content-card__badge {
       transform: scale(1.05);
     }
+  }
+
+  // Modificador para hacer la tarjeta clickeable (tanto para creadores como usuarios)
+  &--clickable {
+    cursor: pointer;
   }
 
   // Modificador para contenido privado en vista de creador

@@ -53,6 +53,7 @@ export class TwoFactorVerifyComponent extends CodeInputBase {
 
     this.isVerifying.set(true);
     this.hasError.set(false);
+    this.errorMessage.set(''); // Limpiar mensaje anterior
     this.buttonState = 'pressed';
 
     let factorType: FactorType;
@@ -68,11 +69,15 @@ export class TwoFactorVerifyComponent extends CodeInputBase {
       next: (res) => {
         this.isVerifying.set(false);
         this.buttonState = 'normal';
+        console.log('[2FA-VERIFY] Respuesta recibida:', res.state, res.message);
         if (res.state === 'COMPLETED' || res.state === 'REQUIRES_FACTOR') {
+          this.hasError.set(false);
+          this.errorMessage.set('');
           this.verifyCompleted.emit(res);
+          this.clearCodeInputs();
         } else {
           this.hasError.set(true);
-          this.errorMessage.set(res.message || 'Código incorrecto');
+          this.errorMessage.set('El código introducido es incorrecto. Por favor, intenta de nuevo.');
           this.triggerShakeError();
           this.clearCodeInputs();
         }

@@ -34,7 +34,9 @@ export const authGuard: CanActivateFn = (route, state) => {
   console.log('✅ [authGuard] Usuario autenticado');
 
   // Verificar si la ruta está permitida para el rol actual
-  const isAllowed = authService.isRouteAllowedForCurrentUser(state.url);
+  // Extraer solo la ruta sin query params
+  const pathWithoutQueryParams = state.url.split('?')[0];
+  const isAllowed = authService.isRouteAllowedForCurrentUser(pathWithoutQueryParams);
   console.log('🛡️ [authGuard] isRouteAllowedForCurrentUser devolvió:', isAllowed);
   
   if (!isAllowed) {
