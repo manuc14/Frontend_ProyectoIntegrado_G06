@@ -138,8 +138,14 @@ stages:
             inputs:
               downloadType: 'single'
               artifactName: 'dist'
-              downloadPath: '$(System.DefaultWorkingDirectory)/dist'
-            displayName: 'Download build artifacts to dist/'
+              downloadPath: '$(System.DefaultWorkingDirectory)/temp-dist'
+            displayName: 'Download build artifacts to temp-dist/'
+
+          - script: |
+              mkdir -p dist/frontend_g06/browser
+              mv temp-dist/* dist/frontend_g06/browser/
+              rm -rf temp-dist
+            displayName: 'Move artifacts to correct Firebase directory structure'
 
           - script: |
               npm install -g firebase-tools
