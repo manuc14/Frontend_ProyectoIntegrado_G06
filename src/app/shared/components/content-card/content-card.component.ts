@@ -18,7 +18,7 @@ export class ContentCardComponent {
   @Input() isCreatorView: boolean = false;
   @Input() navigationOrigin: string = 'catalog'; // 'catalog', 'private-lists', etc.
 
-  constructor(private router: Router, private apiService: ApiService) {}
+  constructor(private router: Router, private apiService: ApiService, private authService: AuthService) {}
 
   /**
    * Obtiene la URL completa de la miniatura convirtiendo rutas relativas
@@ -27,11 +27,6 @@ export class ContentCardComponent {
     return this.apiService.getFullResourceUrl(this.contenido.miniaturaUrl);
   }
   showIncompatibleModal = false;
-
-  constructor(
-    private router: Router,
-    private authService: AuthService
-  ) {}
 
   /**
    * Verifica si el contenido es privado
