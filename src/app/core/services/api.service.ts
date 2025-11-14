@@ -239,10 +239,12 @@ export class ApiService {
   /**
    * Construye URLs completas para recursos estáticos.
    * 
-   * En desarrollo: devuelve rutas relativas (el proxy las maneja)
-   * En producción: construye URLs absolutas completas
+   * Maneja diferentes tipos de rutas:
+   * - URLs absolutas: se devuelven tal cual
+   * - Rutas /resources/*: se convierten según el entorno
+   * - Rutas /api/files/*: se convierten a URLs completas
    * 
-   * @param relativePath - Ruta relativa del recurso (ej: '/resources/avatars/avatar1.png')
+   * @param relativePath - Ruta relativa del recurso
    * @returns URL completa del recurso
    * @private
    */
@@ -252,19 +254,42 @@ export class ApiService {
       return relativePath;
     }
 
-    // En desarrollo, resourceBase es relativo (/resources), devolver tal cual
+    // Manejar rutas de archivos subidos (/api/files/*)
+    if (relativePath.startsWith('/api/files/')) {
+      // En desarrollo: devolver tal cual (proxy lo maneja)
+      if (!isAbsoluteUrl(this.base)) {
+        return relativePath;
+      }
+      // En producción: construir URL completa usando base del API
+      const baseUrl = this.base.replace('/api', '');
+      return `${baseUrl}${relativePath}`;
+    }
+
+    // Manejar rutas de recursos estáticos (/resources/*)
+    // En desarrollo: devolver tal cual (proxy lo maneja)
     if (!isAbsoluteUrl(this.resourceBase)) {
       return relativePath;
     }
 
-    // En producción, resourceBase es absoluto, construir URL completa
-    // Ej: https://backend-proyectointegrado-g06.onrender.com/resources + /avatars/avatar1.png
-    // Pero si relativePath ya incluye /resources/, quitarlo para evitar duplicados
+    // En producción: construir URL completa
     const cleanPath = relativePath.startsWith('/resources/') 
       ? relativePath.substring('/resources'.length) 
       : relativePath;
     
     return `${this.resourceBase}${cleanPath}`;
+  }
+
+  /**
+   * Obtiene la URL completa para cualquier recurso (avatar, miniatura, etc.)
+   * 
+   * Convierte rutas relativas del backend en URLs completas que funcionan
+   * tanto en desarrollo como en producción.
+   * 
+   * @param relativePath - Ruta relativa del recurso
+   * @returns URL completa del recurso
+   */
+  getFullResourceUrl(relativePath: string): string {
+    return this.buildFullResourceUrl(relativePath);
   }
 
   /**
@@ -459,13 +484,21 @@ export class ApiService {
    *
    * @example
    * ```typescript
-   * // Ruta del backend (desarrollo)
+   * // Ruta de recursos (desarrollo)
    * this.apiService.getFullAvatarUrl('/resources/avatars/avatar1.png');
    * // => '/resources/avatars/avatar1.png' (proxy lo redirige)
    *
-   * // Ruta del backend (producción)
+   * // Ruta de archivo subido (desarrollo)
+   * this.apiService.getFullAvatarUrl('/api/files/avatars/avatar1.png');
+   * // => '/api/files/avatars/avatar1.png' (proxy lo redirige)
+   *
+   * // Ruta de recursos (producción)
    * this.apiService.getFullAvatarUrl('/resources/avatars/avatar1.png');
    * // => 'https://backend-proyectointegrado-g06.onrender.com/resources/avatars/avatar1.png'
+   *
+   * // Ruta de archivo subido (producción)
+   * this.apiService.getFullAvatarUrl('/api/files/avatars/avatar1.png');
+   * // => 'https://backend-proyectointegrado-g06.onrender.com/api/files/avatars/avatar1.png'
    * ```
    */
   getFullAvatarUrl(relativePath: string): string {
@@ -829,13 +862,21 @@ export class ApiService {
    *
    * @example
    * ```typescript
-   * // Ruta del backend (desarrollo)
+   * // Ruta de recursos (desarrollo)
    * this.apiService.getFullThumbnailUrl('/resources/thumbnails/thumb1.jpg');
    * // => '/resources/thumbnails/thumb1.jpg' (proxy lo redirige)
    *
-   * // Ruta del backend (producción)
+   * // Ruta de archivo subido (desarrollo)
+   * this.apiService.getFullThumbnailUrl('/api/files/thumbnails/thumb1.jpg');
+   * // => '/api/files/thumbnails/thumb1.jpg' (proxy lo redirige)
+   *
+   * // Ruta de recursos (producción)
    * this.apiService.getFullThumbnailUrl('/resources/thumbnails/thumb1.jpg');
    * // => 'https://backend-proyectointegrado-g06.onrender.com/resources/thumbnails/thumb1.jpg'
+   *
+   * // Ruta de archivo subido (producción)
+   * this.apiService.getFullThumbnailUrl('/api/files/thumbnails/thumb1.jpg');
+   * // => 'https://backend-proyectointegrado-g06.onrender.com/api/files/thumbnails/thumb1.jpg'
    * ```
    */
   getFullThumbnailUrl(relativePath: string): string {

@@ -1,7 +1,7 @@
 <a class="content-card" [class.content-card--private]="isCreatorView && isPrivate" (click)="navigateToPreview($event)">
   <!-- Miniatura del contenido -->
   <div class="content-card__thumbnail">
-    <img [src]="contenido.miniaturaUrl" [alt]="contenido.titulo" class="content-card__thumbnail-img">
+    <img [src]="miniaturaUrl" [alt]="contenido.titulo" class="content-card__thumbnail-img">
     
     <!-- Badge de Contenido Privado (solo en vista de creador) -->
     <div *ngIf="isCreatorView && isPrivate" class="content-card__badge content-card__badge--private">

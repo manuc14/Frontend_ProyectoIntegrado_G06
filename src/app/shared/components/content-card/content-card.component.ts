@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Contenido } from '../../../core/models/contenido.models';
+import { ApiService } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-content-card',
@@ -15,7 +16,14 @@ export class ContentCardComponent {
   @Input() isCreatorView: boolean = false;
   @Input() navigationOrigin: string = 'catalog'; // 'catalog', 'private-lists', etc.
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private apiService: ApiService) {}
+
+  /**
+   * Obtiene la URL completa de la miniatura convirtiendo rutas relativas
+   */
+  get miniaturaUrl(): string {
+    return this.apiService.getFullResourceUrl(this.contenido.miniaturaUrl);
+  }
 
   /**
    * Verifica si el contenido es privado
