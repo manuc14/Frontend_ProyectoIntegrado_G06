@@ -58,12 +58,11 @@ stages:
                 { echo "Revisa DIST_PATH y el output del build"; exit 1; }
             displayName: 'Inspect dist output'
 
-          - task: PublishBuildArtifacts@1
+          - task: PublishPipelineArtifact@1
             inputs:
-              pathToPublish: '$(System.DefaultWorkingDirectory)/$(DIST_PATH)'
+              targetPath: '$(System.DefaultWorkingDirectory)/$(DIST_PATH)'
               artifactName: 'dist'
-              publishLocation: 'Container'
-            displayName: 'Publish build artifacts (legacy - not used with framework integration)'
+            displayName: 'Publish build artifacts'
 
   # --- SONAR (self-hosted + extensión oficial) ------------------------------
   - stage: Sonarqube
@@ -138,9 +137,8 @@ stages:
               mkdir -p dist/frontend_g06/browser
             displayName: 'Create Firebase public directory'
 
-          - task: DownloadBuildArtifacts@0
+          - task: DownloadPipelineArtifact@1
             inputs:
-              downloadType: 'single'
               artifactName: 'dist'
               downloadPath: 'firebase-dist'
             displayName: 'Download build artifacts to firebase-dist'
