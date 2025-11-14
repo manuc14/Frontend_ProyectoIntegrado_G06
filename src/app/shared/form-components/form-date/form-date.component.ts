@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR, ValidationErrors } from '@angular/forms';
 
@@ -16,7 +16,7 @@ import { ReactiveFormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR, Validatio
     }
   ]
 })
-export class FormDateComponent implements ControlValueAccessor {
+export class FormDateComponent implements ControlValueAccessor, AfterViewInit {
   @Input() label: string = '';
   @Input() customClass: string = '';
   @Input() errors: ValidationErrors | null = null;
@@ -26,14 +26,27 @@ export class FormDateComponent implements ControlValueAccessor {
   @Output() focus = new EventEmitter<string>();
   @Output() blur = new EventEmitter<string>();
 
+  @ViewChild('dateInput') dateInput?: ElementRef<HTMLInputElement>;
+
   value: string = '';
   disabled: boolean = false;
 
   onChange = (value: string) => {};
   onTouched = () => {};
 
+  ngAfterViewInit(): void {
+    // Forzar actualización del valor en el input HTML después de que se renderice
+    if (this.dateInput && this.value) {
+      this.dateInput.nativeElement.value = this.value;
+    }
+  }
+
   writeValue(value: string): void {
     this.value = value || '';
+    // Actualizar directamente el input si ya existe en el DOM
+    if (this.dateInput) {
+      this.dateInput.nativeElement.value = this.value;
+    }
   }
 
   registerOnChange(fn: (value: string) => void): void {

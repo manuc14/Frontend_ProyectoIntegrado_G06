@@ -82,6 +82,7 @@ export const routes: Routes = [
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },
 	{ path: 'upload-content', component: UploadContentComponent, canActivate: [authGuard] },
+	{ path: 'edit-content', component: UploadContentComponent, canActivate: [authGuard] },
 	{ path: 'creator/catalog', component: CreatorCatalogComponent, canActivate: [authGuard] },
 	{ path: 'creator/estadisticas', component: CreatorStatsComponent, canActivate: [authGuard] },
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
@@ -13,7 +13,8 @@ import { ApiService, BackendUser } from '../../../../core/services/api.service';
 import { ImageSelectorService, ImageSelectorState } from '../../../../core/services/image-selector.service';
 import { FormBaseService, FormState } from '../../../../core/services/form-base.service';
 import { UploadService } from '../../../../core/services/upload-services/upload.service';
-import { Router } from '@angular/router';
+import { CatalogoService } from '../../../../core/services/catalogo.service';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { UPLOAD_LIMITS, UPLOAD_FILE_TYPES, PREDEFINED_TAGS } from '../../../../core/constants/form-limits';
 import { executeAsyncOperation } from '../../../../core/utils/observable.helpers';
@@ -43,13 +44,18 @@ export interface UploadContentForm {
   styleUrls: ['./upload-content.component.scss']
 })
 export class UploadContentComponent implements OnInit, OnDestroy {
+  @Input() contentId?: string; // When provided, enables edit mode
+  
   constructor(
     private api: ApiService,
     private router: Router,
+    private route: ActivatedRoute,
     private fb: FormBuilder,
     private formBaseService: FormBaseService,
     public imageSelectorService: ImageSelectorService,
-    private uploadService: UploadService
+    private uploadService: UploadService,
+    private catalogoService: CatalogoService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   // Constants for template access
@@ -60,6 +66,12 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   // Formulario reactivo
   uploadForm!: FormGroup;
   formId = 'upload-content';
+  
+  // Edit mode tracking
+  isEditMode = false;
+  originalContentType: 'video' | 'audio' | '' = '';
+  canEditContent = true; // True if content type matches creator type
+  isVideoContent = false; // Helper para template: si es contenido de video
 
   // Estado centralizado
   currentFormState: any = {};
@@ -85,10 +97,18 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   private imageStateSubscription?: Subscription;
   private typeChangeSubscription?: Subscription;
+  private fechaExpiracionSubscription?: Subscription;
+  private vipChangeSubscription?: Subscription;
 
   get is4KWithoutVip(): boolean {
     const formValue = this.uploadForm?.value;
     return formValue?.type === 'video' && formValue?.resolution === '4K' && formValue?.vip !== 'si';
+  }
+
+  // Getter para deshabilitar opción 4K si no es VIP
+  get is4KDisabled(): boolean {
+    const formValue = this.uploadForm?.value;
+    return formValue?.vip !== 'si';
   }
 
   // Getters simplificados
@@ -192,6 +212,15 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   async upload() {
     this.submitted = true;
     this.formBaseService.updateFormState(this.formId, { error: null });
+    
+    // Check if user can edit (in edit mode)
+    if (this.isEditMode && !this.canEditContent) {
+      this.formBaseService.updateFormState(this.formId, { 
+        error: 'No puedes editar este contenido porque no coincide con tu tipo de creador.' 
+      });
+      return;
+    }
+    
     this.uploadForm.patchValue({ tags: this.selectedTags });
 
     // Validar formulario
@@ -207,25 +236,29 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       async () => {
         const uploadResult = await this.uploadFilesIfNeeded();
         const payload = this.buildPayload(uploadResult);
-        await firstValueFrom(this.api.createContent(payload));
+        
+        // Use update API for edit mode, create API for new content
+        if (this.isEditMode && this.contentId) {
+          await firstValueFrom(this.api.updateContent(this.contentId, payload));
+        } else {
+          await firstValueFrom(this.api.createContent(payload));
+        }
       },
       {
         formId: this.formId,
         formService: this.formBaseService,
         form: this.uploadForm,
         router: this.router,
-        successRoute: '/content-creator'
+        successRoute: '/creator/catalog'
       }
     );
   }
 
   private validateForm(formValue: Partial<UploadContentForm>): string[] {
     const isAudio = formValue.type === 'audio';
-    const isVideo = formValue.type === 'video';
     const checks = [
       { condition: this.selectedTags.length === 0, error: 'tags' },
-      { condition: isAudio && !this.file && !formValue.audioUrl?.trim(), error: 'audioFile' },
-      { condition: isVideo && formValue.resolution === '4K' && formValue.vip !== 'si', error: '4kRequiresVip' }
+      { condition: isAudio && !this.file && !formValue.audioUrl?.trim(), error: 'audioFile' }
     ];
     return checks.filter(check => check.condition).map(check => check.error);
   }
@@ -235,11 +268,12 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   }
 
   private buildPayload(uploadResult: {audioUrl?: string, thumbnailUrl?: string} = {}): Record<string, unknown> {
-    const formValue = this.uploadForm.value;
+    // Usar getRawValue() para incluir los controles deshabilitados en edit mode
+    const formValue = this.uploadForm.getRawValue();
     const isVideo = formValue.type === 'video';
     const ageRestriction = formValue.ageRestriction ? parseInt(formValue.ageRestriction.replace('+', '')) : null;
 
-    return {
+    const payload = {
       titulo: formValue.title,
       descripcion: formValue.description,
       tipoArchivo: isVideo ? 'Video' : 'Audio',
@@ -253,6 +287,8 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       duracion: formValue.duration,
       ...(formValue.fechaExpiracion && { disponibleHasta: formValue.fechaExpiracion })
     };
+
+    return payload;
   }
 
   ngOnInit(): void {
@@ -260,6 +296,20 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.initializeForm();
     this.loadCurrentUser();
     this.imageSelectorService.loadImages('thumbnail');
+    
+    // Check localStorage for contentId (similar to content-preview)
+    const localContentId = localStorage.getItem('currentContentId');
+    if (localContentId) {
+      this.contentId = localContentId;
+    }
+    
+    // Load existing content if contentId is present
+    if (this.contentId) {
+      this.isEditMode = true;
+      this.loadContentForEdit();
+      // Clear the localStorage ID after loading
+      localStorage.removeItem('currentContentId');
+    }
   }
 
   private initializeMinDate(): void {
@@ -277,6 +327,9 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.typeChangeSubscription = this.uploadForm.get('type')?.valueChanges.subscribe((type: string) => {
       const urlControl = this.uploadForm.get('url');
       const resolutionControl = this.uploadForm.get('resolution');
+      
+      // Actualizar bandera para mostrar/ocultar campos en el template
+      this.isVideoContent = type === 'video';
 
       if (type === 'video') {
         // Para video: aplicar validadores
@@ -301,6 +354,23 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.imageStateSubscription = this.imageSelectorService.getState().subscribe((state: ImageSelectorState) => {
       this.formBaseService.updateFormState(this.formId, { imageState: state });
     });
+
+    // Logs para fechaExpiracion
+    this.fechaExpiracionSubscription = this.uploadForm.get('fechaExpiracion')?.valueChanges.subscribe((value: string) => {
+      // Debug logs removed
+    });
+
+    // Suscripción para cambio de VIP - ajustar resolución si necesario
+    this.vipChangeSubscription = this.uploadForm.get('vip')?.valueChanges.subscribe((vipValue: string) => {
+      const resolutionControl = this.uploadForm.get('resolution');
+      const currentResolution = resolutionControl?.value;
+      
+      // Si se cambia de VIP a NO-VIP y la resolución es 4K, bajar a 1080p
+      if (vipValue !== 'si' && currentResolution === '4K') {
+        resolutionControl?.setValue('1080p');
+        resolutionControl?.updateValueAndValidity();
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -309,6 +379,12 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     }
     if (this.typeChangeSubscription) {
       this.typeChangeSubscription.unsubscribe();
+    }
+    if (this.fechaExpiracionSubscription) {
+      this.fechaExpiracionSubscription.unsubscribe();
+    }
+    if (this.vipChangeSubscription) {
+      this.vipChangeSubscription.unsubscribe();
     }
     this.formBaseService.destroyFormState(this.formId);
   }
@@ -322,8 +398,136 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     const type = tipo && { 'video': 'video', 'vídeo': 'video', 'audio': 'audio' }[tipo];
     if (type) this.uploadForm.patchValue({ type });
   }
+  
+  private loadContentForEdit(): void {
+    if (!this.contentId) return;
+    
+    this.catalogoService.getContenidoById(this.contentId).subscribe({
+      next: (content) => {
+        const contentType = content.tipo === 'VIDEO' ? 'video' : 'audio';
+        this.originalContentType = contentType;
+        this.isVideoContent = contentType === 'video'; // Establecer bandera aquí
+        
+        const creatorType = this.currentUser?.tipoContenido?.toLowerCase();
+        const normalizedCreatorType = creatorType === 'vídeo' ? 'video' : creatorType;
+        this.canEditContent = normalizedCreatorType === contentType;
+        
+        // Pre-select tags - esto es importante para que aparezcan marcados
+        this.selectedTags = [...(content.tags || [])];
+        
+        // Format fecha for input[type="date"] (YYYY-MM-DD)
+        let fechaFormateada = '';
+        if (content.disponibleHasta) {
+          const fecha = new Date(content.disponibleHasta);
+          if (!isNaN(fecha.getTime())) {
+            fechaFormateada = fecha.toISOString().split('T')[0];
+          }
+        }
+        
+        // Normalize estado value (backend: PUBLICO/PRIVADO, form: Publico/Privado)
+        let estadoNormalizado: string = content.estado;
+        if (content.estado === 'PUBLICO') {
+          estadoNormalizado = 'Publico';
+        } else if (content.estado === 'PRIVADO') {
+          estadoNormalizado = 'Privado';
+        }
+        
+        // Populate form with existing data
+        this.uploadForm.patchValue({
+          title: content.titulo,
+          description: content.descripcion,
+          type: contentType,
+          vip: content.contenidoVip ? 'si' : 'no',
+          url: contentType === 'video' ? content.ficheroUrl : '',
+          audioUrl: contentType === 'audio' ? content.ficheroUrl : '',
+          duration: content.duracion?.toString() || '',
+          estado: estadoNormalizado,
+          ageRestriction: content.restriccionEdad !== null && content.restriccionEdad !== undefined ? `+${content.restriccionEdad}` : '',
+          resolution: content.resolucion || '',
+          fechaExpiracion: fechaFormateada,
+          tags: this.selectedTags
+        });
+        
+        // Forzar actualización del componente de fecha
+        this.uploadForm.get('fechaExpiracion')?.updateValueAndValidity();
+        
+        // Set thumbnail if available
+        if (content.miniaturaUrl) {
+          this.imageSelectorService.selectImage(content.miniaturaUrl, 'thumbnail');
+        }
+        
+        // Force change detection to update tags UI
+        this.cdr.detectChanges();
+        
+        // Disable restricted fields in edit mode (solo tipo, URL y archivo NO se pueden cambiar)
+        // Resolution y ageRestriction SÍ son editables
+        this.uploadForm.get('type')?.disable();
+        this.uploadForm.get('url')?.disable();
+        this.uploadForm.get('audioUrl')?.disable();
+        
+        // Clear validators from disabled fields
+        this.uploadForm.get('type')?.clearValidators();
+        this.uploadForm.get('url')?.clearValidators();
+        this.uploadForm.get('audioUrl')?.clearValidators();
+        this.uploadForm.get('type')?.updateValueAndValidity();
+        this.uploadForm.get('url')?.updateValueAndValidity();
+        this.uploadForm.get('audioUrl')?.updateValueAndValidity();
+        
+        // If content type doesn't match creator type, disable ALL fields (read-only mode)
+        if (!this.canEditContent) {
+          Object.keys(this.uploadForm.controls).forEach(key => {
+            this.uploadForm.get(key)?.disable();
+          });
+          this.formBaseService.updateFormState(this.formId, { 
+            error: 'No puedes editar este contenido porque no coincide con tu tipo de creador.' 
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error loading content for edit:', err);
+        this.formBaseService.updateFormState(this.formId, { 
+          error: 'No se pudo cargar el contenido para editar' 
+        });
+      }
+    });
+  }
+
+  /**
+   * Abre el modal de confirmación para eliminar contenido
+   */
+  openDeleteConfirmModal(): void {
+    // Early return si el usuario cancela
+    if (!confirm('¿Estás seguro de que deseas eliminar este contenido? Esta acción no se puede deshacer.')) {
+      return;
+    }
+    this.deleteContent();
+  }
+
+  /**
+   * Elimina el contenido actual
+   */
+  deleteContent(): void {
+    if (!this.contentId) return;
+
+    const delete$ = this.api.deleteContent(this.contentId);
+    
+    delete$.subscribe({
+      next: () => {
+        this.router.navigate(['/creator/catalog']);
+      },
+      error: (error) => {
+        const message = error.status === 404 
+          ? 'El contenido no existe' 
+          : 'Error al eliminar el contenido';
+        alert(message);
+      }
+    });
+  }
 
   cancel() {
-    this.router.navigate(['/content-creator']);
+    // En modo edición, ir al catálogo del creador
+    // En modo creación, ir a la página de inicio del creador
+    const destinationRoute = this.isEditMode ? '/creator/catalog' : '/content-creator';
+    this.router.navigate([destinationRoute]);
   }
 }

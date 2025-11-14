@@ -15,9 +15,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/auth/verify-email',
     '/auth/verify-code',
     '/auth/forgot-password',
-    '/auth/reset-password',
-    '/resources/',
-    '/assets/'
+    '/auth/reset-password'
   ];
 
   // Verificar si la petición es a una ruta pública

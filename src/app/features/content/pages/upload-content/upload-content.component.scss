@@ -556,6 +556,16 @@ label span {
   opacity: 0.9;
 }
 
+.btn.danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn.danger:hover {
+  background: #dc2626;
+  opacity: 1;
+}
+
 .btn.small {
   padding: 6px 12px;
   font-size: 12px;
@@ -573,11 +583,18 @@ label span {
 .form-actions {
   grid-column: span 2;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin-top: 24px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
+}
+
+.form-actions-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 /* --------------------------------------------------------------------------
@@ -597,6 +614,11 @@ label span {
   .form-actions {
     grid-column: span 1;
     flex-direction: column-reverse;
+  }
+  
+  .form-actions-right {
+    flex-direction: column;
+    width: 100%;
   }
   
   .btn {
