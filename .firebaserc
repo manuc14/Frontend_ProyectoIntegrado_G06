@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "frontend-g06",
+    "deploy": "frontend-g06"
+  },
+  "targets": {},
+  "etags": {}
+}
