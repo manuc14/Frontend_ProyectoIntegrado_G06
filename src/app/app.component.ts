@@ -29,6 +29,10 @@ export class AppComponent implements OnInit, OnDestroy {
   
   // Subscripción a eventos de expiración
   private sessionExpiredSub?: Subscription;
+  
+  // Throttling para eventos de actividad (evitar llamadas excesivas)
+  private lastActivityTime = 0;
+  private readonly ACTIVITY_THROTTLE_MS = 10000; // 10 segundos entre resets
 
   constructor(
     private router: Router,
@@ -41,6 +45,10 @@ export class AppComponent implements OnInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
       this.authService.validateSessionForCurrentRoute();
+      // Resetear idle timer cuando el usuario navega (indica actividad)
+      if (this.authService.isAuthenticated()) {
+        this.authService.resetIdleTimer();
+      }
     });
 
     // Escuchar eventos de expiración de sesión
@@ -58,16 +66,28 @@ export class AppComponent implements OnInit, OnDestroy {
 
   /**
    * Escucha eventos de actividad del usuario para resetear Idle Timer
+   * Se incluyen múltiples eventos para capturar diferentes tipos de interacción
+   * Con throttling para evitar llamadas excesivas
    */
+  @HostListener('document:click')
   @HostListener('document:mousedown')
+  @HostListener('document:mousemove')
   @HostListener('document:keydown')
+  @HostListener('document:keypress')
   @HostListener('document:touchstart')
+  @HostListener('document:touchmove')
   @HostListener('document:scroll')
+  @HostListener('window:scroll')
   onUserActivity(): void {
     // Solo resetear si hay una sesión activa
-    if (this.authService.isAuthenticated()) {
-      this.authService.resetIdleTimer();
-    }
+    if (!this.authService.isAuthenticated()) return;
+    
+    // Throttling: solo resetear si han pasado al menos 10 segundos desde el último reset
+    const now = Date.now();
+    if (now - this.lastActivityTime < this.ACTIVITY_THROTTLE_MS) return;
+    
+    this.lastActivityTime = now;
+    this.authService.resetIdleTimer();
   }
 
   /**

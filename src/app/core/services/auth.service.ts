@@ -33,7 +33,7 @@ export class AuthService {
   
   private readonly allowedRoutesByRole: Record<UserRole, string[]> = {
     admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content'],
-    creator: ['/content-creator', '/upload-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search'],
+    creator: ['/content-creator', '/upload-content', '/edit-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search'],
     user: ['/catalog', '/content', '/player', '/my-lists', '/create-private-list', '/edit-private-list', '/search']
   };
 
@@ -45,14 +45,16 @@ export class AuthService {
   getRefreshToken(): string | null { return localStorage.getItem('refreshToken'); }
 
   private setToken(token: string): void {
+    console.log('💾 [AuthService] Guardando access token');
     sessionStorage.setItem('authToken', token);
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const expiryTime = payload.exp * 1000;
+
       sessionStorage.setItem('tokenExpiry', expiryTime.toString());
       this.startTokenExpiryTimer(expiryTime);
     } catch (error) {
-      console.error('Error decodificando token JWT:', error);
+      console.error('❌ [AuthService] Error decodificando token JWT:', error);
     }
   }
 
@@ -63,6 +65,8 @@ export class AuthService {
   saveSessionConfig(idleTimeoutMillis: number, absoluteTimeoutMillis: number): void {
     const config = { idleTimeout: idleTimeoutMillis, absoluteTimeout: absoluteTimeoutMillis };
     sessionStorage.setItem('sessionConfig', JSON.stringify(config));
+    // Guardar tiempo de login para verificar absolute timeout
+    sessionStorage.setItem('loginTime', Date.now().toString());
   }
 
   private getSessionConfig(): { idleTimeout: number; absoluteTimeout: number } | null {
@@ -71,33 +75,59 @@ export class AuthService {
     return JSON.parse(configData);
   }
 
-  refreshAccessToken(): Observable<{ accessToken: string; refreshToken: string; message: string }> {
+  refreshAccessToken(): Observable<{ accessToken: string; refreshToken: string; refreshTokenUpdated: boolean; message: string }> {
+    console.log('🔄 [AuthService] Iniciando refresh de tokens...');
+
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
       this.logout(true);
       return throwError(() => new Error('No refresh token available'));
     }
-    
-    return this.http.post<{ accessToken: string; refreshToken: string; message: string }>(
+
+    return this.http.post<{ accessToken: string; refreshToken: string; refreshTokenUpdated: boolean; message: string }>(
       `${environment.baseApiUrl}/auth/refresh`,
       { refreshToken }
     ).pipe(
       tap(response => {
+        console.log('✅ [AuthService] Token refrescado exitosamente');
+        console.log('🔍 [AuthService] refreshTokenUpdated:', response.refreshTokenUpdated);
         this.setToken(response.accessToken);
-        this.setRefreshTokenPublic(response.refreshToken);
-        this.resetIdleTimer();
+
+        // Actualizar refresh token solo si el backend indica que fue rotado
+        if (response.refreshTokenUpdated) {
+          console.log('🔄 [AuthService] Refresh token rotado por nearing expiry');
+          this.setRefreshTokenPublic(response.refreshToken);
+        } else {
+          console.log('⏭️ [AuthService] Refresh token mantenido (no nearing expiry)');
+        }
+
+        // NO reiniciamos idle timer - solo se reinicia con actividad del usuario
       }),
       catchError(error => {
+        console.error('❌ [AuthService] Error al refrescar token:', error);
         const message = error.error?.message || error.message || 'Token expirado';
+
+        // Verificar si es absolute timeout antes de logout
+        const sessionConfig = this.getSessionConfig();
+        if (sessionConfig?.absoluteTimeout) {
+          const loginTime = sessionStorage.getItem('loginTime');
+          if (loginTime) {
+            const elapsed = Date.now() - parseInt(loginTime);
+            if (elapsed >= sessionConfig.absoluteTimeout) {
+              this.sessionExpired$.next({ reason: 'absolute', message: 'Tu sesión ha expirado (límite de tiempo alcanzado)' });
+              this.logout(true, true);
+              return throwError(() => error);
+            }
+          }
+        }
 
         if (message.includes('inactividad')) {
           this.sessionExpired$.next({ reason: 'idle', message: 'Tu sesión expiró por inactividad' });
-        } else if (message.includes('límite de tiempo')) {
-          this.sessionExpired$.next({ reason: 'absolute', message: 'Tu sesión ha expirado' });
         } else {
           this.sessionExpired$.next({ reason: 'invalid', message: 'Tu sesión es inválida' });
         }
         
+        // skipBackendInvalidation = true para no enviar logout al backend (ya falló el refresh)
         this.logout(true, true);
         return throwError(() => error);
       })
@@ -176,6 +206,7 @@ export class AuthService {
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem('sessionConfig');
     sessionStorage.removeItem('tokenExpiry');
+    sessionStorage.removeItem('loginTime');
     localStorage.removeItem('refreshToken');
     
     if (refreshToken && !skipBackendInvalidation) {
@@ -195,12 +226,18 @@ export class AuthService {
 
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = setTimeout(() => {
-      this.refreshAccessToken().subscribe();
+      console.log('⏱️ [AuthService] Idle timeout alcanzado - cerrando sesión por inactividad');
+      this.sessionExpired$.next({ 
+        reason: 'idle', 
+        message: 'Tu sesión expiró por inactividad' 
+      });
+      this.logout(true, true);
     }, sessionConfig.idleTimeout);
   }
 
   resetIdleTimer(): void {
     if (!this.isAuthenticated()) return;
+    console.log('🔄 [AuthService] Reseteando idle timer por actividad del usuario');
     this.startIdleTimer();
   }
 
@@ -217,9 +254,22 @@ export class AuthService {
 
   private startTokenExpiryTimer(expiryTime: number): void {
     if (this.tokenExpiryTimer) clearTimeout(this.tokenExpiryTimer);
-    const timeUntilRenewal = Math.max(0, expiryTime - Date.now() - 10000);
+
+    const now = Date.now();
+    const timeUntilExpiry = expiryTime - now;
+
+    // Calcular cuándo refrescar: la mitad del tiempo restante, mínimo 5 segundos
+    const refreshDelay = Math.max(5000, timeUntilExpiry / 2);
+    const timeUntilRenewal = Math.max(0, timeUntilExpiry - refreshDelay);
+
+    console.log(`⏰ [AuthService] Token expira en ${Math.round(timeUntilExpiry / 1000)}s - refresh en ${Math.round(timeUntilRenewal / 1000)}s`);
+
     this.tokenExpiryTimer = setTimeout(() => {
-      this.refreshAccessToken().subscribe();
+      console.log('🔄 [AuthService] Refrescando token automáticamente');
+      this.refreshAccessToken().subscribe({
+        next: () => console.log('✅ [AuthService] Token refrescado exitosamente'),
+        error: (err) => console.error('❌ [AuthService] Error refrescando token:', err)
+      });
     }, timeUntilRenewal);
   }
 
@@ -236,7 +286,7 @@ export class AuthService {
   }
 
   validateSessionForCurrentRoute(): void {
-    const currentPath = this.router.url;
+    const currentPath = this.router.url.split('?')[0]; // Remove query params
     if (this.isAuthenticated() && currentPath !== '/' && !this.isRouteAllowedForCurrentUser(currentPath)) {
       this.logout(true);
     }
@@ -267,6 +317,7 @@ export class AuthService {
         apellidos: payload.apellidos || '',
         tipo,
         rol: this.normalizeRole(tipo) || 'user',
+        tipoContenido: payload.tipoContenido,
         avatar: payload.avatar || payload.foto,
         edad: payload.edad,
         esVip: payload.esVip

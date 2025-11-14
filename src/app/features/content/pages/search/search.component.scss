@@ -92,6 +92,17 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
+
+  // Modificador para contenido privado en vista de creador
+  &--private {
+    opacity: 0.6;
+    border-color: #94a3b8;
+    
+    &:hover {
+      opacity: 0.8;
+      border-color: #64748b;
+    }
+  }
 }
 
 .card-thumbnail {
@@ -122,6 +133,43 @@
   padding: 3px 7px;
   font-size: 11px;
   color: #1e293b;
+}
+
+.card-badge {
+  position: absolute;
+  border-radius: 8px;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: "Inter", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  
+  &--private {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: #ffffff;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 8px rgba(100, 116, 139, 0.5);
+    z-index: 10;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  
+  &--premium {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    color: #ffffff;
+    top: 6px;
+    left: 6px;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.5);
+  }
+}
+
+.card-badge-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .card-content {

@@ -1,4 +1,7 @@
-<a class="content-card" [class.content-card--private]="isCreatorView && isPrivate" (click)="navigateToPreview($event)">
+<a class="content-card" 
+   [class.content-card--private]="isCreatorView && isPrivate" 
+   [class.content-card--clickable]="isCreatorView || !isCreatorView"
+   (click)="handleCardClick($event)">
   <!-- Miniatura del contenido -->
   <div class="content-card__thumbnail">
     <img [src]="miniaturaUrl" [alt]="contenido.titulo" class="content-card__thumbnail-img">
@@ -59,3 +62,14 @@
     </div>
   </div>
 </a>
+
+<!-- Modal de contenido incompatible -->
+<app-info-modal
+  [isVisible]="showIncompatibleModal"
+  [title]="'Contenido Incompatible'"
+  [message]="incompatibleModalMessage"
+  [iconType]="'warning'"
+  [buttonText]="'Entendido'"
+  (closed)="closeIncompatibleModal()">
+</app-info-modal>
+
