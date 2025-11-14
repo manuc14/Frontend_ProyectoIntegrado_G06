@@ -142,16 +142,18 @@ stages:
             inputs:
               downloadType: 'single'
               artifactName: 'dist'
-              downloadPath: 'dist/frontend_g06/browser'
-            displayName: 'Download build artifacts directly to Firebase public directory'
+              downloadPath: 'firebase-dist'
+            displayName: 'Download build artifacts to firebase-dist'
 
           - script: |
+              mv firebase-dist/* dist/frontend_g06/browser/
+              rm -rf firebase-dist
               ls -la dist/frontend_g06/browser/
               if [ ! -f dist/frontend_g06/browser/index.html ]; then
                 echo "ERROR: index.html not found in public directory"
                 exit 1
               fi
-            displayName: 'Verify index.html exists in public directory'
+            displayName: 'Move artifacts to Firebase public directory and verify'
 
           - script: |
               npm install -g firebase-tools
