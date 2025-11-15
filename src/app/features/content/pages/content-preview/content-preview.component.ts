@@ -8,7 +8,7 @@ import { VipPromoModalComponent } from '../../../../shared/vip-promo-modal/vip-p
 import { CatalogoService } from '../../../../core/services/catalogo.service';
 import { Contenido } from '../../../../core/models/contenido.models';
 import { AuthService } from '../../../../core/services/auth.service';
-import { ApiService } from '../../../../core/services/api.service';
+import { ContentPreviewService, InfoContenidoResponse } from '../../../../core/services/content-preview.service';
 
 @Component({
   selector: 'app-content-preview',
@@ -28,15 +28,18 @@ export class ContentPreviewComponent implements OnInit {
   private router = inject(Router);
   private catalogoService = inject(CatalogoService);
   private authService = inject(AuthService);
-  private apiService = inject(ApiService);
+  private contentPreviewService = inject(ContentPreviewService);
   private cdr = inject(ChangeDetectorRef);
 
   contenido: Contenido | null = null;
   valoracionUsuario: number = 0;
+  valoracionMedia: number = 0;
   valoracionHover: number = 0;
   showVipModal: boolean = false;
   isFavorito: boolean = false;
   navigationOrigin: string = 'catalog';
+  protected yaValorado: boolean = false;
+  private yaReprodujo: boolean = false;
 
   ngOnInit(): void {
     // Leer el origen de la navegación desde los query parameters
@@ -67,11 +70,11 @@ export class ContentPreviewComponent implements OnInit {
           return;
         }
 
-        contenido.creadorAlias = localStorage.getItem('currentContentCreatorAlias') || '';
-        contenido.creadorEspecialidad = localStorage.getItem('currentContentCreatorSpecialty') || '';
+        contenido.creadorAlias = localStorage.getItem('currentContentCreatorAlias') ?? '';
+        contenido.creadorEspecialidad = localStorage.getItem('currentContentCreatorSpecialty') ?? '';
 
         this.contenido = contenido;
-        this.checkFavorito();
+        this.loadContentInfo(id);
       },
       error: (error) => {
         console.error('Error cargando contenido:', error);
@@ -80,16 +83,26 @@ export class ContentPreviewComponent implements OnInit {
     });
   }
 
-  private checkFavorito(): void {
-    if (!this.contenido?._id) return;
-    this.apiService.isFavorito(this.contenido._id).subscribe({
-      next: (response) => {
-        this.isFavorito = typeof response === 'boolean' ? response : response.isFavorito || false;
+  private loadContentInfo(contenidoId: string): void {
+    this.contentPreviewService.obtenerInfoCompleta(contenidoId).subscribe({
+      next: (info: InfoContenidoResponse) => {
+        console.log('✅ Información del contenido cargada:', info);
+
+        this.isFavorito = info.esFavorito;
+        this.valoracionMedia = info.valoracionMedia || 0;
+        this.yaReprodujo = info.yaReprodujo;
+
+        if (info.miValoracion !== null) {
+          this.valoracionUsuario = info.miValoracion;
+          this.yaValorado = true;
+        }
+
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error verificando favorito:', error);
+        console.error('❌ Error cargando información del contenido:', error);
         this.isFavorito = false;
+        this.valoracionMedia = 0;
       }
     });
   }
@@ -105,8 +118,19 @@ export class ContentPreviewComponent implements OnInit {
       return;
     }
 
-    localStorage.setItem('currentContentId', this.contenido._id);
-    this.router.navigate(['/player']);
+    this.contentPreviewService.registrarReproduccion(this.contenido._id).subscribe({
+      next: () => {
+        console.log('✅ Reproducción registrada en el backend');
+        this.yaReprodujo = true;
+        localStorage.setItem('currentContentId', this.contenido!._id);
+        this.router.navigate(['/player']);
+      },
+      error: (error) => {
+        console.error('❌ Error al registrar reproducción:', error);
+        localStorage.setItem('currentContentId', this.contenido!._id);
+        this.router.navigate(['/player']);
+      }
+    });
   }
 
   onUpgradeToVip(): void {
@@ -124,27 +148,65 @@ export class ContentPreviewComponent implements OnInit {
 
   addToFavorites(): void {
     if (!this.contenido?._id) return;
-    this.apiService.toggleFavorito(this.contenido._id).subscribe({
+
+    this.contentPreviewService.toggleFavorito(this.contenido._id).subscribe({
       next: (response) => {
+        console.log('✅ Favorito actualizado:', response);
         this.isFavorito = response.agregado;
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error cambiando favorito:', error);
+        console.error('❌ Error cambiando favorito:', error);
+        alert('No se pudo actualizar el favorito. Por favor, intenta de nuevo.');
       }
     });
   }
 
   addToList(): void {
-    console.log('Añadir a lista:', this.contenido?.titulo);
+    if (!this.contenido?._id) return;
+    console.log('📋 Añadiendo a lista:', this.contenido.titulo);
+    alert(`Función "Añadir a lista" próximamente.\n\nContenido: ${this.contenido.titulo}`);
   }
 
   setRating(rating: number): void {
-    this.valoracionUsuario = rating;
+    if (!this.contenido?._id) {
+      console.error('Contenido no disponible');
+      return;
+    }
+
+    if (this.yaValorado) {
+      alert('Ya has valorado este contenido. No puedes modificar tu valoración.');
+      return;
+    }
+
+    if (!this.yaReprodujo) {
+      alert('Debes reproducir el contenido antes de poder valorarlo.');
+      return;
+    }
+
+    this.contentPreviewService.valorarContenido(this.contenido._id, rating).subscribe({
+      next: () => {
+        console.log('✅ Valoración registrada en el backend');
+        this.valoracionUsuario = rating;
+        this.yaValorado = true;
+        this.loadContentInfo(this.contenido!._id);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ Error al valorar contenido:', error);
+        if (error.error?.message) {
+          alert(error.error.message);
+        } else {
+          alert('No se pudo registrar la valoración. Asegúrate de haber reproducido el contenido primero.');
+        }
+      }
+    });
   }
 
   setHoverRating(rating: number): void {
-    this.valoracionHover = rating;
+    if (!this.yaValorado) {
+      this.valoracionHover = rating;
+    }
   }
 
   clearHoverRating(): void {
@@ -152,6 +214,9 @@ export class ContentPreviewComponent implements OnInit {
   }
 
   isStarFilled(starIndex: number): boolean {
+    if (this.yaValorado) {
+      return starIndex <= this.valoracionUsuario;
+    }
     return starIndex <= (this.valoracionHover || this.valoracionUsuario);
   }
 

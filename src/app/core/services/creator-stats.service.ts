@@ -1,15 +1,39 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
-export interface TopContent {
-  contenidoId: string;
-  title: string;
-  thumbnail: string;
-  metricValue: string;
-  metricRawValue: number;
+export interface TopReproducciones {
+  nombre: string;
+  reproducciones: number;
+  miniatura: string;
+}
+
+export interface TopValoracion {
+  nombre: string;
+  valoracion: number;
+  miniatura: string;
+}
+
+export interface TopEspecialidad {
+  especialidad: string;
+  reproducciones: number;
+}
+
+export interface ReproduccionesPorDia {
+  fecha: string;
+  reproducciones: number;
+}
+
+export interface EstadisticasResponse {
+  topPorReproducciones: TopReproducciones[];
+  topPorValoracion: TopValoracion[];
+  topPorEspecialidad: TopEspecialidad[];
+  usuariosVip: number;
+  usuariosTotales: number;
+  reproduccionesTotales: number;
+  reproduccionesSemana: ReproduccionesPorDia[];
 }
 
 @Injectable({
@@ -27,58 +51,12 @@ export class CreatorStatsService {
     };
   }
 
-  obtenerTopReproducciones(
-    limit: number = 5,
-    fechaInicio?: string,
-    fechaFin?: string,
-    tipo?: string
-  ): Observable<TopContent[]> {
-    console.log(`${this.logPrefix} obtenerTopReproducciones(limit=${limit}, tipo=${tipo})`);
+  obtenerEstadisticasGlobales(): Observable<EstadisticasResponse> {
+    console.log(`${this.logPrefix} Obteniendo estadísticas globales`);
 
-    let params = new HttpParams().set('limit', limit.toString());
-    if (fechaInicio) params = params.set('fechaInicio', fechaInicio);
-    if (fechaFin) params = params.set('fechaFin', fechaFin);
-    if (tipo && tipo !== 'Todos') params = params.set('tipo', tipo);
-
-    return this.http.get<TopContent[]>(`${this.API_URL}/top-reproducciones`, { params }).pipe(
-      tap(res => console.log(`${this.logPrefix} Top reproducciones recibidas:`, res.length)),
-      catchError(this.handleError('obteniendo top reproducciones'))
-    );
-  }
-
-  obtenerTopValoraciones(
-    limit: number = 5,
-    fechaInicio?: string,
-    fechaFin?: string,
-    tipo?: string
-  ): Observable<TopContent[]> {
-    console.log(`${this.logPrefix} obtenerTopValoraciones(limit=${limit}, tipo=${tipo})`);
-
-    let params = new HttpParams().set('limit', limit.toString());
-    if (fechaInicio) params = params.set('fechaInicio', fechaInicio);
-    if (fechaFin) params = params.set('fechaFin', fechaFin);
-    if (tipo && tipo !== 'Todos') params = params.set('tipo', tipo);
-
-    return this.http.get<TopContent[]>(`${this.API_URL}/top-valoraciones`, { params }).pipe(
-      tap(res => console.log(`${this.logPrefix} Top valoraciones recibidas:`, res.length)),
-      catchError(this.handleError('obteniendo top valoraciones'))
-    );
-  }
-
-  obtenerTopEspecialidades(
-    limit: number = 5,
-    fechaInicio?: string,
-    fechaFin?: string
-  ): Observable<TopContent[]> {
-    console.log(`${this.logPrefix} obtenerTopEspecialidades(limit=${limit})`);
-
-    let params = new HttpParams().set('limit', limit.toString());
-    if (fechaInicio) params = params.set('fechaInicio', fechaInicio);
-    if (fechaFin) params = params.set('fechaFin', fechaFin);
-
-    return this.http.get<TopContent[]>(`${this.API_URL}/top-especialidades`, { params }).pipe(
-      tap(res => console.log(`${this.logPrefix} Top especialidades recibidas:`, res.length)),
-      catchError(this.handleError('obteniendo top especialidades'))
+    return this.http.get<EstadisticasResponse>(this.API_URL).pipe(
+      tap(res => console.log(`${this.logPrefix} Estadísticas recibidas:`, res)),
+      catchError(this.handleError('obteniendo estadísticas globales'))
     );
   }
 }

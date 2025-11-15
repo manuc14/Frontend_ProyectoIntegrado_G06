@@ -483,7 +483,7 @@ export class ApiService {
       nombre: payload.firstName,
       apellidos: payload.lastName,
       departamento: payload.department,
-      foto: payload.avatar || ''
+      foto: payload.avatar ?? ''
     };
 
     return this.http.put(`${this.base}/admin/profile`, updateData, { headers }).pipe(

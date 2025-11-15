@@ -1,9 +1,9 @@
 <div class="preview-page">
   <!-- Imagen de fondo (miniatura del video) -->
   <div class="background-image-container">
-    <img 
-      [src]="contenido?.miniaturaUrl || contenido?.foto || 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?w=1920&h=1080&fit=crop'" 
-      [alt]="contenido?.titulo || 'Vista previa del contenido'" 
+    <img
+      [src]="contenido?.miniaturaUrl || contenido?.foto || 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?w=1920&h=1080&fit=crop'"
+      [alt]="contenido?.titulo || 'Vista previa del contenido'"
       class="background-image"
       (error)="onImageError($event)" />
   </div>
@@ -11,7 +11,7 @@
   <!-- Contenido superpuesto -->
   <div class="preview-content">
     <!-- Botón Volver (arriba a la izquierda) -->
-    <app-back-button 
+    <app-back-button
       class="back-button-position"
       (onClick)="navigateBack()">
     </app-back-button>
@@ -24,7 +24,7 @@
           <!-- Título y acciones -->
           <div class="title-row">
             <h1 class="content-title">{{ contenido.titulo }}</h1>
-            
+
             <div class="quick-actions">
               <app-action-button
                 icon="heart"
@@ -33,7 +33,7 @@
                 [filled]="isFavorito"
                 (onClick)="addToFavorites()">
               </app-action-button>
-              
+
               <app-action-button
                 icon="plus"
                 variant="icon"
@@ -99,10 +99,10 @@
           <!-- Descripción -->
           <div class="description-section">
             <p class="description-text">{{ contenido.descripcion }}</p>
-            
+
             <!-- Tags -->
             <div class="tags-container">
-              <app-filter-pill 
+              <app-filter-pill
                 *ngFor="let tag of contenido.tags"
                 [label]="tag"
                 [isActive]="false"
@@ -119,28 +119,32 @@
           <!-- Título y valoración promedio -->
           <div class="rating-header">
             <h2 class="rating-title">Valora este vídeo</h2>
-            
+
             <div class="average-rating">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFD700">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
               </svg>
-              <span class="rating-value">4,2</span>
+              <span class="rating-value">{{ valoracionMedia > 0 ? (valoracionMedia | number:'1.1-1') : '-' }}</span>
             </div>
           </div>
 
           <!-- Sección de estrellas -->
           <div class="user-rating-section">
-            <p class="rating-instructions">Elige tu valoración (1 a 5 estrellas)</p>
-            
+            <p class="rating-instructions">
+              {{ yaValorado ? 'Tu valoración: ' + valoracionUsuario + ' estrellas' : 'Elige tu valoración (1 a 5 estrellas)' }}
+            </p>
+
             <div class="stars-container">
-              <button 
+              <button
                 *ngFor="let star of [1, 2, 3, 4, 5]"
                 class="star-button"
                 [class.filled]="isStarFilled(star)"
+                [class.disabled]="yaValorado"
+                [disabled]="yaValorado"
                 (click)="setRating(star)"
                 (mouseenter)="setHoverRating(star)"
                 (mouseleave)="clearHoverRating()">
-                <svg width="18" height="18" viewBox="0 0 24 24" 
+                <svg width="18" height="18" viewBox="0 0 24 24"
                      [attr.fill]="isStarFilled(star) ? '#FFD700' : 'none'"
                      stroke="currentColor"
                      stroke-width="2">
