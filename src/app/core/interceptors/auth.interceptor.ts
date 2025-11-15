@@ -18,7 +18,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/auth/reset-password',
     '/resources/',
     '/assets/',
-    '/api/files/' // Para thumbnails y archivos estáticos
+    '/api/files/', // Para thumbnails y archivos estáticos
+    '/auth/reset-password'
   ];
 
   // Verificar si la petición es a una ruta pública

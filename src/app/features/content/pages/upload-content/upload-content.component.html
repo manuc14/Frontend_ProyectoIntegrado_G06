@@ -8,8 +8,8 @@
   <main class="creator-layout__main">
     <div class="upload-page">
       <div class="container">
-    <h1>Subir contenido</h1>
-    <p class="hint">Comparte tu contenido multimedia con la comunidad.</p>
+    <h1>{{ isEditMode ? 'Editar contenido' : 'Subir contenido' }}</h1>
+    <p class="hint">{{ isEditMode ? 'Modifica los detalles de tu contenido.' : 'Comparte tu contenido multimedia con la comunidad.' }}</p>
 
     <form class="upload-form card" [formGroup]="uploadForm" novalidate>
       <div *ngIf="formError" class="form-error-summary" aria-live="assertive">{{ formError }}</div>
@@ -111,18 +111,32 @@
 
 
           <app-form-input
-            *ngIf="uploadForm.value.type === 'video'"
+            *ngIf="uploadForm.value.type === 'video' && !isEditMode"
             label="URL"
             [required]="true"
             formControlName="url"
-            placeholder="https://example.com/video.mp4"
+            placeholder="https://youtube.com/watch?v=... o https://vimeo.com/... o https://dailymotion.com/..."
             [maxlength]="200"
-            [errors]="uploadForm.get('url')?.errors ?? null"
+            [errors]="null"
             [touched]="submitted">
           </app-form-input>
-          <div class="char-count" *ngIf="uploadForm.value.type === 'video'">{{ (uploadForm.get('url')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.urlLimit }}</div>
+          
+          <!-- Feedback de validación de URL de video -->
+          <div *ngIf="uploadForm.value.type === 'video' && !isEditMode && (uploadForm.get('url')?.value || uploadForm.get('url')?.touched)" class="url-validation-feedback">
+            <div *ngIf="uploadForm.get('url')?.hasError('invalidUrl')" class="validation-error">
+              URL inválida. Debe comenzar con http:// o https://
+            </div>
+            <div *ngIf="uploadForm.get('url')?.hasError('unsupportedVideoUrl')" class="validation-error">
+              Plataforma no soportada. Solo YouTube, Vimeo y Dailymotion
+            </div>
+            <div *ngIf="uploadForm.get('url')?.hasError('required') && uploadForm.get('url')?.touched" class="validation-error">
+              La URL es requerida para contenido de video
+            </div>
+          </div>
+          
+          <div class="char-count" *ngIf="uploadForm.value.type === 'video' && !isEditMode">{{ (uploadForm.get('url')?.value?.length || 0) }} / {{ UPLOAD_LIMITS.urlLimit }}</div>
 
-          <div class="form-field" *ngIf="uploadForm.value.type === 'audio'">
+          <div class="form-field" *ngIf="uploadForm.value.type === 'audio' && !isEditMode">
             <span class="field-label">Archivo <span class="required">*</span></span>
             <div class="file-upload-area" [class.error-border]="audioFileValidationError && submitted">
               <input type="file" (change)="onFileSelected($event)" 
@@ -189,15 +203,15 @@
             </app-select-field>
           </div>
 
-          <!-- Video fields row -->
-          <div class="form-row" *ngIf="uploadForm.value.type === 'video'">
+          <!-- Resolución (solo para video) y Restricción de edad -->
+          <div class="form-row" *ngIf="isVideoContent">
             <app-select-field
               label="Resolución"
               formControlName="resolution"
-              [hasError]="((uploadForm.get('resolution')?.invalid ?? false) && submitted) || is4KWithoutVip"
-              [errorMessage]="is4KWithoutVip ? 'La calidad 4K solo está disponible para contenido VIP' : 'Resolución es requerida'">
+              [hasError]="((uploadForm.get('resolution')?.invalid ?? false) && submitted)"
+              errorMessage="Resolución es requerida">
               <option value="">Seleccionar</option>
-              <option value="4K">4K</option>
+              <option value="4K" [disabled]="is4KDisabled">4K {{ is4KDisabled ? '(Solo VIP)' : '' }}</option>
               <option value="1080p">1080p</option>
               <option value="720p">720p</option>
               <option value="480p">480p</option>
@@ -216,8 +230,8 @@
             </app-select-field>
           </div>
 
-          <!-- Audio fields -->
-          <div *ngIf="uploadForm.value.type === 'audio'">
+          <!-- Para audio: solo restricción de edad (sin resolución) -->
+          <div *ngIf="!isVideoContent">
             <app-select-field 
               label="Restricción de edad" 
               formControlName="ageRestriction"
@@ -242,14 +256,33 @@
 
       <!-- BUTTONS -->
       <div class="form-actions">
-         <button class="btn secondary" (click)="cancel()" [disabled]="isSubmitting">Cancelar</button>
-         <button type="button" class="btn primary" (click)="upload()" [disabled]="isSubmitting">
-           <span *ngIf="!isSubmitting">Guardar contenido</span>
-           <span *ngIf="isSubmitting" class="uploading-state">
-             <span class="spinner"></span>
-             Subiendo archivos...
-           </span>
+         <!-- Botón de eliminar (solo en edit mode) -->
+         <button 
+           *ngIf="isEditMode && canEditContent"
+           type="button" 
+           class="btn danger" 
+           (click)="openDeleteConfirmModal()"
+           [disabled]="isSubmitting"
+           title="Eliminar este contenido de forma permanente">
+           Eliminar
          </button>
+         <div class="form-actions-right">
+           <button class="btn secondary" (click)="cancel()" [disabled]="isSubmitting">
+             {{ isEditMode && !canEditContent ? 'Volver' : 'Cancelar' }}
+           </button>
+           <button 
+             *ngIf="!isEditMode || canEditContent"
+             type="button" 
+             class="btn primary" 
+             (click)="upload()" 
+             [disabled]="isSubmitting">
+             <span *ngIf="!isSubmitting">{{ isEditMode ? 'Actualizar contenido' : 'Guardar contenido' }}</span>
+             <span *ngIf="isSubmitting" class="uploading-state">
+               <span class="spinner"></span>
+               {{ isEditMode ? 'Actualizando...' : 'Subiendo archivos...' }}
+             </span>
+           </button>
+         </div>
       </div>
     </form>
   </div>

@@ -2,7 +2,7 @@
    ESTILOS DEL COMPONENTE HEADER
    ========================================================================== */
 
-@import '../../shared/shared-header.scss';
+@use '../../shared/shared-header.scss' as *;
 
 /* --------------------------------------------------------------------------
    CONTENEDOR PRINCIPAL DEL HEADER FIJO

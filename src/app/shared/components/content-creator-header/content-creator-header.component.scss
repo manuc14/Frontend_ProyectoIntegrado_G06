@@ -1,6 +1,6 @@
 // === HEADER PARA CONTENT CREATOR ===
-@import '../../admin-shared.scss';
-@import '../../shared-header.scss';
+@use '../../admin-shared.scss' as *;
+@use '../../shared-header.scss' as *;
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 // Variables

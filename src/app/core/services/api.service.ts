@@ -18,8 +18,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import {Observable, of, throwError} from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import {AvatarsResponseDto, SectionDto} from '../models/media.models';
-import { isAbsoluteUrl, startsWithPrefix, hasElements } from '../utils/validation.helpers';
+import { AvatarsResponseDto } from '../models/media.models';
+import { isAbsoluteUrl, hasElements } from '../utils/validation.helpers';
 
 /**
  * Interfaz para la petición de registro de usuario.
@@ -362,6 +362,62 @@ export class ApiService {
   private base = environment.baseApiUrl;
   /** URL base para recursos estáticos (configurada según entorno) */
   private resourceBase = environment.baseResourceUrl;
+
+  /**
+   * Construye URLs completas para recursos estáticos.
+   * 
+   * Maneja diferentes tipos de rutas:
+   * - URLs absolutas: se devuelven tal cual
+   * - Rutas /resources/*: se convierten según el entorno
+   * - Rutas /api/files/*: se convierten a URLs completas
+   * 
+   * @param relativePath - Ruta relativa del recurso
+   * @returns URL completa del recurso
+   * @private
+   */
+  private buildFullResourceUrl(relativePath: string): string {
+    // Si ya es una URL absoluta, devolver tal cual
+    if (isAbsoluteUrl(relativePath)) {
+      return relativePath;
+    }
+
+    // Manejar rutas de archivos subidos (/api/files/*)
+    if (relativePath.startsWith('/api/files/')) {
+      // En desarrollo: devolver tal cual (proxy lo maneja)
+      if (!isAbsoluteUrl(this.base)) {
+        return relativePath;
+      }
+      // En producción: construir URL completa usando base del API
+      const baseUrl = this.base.replace('/api', '');
+      return `${baseUrl}${relativePath}`;
+    }
+
+    // Manejar rutas de recursos estáticos (/resources/*)
+    // En desarrollo: devolver tal cual (proxy lo maneja)
+    if (!isAbsoluteUrl(this.resourceBase)) {
+      return relativePath;
+    }
+
+    // En producción: construir URL completa
+    const cleanPath = relativePath.startsWith('/resources/') 
+      ? relativePath.substring('/resources'.length) 
+      : relativePath;
+    
+    return `${this.resourceBase}${cleanPath}`;
+  }
+
+  /**
+   * Obtiene la URL completa para cualquier recurso (avatar, miniatura, etc.)
+   * 
+   * Convierte rutas relativas del backend en URLs completas que funcionan
+   * tanto en desarrollo como en producción.
+   * 
+   * @param relativePath - Ruta relativa del recurso
+   * @returns URL completa del recurso
+   */
+  getFullResourceUrl(relativePath: string): string {
+    return this.buildFullResourceUrl(relativePath);
+  }
 
   /**
    * Extrae el mensaje de error más relevante del backend.
@@ -777,42 +833,33 @@ export class ApiService {
   /**
    * Construye la URL completa para un avatar dado su ruta relativa.
    *
-   * Maneja diferentes formatos de rutas:
-   * - Rutas absolutas con /resources/: Se devuelven sin modificar
-   * - Rutas relativas con /: Se añade el prefijo resourceBase
-   * - Solo nombre de archivo: Se construye la ruta completa con /avatars/
-   *
-   * El proxy de desarrollo redirige /resources/* al backend automáticamente.
+   * Maneja diferentes formatos de rutas y construye URLs completas
+   * que funcionan tanto en desarrollo (con proxy) como en producción.
    *
    * @param {string} relativePath - Ruta relativa del avatar
    * @returns {string} URL completa del avatar
    *
    * @example
    * ```typescript
-   * // Ruta absoluta
+   * // Ruta de recursos (desarrollo)
    * this.apiService.getFullAvatarUrl('/resources/avatars/avatar1.png');
-   * // => '/resources/avatars/avatar1.png'
+   * // => '/resources/avatars/avatar1.png' (proxy lo redirige)
    *
-   * // Ruta relativa
-   * this.apiService.getFullAvatarUrl('/avatars/avatar1.png');
-   * // => '/resources/avatars/avatar1.png'
+   * // Ruta de archivo subido (desarrollo)
+   * this.apiService.getFullAvatarUrl('/api/files/avatars/avatar1.png');
+   * // => '/api/files/avatars/avatar1.png' (proxy lo redirige)
    *
-   * // Solo nombre
-   * this.apiService.getFullAvatarUrl('avatar1.png');
-   * // => '/resources/avatars/avatar1.png'
+   * // Ruta de recursos (producción)
+   * this.apiService.getFullAvatarUrl('/resources/avatars/avatar1.png');
+   * // => 'https://backend-proyectointegrado-g06.onrender.com/resources/avatars/avatar1.png'
+   *
+   * // Ruta de archivo subido (producción)
+   * this.apiService.getFullAvatarUrl('/api/files/avatars/avatar1.png');
+   * // => 'https://backend-proyectointegrado-g06.onrender.com/api/files/avatars/avatar1.png'
    * ```
    */
   getFullAvatarUrl(relativePath: string): string {
-    // Si la ruta ya incluye /resources/, devolver tal cual
-    if (startsWithPrefix(relativePath, '/resources/')) {
-      return relativePath;
-    }
-    // Si la ruta es relativa (ej: /avatars/avatar1.png), agregar /resources/
-    if (startsWithPrefix(relativePath, '/')) {
-      return `${this.resourceBase}${relativePath}`;
-    }
-    // Si es solo el nombre del archivo, construir la ruta completa
-    return `${this.resourceBase}/avatars/${relativePath}`;
+    return this.buildFullResourceUrl(relativePath);
   }
 
   /**
@@ -1082,7 +1129,7 @@ export class ApiService {
    * a la página de verificación sin haberse registrado correctamente.
    *
    * @param {string} token - Token de verificación a validar
-   * @returns {Observable<VerifyTokenValidationResponse>} Observable con estado de validación
+   * @returns {Observable<VerificationTokenValidationResponse>} Observable con estado de validación
    *
    * @example
    * ```typescript
@@ -1160,36 +1207,116 @@ export class ApiService {
   }
 
   /**
+   * Actualiza contenido multimedia existente en el backend.
+   *
+   * Modifica los metadatos del contenido especificado. El backend valida que solo
+   * se editen campos permitidos (titulo, descripcion, urlMiniatura, estado, 
+   * esUsuarioVip, tags, duracion, restriccionEdad). Campos inmutables como 
+   * ficheroUrl, urlContenido, resolucion y fechaEstado no se actualizan.
+   * 
+   * Requiere autenticación mediante token JWT y rol CREADOR.
+   * 
+   * Backend (PUT /api/contenidos/{id}):
+   * - Request Body: ContenidoUpdateRequest con campos editables
+   * - Validaciones: título, descripción, miniatura, estado, VIP, tags, duración, edad
+   * - Response 200: ContenidoResponse con contenido actualizado
+   * - Response 400: Bad Request si validaciones fallan
+   * - Response 403: Forbidden si no tienes permisos CREADOR
+   * - Response 404: Not Found si el ID no existe
+   * - Error handling: GlobalExceptionHandler del backend
+   *
+   * @param {string} contentId - ID del contenido a actualizar
+   * @param {any} payload - Datos editables (titulo, descripcion, estado, esUsuarioVip, tags, etc.)
+   * @returns {Observable<any>} Observable con ContenidoResponse actualizado
+   *
+   * @example
+   * ```typescript
+   * const updates = {
+   *   titulo: 'Mi canción editada',
+   *   descripcion: 'Nueva descripción',
+   *   estado: 'PUBLICO',
+   *   esUsuarioVip: false,
+   *   tags: ['pop', 'rock'],
+   *   duracion: 180,
+   *   restriccionEdad: 13
+   * };
+   *
+   * this.apiService.updateContent('123abc', updates).subscribe({
+   *   next: (response) => console.log('Contenido actualizado:', response),
+   *   error: (error) => {
+   *     if (error.status === 403) console.error('No tienes permisos');
+   *     if (error.status === 404) console.error('Contenido no encontrado');
+   *   }
+   * });
+   * ```
+   */
+  updateContent(contentId: string, payload: any): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.put(`${this.base}/contenidos/${contentId}`, payload, { headers })
+      .pipe(
+        catchError(this.handleError('actualizar contenido', 'No se pudo actualizar el contenido'))
+      );
+  }
+
+  /**
+   * Elimina un contenido existente.
+   *
+   * @param {string} contentId - ID único del contenido a eliminar
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   *
+   * @throws {HttpErrorResponse} En caso de error (404 si no existe, 400 si ID es inválido)
+   *
+   * @example
+   * ```typescript
+   * this.apiService.deleteContent('123abc').subscribe({
+   *   next: (response) => console.log('Contenido eliminado:', response),
+   *   error: (error) => {
+   *     if (error.status === 404) console.error('Contenido no encontrado');
+   *     if (error.status === 400) console.error('ID inválido');
+   *   }
+   * });
+   * ```
+   */
+  deleteContent(contentId: string): Observable<any> {
+    const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
+    return this.http.delete(`${this.base}/contenidos/${contentId}`, { headers, responseType: 'text' })
+      .pipe(
+        catchError(this.handleError('eliminar contenido', 'No se pudo eliminar el contenido'))
+      );
+  }
+
+  /**
    * Obtiene la URL completa para una miniatura.
    *
-   * Maneja diferentes formatos de rutas para miniaturas:
-   * - URLs absolutas (http/https): Se devuelven sin modificar
-   * - Rutas relativas: Se construye la URL completa con resourceBase
+   * Construye la URL completa para una miniatura dada su ruta relativa.
    *
-   * @param {string} relativePath - Ruta relativa o absoluta de la miniatura
+   * Maneja diferentes formatos de rutas y construye URLs completas
+   * que funcionan tanto en desarrollo (con proxy) como en producción.
+   *
+   * @param {string} relativePath - Ruta relativa de la miniatura
    * @returns {string} URL completa de la miniatura
    *
    * @example
    * ```typescript
-   * // URL absoluta
-   * const url1 = this.apiService.getFullThumbnailUrl('https://cdn.example.com/thumb.jpg');
-   * // => 'https://cdn.example.com/thumb.jpg'
+   * // Ruta de recursos (desarrollo)
+   * this.apiService.getFullThumbnailUrl('/resources/thumbnails/thumb1.jpg');
+   * // => '/resources/thumbnails/thumb1.jpg' (proxy lo redirige)
    *
-   * // Ruta relativa
-   * const url2 = this.apiService.getFullThumbnailUrl('/thumbnails/thumb1.jpg');
-   * // => '/resources/thumbnails/thumb1.jpg'
+   * // Ruta de archivo subido (desarrollo)
+   * this.apiService.getFullThumbnailUrl('/api/files/thumbnails/thumb1.jpg');
+   * // => '/api/files/thumbnails/thumb1.jpg' (proxy lo redirige)
    *
-   * // Sin barra inicial
-   * const url3 = this.apiService.getFullThumbnailUrl('thumbnails/thumb2.jpg');
-   * // => '/resources/thumbnails/thumb2.jpg'
+   * // Ruta de recursos (producción)
+   * this.apiService.getFullThumbnailUrl('/resources/thumbnails/thumb1.jpg');
+   * // => 'https://backend-proyectointegrado-g06.onrender.com/resources/thumbnails/thumb1.jpg'
+   *
+   * // Ruta de archivo subido (producción)
+   * this.apiService.getFullThumbnailUrl('/api/files/thumbnails/thumb1.jpg');
+   * // => 'https://backend-proyectointegrado-g06.onrender.com/api/files/thumbnails/thumb1.jpg'
    * ```
    */
   getFullThumbnailUrl(relativePath: string): string {
-    if (isAbsoluteUrl(relativePath)) {
-      return relativePath;
-    }
-    const cleanPath = startsWithPrefix(relativePath, '/') ? relativePath : `/${relativePath}`;
-    return `${this.base.replace('/api', '')}${cleanPath}`;
+    return this.buildFullResourceUrl(relativePath);
   }
 }
 

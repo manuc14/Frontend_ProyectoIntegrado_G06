@@ -75,16 +75,20 @@ export class TwoFactorSetupComponent extends CodeInputBase implements OnInit {
     }
     this.isVerifying.set(true);
     this.hasError.set(false);
+    this.errorMessage.set(''); // Limpiar mensaje anterior
     this.buttonState = 'pressed';
     this.mfaService.verifyFactor(sessionTokenToUse, 'TOTP', code, null).subscribe({
       next: (response) => {
         this.isVerifying.set(false);
         this.buttonState = 'normal';
+        console.log('[2FA-SETUP] Respuesta recibida:', response.state, response.message);
         if (response.state === 'COMPLETED' || response.state === 'REQUIRES_FACTOR') {
+          this.hasError.set(false);
+          this.errorMessage.set('');
           this.setupCompleted.emit(response);
         } else {
           this.hasError.set(true);
-          this.errorMessage.set(response.message || 'Código incorrecto');
+          this.errorMessage.set('El código introducido es incorrecto. Por favor, intenta de nuevo.');
           this.clearCodeInputs();
           this.triggerShakeError();
         }
