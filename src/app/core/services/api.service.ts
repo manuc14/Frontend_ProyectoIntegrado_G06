@@ -18,7 +18,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import {Observable, of, throwError} from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AvatarsResponseDto } from '../models/media.models';
+import {AvatarsResponseDto, SectionDto} from '../models/media.models';
 import { isAbsoluteUrl, hasElements } from '../utils/validation.helpers';
 
 /**
@@ -365,12 +365,12 @@ export class ApiService {
 
   /**
    * Construye URLs completas para recursos estáticos.
-   * 
+   *
    * Maneja diferentes tipos de rutas:
    * - URLs absolutas: se devuelven tal cual
    * - Rutas /resources/*: se convierten según el entorno
    * - Rutas /api/files/*: se convierten a URLs completas
-   * 
+   *
    * @param relativePath - Ruta relativa del recurso
    * @returns URL completa del recurso
    * @private
@@ -399,19 +399,19 @@ export class ApiService {
     }
 
     // En producción: construir URL completa
-    const cleanPath = relativePath.startsWith('/resources/') 
-      ? relativePath.substring('/resources'.length) 
+    const cleanPath = relativePath.startsWith('/resources/')
+      ? relativePath.substring('/resources'.length)
       : relativePath;
-    
+
     return `${this.resourceBase}${cleanPath}`;
   }
 
   /**
    * Obtiene la URL completa para cualquier recurso (avatar, miniatura, etc.)
-   * 
+   *
    * Convierte rutas relativas del backend en URLs completas que funcionan
    * tanto en desarrollo como en producción.
-   * 
+   *
    * @param relativePath - Ruta relativa del recurso
    * @returns URL completa del recurso
    */
@@ -1210,12 +1210,12 @@ export class ApiService {
    * Actualiza contenido multimedia existente en el backend.
    *
    * Modifica los metadatos del contenido especificado. El backend valida que solo
-   * se editen campos permitidos (titulo, descripcion, urlMiniatura, estado, 
-   * esUsuarioVip, tags, duracion, restriccionEdad). Campos inmutables como 
+   * se editen campos permitidos (titulo, descripcion, urlMiniatura, estado,
+   * esUsuarioVip, tags, duracion, restriccionEdad). Campos inmutables como
    * ficheroUrl, urlContenido, resolucion y fechaEstado no se actualizan.
-   * 
+   *
    * Requiere autenticación mediante token JWT y rol CREADOR.
-   * 
+   *
    * Backend (PUT /api/contenidos/{id}):
    * - Request Body: ContenidoUpdateRequest con campos editables
    * - Validaciones: título, descripción, miniatura, estado, VIP, tags, duración, edad
