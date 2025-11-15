@@ -89,7 +89,7 @@
   border: 1px solid #dbe0ea;
   border-radius: 24px;
   padding: 1.5rem; /* Aumentado de 1.0625rem (17px) a 1.5rem (24px) */
-  box-shadow: 0px 8px 26px 0px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 26px 0 rgba(0, 0, 0, 0.18);
   overflow: hidden;
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -105,7 +105,7 @@
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0px 12px 36px 0px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.25);
   }
 
   &::before {
@@ -485,16 +485,28 @@
     animation: starPop 0.3s ease;
   }
 
-  &:hover {
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+
+    &:hover {
+      transform: none;
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: none;
+    }
+  }
+
+  &:not(.disabled):hover {
     transform: scale(1.2) rotate(15deg);
     background: #e6eeff;
     box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
   }
 
-  &:active {
+  &:active:not(.disabled) {
     transform: scale(0.95);
   }
 }
+
 
 @keyframes starPop {
   0% {

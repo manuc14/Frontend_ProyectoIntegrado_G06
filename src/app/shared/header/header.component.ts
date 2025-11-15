@@ -1,4 +1,4 @@
-import { Component, inject, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit } from '@angular/core';
+import {Component, inject, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit, HostListener} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -24,6 +24,7 @@ import { UserDropdownMenuComponent } from '../components/user-dropdown-menu/user
   animations: [navActiveState, navHover, fadeIn]
 })
 export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDestroy, OnInit {
+  hasScrolled = false;
   protected override router = inject(Router);
   private elementRef = inject(ElementRef);
   private renderer = inject(Renderer2);
@@ -46,7 +47,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
     this.currentRoute = this.router.url;
     this.checkIfHomePage();
     this.updateBodyClass();
-    
+
     // Escuchar cambios de ruta
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -122,11 +123,11 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
    */
   private updateBodyClass() {
     const body = document.body;
-    
+
     // Remover clases existentes
     this.renderer.removeClass(body, 'home-page');
     this.renderer.removeClass(body, 'other-page');
-    
+
     // Agregar clase apropiada
     if (this.isHomePage) {
       this.renderer.addClass(body, 'home-page');
@@ -146,7 +147,39 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
    * Actualiza la visibilidad del logo basado en la página actual
    */
   private updateLogoVisibility() {
-    // Logo siempre visible a la izquierda, no hay lógica de visibilidad dinámica
+    const logoLarge = this.elementRef.nativeElement.querySelector('.desktop-logo');
+    const logoSmall = this.elementRef.nativeElement.querySelector('.desktop-logo-small');
+
+    if (logoLarge && logoSmall) {
+      if (this.isHomePage && !this.hasScrolled) {
+        // En home sin scroll: mostrar logo grande
+        logoLarge.classList.remove('hidden');
+        logoSmall.classList.remove('visible');
+        // Reset scroll state cuando se vuelve a home
+        this.hasScrolled = false;
+      } else {
+        // En otras páginas o home con scroll: mostrar logo pequeño
+        logoLarge.classList.add('hidden');
+        logoSmall.classList.add('visible');
+      }
+    }
+  }
+
+  /**
+   * Detecta el primer scroll para cambiar el logo permanentemente (solo en home)
+   */
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    // Solo aplicar lógica de scroll en la página home
+    if (!this.isHomePage) return;
+
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+    // Solo cambiar una vez cuando se hace el primer scroll en home
+    if (scrollTop > 50 && !this.hasScrolled) {
+      this.hasScrolled = true;
+      this.updateLogoVisibility();
+    }
   }
 
   /**

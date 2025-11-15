@@ -30,7 +30,7 @@ export class AuthService {
   private tokenExpiryTimer: any = null;
   private sessionExpired$ = new BehaviorSubject<{ reason: string; message: string } | null>(null);
   public sessionExpiredObservable = this.sessionExpired$.asObservable();
-  
+
   private readonly allowedRoutesByRole: Record<UserRole, string[]> = {
     admin: ['/ad-users', '/ad-users-edit', '/ad-admin', '/ad-admin-add', '/ad-admin-edit', '/ad-creators', '/ad-creators-add', '/ad-creators-edit', '/ad-content'],
     creator: ['/content-creator', '/upload-content', '/edit-content', '/creator/catalog', '/creator/profile', '/create-list', '/edit-list', '/search'],
@@ -201,18 +201,18 @@ export class AuthService {
   logout(redirect: boolean = true, skipBackendInvalidation: boolean = false): void {
     this.stopAllTimers();
     const refreshToken = this.getRefreshToken();
-    
+
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem('sessionConfig');
     sessionStorage.removeItem('tokenExpiry');
     sessionStorage.removeItem('loginTime');
     localStorage.removeItem('refreshToken');
-    
+
     if (refreshToken && !skipBackendInvalidation) {
       this.http.post(`${environment.baseApiUrl}/auth/logout`, { refreshToken }).subscribe();
     }
-    
+
     if (redirect) this.router.navigate(['/']);
   }
 
