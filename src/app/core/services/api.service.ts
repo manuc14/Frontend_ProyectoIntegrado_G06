@@ -16,9 +16,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AvatarsResponseDto } from '../models/media.models';
+import { AvatarsResponseDto, SectionDto } from '../models/media.models';
 import { isAbsoluteUrl, startsWithPrefix, hasElements } from '../utils/validation.helpers';
 
 /**
@@ -299,6 +299,10 @@ export interface UpdateUserProfileRequest {
   alias: string;
   /** Avatar del usuario (opcional) */
   avatar?: string;
+  /** Fecha de nacimiento (opcional) */
+  fechaNacimiento?: string;
+  /** Tercer factor de autenticación (opcional) */
+  tercerFactor?: boolean;
 }
 
 /**
@@ -320,12 +324,33 @@ export interface UserProfileResponse {
   fechaNacimiento: string | null;
   /** Estado VIP del usuario */
   estadoVIP: boolean;
+  /** Fecha de activación VIP (opcional, si es VIP) */
+  fechaAltaVip?: string;
   /** Fecha de registro en formato ISO */
   registrationDate: string;
   /** Avatar actual del usuario (opcional) */
   avatar?: string;
   /** Lista de avatares disponibles (opcional) */
   availableAvatars?: string[];
+  /** Tercer factor de autenticación habilitado (opcional) */
+  tercerFactor?: boolean;
+}
+
+/**
+ * Interfaz para la respuesta de activación VIP.
+ * Contiene información sobre la activación exitosa incluyendo fecha.
+ * 
+ * @interface VipActivationResponse
+ */
+export interface VipActivationResponse {
+  /** Indica si la activación fue exitosa */
+  success: boolean;
+  /** Mensaje descriptivo del resultado */
+  message: string;
+  /** ID del usuario activado como VIP (opcional) */
+  userId?: string;
+  /** Fecha y hora de activación VIP en formato ISO */
+  vipActivationDate?: string;
 }
 
 /**
@@ -632,6 +657,118 @@ export class ApiService {
     const headers = { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` };
     return this.http.get<UserProfileResponse>(`${this.base}/users/profile`, { headers }).pipe(
       catchError(this.handleError('obtener perfil de usuario', 'No se pudo cargar el perfil del usuario'))
+    );
+  }
+
+  /**
+   * Elimina la cuenta del usuario autenticado.
+   * 
+   * Realiza una eliminación física de la cuenta del usuario junto con todos
+   * sus datos relacionados (tokens, secretos MFA, sesiones). El backend valida
+   * que el usuario solo pueda eliminar su propia cuenta y que no sea admin/creator.
+   * 
+   * @returns {Observable<any>} Observable con respuesta de eliminación
+   * 
+   * @example
+   * ```typescript
+   * this.apiService.deleteUserAccount().subscribe({
+   *   next: (response) => {
+   *     console.log('Cuenta eliminada:', response.message);
+   *     this.authService.logout(true);
+   *   },
+   *   error: (error) => console.error('Error al eliminar cuenta:', error)
+   * });
+   * ```
+   */
+  deleteUserAccount(): Observable<any> {
+    // El interceptor authInterceptor agregará automáticamente el header Authorization con el JWT
+    return this.http.delete(`${this.base}/users/me`).pipe(
+      catchError(this.handleError('eliminar cuenta de usuario', 'No se pudo eliminar la cuenta'))
+    );
+  }
+
+  /**
+   * Verifica si la contraseña ingresada es correcta para el usuario autenticado.
+   * 
+   * Se usa en el modal de confirmación de eliminación de cuenta para validar
+   * que el usuario conoce su contraseña antes de permitir la eliminación.
+   * 
+   * @param {string} password - Contraseña a validar
+   * @returns {Observable<any>} Observable con respuesta { valid: true/false }
+   * 
+   * @example
+   * ```typescript
+   * this.apiService.verifyPassword(password).subscribe({
+   *   next: (response) => {
+   *     if (response.valid) {
+   *       console.log('Contraseña correcta');
+   *     }
+   *   }
+   * });
+   * ```
+   */
+  verifyPassword(password: string): Observable<any> {
+    // El interceptor authInterceptor agregará automáticamente el header Authorization
+    return this.http.post(`${this.base}/users/verify-password`, { password }).pipe(
+      catchError(this.handleError('verificar contraseña', 'No se pudo verificar la contraseña'))
+    );
+  }
+
+  /**
+   * Activa la suscripción VIP para un usuario.
+   * 
+   * Establece el estado VIP del usuario a true y registra la fecha de activación.
+   * El backend valida que:
+   * - El usuario esté autenticado
+   * - Solo pueda activar VIP para sí mismo
+   * - Tenga el rol USUARIOEV
+   * - No sea ya VIP
+   * 
+   * @param {string} userId - ID del usuario que activará VIP
+   * @returns {Observable<VipActivationResponse>} Observable con respuesta incluyendo vipActivationDate
+   * 
+   * @example
+   * ```typescript
+   * this.apiService.activateVip('123').subscribe({
+   *   next: (response) => {
+   *     console.log('VIP activado:', response.message);
+   *     console.log('Fecha de activación:', response.vipActivationDate);
+   *     this.isVipUser = true;
+   *   },
+   *   error: (error) => console.error('Error al activar VIP:', error)
+   * });
+   * ```
+   */
+  activateVip(userId: string): Observable<VipActivationResponse> {
+    return this.http.patch<VipActivationResponse>(`${this.base}/users/${userId}/vip`, {}).pipe(
+      catchError(this.handleError('activar VIP', 'No se pudo activar la suscripción VIP'))
+    );
+  }
+
+  /**
+   * Desactiva la suscripción VIP para un usuario.
+   * 
+   * Establece el estado VIP del usuario a false. El backend valida que:
+   * - El usuario esté autenticado
+   * - Solo pueda desactivar VIP para sí mismo
+   * 
+   * @param {string} userId - ID del usuario que desactivará VIP
+   * @returns {Observable<VipActivationResponse>} Observable con respuesta de desactivación
+   * 
+   * @example
+   * ```typescript
+   * this.apiService.deactivateVip('123').subscribe({
+   *   next: (response) => {
+   *     console.log('VIP desactivado:', response.message);
+   *     this.isVipUser = false;
+   *   },
+   *   error: (error) => console.error('Error al desactivar VIP:', error)
+   * });
+   * ```
+   */
+  deactivateVip(userId: string): Observable<VipActivationResponse> {
+    return this.http.delete<VipActivationResponse>(`${this.base}/users/${userId}/vip`).pipe(
+      catchError(this.handleError('desactivar VIP', 'No se pudo desactivar la suscripción VIP'))
     );
   }
 

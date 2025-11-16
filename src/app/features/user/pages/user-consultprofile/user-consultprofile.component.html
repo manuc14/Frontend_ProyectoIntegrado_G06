@@ -1,10 +1,14 @@
 <app-header></app-header>
 
-<main class="background">
-  <div class="container">
-    
-    <!-- Título de la página -->
-    <div class="container2">
+<div class="profile-layout" [@fadeIn]>
+  <!-- Sidebar de navegación -->
+  <app-user-sidebar [collapsed]="false"></app-user-sidebar>
+
+  <main class="background">
+    <div class="container">
+      
+      <!-- Título de la página -->
+      <div class="container2">
       <div class="container3">
         <div class="text">Tu perfil</div>
       </div>
@@ -94,6 +98,8 @@
                 placeholder="DD/MM/AAAA"
                 [required]="false"
                 formControlName="birthDate"
+                [errors]="f['birthDate'].errors ?? null"
+                [touched]="f['birthDate'].touched || false"
                 [disabled]="!isEditMode"
                 class="clean-input">
               </app-form-date>
@@ -138,17 +144,18 @@
             </div>
             <div class="container2">
               <div class="container3">
-                <div class="text2" *ngIf="isVipUser">Última actualización de estado: {{ formatDateForDisplay(vipRegistrationDate) }}</div>
-                <div class="text2" *ngIf="!isVipUser">Última actualización de estado: -</div>
+                <div class="text2">Última actualización de estado: {{ vipRegistrationDate }}</div>
               </div>
               <div class="container4">
-                <div class="background-border2" 
+                <button class="background-border2" 
                      [class.vip-cancel]="isVipUser"
                      [class.vip-upgrade]="!isVipUser"
-                     (click)="isVipUser ? onCancelVipSubscription() : onUpgradeToVip()">
+                     [disabled]="!isEditMode"
+                     (click)="isVipUser ? onCancelVipSubscription() : onUpgradeToVip()"
+                     type="button">
                   <img *ngIf="!isVipUser" src="assets/icons/crown.svg" alt="VIP" class="button-icon" />
                   <div class="text3">{{ isVipUser ? 'Dejar de ser VIP' : 'Pásate a VIP' }}</div>
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -194,5 +201,126 @@
       </div>
 
     </div>
+    </div>
+  </main>
+
+  <!-- Modal de confirmación para eliminar cuenta -->
+  <div class="delete-modal-overlay" 
+       *ngIf="showDeleteModal" 
+       (click)="cancelDeleteAccount()"
+       (keydown.escape)="cancelDeleteAccount()"
+       tabindex="-1">
+    <div class="delete-modal-container" 
+         (click)="$event.stopPropagation()"
+         (keydown)="$event.stopPropagation()">
+      <div class="delete-modal-header">
+        <h2 class="delete-modal-title">Eliminar cuenta</h2>
+      </div>
+      
+      <div class="delete-modal-body">
+        <p class="delete-modal-text">
+          Confirma tu contraseña para eliminar la cuenta.<br>
+          Esta acción no se puede deshacer.
+        </p>
+
+        <!-- Campo de contraseña -->
+        <div class="delete-modal-password-group">
+          <label for="delete-password" class="delete-modal-label">Contraseña</label>
+          <div class="delete-modal-input-wrapper">
+            <input 
+              id="delete-password"
+              [type]="showDeletePassword ? 'text' : 'password'"
+              [(ngModel)]="deleteAccountPassword"
+              class="delete-modal-password-input"
+              placeholder="Ingresa tu contraseña"
+              [disabled]="deletePasswordValid"
+              (keyup.enter)="validateDeletePassword()">
+            <button 
+              type="button"
+              class="delete-modal-eye-button"
+              (click)="toggleDeletePasswordVisibility()"
+              [disabled]="deletePasswordValid"
+              [attr.aria-label]="showDeletePassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              <img [src]="showDeletePassword ? 'assets/icons/eye-off-svgrepo-com.svg' : 'assets/icons/eye-svgrepo-com.svg'"
+                   [alt]="showDeletePassword ? 'Ocultar' : 'Mostrar'" />
+            </button>
+          </div>
+
+          <!-- Mensaje de error -->
+          <div class="delete-modal-error" *ngIf="deletePasswordError">
+            <small class="delete-modal-error-text">⚠️ {{ deletePasswordError }}</small>
+          </div>
+        </div>
+      </div>
+      
+      <div class="delete-modal-footer">
+        <button 
+          type="button" 
+          class="delete-modal-btn delete-modal-btn-cancel"
+          (click)="cancelDeleteAccount()">
+          Cancelar
+        </button>
+
+        <button 
+          type="button" 
+          class="delete-modal-btn delete-modal-btn-delete"
+          [disabled]="!deletePasswordValid"
+          (click)="confirmDeleteAccount()">
+          Eliminar cuenta
+        </button>
+
+        <button 
+          type="button" 
+          class="delete-modal-btn delete-modal-btn-accept"
+          [disabled]="deletePasswordValid || isCheckingPassword"
+          (click)="validateDeletePassword()">
+          <span *ngIf="!isCheckingPassword">Aceptar</span>
+          <span *ngIf="isCheckingPassword">Verificando...</span>
+        </button>
+      </div>
+    </div>
   </div>
-</main>
+
+  <!-- Modal de confirmación para cancelar VIP -->
+  <div class="cancel-vip-modal-overlay" 
+       *ngIf="showCancelVipModal" 
+       (click)="cancelVipCancellation()"
+       (keydown.escape)="cancelVipCancellation()"
+       tabindex="-1">
+    <div class="cancel-vip-modal-container" 
+         (click)="$event.stopPropagation()"
+         (keydown)="$event.stopPropagation()">
+      <div class="cancel-vip-modal-header">
+        <h2 class="cancel-vip-modal-title">¿Dejar de ser VIP?</h2>
+      </div>
+      
+      <div class="cancel-vip-modal-body">
+        <p class="cancel-vip-modal-text">
+          ¿Estás seguro de que quieres cambiar al plan estándar?<br><br>
+          Perderás los siguientes privilegios VIP:
+        </p>
+        <ul class="cancel-vip-modal-list">
+          <li>Acceso a contenido exclusivo premium</li>
+          <li>Reproducción en calidad 4K</li>
+          <li>Prioridad en nuevos lanzamientos</li>
+        </ul>
+      </div>
+      
+      <div class="cancel-vip-modal-footer">
+        <button 
+          type="button" 
+          class="cancel-vip-modal-btn cancel-vip-modal-btn-cancel"
+          (click)="cancelVipCancellation()">
+          Cancelar
+        </button>
+
+        <button 
+          type="button" 
+          class="cancel-vip-modal-btn cancel-vip-modal-btn-confirm"
+          (click)="confirmVipCancellation()">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

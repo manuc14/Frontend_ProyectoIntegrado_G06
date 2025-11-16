@@ -1,6 +1,26 @@
 // ========= IMPORTAR ESTILOS BASE COMPARTIDOS =========
 @import '../../../../shared/base-profile/base-profile.component.scss';
 
+// ========= LAYOUT CON SIDEBAR =========
+.profile-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.background {
+  flex: 1;
+  overflow-y: auto;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
 // ========= PERSONALIZACIONES ESPECÍFICAS DEL USUARIO =========
 
 // ========= CONTENEDOR PRINCIPAL CON SOMBRA =========
@@ -110,7 +130,7 @@
   align-self: stretch;
   flex-shrink: 0;
   position: relative;
-  margin-bottom: 25px;
+  margin-bottom: 15px; // Reducido para acercar los campos al título
 }
 
 .text4 {
@@ -132,6 +152,7 @@ form {
   gap: 20px;
   align-self: stretch;
   position: relative;
+  margin-bottom: 20px; // Espacio adicional después del formulario
 }
 
 .form-row {
@@ -159,6 +180,7 @@ form {
   flex-direction: column;
   gap: 8px;
   position: relative;
+  margin-bottom: 10px; // Espacio adicional para mensajes de error
   
   &.full-width {
     grid-column: 1 / -1;
@@ -166,6 +188,7 @@ form {
 
   &.fecha-container {
     gap: 8px; // Asegurar el mismo gap que los otros campos
+    margin-bottom: 30px; // Espacio extra después del campo de fecha para el error
   }
 }
 
@@ -240,7 +263,7 @@ form {
       // Estilo para contenedor cuando el input tiene error
       &.error {
         border-color: #ef4444;
-        background-color: #fef2f2;
+        // Sin fondo rojo, solo borde
         
         .input-field {
           color: #dc2626;
@@ -435,8 +458,8 @@ form {
 
 // ========= SECCIÓN VIP =========
 .vip-section {
-  margin-top: -8px; // Reducido de 4px para subir la tarjeta
-  padding-top: 4px; // Reducido de 8px
+  margin-top: -30px; // Ajustado para mantener distancia uniforme con tercer factor
+  padding-top: -40px; // Aumentado
   grid-column: 1 / -1; // Que ocupe todo el ancho disponible
   width: 100%; // Ancho completo del contenedor
 
@@ -552,6 +575,13 @@ form {
     height: 44px; // Ajusta este valor para cambiar la altura del botón: 44px, 40px, 50px, etc.
     left: -30px; // Ajusta este valor para mover a la izquierda: -10px, -20px, -30px, etc.
 
+    // Estilos cuando está deshabilitado (modo no edición)
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     // Estilos para cuando es VIP (botón rojo)
     &.vip-cancel {
       background: #dc2626;
@@ -633,8 +663,9 @@ form {
 
 // ========= SECCIÓN DE AUTENTICACIÓN DE DOS FACTORES =========
 .two-factor-section {
-  margin-top: 8px; // Reducido de 16px para subir más la sección
-  padding-top: 8px; // Reducido de 16px
+  margin-top: 5px; // Valor negativo para subir la tarjeta acercándola a la de VIP
+  padding-top: 12px; // Ajusta el espacio interno superior
+  margin-bottom: 30px; // Espacio debajo de la tarjeta antes de los botones
   grid-column: 1 / -1; // Que ocupe todo el ancho disponible
   width: 100%; // Ancho completo del contenedor
 
@@ -696,6 +727,65 @@ form {
       cursor: not-allowed;
       opacity: 0.5;
       background-color: #f3f4f6;
+    }
+  }
+}
+
+// ========= ESTILOS DE ERROR MEJORADOS (IGUAL QUE ADMIN) =========
+
+// Prevenir movimiento de campos cuando aparecen errores
+:host ::ng-deep app-form-input {
+  .container8 {
+    min-height: 76px; // Altura mínima fija para evitar movimiento
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  
+  .error-message {
+    position: absolute;
+    bottom: -22px; // Posicionar mensaje de error fuera del contenedor
+    left: 0;
+    right: 0;
+    height: 20px; // Altura fija para el mensaje de error
+    overflow: hidden;
+  }
+
+  // Quitar el marco azul oscuro cuando hay error
+  .background-border9.error {
+    &:focus-within {
+      box-shadow: none !important; // Quitar la sombra azul
+      border-color: var(--destructive) !important; // Mantener solo el borde rojo de error
+    }
+  }
+}
+
+// Estilos para el campo de fecha con espacio adecuado para errores
+:host ::ng-deep app-form-date {
+  label {
+    position: relative; // Contexto para posicionamiento absoluto
+    display: block;
+    min-height: 85px; // Altura mínima aumentada para mostrar error completo
+    margin-bottom: 20px; // Margen adicional para separación
+  }
+  
+  .field-error {
+    position: absolute !important;
+    bottom: -22px !important; // Misma distancia que los demás campos
+    left: 0;
+    right: 0;
+    height: auto; // Permitir altura automática para el texto
+    overflow: visible; // Mostrar todo el texto
+    font-size: 12px;
+    color: var(--destructive);
+    margin: 0 !important;
+    white-space: normal; // Permitir salto de línea si es necesario
+  }
+
+  // Quitar el marco azul oscuro cuando hay error
+  input[type="date"] {
+    &:focus {
+      box-shadow: none !important;
     }
   }
 }
@@ -789,6 +879,385 @@ form {
   
   .text4 {
     font-size: 14px;
+  }
+}
+
+// ========= MODAL DE CONFIRMACIÓN DE ELIMINACIÓN DE CUENTA =========
+
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.delete-modal-container {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+.delete-modal-header {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #eaedf2;
+}
+
+.delete-modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'NimbusSans-Bold', sans-serif;
+}
+
+.delete-modal-body {
+  padding: 24px 24px;
+}
+
+.delete-modal-text {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #475569;
+  font-family: 'NimbusSans-Regular', sans-serif;
+}
+
+// ========= CAMPO DE CONTRASEÑA =========
+
+.delete-modal-password-group {
+  margin-bottom: 16px;
+}
+
+.delete-modal-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-family: 'NimbusSans-Bold', sans-serif;
+}
+
+.delete-modal-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.delete-modal-password-input {
+  width: 100%;
+  padding: 12px 40px 12px 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: 'NimbusSans-Medium', sans-serif;
+  color: #0f172a;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+
+  &:hover:not(:disabled) {
+    border-color: #94a3b8;
+  }
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+}
+
+.delete-modal-eye-button {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+
+  img {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    opacity: 0.7;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ========= MENSAJE DE ERROR =========
+
+.delete-modal-error {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: #fee2e2;
+  border-radius: 8px;
+  border-left: 3px solid #ef4444;
+}
+
+.delete-modal-error-text {
+  font-size: 12px;
+  color: #8B0000;
+  font-family: 'NimbusSans-Medium', sans-serif;
+  display: block;
+}
+
+// ========= FOOTER =========
+
+.delete-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #eaedf2;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.delete-modal-btn {
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'NimbusSans-Bold', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.delete-modal-btn-delete {
+  background: #ef4444;
+  color: #ffffff;
+  
+  &:hover:not(:disabled) {
+    background: #dc2626;
+  }
+}
+
+.delete-modal-btn-accept {
+  background: #10b981;
+  color: #ffffff;
+  
+  &:hover:not(:disabled) {
+    background: #059669;
+  }
+}
+
+.delete-modal-btn-cancel {
+  background: #f1f5f9;
+  color: #475569;
+  margin-right: auto; // Forzar a la izquierda
+  
+  &:hover:not(:disabled) {
+    background: #e2e8f0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// ========= MODAL DE CONFIRMACIÓN DE CANCELACIÓN VIP =========
+
+.cancel-vip-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.cancel-vip-modal-container {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+.cancel-vip-modal-header {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #eaedf2;
+}
+
+.cancel-vip-modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  font-family: "Inter-Bold", sans-serif;
+}
+
+.cancel-vip-modal-body {
+  padding: 24px;
+}
+
+.cancel-vip-modal-text {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #4b5563;
+  font-family: "Inter-Regular", sans-serif;
+}
+
+.cancel-vip-modal-list {
+  margin: 16px 0 0 0;
+  padding-left: 24px;
+  
+  li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #6b7280;
+    font-family: "Inter-Regular", sans-serif;
+    line-height: 1.5;
+  }
+}
+
+.cancel-vip-modal-footer {
+  padding: 16px 24px 24px 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cancel-vip-modal-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: "Inter-SemiBold", sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  outline: none;
+
+  &:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+.cancel-vip-modal-btn-cancel {
+  background: #f3f4f6;
+  color: #4b5563;
+  
+  &:hover {
+    background: #e5e7eb;
+  }
+
+  &:active {
+    background: #d1d5db;
+  }
+}
+
+.cancel-vip-modal-btn-confirm {
+  background: #dc2626;
+  color: #ffffff;
+  margin-left: auto;
+  
+  &:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  }
+
+  &:active {
+    background: #991b1b;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .cancel-vip-modal-footer {
+    flex-direction: column-reverse;
+    
+    .cancel-vip-modal-btn {
+      width: 100%;
+    }
+    
+    .cancel-vip-modal-btn-confirm {
+      margin-left: 0;
+    }
+  }
+}
+
+// Responsive para el modal
+@media (max-width: 600px) {
+  .delete-modal-container {
+    max-width: 95%;
+  }
+  
+  .delete-modal-footer {
+    flex-direction: column-reverse;
+    
+    .delete-modal-btn {
+      width: 100%;
+      order: 0 !important;
+    }
   }
 }
 

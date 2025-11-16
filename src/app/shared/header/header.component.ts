@@ -1,4 +1,4 @@
-import { Component, inject, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -34,6 +34,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   isMenuOpen = false;
   isHomePage = false; // Para detectar si estamos en home
   isLoggedIn = false;
+  hasScrolled = false; // Controlar si hemos hecho scroll
 
   constructor() {
     super();

@@ -50,6 +50,31 @@ export class TwoFactorContainerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const currentPath = this.router.url;
+    
+    // Si estamos en /auth/3fa, es el flujo del tercer factor (EMAIL_CODE)
+    if (currentPath.includes('/auth/3fa')) {
+      const sessionToken = sessionStorage.getItem('twoFactorSessionToken');
+      const email = sessionStorage.getItem('loginEmail');
+      const verificationToken = sessionStorage.getItem('verificationToken');
+      const nextFactor = sessionStorage.getItem('nextFactor');
+
+      if (!sessionToken || !verificationToken || nextFactor !== 'EMAIL_CODE') {
+        this.handleError('Sesión expirada. Inicia sesión nuevamente.');
+        return;
+      }
+
+      this.sessionToken.set(sessionToken);
+      this.email.set(email || '');
+      this.verificationToken.set(verificationToken);
+      this.nextFactor.set('EMAIL_CODE');
+      
+      console.log('✅ [2FA-Container] Inicializando flujo 3FA (EMAIL_CODE)');
+      this.mfaStateService.initializeVerifyFlow(sessionToken, email || '');
+      return;
+    }
+
+    // Flujo normal del 2FA
     const sessionToken = sessionStorage.getItem('twoFactorSessionToken');
     const email = sessionStorage.getItem('loginEmail');
     const twoFactorType = sessionStorage.getItem('twoFactorType');
@@ -102,13 +127,26 @@ export class TwoFactorContainerComponent implements OnInit, OnDestroy {
   }
 
   private handleAuthSuccess(tokens: any): void {
+    // Si se requiere un factor adicional (3FA - EMAIL_CODE)
     if (tokens?.state === 'REQUIRES_FACTOR' && tokens?.nextFactor) {
-      this.verificationToken.set(tokens.verificationToken || '');
-      this.nextFactor.set(tokens.nextFactor);
-      sessionStorage.setItem('verificationToken', tokens.verificationToken || '');
-      sessionStorage.setItem('nextFactor', tokens.nextFactor);
-      this.mfaStateService.initializeVerifyFlow(this.sessionToken(), this.email());
-      return;
+      if (tokens.nextFactor === 'EMAIL_CODE') {
+        this.verificationToken.set(tokens.verificationToken || '');
+        this.nextFactor.set(tokens.nextFactor);
+        sessionStorage.setItem('verificationToken', tokens.verificationToken || '');
+        sessionStorage.setItem('nextFactor', tokens.nextFactor);
+        sessionStorage.setItem('twoFactorSessionToken', this.sessionToken());
+        
+        this.router.navigate(['/auth/3fa']);
+        return;
+      } else {
+        // Otro factor requerido, mantener en 2FA
+        this.verificationToken.set(tokens.verificationToken || '');
+        this.nextFactor.set(tokens.nextFactor);
+        sessionStorage.setItem('verificationToken', tokens.verificationToken || '');
+        sessionStorage.setItem('nextFactor', tokens.nextFactor);
+        this.mfaStateService.initializeVerifyFlow(this.sessionToken(), this.email());
+        return;
+      }
     }
     
     if (!tokens?.accessToken) {

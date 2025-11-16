@@ -65,6 +65,9 @@ export const routes: Routes = [
 	// ===== Segundo Factor (2FA - Login y Setup) =====
 	{ path: 'auth/2fa', component: TwoFactorContainerComponent, canActivate: [publicGuard] },
 	
+	// ===== Tercer Factor (3FA - Verificación de código de email) =====
+	{ path: 'auth/3fa', component: TwoFactorContainerComponent, canActivate: [publicGuard] },
+	
 	// ===== Redirects para compatibilidad (rutas legacy) =====
 	{ path: 'verify-email', redirectTo: 'auth/verify-email', pathMatch: 'full' },
 	{ path: 'verify-code', redirectTo: 'auth/verify-code', pathMatch: 'full' },

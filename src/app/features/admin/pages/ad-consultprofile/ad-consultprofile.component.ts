@@ -60,11 +60,8 @@ export class AdConsultprofileComponent extends BaseProfileComponent {
   }
 
   protected override loadUserData(): void {
-    console.log('🔄 [Profile] Cargando datos del administrador desde el backend...');
-    
     this.api.getAdminProfile().subscribe({
       next: (profile: AdminProfileResponse) => {
-        console.log('✅ [Profile] Datos del perfil cargados:', profile);
         
         this.profileForm.patchValue({
           firstName: profile.firstName,
@@ -84,11 +81,8 @@ export class AdConsultprofileComponent extends BaseProfileComponent {
         
         this.applyEditMode();
         this.initialFormValue = this.profileForm.getRawValue();
-        
-        console.log('✅ [Profile] Formulario poblado correctamente');
       },
       error: (error: any) => {
-        console.error('❌ [Profile] Error al cargar datos del perfil:', error);
         this.handleAuthError(error);
         this.loadFallbackData();
       }
@@ -112,15 +106,12 @@ export class AdConsultprofileComponent extends BaseProfileComponent {
         avatar: avatarFilename
       };
       
-      console.log('Guardando cambios del perfil:', payload);
-      
       this.api.updateAdminProfile(payload).subscribe({
         next: (response: any) => {
-          console.log('✅ Perfil actualizado exitosamente:', response);
           this.updateStateAfterSave(formData);
         },
         error: (error: any) => {
-          console.error('❌ Error al actualizar perfil:', error);
+          // Manejar error
         }
       });
     }

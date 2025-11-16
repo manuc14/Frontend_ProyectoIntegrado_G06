@@ -85,11 +85,8 @@ export class ContentCreatorConsultprofileComponent extends BaseProfileComponent 
 
 
   protected override loadUserData(): void {
-    console.log('🔄 [Profile] Cargando datos del creador desde el backend...');
-    
     this.api.getCreatorProfile().subscribe({
       next: (profile: CreatorProfileResponse) => {
-        console.log('✅ [Profile] Datos del perfil cargados:', profile);
         
         this.profileForm.patchValue({
           firstName: profile.nombre,
@@ -111,11 +108,8 @@ export class ContentCreatorConsultprofileComponent extends BaseProfileComponent 
         
         this.applyEditMode();
         this.initialFormValue = this.profileForm.getRawValue();
-        
-        console.log('✅ [Profile] Formulario poblado correctamente');
       },
       error: (error: any) => {
-        console.error('❌ [Profile] Error al cargar datos del perfil:', error);
         this.handleAuthError(error);
         this.loadFallbackData();
       }
@@ -141,15 +135,11 @@ export class ContentCreatorConsultprofileComponent extends BaseProfileComponent 
       const formData = this.profileForm.getRawValue();
       const payload = this.buildUpdatePayload(formData);
       
-      console.log('Guardando cambios del perfil:', payload);
-      
       this.api.updateCreatorProfile(payload).subscribe({
         next: (response: any) => {
-          console.log('✅ Perfil de creador actualizado exitosamente:', response);
           this.updateStateAfterSave(formData);
         },
         error: (error: any) => {
-          console.error('❌ Error al actualizar perfil:', error);
           this.handleSpecificAliasError(error);
         }
       });
@@ -165,8 +155,6 @@ export class ContentCreatorConsultprofileComponent extends BaseProfileComponent 
     
     // Mostrar mensaje de éxito
     this.showSuccessNotification();
-    
-    console.log('✅ Estado actualizado después de guardar');
   }
 
   // ========= MÉTODOS ESPECÍFICOS DEL CREADOR =========
