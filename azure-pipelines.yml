@@ -1,7 +1,8 @@
 trigger:
   branches:
     include:
-      - Mario_dev
+      - Develop
+      - main
   paths:
     exclude:
       - README.md
