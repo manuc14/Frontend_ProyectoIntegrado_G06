@@ -162,12 +162,6 @@ export class ContentPreviewComponent implements OnInit {
     });
   }
 
-  addToList(): void {
-    if (!this.contenido?._id) return;
-    console.log('📋 Añadiendo a lista:', this.contenido.titulo);
-    alert(`Función "Añadir a lista" próximamente.\n\nContenido: ${this.contenido.titulo}`);
-  }
-
   setRating(rating: number): void {
     if (!this.contenido?._id) {
       console.error('Contenido no disponible');
