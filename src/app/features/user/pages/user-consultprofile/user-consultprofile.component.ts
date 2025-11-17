@@ -50,6 +50,7 @@ export class UserConsultprofileComponent extends BaseProfileComponent {
   // Control de autenticación de dos factores
   twoFactorEnabled = false;
   private initialTwoFactorState = false; // Guardar estado inicial para detectar cambios
+  showThirdFactorInfo = false; // Mostrar/ocultar tooltip de información
 
   // Control del modal de eliminación de cuenta
   showDeleteModal = false;
@@ -302,5 +303,9 @@ export class UserConsultprofileComponent extends BaseProfileComponent {
   onTwoFactorChange(event: any): void {
     this.twoFactorEnabled = event.target.checked;
     this.checkForChanges();
+  }
+
+  toggleThirdFactorInfo(): void {
+    this.showThirdFactorInfo = !this.showThirdFactorInfo;
   }
 }

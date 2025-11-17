@@ -663,32 +663,86 @@ form {
 
 // ========= SECCIÓN DE AUTENTICACIÓN DE DOS FACTORES =========
 .two-factor-section {
-  margin-top: 5px; // Valor negativo para subir la tarjeta acercándola a la de VIP
-  padding-top: 12px; // Ajusta el espacio interno superior
-  margin-bottom: 30px; // Espacio debajo de la tarjeta antes de los botones
-  grid-column: 1 / -1; // Que ocupe todo el ancho disponible
-  width: 100%; // Ancho completo del contenedor
+  margin-top: 5px;
+  padding-top: 12px;
+  margin-bottom: 30px;
+  grid-column: 1 / -1;
+  width: 100%;
 
   .two-factor-container {
     background: #ffffff;
-    border-radius: 24px; // Igual que la tarjeta VIP
-    border-style: solid; // Igual que la tarjeta VIP
-    border-color: #e6e9ee; // Igual que la tarjeta VIP
-    border-width: 1px; // Igual que la tarjeta VIP
+    border-radius: 24px;
+    border-style: solid;
+    border-color: #e6e9ee;
+    border-width: 1px;
     padding: 16px;
     display: flex;
-    flex-direction: row;
-    gap: 12px;
-    align-items: center;
-    justify-content: flex-start;
+    flex-direction: column;
+    gap: 8px;
     align-self: stretch;
     flex-shrink: 0;
+    position: relative; // Para posicionar el botón de info
     transition: all 0.3s ease;
 
     &:hover {
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
+  }
+
+  .two-factor-info-icon {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 24px;
+    height: 24px;
+    background: #e5e7eb;
+    color: #1f2937;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #d1d5db;
+    }
+
+    .info-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px); // Aparece arriba del botón
+      left: 0;
+      background: #e6eeff;
+      color: #1e293b;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 400;
+      z-index: 10;
+      width: 200px;
+      border: 1px solid #dbe0ea;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      text-align: center; // Centrar el texto
+
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
+    }
+  }
+
+  .two-factor-content {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 48px; // Más espacio para el botón circular más grande
   }
 
   .two-factor-text {
@@ -699,7 +753,7 @@ form {
     font-weight: 500;
     flex: 1;
     line-height: 1.5;
-    margin-right: auto; // Empujar el checkbox hacia la derecha
+    margin-right: auto;
   }
 
   .two-factor-checkbox {

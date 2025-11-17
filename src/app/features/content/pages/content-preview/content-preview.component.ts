@@ -98,7 +98,7 @@ export class ContentPreviewComponent implements OnInit {
   onUpgradeToVip(): void {
     console.log('🎯 Usuario quiere actualizar a VIP');
     this.showVipModal = false;
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/user-consultprofile']);
   }
 
   onContinueWithoutVip(): void {

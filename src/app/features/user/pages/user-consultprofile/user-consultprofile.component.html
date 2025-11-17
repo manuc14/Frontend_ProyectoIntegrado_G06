@@ -164,12 +164,25 @@
         <!-- Sección de Autenticación de Dos Factores -->
         <div class="two-factor-section">
           <div class="two-factor-container">
-            <div class="two-factor-text">Quiero habilitar el tercer factor de autenticación para futuras ocasiones</div>
-            <input type="checkbox" 
-                   class="two-factor-checkbox"
-                   [checked]="twoFactorEnabled"
-                   [disabled]="!isEditMode"
-                   (change)="onTwoFactorChange($event)">
+            <button 
+              type="button"
+              class="two-factor-info-icon"
+              (click)="toggleThirdFactorInfo()"
+              [attr.aria-label]="'Información sobre el tercer factor'"
+              [attr.aria-expanded]="showThirdFactorInfo">
+              ?
+              <div class="info-tooltip" role="tooltip" *ngIf="showThirdFactorInfo">
+                <p>Si habilitas el tercer factor, se te redirigirá al login para activarlo.</p>
+              </div>
+            </button>
+            <div class="two-factor-content">
+              <div class="two-factor-text">Quiero habilitar el tercer factor de autenticación para futuras ocasiones</div>
+              <input type="checkbox" 
+                     class="two-factor-checkbox"
+                     [checked]="twoFactorEnabled"
+                     [disabled]="!isEditMode"
+                     (change)="onTwoFactorChange($event)">
+            </div>
           </div>
         </div>
       </div>
