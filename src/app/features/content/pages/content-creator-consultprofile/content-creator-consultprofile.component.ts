@@ -111,21 +111,13 @@ export class ContentCreatorConsultprofileComponent extends BaseProfileComponent 
       },
       error: (error: any) => {
         this.handleAuthError(error);
-        this.loadFallbackData();
+        this.loadFallbackData(['email', 'contentType']);
       }
     });
   }
 
   protected override getEditableFields(): string[] {
     return ['firstName', 'lastName', 'alias', 'description', 'specialty'];
-  }
-
-  private loadFallbackData(): void {
-    this.profileForm.get('email')?.disable();
-    this.profileForm.get('contentType')?.disable();
-    this.applyEditMode();
-    this.selectedAvatar = 'assets/admin/admin_default.png';
-    this.initialFormValue = this.profileForm.getRawValue();
   }
 
 

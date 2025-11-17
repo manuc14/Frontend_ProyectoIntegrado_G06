@@ -84,7 +84,7 @@ export class AdConsultprofileComponent extends BaseProfileComponent {
       },
       error: (error: any) => {
         this.handleAuthError(error);
-        this.loadFallbackData();
+        this.loadFallbackData(['startDate', 'email']);
       }
     });
   }
@@ -115,15 +115,5 @@ export class AdConsultprofileComponent extends BaseProfileComponent {
         }
       });
     }
-  }
-
-  // ========= MÉTODOS ESPECÍFICOS DEL ADMIN =========
-
-  private loadFallbackData(): void {
-    this.profileForm.get('startDate')?.disable();
-    this.profileForm.get('email')?.disable();
-    this.applyEditMode();
-    this.selectedAvatar = 'assets/admin/admin_default.png';
-    this.initialFormValue = this.profileForm.getRawValue();
   }
 }

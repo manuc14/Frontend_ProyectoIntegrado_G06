@@ -231,4 +231,63 @@ export class BaseProfileComponent implements OnInit {
       this.authService.logout();
     }
   }
+
+  // ========= MÉTODOS COMUNES PARA AVATARES Y FORMATEO =========
+  /**
+   * Carga avatares desde el endpoint cuando no están disponibles en el perfil
+   */
+  protected loadAvatarsFromEndpoint(): void {
+    this.api.getAvatars().subscribe({
+      next: (response) => {
+        this.availableAvatars = response.avatars.map((avatar: string) => this.api.getFullAvatarUrl(avatar));
+      },
+      error: () => {
+        this.availableAvatars = [
+          'assets/admin/admin_default.png',
+          'assets/admin/avatar1.png', 
+          'assets/admin/avatar2.png'
+        ];
+      }
+    });
+  }
+
+  /**
+   * Formatea una fecha ISO para mostrar en formato DD/MM/AAAA
+   */
+  protected formatDateForDisplay(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch {
+      return '-';
+    }
+  }
+
+  /**
+   * Carga y configura avatares desde el perfil
+   */
+  protected loadAvatars(avatarUrl: string | undefined, availableAvatars: string[] | undefined): void {
+    this.selectedAvatar = avatarUrl || 'assets/admin/admin_default.png';
+    this.initialAvatar = this.selectedAvatar;
+    
+    if (availableAvatars?.length) {
+      this.availableAvatars = availableAvatars.map(avatar => this.api.getFullAvatarUrl(avatar));
+    } else {
+      this.loadAvatarsFromEndpoint();
+    }
+  }
+
+  /**
+   * Carga datos por defecto cuando hay error al cargar perfil
+   */
+  protected loadFallbackData(fieldsToDisable: string[]): void {
+    fieldsToDisable.forEach(field => this.profileForm.get(field)?.disable());
+    this.applyEditMode();
+    this.selectedAvatar = 'assets/admin/admin_default.png';
+    this.initialFormValue = this.profileForm.getRawValue();
+  }
 }

@@ -50,31 +50,6 @@ export class TwoFactorContainerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const currentPath = this.router.url;
-    
-    // Si estamos en /auth/3fa, es el flujo del tercer factor (EMAIL_CODE)
-    if (currentPath.includes('/auth/3fa')) {
-      const sessionToken = sessionStorage.getItem('twoFactorSessionToken');
-      const email = sessionStorage.getItem('loginEmail');
-      const verificationToken = sessionStorage.getItem('verificationToken');
-      const nextFactor = sessionStorage.getItem('nextFactor');
-
-      if (!sessionToken || !verificationToken || nextFactor !== 'EMAIL_CODE') {
-        this.handleError('Sesión expirada. Inicia sesión nuevamente.');
-        return;
-      }
-
-      this.sessionToken.set(sessionToken);
-      this.email.set(email || '');
-      this.verificationToken.set(verificationToken);
-      this.nextFactor.set('EMAIL_CODE');
-      
-      console.log('✅ [2FA-Container] Inicializando flujo 3FA (EMAIL_CODE)');
-      this.mfaStateService.initializeVerifyFlow(sessionToken, email || '');
-      return;
-    }
-
-    // Flujo normal del 2FA
     const sessionToken = sessionStorage.getItem('twoFactorSessionToken');
     const email = sessionStorage.getItem('loginEmail');
     const twoFactorType = sessionStorage.getItem('twoFactorType');
@@ -91,6 +66,16 @@ export class TwoFactorContainerComponent implements OnInit, OnDestroy {
       this.mfaStateService.initializeSetupFlow(sessionToken, email);
       this.fetchSetupData(sessionToken);
     } else {
+      // En flujo VERIFY, solo cargar verificationToken/nextFactor si existen
+      // (esto sucede cuando ya se verificó el TOTP y se requiere EMAIL_CODE)
+      const verificationToken = sessionStorage.getItem('verificationToken');
+      const nextFactor = sessionStorage.getItem('nextFactor');
+      
+      if (verificationToken && nextFactor) {
+        this.verificationToken.set(verificationToken);
+        this.nextFactor.set(nextFactor);
+      }
+      
       this.mfaStateService.initializeVerifyFlow(sessionToken, email);
     }
   }
@@ -127,26 +112,21 @@ export class TwoFactorContainerComponent implements OnInit, OnDestroy {
   }
 
   private handleAuthSuccess(tokens: any): void {
-    // Si se requiere un factor adicional (3FA - EMAIL_CODE)
+    // Si se requiere un factor adicional (3FA - EMAIL_CODE o cualquier otro)
     if (tokens?.state === 'REQUIRES_FACTOR' && tokens?.nextFactor) {
-      if (tokens.nextFactor === 'EMAIL_CODE') {
-        this.verificationToken.set(tokens.verificationToken || '');
-        this.nextFactor.set(tokens.nextFactor);
-        sessionStorage.setItem('verificationToken', tokens.verificationToken || '');
-        sessionStorage.setItem('nextFactor', tokens.nextFactor);
-        sessionStorage.setItem('twoFactorSessionToken', this.sessionToken());
-        
-        this.router.navigate(['/auth/3fa']);
-        return;
-      } else {
-        // Otro factor requerido, mantener en 2FA
-        this.verificationToken.set(tokens.verificationToken || '');
-        this.nextFactor.set(tokens.nextFactor);
-        sessionStorage.setItem('verificationToken', tokens.verificationToken || '');
-        sessionStorage.setItem('nextFactor', tokens.nextFactor);
-        this.mfaStateService.initializeVerifyFlow(this.sessionToken(), this.email());
-        return;
-      }
+      console.log('🔍 [2FA-Container] Factor adicional requerido:', {
+        nextFactor: tokens.nextFactor,
+        verificationToken: tokens.verificationToken,
+        sessionToken: this.sessionToken()
+      });
+      
+      this.verificationToken.set(tokens.verificationToken || '');
+      this.nextFactor.set(tokens.nextFactor);
+      sessionStorage.setItem('verificationToken', tokens.verificationToken || '');
+      sessionStorage.setItem('nextFactor', tokens.nextFactor);
+      sessionStorage.setItem('twoFactorType', 'VERIFY');
+      this.mfaStateService.initializeVerifyFlow(this.sessionToken(), this.email());
+      return;
     }
     
     if (!tokens?.accessToken) {
@@ -181,6 +161,14 @@ export class TwoFactorContainerComponent implements OnInit, OnDestroy {
 
     this.authService.startSessionTimers();
     this.mfaStateService.completeAuth(tokens.accessToken, tokens.refreshToken);
+    
+    // Limpiar todos los valores de sesión del flujo 2FA/3FA
+    sessionStorage.removeItem('twoFactorSessionToken');
+    sessionStorage.removeItem('twoFactorType');
+    sessionStorage.removeItem('verificationToken');
+    sessionStorage.removeItem('nextFactor');
+    sessionStorage.removeItem('loginEmail');
+    
     this.navigateByRole();
   }
 
@@ -200,6 +188,9 @@ export class TwoFactorContainerComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       sessionStorage.removeItem('twoFactorSessionToken');
       sessionStorage.removeItem('loginEmail');
+      sessionStorage.removeItem('verificationToken');
+      sessionStorage.removeItem('nextFactor');
+      sessionStorage.removeItem('twoFactorType');
       this.router.navigate(['/login']);
     }, 2000);
   }
