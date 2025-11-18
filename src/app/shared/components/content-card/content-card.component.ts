@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Contenido } from '../../../core/models/contenido.models';
@@ -13,18 +13,22 @@ import { InfoModalComponent } from '../info-modal/info-modal.component';
   templateUrl: './content-card.component.html',
   styleUrls: ['./content-card.component.scss']
 })
-export class ContentCardComponent {
+export class ContentCardComponent implements OnInit {
   @Input() contenido!: Contenido;
   @Input() isCreatorView: boolean = false;
   @Input() navigationOrigin: string = 'catalog'; // 'catalog', 'private-lists', etc.
 
   constructor(private router: Router, private apiService: ApiService, private authService: AuthService) {}
 
+  ngOnInit(): void {
+    // No necesitamos cargar thumbnails aquí
+  }
+
   /**
    * Obtiene la URL completa de la miniatura convirtiendo rutas relativas
    */
   get miniaturaUrl(): string {
-    return this.apiService.getFullResourceUrl(this.contenido.miniaturaUrl);
+    return this.apiService.getFullThumbnailUrl(this.contenido.miniaturaUrl);
   }
   showIncompatibleModal = false;
 

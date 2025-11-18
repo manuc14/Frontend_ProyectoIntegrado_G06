@@ -58,7 +58,7 @@
                         [class.selected]="selectedThumbnail === thumbnail"
                         (click)="selectThumbnail(thumbnail)"
                         [attr.aria-pressed]="selectedThumbnail === thumbnail">
-                  <img [src]="thumbnail" [alt]="'Miniatura ' + (i + 1)" />
+                  <img [src]="formBaseService.getFullImageUrl(thumbnail, 'thumbnail')" [alt]="'Miniatura ' + (i + 1)" />
                   <span class="check" *ngIf="selectedThumbnail === thumbnail">✓</span>
                 </button>
 

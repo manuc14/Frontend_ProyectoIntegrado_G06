@@ -18,15 +18,22 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/auth/reset-password',
     '/resources/',
     '/assets/',
-    '/api/files/', // Para thumbnails y archivos estáticos
     '/auth/reset-password'
+  ];
+
+  // Rutas que SÍ necesitan autenticación (incluso si están en publicUrls)
+  const authenticatedUrls = [
+    '/api/files/thumbnails/' // Thumbnails requieren autenticación
   ];
 
   // Verificar si la petición es a una ruta pública
   const isPublicUrl = publicUrls.some(url => req.url.includes(url));
 
-  // Si es una ruta pública, no agregar token
-  if (isPublicUrl) {
+  // Verificar si la petición requiere autenticación explícitamente
+  const requiresAuth = authenticatedUrls.some(url => req.url.includes(url));
+
+  // Si es una ruta pública Y no requiere autenticación explícita, no agregar token
+  if (isPublicUrl && !requiresAuth) {
     return next(req);
   }
 

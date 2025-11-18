@@ -5,6 +5,7 @@ import { ContentCreatorHeaderComponent } from '../../../../shared/components/con
 import { CreatorSidebarComponent } from '../../../../shared/components/creator-sidebar/creator-sidebar.component';
 import { FooterComponent } from '../../../../shared/footer/footer.component';
 import { CreatorStatsService } from '../../../../core/services/creator-stats.service';
+import { ApiService } from '../../../../core/services/api.service';
 
 interface WeekData {
   day: string;
@@ -36,7 +37,8 @@ export class ContentCreatorComponent implements OnInit {
 
   constructor(
     private statsService: CreatorStatsService,
-    private router: Router
+    private router: Router,
+    private apiService: ApiService
   ) {}
 
   ngOnInit(): void {
@@ -57,14 +59,14 @@ export class ContentCreatorComponent implements OnInit {
         this.topReproductions = data.topPorReproducciones.map((item, index) => ({
           title: item.nombre,
           views: this.formatearNumero(item.reproducciones),
-          thumbnail: item.miniatura || '/assets/brand/logo.svg',
+          thumbnail: this.apiService.getFullThumbnailUrl(item.miniatura || '/assets/brand/logo.svg'),
           rank: index + 1
         }));
 
         this.topRatings = data.topPorValoracion.map((item, index) => ({
           title: item.nombre,
           rating: item.valoracion.toFixed(1),
-          thumbnail: item.miniatura || '/assets/brand/logo.svg',
+          thumbnail: this.apiService.getFullThumbnailUrl(item.miniatura || '/assets/brand/logo.svg'),
           rank: index + 1
         }));
 
@@ -121,6 +123,13 @@ export class ContentCreatorComponent implements OnInit {
 
     if (numPoints === 0) return '';
 
+    // Si hay solo un punto, no podemos dibujar una curva, devolver un punto simple
+    if (numPoints === 1) {
+      const x = 50; // Centro del gráfico
+      const y = 100 - ((data[0].views / maxValue) * 100);
+      return `M ${x} ${y}`;
+    }
+
     let path = '';
     data.forEach((item, index) => {
       const x = (100 / (numPoints - 1)) * index;
@@ -159,5 +168,4 @@ export class ContentCreatorComponent implements OnInit {
   navigateToUploadContent(): void {
     this.router.navigate(['/upload-content']);
   }
-
 }

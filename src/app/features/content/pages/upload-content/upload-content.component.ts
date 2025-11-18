@@ -51,7 +51,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private fb: FormBuilder,
-    private formBaseService: FormBaseService,
+    public formBaseService: FormBaseService,
     public imageSelectorService: ImageSelectorService,
     private uploadService: UploadService,
     private catalogoService: CatalogoService,

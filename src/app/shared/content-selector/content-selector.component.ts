@@ -5,6 +5,8 @@ import { buttonHover, buttonPress } from '../../core/animations/animations';
 import { PublicListService } from '../../core/services/public-list.service';
 import { ApiService } from '../../core/services/api.service';
 import { environment } from '../../../environments/environment';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 export interface SuggestedContent {
   id: string;
