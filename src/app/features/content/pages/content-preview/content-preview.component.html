@@ -1,9 +1,9 @@
 <div class="preview-page">
   <!-- Imagen de fondo (miniatura del video) -->
   <div class="background-image-container">
-    <img 
-      [src]="contenido?.miniaturaUrl || contenido?.foto || 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?w=1920&h=1080&fit=crop'" 
-      [alt]="contenido?.titulo || 'Vista previa del contenido'" 
+    <img
+      [src]="contenido?.miniaturaUrl || contenido?.foto || 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?w=1920&h=1080&fit=crop'"
+      [alt]="contenido?.titulo || 'Vista previa del contenido'"
       class="background-image"
       (error)="onImageError($event)" />
   </div>
@@ -11,9 +11,9 @@
   <!-- Contenido superpuesto -->
   <div class="preview-content">
     <!-- Botón Volver (arriba a la izquierda) -->
-    <app-back-button 
+    <app-back-button
       class="back-button-position"
-      [navigateTo]="'/catalog'">
+      (onClick)="navigateBack()">
     </app-back-button>
 
     <!-- Tarjetas principales (abajo) -->
@@ -24,32 +24,34 @@
           <!-- Título y acciones -->
           <div class="title-row">
             <h1 class="content-title">{{ contenido.titulo }}</h1>
-            
+
             <div class="quick-actions">
               <app-action-button
                 icon="heart"
                 variant="icon"
                 size="medium"
+                [filled]="isFavorito"
                 (onClick)="addToFavorites()">
               </app-action-button>
-              
-              <app-action-button
-                icon="plus"
-                variant="icon"
-                size="medium"
-                (onClick)="addToList()">
-              </app-action-button>
+
             </div>
           </div>
 
           <!-- Metadatos: Creador, Premium, Calidad, Edad -->
           <div class="metadata-row">
-            <div class="metadata-pill creator-pill" *ngIf="contenido.creador">
-              <img [src]="contenido.creador.avatar" 
-                   [alt]="contenido.creador.nombre" 
-                   class="creator-avatar" 
-                   (error)="onImageError($event)" />
-              <span>{{ contenido.creador.nombre }}</span>
+            <div class="metadata-pill creator-pill" *ngIf="contenido.creadorAlias">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"/>
+              </svg>
+              <span>{{ contenido.creadorAlias }}</span>
+            </div>
+
+            <div class="metadata-pill specialty-pill" *ngIf="contenido.creadorEspecialidad">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L13.09 5.26L16 4.27L14.91 7.53L18 8.52L14.91 9.51L16 12.77L13.09 11.78L12 15L10.91 11.78L8 12.77L9.09 9.51L6 8.52L9.09 7.53L8 4.27L10.91 5.26L12 2Z"/>
+                <path d="M19 13H17L16 11H14L15 13H13V15H15L14 17H16L17 15H19V13Z"/>
+              </svg>
+              <span>{{ contenido.creadorEspecialidad }}</span>
             </div>
 
             <div class="metadata-pill" *ngIf="contenido.contenidoVip">
@@ -91,10 +93,10 @@
           <!-- Descripción -->
           <div class="description-section">
             <p class="description-text">{{ contenido.descripcion }}</p>
-            
+
             <!-- Tags -->
             <div class="tags-container">
-              <app-filter-pill 
+              <app-filter-pill
                 *ngFor="let tag of contenido.tags"
                 [label]="tag"
                 [isActive]="false"
@@ -111,28 +113,32 @@
           <!-- Título y valoración promedio -->
           <div class="rating-header">
             <h2 class="rating-title">Valora este vídeo</h2>
-            
+
             <div class="average-rating">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFD700">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
               </svg>
-              <span class="rating-value">4,2</span>
+              <span class="rating-value">{{ valoracionMedia > 0 ? (valoracionMedia | number:'1.1-1') : '-' }}</span>
             </div>
           </div>
 
           <!-- Sección de estrellas -->
           <div class="user-rating-section">
-            <p class="rating-instructions">Elige tu valoración (1 a 5 estrellas)</p>
-            
+            <p class="rating-instructions">
+              {{ yaValorado ? 'Tu valoración: ' + valoracionUsuario + ' estrellas' : 'Elige tu valoración (1 a 5 estrellas)' }}
+            </p>
+
             <div class="stars-container">
-              <button 
+              <button
                 *ngFor="let star of [1, 2, 3, 4, 5]"
                 class="star-button"
                 [class.filled]="isStarFilled(star)"
+                [class.disabled]="yaValorado"
+                [disabled]="yaValorado"
                 (click)="setRating(star)"
                 (mouseenter)="setHoverRating(star)"
                 (mouseleave)="clearHoverRating()">
-                <svg width="18" height="18" viewBox="0 0 24 24" 
+                <svg width="18" height="18" viewBox="0 0 24 24"
                      [attr.fill]="isStarFilled(star) ? '#FFD700' : 'none'"
                      stroke="currentColor"
                      stroke-width="2">

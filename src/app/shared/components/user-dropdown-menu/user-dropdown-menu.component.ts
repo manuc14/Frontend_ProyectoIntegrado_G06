@@ -9,6 +9,13 @@ export interface MenuOption {
   action: () => void;
 }
 
+// Nueva interfaz que define la configuración del menú por rol
+export interface RoleMenuConfig {
+  homeRoute: string;
+  profileRoute: string;
+  additionalOptions: MenuOption[];
+}
+
 /**
  * Componente de menú desplegable de usuario
  * Reutilizable en todos los headers con opciones específicas según rol
@@ -45,7 +52,7 @@ export class UserDropdownMenuComponent implements OnInit {
     // Obtener el rol normalizado desde AuthService para asegurar que sea correcto
     const role = this.authService.getCurrentRole() ?? 'user';
     const routes = this.roleRoutes[role];
-    
+
     // Opciones base (comunes para todos)
     const baseOptions: MenuOption[] = [
       { iconSvg: 'home', label: 'Inicio', action: () => this.navigate(routes.home) },

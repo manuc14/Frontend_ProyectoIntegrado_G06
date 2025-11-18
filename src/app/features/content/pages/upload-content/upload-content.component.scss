@@ -168,6 +168,53 @@ label span {
   font-size: 12px;
 }
 
+/* --------------------------------------------------------------------------
+   FEEDBACK DE VALIDACIÓN DE URL
+   -------------------------------------------------------------------------- */
+
+.url-validation-feedback {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.validation-success {
+  @include mixins.text-base(#15803d, 12px, 500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: '✅';
+    font-size: 14px;
+  }
+}
+
+.validation-error {
+  @include mixins.text-base(#8B0000, 12px, 500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: '⚠';
+    font-size: 14px;
+  }
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -509,6 +556,16 @@ label span {
   opacity: 0.9;
 }
 
+.btn.danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn.danger:hover {
+  background: #dc2626;
+  opacity: 1;
+}
+
 .btn.small {
   padding: 6px 12px;
   font-size: 12px;
@@ -526,11 +583,18 @@ label span {
 .form-actions {
   grid-column: span 2;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin-top: 24px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
+}
+
+.form-actions-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 /* --------------------------------------------------------------------------
@@ -550,6 +614,11 @@ label span {
   .form-actions {
     grid-column: span 1;
     flex-direction: column-reverse;
+  }
+  
+  .form-actions-right {
+    flex-direction: column;
+    width: 100%;
   }
   
   .btn {

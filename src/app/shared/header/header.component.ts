@@ -1,4 +1,4 @@
-import { Component, inject, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit, HostListener } from '@angular/core';
+import {Component, inject, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit, HostListener} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -47,7 +47,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
     this.currentRoute = this.router.url;
     this.checkIfHomePage();
     this.updateBodyClass();
-    
+
     // Escuchar cambios de ruta
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -100,15 +100,15 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   override getAvatarUrl(): string {
     const fotoUrl = this.currentUser?.foto;
 
-    // Early return with full URL if foto exists
-    if (fotoUrl) {
-      return this.imageSelectorService.getFullImageUrl(fotoUrl, 'avatar');
+    // If foto is just a filename (like "avatar2.png"), convert to full path
+    let fullPath = fotoUrl;
+    if (!fotoUrl.includes('/') && !fotoUrl.includes('http')) {
+      fullPath = `/resources/avatars/${fotoUrl}`;
     }
 
-    return 'assets/admin/admin_default.png';
+    // Return full URL using ApiService
+    return this.apiService.getFullResourceUrl(fullPath);
   }
-
-
   /**
    * Cierra la sesión del usuario usando AuthService
    */
@@ -123,11 +123,11 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
    */
   private updateBodyClass() {
     const body = document.body;
-    
+
     // Remover clases existentes
     this.renderer.removeClass(body, 'home-page');
     this.renderer.removeClass(body, 'other-page');
-    
+
     // Agregar clase apropiada
     if (this.isHomePage) {
       this.renderer.addClass(body, 'home-page');
@@ -149,7 +149,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   private updateLogoVisibility() {
     const logoLarge = this.elementRef.nativeElement.querySelector('.desktop-logo');
     const logoSmall = this.elementRef.nativeElement.querySelector('.desktop-logo-small');
-    
+
     if (logoLarge && logoSmall) {
       if (this.isHomePage && !this.hasScrolled) {
         // En home sin scroll: mostrar logo grande
@@ -172,9 +172,9 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   onWindowScroll() {
     // Solo aplicar lógica de scroll en la página home
     if (!this.isHomePage) return;
-    
+
     const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    
+
     // Solo cambiar una vez cuando se hace el primer scroll en home
     if (scrollTop > 50 && !this.hasScrolled) {
       this.hasScrolled = true;

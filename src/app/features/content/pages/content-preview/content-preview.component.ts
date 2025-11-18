@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FilterPillComponent } from '../../../../shared/components/filter-pill/filter-pill.component';
@@ -8,6 +8,7 @@ import { VipPromoModalComponent } from '../../../../shared/vip-promo-modal/vip-p
 import { CatalogoService } from '../../../../core/services/catalogo.service';
 import { Contenido } from '../../../../core/models/contenido.models';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ContentPreviewService, InfoContenidoResponse } from '../../../../core/services/content-preview.service';
 
 @Component({
   selector: 'app-content-preview',
@@ -27,82 +28,117 @@ export class ContentPreviewComponent implements OnInit {
   private router = inject(Router);
   private catalogoService = inject(CatalogoService);
   private authService = inject(AuthService);
+  private contentPreviewService = inject(ContentPreviewService);
+  private cdr = inject(ChangeDetectorRef);
 
   contenido: Contenido | null = null;
   valoracionUsuario: number = 0;
+  valoracionMedia: number = 0;
   valoracionHover: number = 0;
   showVipModal: boolean = false;
+  isFavorito: boolean = false;
+  navigationOrigin: string = 'catalog';
+  protected yaValorado: boolean = false;
+  private yaReprodujo: boolean = false;
 
   ngOnInit(): void {
-    // Intentar obtener el ID desde localStorage
+    // Leer el origen de la navegación desde los query parameters
+    this.route.queryParams.subscribe(params => {
+      if (params['origin']) {
+        this.navigationOrigin = params['origin'];
+      }
+    });
+
     const contentId = localStorage.getItem('currentContentId');
-    
+
     if (contentId) {
-      console.log('🔍 [PREVIEW] ID obtenido desde localStorage:', contentId);
       this.loadContent(contentId);
     } else {
-      console.log('❌ [PREVIEW] No hay ID en localStorage - redirigiendo al catálogo');
-      this.router.navigate(['/catalog']);
+      this.navigateBack();
     }
   }
 
   loadContent(id: string): void {
-    console.log('🔍 [PREVIEW] Cargando contenido con ID:', id);
-    
     this.catalogoService.getContenidoById(id).subscribe({
       next: (contenido) => {
-        console.log('✅ [PREVIEW] Contenido cargado desde backend:', contenido);
-        
-        // Validar restricción de edad
         const userAge = this.authService.getUserAge();
         const contentAge = contenido.restriccionEdad || 0;
-        
+
         if (userAge < contentAge) {
-          alert(`❌ No tienes la edad suficiente para ver este contenido.\n\nEste contenido requiere ${contentAge}+ años.`);
-          this.router.navigate(['/catalog']);
+          alert(`No tienes la edad suficiente para ver este contenido.\n\nEste contenido requiere ${contentAge}+ años.`);
+          this.navigateBack();
           return;
         }
-        
+
+        contenido.creadorAlias = localStorage.getItem('currentContentCreatorAlias') ?? '';
+        contenido.creadorEspecialidad = localStorage.getItem('currentContentCreatorSpecialty') ?? '';
+
         this.contenido = contenido;
+        this.loadContentInfo(id);
       },
       error: (error) => {
-        console.error('❌ [PREVIEW] Error cargando contenido:', error);
-        this.router.navigate(['/catalog']);
+        console.error('Error cargando contenido:', error);
+        this.navigateBack();
+      }
+    });
+  }
+
+  private loadContentInfo(contenidoId: string): void {
+    this.contentPreviewService.obtenerInfoCompleta(contenidoId).subscribe({
+      next: (info: InfoContenidoResponse) => {
+        console.log('✅ Información del contenido cargada:', info);
+
+        this.isFavorito = info.esFavorito;
+        this.valoracionMedia = info.valoracionMedia || 0;
+        this.yaReprodujo = info.yaReprodujo;
+
+        if (info.miValoracion !== null) {
+          this.valoracionUsuario = info.miValoracion;
+          this.yaValorado = true;
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ Error cargando información del contenido:', error);
+        this.isFavorito = false;
+        this.valoracionMedia = 0;
       }
     });
   }
 
   playContent(): void {
     if (!this.contenido?._id) {
-      console.error('❌ ERROR: contenido o _id es undefined');
+      console.error('Contenido no disponible');
       return;
     }
 
-    // Verificar si el contenido es VIP y el usuario no lo es
-    if (this.contenido.contenidoVip) {
-      const isUserVip = this.authService.isUserVip();
-      
-      if (!isUserVip) {
-        // Mostrar modal VIP en lugar de alert
-        this.showVipModal = true;
-        return;
-      }
+    if (this.contenido.contenidoVip && !this.authService.isUserVip()) {
+      this.showVipModal = true;
+      return;
     }
 
-    console.log('✅ Guardando ID en localStorage y navegando a /player');
-    localStorage.setItem('currentContentId', this.contenido._id);
-    this.router.navigate(['/player']);
+    this.contentPreviewService.registrarReproduccion(this.contenido._id).subscribe({
+      next: () => {
+        console.log('✅ Reproducción registrada en el backend');
+        this.yaReprodujo = true;
+        localStorage.setItem('currentContentId', this.contenido!._id);
+        this.router.navigate(['/player']);
+      },
+      error: (error) => {
+        console.error('❌ Error al registrar reproducción:', error);
+        localStorage.setItem('currentContentId', this.contenido!._id);
+        this.router.navigate(['/player']);
+      }
+    });
   }
 
-  // Métodos para el modal VIP
   onUpgradeToVip(): void {
-    console.log('🎯 Usuario quiere actualizar a VIP');
     this.showVipModal = false;
     this.router.navigate(['/user-consultprofile']);
   }
 
   onContinueWithoutVip(): void {
-    console.log('✅ Usuario continúa sin VIP');
     this.showVipModal = false;
   }
 
@@ -111,20 +147,60 @@ export class ContentPreviewComponent implements OnInit {
   }
 
   addToFavorites(): void {
-    console.log('Añadir a favoritos:', this.contenido?.titulo);
-  }
+    if (!this.contenido?._id) return;
 
-  addToList(): void {
-    console.log('Añadir a lista:', this.contenido?.titulo);
+    this.contentPreviewService.toggleFavorito(this.contenido._id).subscribe({
+      next: (response) => {
+        console.log('✅ Favorito actualizado:', response);
+        this.isFavorito = response.agregado;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ Error cambiando favorito:', error);
+        alert('No se pudo actualizar el favorito. Por favor, intenta de nuevo.');
+      }
+    });
   }
 
   setRating(rating: number): void {
-    this.valoracionUsuario = rating;
-    console.log('Valoración establecida:', rating);
+    if (!this.contenido?._id) {
+      console.error('Contenido no disponible');
+      return;
+    }
+
+    if (this.yaValorado) {
+      alert('Ya has valorado este contenido. No puedes modificar tu valoración.');
+      return;
+    }
+
+    if (!this.yaReprodujo) {
+      alert('Debes reproducir el contenido antes de poder valorarlo.');
+      return;
+    }
+
+    this.contentPreviewService.valorarContenido(this.contenido._id, rating).subscribe({
+      next: () => {
+        console.log('✅ Valoración registrada en el backend');
+        this.valoracionUsuario = rating;
+        this.yaValorado = true;
+        this.loadContentInfo(this.contenido!._id);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ Error al valorar contenido:', error);
+        if (error.error?.message) {
+          alert(error.error.message);
+        } else {
+          alert('No se pudo registrar la valoración. Asegúrate de haber reproducido el contenido primero.');
+        }
+      }
+    });
   }
 
   setHoverRating(rating: number): void {
-    this.valoracionHover = rating;
+    if (!this.yaValorado) {
+      this.valoracionHover = rating;
+    }
   }
 
   clearHoverRating(): void {
@@ -132,6 +208,9 @@ export class ContentPreviewComponent implements OnInit {
   }
 
   isStarFilled(starIndex: number): boolean {
+    if (this.yaValorado) {
+      return starIndex <= this.valoracionUsuario;
+    }
     return starIndex <= (this.valoracionHover || this.valoracionUsuario);
   }
 
@@ -144,5 +223,17 @@ export class ContentPreviewComponent implements OnInit {
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
     img.src = 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?w=1920&h=1080&fit=crop';
+  }
+
+  navigateBack(): void {
+    switch (this.navigationOrigin) {
+      case 'private-lists':
+        this.router.navigate(['/my-lists'], { queryParams: {} });
+        break;
+      case 'catalog':
+      default:
+        this.router.navigate(['/catalog'], { queryParams: {} });
+        break;
+    }
   }
 }

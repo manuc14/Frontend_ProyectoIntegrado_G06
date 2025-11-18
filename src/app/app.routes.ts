@@ -27,6 +27,7 @@ import { EditPublicListComponent } from './features/content/pages/edit-public-li
 import { PrivateListsComponent } from './features/user/pages/private-lists/private-lists.component';
 import { CreatePrivateListComponent } from './features/user/pages/create-private-list/create-private-list.component';
 import { EditPrivateListComponent } from './features/user/pages/edit-private-list/edit-private-list.component';
+
 // Perfil de Administrador
 import { AdConsultprofileComponent } from './features/admin/pages/ad-consultprofile/ad-consultprofile.component';
 
@@ -44,7 +45,6 @@ import { ContentPreviewComponent } from './features/content/pages/content-previe
 import { MediaPlayerComponent } from './features/content/pages/media-player/media-player.component';
 import { SearchComponent } from './features/content/pages/search/search.component';
 import { CreatorCatalogComponent } from './features/creator/pages/creator-catalog/creator-catalog.component';
-import { CreatorStatsComponent } from './features/creator/pages/creator-stats/creator-stats.component';
 import { VerifyEmailPage } from './features/auth/pages/verify-email/verify-email.page';
 import { VerifyCodePage } from './features/auth/pages/verify-code/verify-code.page';
 import { ForgotPasswordPage } from './features/auth/pages/forgot-password/forgot-password.page';
@@ -57,14 +57,14 @@ export const routes: Routes = [
 	{ path: '', component: HomeComponent, canActivate: [publicGuard] },
 	{ path: 'signup', component: RegisterComponent, canActivate: [publicGuard] },
 	{ path: 'login', component: LoginComponent, canActivate: [publicGuard] },
-	
+
 	// ===== Verificación de Email (1FA) =====
 	{ path: 'auth/verify-email', component: VerifyEmailPage, canActivate: [publicGuard] },
 	{ path: 'auth/verify-code', component: VerifyCodePage, canActivate: [publicGuard] },
-	
+
 	// ===== Segundo Factor (2FA - Login y Setup) =====
 	{ path: 'auth/2fa', component: TwoFactorContainerComponent, canActivate: [publicGuard] },
-	
+
 	// ===== Redirects para compatibilidad (rutas legacy) =====
 	{ path: 'verify-email', redirectTo: 'auth/verify-email', pathMatch: 'full' },
 	{ path: 'verify-code', redirectTo: 'auth/verify-code', pathMatch: 'full' },
@@ -86,20 +86,14 @@ export const routes: Routes = [
   { path: 'ad-creators-edit/:id', component: AdminCreatorsEditPage, canActivate: [authGuard] },
 
   { path: 'ad-content', component: AdminContentPage, canActivate: [authGuard] },
-  // Perfil de Administrador
   { path: 'ad-consultprofile', component: AdConsultprofileComponent, canActivate: [authGuard] },
-
-  // Perfil de Creador de Contenido
-  { path: 'content-creator-consultprofile', component: ContentCreatorConsultprofileComponent, canActivate: [authGuard] },
-
-  // Perfil de Usuario
-  { path: 'user-consultprofile', component: UserConsultprofileComponent, canActivate: [authGuard] },
 
 	// Rutas de Creator (protegidas)
 	{ path: 'content-creator', component: ContentCreatorComponent, canActivate: [authGuard] },
 	{ path: 'upload-content', component: UploadContentComponent, canActivate: [authGuard] },
+	{ path: 'edit-content', component: UploadContentComponent, canActivate: [authGuard] },
 	{ path: 'creator/catalog', component: CreatorCatalogComponent, canActivate: [authGuard] },
-	{ path: 'creator/estadisticas', component: CreatorStatsComponent, canActivate: [authGuard] },
+  { path: 'content-creator-consultprofile', component: ContentCreatorConsultprofileComponent, canActivate: [authGuard] },
 
   // Rutas de Listas Públicas (protegidas)
   { path: 'create-list', component: CreatePublicListComponent, canActivate: [authGuard] },
@@ -115,12 +109,13 @@ export const routes: Routes = [
 	{ path: 'search', component: SearchComponent, canActivate: [authGuard] },
 	{ path: 'content/preview', component: ContentPreviewComponent, canActivate: [authGuard] },
 	{ path: 'player', component: MediaPlayerComponent, canActivate: [authGuard] },
-	
+  { path: 'user-consultprofile', component: UserConsultprofileComponent, canActivate: [authGuard] },
+
 	// ===== Recuperación de Contraseña =====
 	{ path: 'auth/forgot-password', component: ForgotPasswordPage, canActivate: [publicGuard] },
 	{ path: 'auth/reset-password-code', component: ResetPasswordCodePage, canActivate: [publicGuard] },
 	{ path: 'auth/new-password', component: NewPasswordPage, canActivate: [publicGuard] },
-	
+
 	// Redirects para rutas legacy de recuperación
 	{ path: 'forgot-password', redirectTo: 'auth/forgot-password', pathMatch: 'full' },
 	{ path: 'reset-password-code', redirectTo: 'auth/reset-password-code', pathMatch: 'full' },

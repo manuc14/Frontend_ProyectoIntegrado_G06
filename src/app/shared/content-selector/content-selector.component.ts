@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { buttonHover, buttonPress } from '../../core/animations/animations';
 import { PublicListService } from '../../core/services/public-list.service';
+import { ApiService } from '../../core/services/api.service';
 import { environment } from '../../../environments/environment';
 
 export interface SuggestedContent {
@@ -161,6 +162,7 @@ export class ContentSelectorComponent implements OnInit {
   @Output() typeChange = new EventEmitter<ContentType>();
 
   private readonly publicListService = inject(PublicListService);
+  private readonly apiService = inject(ApiService);
 
   allContent: SuggestedContent[] = [];
   searchTerm = '';
@@ -237,10 +239,10 @@ export class ContentSelectorComponent implements OnInit {
   }
 
   private buildThumbnailUrl(miniaturaUrl?: string): string {
-    if (!miniaturaUrl || miniaturaUrl.startsWith('http') || miniaturaUrl.startsWith('/')) {
-      return miniaturaUrl ?? 'assets/default-thumbnail.png';
+    if (!miniaturaUrl) {
+      return 'assets/default-thumbnail.png';
     }
-    return `${environment.baseResourceUrl}/miniaturas/${miniaturaUrl}`;
+    return this.apiService.getFullThumbnailUrl(miniaturaUrl);
   }
 
   onContentTypeChange(type: ContentType): void {

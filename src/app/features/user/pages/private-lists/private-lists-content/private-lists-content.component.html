@@ -92,6 +92,7 @@
           [section]="lista.id"
           (editList)="onEditarLista($event)"
           (deleteList)="onEliminarLista($event)"
+          *ngIf="!isFavoritosList(lista.id)"
         ></app-list-action-buttons>
       </div>
 
@@ -99,6 +100,7 @@
         <app-content-card
           *ngFor="let item of lista.items"
           [contenido]="item"
+          [navigationOrigin]="'private-lists'"
         ></app-content-card>
       </div>
     </section>

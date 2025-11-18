@@ -1,7 +1,10 @@
-<a class="content-card" [class.content-card--private]="isCreatorView && isPrivate" (click)="navigateToPreview($event)">
+<a class="content-card" 
+   [class.content-card--private]="isCreatorView && isPrivate" 
+   [class.content-card--clickable]="isCreatorView || !isCreatorView"
+   (click)="handleCardClick($event)">
   <!-- Miniatura del contenido -->
   <div class="content-card__thumbnail">
-    <img [src]="contenido.miniaturaUrl" [alt]="contenido.titulo" class="content-card__thumbnail-img">
+    <img [src]="miniaturaUrl" [alt]="contenido.titulo" class="content-card__thumbnail-img">
     
     <!-- Badge de Contenido Privado (solo en vista de creador) -->
     <div *ngIf="isCreatorView && isPrivate" class="content-card__badge content-card__badge--private">
@@ -41,11 +44,11 @@
     <h3 class="content-card__title">{{ contenido.titulo }}</h3>
     
     <!-- Información del creador y categoría (más pequeño) -->
-    <p *ngIf="contenido.creador || contenido.categoria" class="content-card__meta">
-      <span *ngIf="contenido.creador" class="content-card__creator">
-        {{ contenido.creador.nombre }}
+    <p *ngIf="contenido.creadorAlias || contenido.categoria" class="content-card__meta">
+      <span *ngIf="contenido.creadorAlias" class="content-card__creator">
+        {{ contenido.creadorAlias }}
       </span>
-      <span *ngIf="contenido.creador && contenido.categoria" class="content-card__separator">•</span>
+      <span *ngIf="contenido.creadorAlias && contenido.categoria" class="content-card__separator">•</span>
       <span *ngIf="contenido.categoria" class="content-card__category">
         {{ contenido.categoria }}
       </span>
@@ -59,3 +62,14 @@
     </div>
   </div>
 </a>
+
+<!-- Modal de contenido incompatible -->
+<app-info-modal
+  [isVisible]="showIncompatibleModal"
+  [title]="'Contenido Incompatible'"
+  [message]="incompatibleModalMessage"
+  [iconType]="'warning'"
+  [buttonText]="'Entendido'"
+  (closed)="closeIncompatibleModal()">
+</app-info-modal>
+
