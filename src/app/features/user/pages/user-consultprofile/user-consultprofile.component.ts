@@ -151,6 +151,14 @@ export class UserConsultprofileComponent extends BaseProfileComponent {
       
       this.api.updateUserProfile(payload).subscribe({
         next: () => {
+          // Update the current user in auth service with the new avatar
+          const currentUser = this.authService.getCurrentUser();
+          if (currentUser) {
+            currentUser.foto = this.selectedAvatar;
+            currentUser.avatar = this.selectedAvatar;
+            this.authService.setCurrentUser(currentUser);
+          }
+          
           this.successMessage = 'Perfil actualizado correctamente';
           
           if (this.twoFactorEnabled && !this.initialTwoFactorState) {

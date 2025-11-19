@@ -71,9 +71,9 @@ export class AdConsultprofileComponent extends BaseProfileComponent {
           startDate: toDateInputFormat(profile.registrationDate)
         });
 
-        this.selectedAvatar = profile.avatar || 'assets/admin/admin_default.png';
+        this.selectedAvatar = this.api.getFullResourceUrl(profile.avatar) || 'assets/admin/admin_default.png';
         this.initialAvatar = this.selectedAvatar;
-        this.availableAvatars = profile.availableAvatars || [];
+        this.availableAvatars = profile.availableAvatars?.map(avatar => this.api.getFullResourceUrl(avatar)) || [];
         
         // Configurar campos de solo lectura
         this.profileForm.get('startDate')?.disable();
@@ -108,6 +108,16 @@ export class AdConsultprofileComponent extends BaseProfileComponent {
       
       this.api.updateAdminProfile(payload).subscribe({
         next: (response: any) => {
+          // Update the current user in auth service with the new avatar filename
+          const currentUser = this.authService.getCurrentUser();
+          if (currentUser) {
+            // Extract filename from the full URL for storage
+            const avatarFilename = this.formBaseService.extractImageFileName(this.selectedAvatar || '');
+            currentUser.foto = avatarFilename;
+            currentUser.avatar = avatarFilename;
+            this.authService.setCurrentUser(currentUser);
+          }
+          
           this.updateStateAfterSave(formData);
         },
         error: (error: any) => {

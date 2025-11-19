@@ -132,7 +132,11 @@ export class AdminCreatorsPage extends AdminListBase<CreatorEC> {
    * Obtiene la URL del avatar del creador
    */
   getAvatarUrl(creator: CreatorEC): string {
-    return this.imageSelectorService.getFullImageUrl(creator.foto ?? '', 'avatar');
+    let photoUrl = creator.foto;
+    if (photoUrl && !photoUrl.includes('/') && !photoUrl.includes('http')) {
+      photoUrl = `/resources/avatars/${photoUrl}`;
+    }
+    return this.apiService.getFullResourceUrl(photoUrl || '') || 'assets/admin/admin_default.png';
   }
 
   @HostListener('window:resize', ['$event'])

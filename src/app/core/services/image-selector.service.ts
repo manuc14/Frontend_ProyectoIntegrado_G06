@@ -167,11 +167,15 @@ export class ImageSelectorService {
    * @private
    */
   private handleLoadSuccess(images: string[], defaultImage: string, type: ImageType): void {
+    // Convertir todas las imágenes a URLs completas para el selector
+    const fullImageUrls = images.map(image => this.getFullImageUrl(image, type));
+    const defaultImageUrl = defaultImage ? this.getFullImageUrl(defaultImage, type) : null;
+    
     this.updateState({
-      images,
-      defaultImage,
-      selectedImage: defaultImage,
-      selectedImageUrl: defaultImage ? this.getFullImageUrl(defaultImage, type) : null,
+      images: fullImageUrls, // URLs completas para que AvatarSelector las use directamente
+      defaultImage, // Mantener ruta relativa para selectedImage
+      selectedImage: defaultImage, // Ruta relativa
+      selectedImageUrl: defaultImageUrl, // URL completa
       loading: false,
       error: false
     });
@@ -204,26 +208,27 @@ export class ImageSelectorService {
    * Actualiza el estado con la imagen seleccionada y construye su URL completa.
    * Se usa cuando el usuario elige una imagen del grid de opciones disponibles.
    * 
-   * @param {string} imagePath - Ruta relativa de la imagen seleccionada
+   * @param {string} imagePath - URL completa o ruta relativa de la imagen seleccionada
    * @param {ImageType} type - Tipo de imagen ('avatar' | 'thumbnail')
    * 
    * @example
    * ```typescript
    * // Seleccionar un avatar predefinido
-   * this.imageSelectorService.selectImage('/avatars/avatar3.png', 'avatar');
-   * 
-   * // Seleccionar una miniatura predefinida
-   * this.imageSelectorService.selectImage('/thumbnails/thumb2.jpg', 'thumbnail');
+   * this.imageSelectorService.selectImage('https://backend.../resources/avatars/avatar3.png', 'avatar');
    * ```
    */
   selectImage(imagePath: string, type: ImageType): void {
     const currentState = this.getCurrentState();
     // Only select if the imagePath is in the available images list
     if (currentState.images.includes(imagePath)) {
-      const fullUrl = this.getFullImageUrl(imagePath, type);
+      // Extraer la ruta relativa del nombre del archivo para selectedImage
+      const relativePath = this.extractImageFileName(imagePath);
+      // Si no contiene '/', asumir que es un nombre de archivo y construir la ruta
+      const fullRelativePath = relativePath.includes('/') ? relativePath : `/resources/avatars/${relativePath}`;
+      
       this.updateState({
-        selectedImage: imagePath,
-        selectedImageUrl: fullUrl
+        selectedImage: fullRelativePath, // Ruta relativa para el backend
+        selectedImageUrl: imagePath // URL completa para mostrar
       });
     } else {
       // If not in list, clear selection
@@ -285,16 +290,14 @@ export class ImageSelectorService {
    * @example
    * ```typescript
    * const avatarUrl = this.imageSelectorService.getFullImageUrl('/avatars/avatar1.png', 'avatar');
-   * // => '/resources/avatars/avatar1.png'
+   * // => 'https://backend.../resources/avatars/avatar1.png' (en prod)
    * 
    * const thumbUrl = this.imageSelectorService.getFullImageUrl('/thumbnails/thumb1.jpg', 'thumbnail');
-   * // => '/resources/thumbnails/thumb1.jpg'
+   * // => 'https://backend.../resources/thumbnails/thumb1.jpg' (en prod)
    * ```
    */
   getFullImageUrl(relativePath: string, type: ImageType): string {
-    return type === 'avatar'
-      ? this.apiService.getFullAvatarUrl(relativePath)
-      : this.apiService.getFullThumbnailUrl(relativePath);
+    return this.apiService.getFullResourceUrl(relativePath);
   }
 
   /**

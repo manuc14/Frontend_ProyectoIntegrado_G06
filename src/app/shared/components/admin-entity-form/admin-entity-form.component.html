@@ -21,7 +21,7 @@
           <!-- Sección de foto -->
           <div class="avatar-section">
             <div class="current-avatar">
-              <img [src]="currentFormState?.imageState?.selectedImage || 'assets/admin/admin_default.png'" alt="Avatar actual" class="avatar-preview">
+              <img [src]="currentFormState?.imageState?.selectedImageUrl || 'assets/admin/admin_default.png'" alt="Avatar actual" class="avatar-preview">
             </div>
             <button type="button" class="close-btn" (click)="openAvatarModal()" aria-label="Elegir avatar predefinido">
               Elegir predefinida

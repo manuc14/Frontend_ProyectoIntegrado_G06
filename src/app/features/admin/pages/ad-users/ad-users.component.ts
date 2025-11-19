@@ -77,18 +77,27 @@ export class AdminUsersPage extends AdminListBase<User> {
   }
 
   private mapUserData(data: UserEV[]): User[] {
-    return data.map(usuario => ({
-      id: usuario.id,
-      photo: this.imageSelectorService.getFullImageUrl(usuario.foto ?? '', 'avatar'),
-      name: usuario.nombre,
-      lastName: usuario.apellidos,
-      alias: `@${usuario.alias}`,
-      email: usuario.correo,
-      birthDate: formatDateIsoToDDMMYYYY(usuario.fechaNacimiento),
-      role: usuario.esVip ? 'VIP' : 'Estándar',
-      status: usuario.activo ? 'activo' : 'bloqueado',
-      fullName: `${usuario.nombre} ${usuario.apellidos}`
-    }));
+    return data.map(usuario => {
+      // Convertir foto a URL completa si es necesario
+      let photoUrl = usuario.foto;
+      if (photoUrl && !photoUrl.includes('/') && !photoUrl.includes('http')) {
+        photoUrl = `/resources/avatars/${photoUrl}`;
+      }
+      photoUrl = this.apiService.getFullResourceUrl(photoUrl || '');
+      
+      return {
+        id: usuario.id,
+        photo: photoUrl || 'assets/admin/admin_default.png',
+        name: usuario.nombre,
+        lastName: usuario.apellidos,
+        alias: `@${usuario.alias}`,
+        email: usuario.correo,
+        birthDate: formatDateIsoToDDMMYYYY(usuario.fechaNacimiento),
+        role: usuario.esVip ? 'VIP' : 'Estándar',
+        status: usuario.activo ? 'activo' : 'bloqueado',
+        fullName: `${usuario.nombre} ${usuario.apellidos}`
+      };
+    });
   }
 
 

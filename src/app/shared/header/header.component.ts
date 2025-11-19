@@ -90,24 +90,23 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
       return;
     }
 
-    // Update current user if authenticated
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      this.currentUser = user;
-    }
+    // Always update current user from auth service to ensure we have the latest data
+    this.currentUser = this.authService.getCurrentUser();
   }
 
   override getAvatarUrl(): string {
-    const fotoUrl = this.currentUser?.foto;
+    // Always get the current user from auth service to ensure we have the latest data
+    const currentUser = this.authService.getCurrentUser();
+    const fotoUrl = currentUser?.foto;
 
     // If foto is just a filename (like "avatar2.png"), convert to full path
     let fullPath = fotoUrl;
-    if (!fotoUrl.includes('/') && !fotoUrl.includes('http')) {
+    if (fotoUrl && !fotoUrl.includes('/') && !fotoUrl.includes('http')) {
       fullPath = `/resources/avatars/${fotoUrl}`;
     }
 
     // Return full URL using ApiService
-    return this.apiService.getFullResourceUrl(fullPath);
+    return this.apiService.getFullResourceUrl(fullPath || '');
   }
   /**
    * Cierra la sesión del usuario usando AuthService

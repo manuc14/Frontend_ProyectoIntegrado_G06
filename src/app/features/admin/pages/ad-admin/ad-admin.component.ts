@@ -157,7 +157,11 @@ export class AdminAdmsPage extends AdminListBase<AdminEV> {
    * Obtiene la URL del avatar del administrador
    */
   getAvatarUrl(admin: AdminEV): string {
-    return this.imageSelectorService.getFullImageUrl(admin.foto ?? '', 'avatar');
+    let photoUrl = admin.foto;
+    if (photoUrl && !photoUrl.includes('/') && !photoUrl.includes('http')) {
+      photoUrl = `/resources/avatars/${photoUrl}`;
+    }
+    return this.apiService.getFullResourceUrl(photoUrl || '') || 'assets/admin/admin_default.png';
   }
 
   @HostListener('window:resize', ['$event'])

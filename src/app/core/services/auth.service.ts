@@ -148,6 +148,10 @@ export class AuthService {
     }
   }
 
+  setCurrentUser(user: CurrentUser): void {
+    sessionStorage.setItem('currentUser', JSON.stringify(user));
+  }
+
   isAuthenticated(): boolean {
     return !!this.getToken() && !!this.getCurrentUser();
   }

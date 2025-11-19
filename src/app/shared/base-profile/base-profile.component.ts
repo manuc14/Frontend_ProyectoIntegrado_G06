@@ -239,7 +239,7 @@ export class BaseProfileComponent implements OnInit {
   protected loadAvatarsFromEndpoint(): void {
     this.api.getAvatars().subscribe({
       next: (response) => {
-        this.availableAvatars = response.avatars.map((avatar: string) => this.api.getFullAvatarUrl(avatar));
+        this.availableAvatars = response.avatars.map((avatar: string) => this.api.getFullResourceUrl(avatar));
       },
       error: () => {
         this.availableAvatars = [
@@ -271,11 +271,11 @@ export class BaseProfileComponent implements OnInit {
    * Carga y configura avatares desde el perfil
    */
   protected loadAvatars(avatarUrl: string | undefined, availableAvatars: string[] | undefined): void {
-    this.selectedAvatar = avatarUrl || 'assets/admin/admin_default.png';
+    this.selectedAvatar = avatarUrl ? this.api.getFullResourceUrl(avatarUrl) : 'assets/admin/admin_default.png';
     this.initialAvatar = this.selectedAvatar;
     
     if (availableAvatars?.length) {
-      this.availableAvatars = availableAvatars.map(avatar => this.api.getFullAvatarUrl(avatar));
+      this.availableAvatars = availableAvatars.map(avatar => this.api.getFullResourceUrl(avatar));
     } else {
       this.loadAvatarsFromEndpoint();
     }

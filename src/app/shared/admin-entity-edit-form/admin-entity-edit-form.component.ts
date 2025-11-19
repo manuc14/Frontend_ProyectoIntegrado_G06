@@ -58,7 +58,7 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
 
   /* Helpers para el template */
   getAvailableAvatars(state: FormState<EntityData> | null): string[] {
-    return state?.imageState.images?.map(img => this.api.getFullAvatarUrl(img)) || [];
+    return state?.imageState.images?.map(img => this.api.getFullResourceUrl(img)) || [];
   }
 
   getEntityField(state: FormState<EntityData> | null, field: string): any {
@@ -155,7 +155,14 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
         });
 
         // Seleccionar avatar actual
-        this.formBaseService.selectImage(entityData.foto ?? '', 'avatar');
+        const avatarPath = entityData.foto ?? '';
+        let fullAvatarUrl = avatarPath;
+        if (avatarPath && !avatarPath.includes('/') && !avatarPath.includes('http')) {
+          fullAvatarUrl = this.api.getFullResourceUrl(`/resources/avatars/${avatarPath}`);
+        } else if (avatarPath && !avatarPath.includes('http')) {
+          fullAvatarUrl = this.api.getFullResourceUrl(avatarPath);
+        }
+        this.formBaseService.selectImage(fullAvatarUrl, 'avatar');
       },
       error: (err: any) => {
         this.formBaseService.updateFormState(`edit-${this.entityType}`, {
@@ -176,12 +183,11 @@ export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
   }
 
   onAvatarSelected(avatarUrl: string): void {
-    // Extraer la ruta relativa de la URL completa
-    const relativePath = this.extractRelativePath(avatarUrl);
-    this.formBaseService.selectImage(relativePath, 'avatar');
+    this.formBaseService.selectImage(avatarUrl, 'avatar');
     const currentData = this.formState$.value?.data;
     if (currentData) {
-      currentData.foto = relativePath;
+      // Extraer el nombre del archivo para guardar en los datos
+      currentData.foto = this.extractRelativePath(avatarUrl);
       this.formBaseService.updateFormState(`edit-${this.entityType}`, { data: currentData });
     }
   }

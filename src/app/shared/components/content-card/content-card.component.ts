@@ -28,7 +28,7 @@ export class ContentCardComponent implements OnInit {
    * Obtiene la URL completa de la miniatura convirtiendo rutas relativas
    */
   get miniaturaUrl(): string {
-    return this.apiService.getFullThumbnailUrl(this.contenido.miniaturaUrl);
+    return this.apiService.getFullResourceUrl(this.contenido.miniaturaUrl);
   }
   showIncompatibleModal = false;
 
