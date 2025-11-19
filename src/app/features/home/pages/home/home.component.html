@@ -19,24 +19,24 @@
     <!-- Hero Rediseñado -->
     <section class="hero-modern" [class.animate]="hasScrolled">
       <div class="hero-background">
-        <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200&h=600&fit=crop" alt="Featured" class="hero-image" />
+        <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&h=600&fit=crop" alt="Fútbol" class="hero-image" />
         <div class="hero-overlay"></div>
       </div>
       <div class="hero-content">
         <div class="hero-badges">
-          <span class="hero-badge featured">⭐ Destacado</span>
-          <span class="hero-badge vip">⚡ VIP Exclusivo</span>
-          <span class="hero-badge age">🛡️ 16+</span>
+          <span class="hero-badge featured">⚽ Destacado</span>
+          <span class="hero-badge vip">🔥 Más Visto</span>
+          <span class="hero-badge age">🛡️ All</span>
         </div>
-        <h1 class="hero-title">Nightfall: Rise of the City</h1>
+        <h1 class="hero-title">Champions League Final 2024</h1>
         <p class="hero-description">
-          Sumérgete en nuestro blockbuster más visto. Streaming en 4K con audio inmersivo.
-          Contenido exclusivo disponible según tu suscripción.
+          Revive la emoción del partido más importante del año. Golazos espectaculares,
+          jugadas inolvidables y la pasión del fútbol europeo en alta definición.
         </p>
         <div class="hero-actions">
           <button class="hero-btn primary">
             <span class="btn-icon">▶</span>
-            <span>Ver Ahora</span>
+            <span>Ver Partido</span>
           </button>
           <button class="hero-btn secondary" (click)="navigateToVip()">
             <span class="btn-icon">👑</span>
@@ -44,9 +44,9 @@
           </button>
         </div>
         <div class="hero-info">
-          <span class="info-item">🎬 Película</span>
-          <span class="info-item">⏱️ 2h 15m</span>
-          <span class="info-item">⭐ 8.9/10</span>
+          <span class="info-item">⚽ Fútbol</span>
+          <span class="info-item">⏱️ 2h 30m</span>
+          <span class="info-item">👁️ 15M vistas</span>
         </div>
       </div>
     </section>
@@ -108,7 +108,7 @@
           <h3 class="platform-name">ESIMedia</h3>
           <div class="stats-grid">
             <div class="stat-item">
-              <div class="stat-value highlight">{{ animatedStats.esiPrice }}€</div>
+              <div class="stat-value highlight">{{ animatedStats.esiPrice }}{{ animatedStats.esiPrice !== '¡GRATIS!' ? '€' : '' }}</div>
               <div class="stat-label">Precio mensual</div>
             </div>
             <div class="stat-item">
@@ -206,11 +206,11 @@
       </div>
     </section>
 
-    <!-- Películas de Halloween - Estilo Showcase -->
-    <section class="showcase-section" [class.animate]="isHalloweenVisible">
+    <!-- Vídeos Navideños - Estilo Showcase -->
+    <section class="showcase-section" [class.animate]="isChristmasVisible">
       <div class="section-header">
         <div class="header-left">
-          <h2 class="section-title">🎃 Películas de Halloween</h2>
+          <h2 class="section-title">🎄 Vídeos Navideños</h2>
           <p class="section-subtitle">Especial de temporada</p>
         </div>
         <button class="view-all-btn">
@@ -218,24 +218,24 @@
         </button>
       </div>
       <div class="showcase-grid">
-        <div class="showcase-card large" *ngIf="halloweenFilms[0]">
-          <img [src]="halloweenFilms[0].image" [alt]="halloweenFilms[0].title" class="showcase-image" />
+        <div class="showcase-card large" *ngIf="christmasVideos[0]">
+          <img [src]="christmasVideos[0].image" [alt]="christmasVideos[0].title" class="showcase-image" />
           <div class="showcase-overlay">
             <div class="showcase-content">
-              <span class="showcase-badge">{{ halloweenFilms[0].tagLeft }}</span>
-              <h3 class="showcase-title">{{ halloweenFilms[0].title }}</h3>
-              <p class="showcase-description">Una experiencia aterradora que no olvidarás</p>
+              <span class="showcase-badge">{{ christmasVideos[0].tagLeft }}</span>
+              <h3 class="showcase-title">{{ christmasVideos[0].title }}</h3>
+              <p class="showcase-description">Celebra la Navidad con contenido especial</p>
               <button class="showcase-btn">Ver ahora →</button>
             </div>
           </div>
         </div>
         <div class="showcase-small-grid">
-          <div class="showcase-card small" *ngFor="let film of halloweenFilms.slice(1, 3)">
-            <img [src]="film.image" [alt]="film.title" class="showcase-image" />
+          <div class="showcase-card small" *ngFor="let video of christmasVideos.slice(1, 3)">
+            <img [src]="video.image" [alt]="video.title" class="showcase-image" />
             <div class="showcase-overlay">
               <div class="showcase-content">
-                <span class="showcase-badge small">{{ film.tagLeft }}</span>
-                <h4 class="showcase-title small">{{ film.title }}</h4>
+                <span class="showcase-badge small">{{ video.tagLeft }}</span>
+                <h4 class="showcase-title small">{{ video.title }}</h4>
               </div>
             </div>
           </div>

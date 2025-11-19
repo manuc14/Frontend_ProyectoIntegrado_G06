@@ -36,44 +36,44 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   isTestimonialsVisible = false;
   isContentVisible = false;
   isAudiosVisible = false;
-  isHalloweenVisible = false;
+  isChristmasVisible = false;
 
   // Control del modal VIP
   showVipModal = false;
 
   // Estadísticas animadas
   animatedStats = {
-    esiPrice: 0,
+    esiPrice: '0' as string | number,
     esiContent: 0,
     esiQuality: '',
-    esiScreens: 0
+    esiScreens: 0 as string | number
   };
 
   // Datos simulados para las secciones de contenido
   topVideos = [
-    { title: 'Velocity X', tagLeft: 'VIP', tagRight: '18+', badgeRight: '4K', image: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&h=600&fit=crop' },
-    { title: "Hallow's Gate", tagLeft: 'New', tagRight: '16+', badgeRight: '4.7', image: 'https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=400&h=600&fit=crop' },
-    { title: 'After the Rain', tagLeft: 'HD', tagRight: '13+', badgeRight: '2h 01m', image: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400&h=600&fit=crop' },
-    { title: 'Blue World', tagLeft: 'Top Rated', tagRight: 'All', badgeRight: 'Docu', image: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&h=600&fit=crop' },
-    { title: 'Cyber Dreams', tagLeft: 'VIP', tagRight: '16+', badgeRight: '4K', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop' },
-    { title: 'Lost in Time', tagLeft: 'New', tagRight: '13+', badgeRight: '4.8', image: 'https://images.unsplash.com/photo-1489599735734-79b4dfe3b22a?w=400&h=600&fit=crop' },
-    { title: 'Urban Legends', tagLeft: 'HD', tagRight: '18+', badgeRight: '2h 15m', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop' },
-    { title: 'Ocean Depths', tagLeft: 'Top Rated', tagRight: 'All', badgeRight: 'Docu', image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=600&fit=crop' },
-    { title: 'Neon Nights', tagLeft: 'VIP', tagRight: '16+', badgeRight: '4K', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop' },
-    { title: 'Mountain Echo', tagLeft: 'New', tagRight: '13+', badgeRight: '4.6', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop' }
+    { title: 'Tutorial React Avanzado', tagLeft: 'VIP', tagRight: '18+', badgeRight: '4K', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=600&fit=crop' },
+    { title: "Review iPhone 15 Pro Max", tagLeft: 'New', tagRight: '16+', badgeRight: '4.7', image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&h=600&fit=crop' },
+    { title: 'Viaje por Europa 2024', tagLeft: 'HD', tagRight: '13+', badgeRight: '2h 01m', image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=600&fit=crop' },
+    { title: 'Documental Cambio Climático', tagLeft: 'Top Rated', tagRight: 'All', badgeRight: 'Docu', image: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=400&h=600&fit=crop' },
+    { title: 'Gaming: Fortnite Championship', tagLeft: 'VIP', tagRight: '16+', badgeRight: '4K', image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=600&fit=crop' },
+    { title: 'Cocina Fácil: Pasta Italiana', tagLeft: 'New', tagRight: '13+', badgeRight: '4.8', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=600&fit=crop' },
+    { title: 'Misterios del Universo', tagLeft: 'HD', tagRight: '18+', badgeRight: '2h 15m', image: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=600&fit=crop' },
+    { title: 'Historia Antigua: Roma', tagLeft: 'Top Rated', tagRight: 'All', badgeRight: 'Docu', image: 'https://images.unsplash.com/photo-1555992336-fb0d29498b13?w=400&h=600&fit=crop' },
+    { title: 'Tutorial Photoshop 2024', tagLeft: 'VIP', tagRight: '16+', badgeRight: '4K', image: 'https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=400&h=600&fit=crop' },
+    { title: 'Aventura en la Montaña', tagLeft: 'New', tagRight: '13+', badgeRight: '4.6', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop' }
   ];
 
   trendingAudios = [
-    { title: 'Tech Unplugged', tagLeft: 'New', tagRight: '13+', badgeRight: 'Podcast', image: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=400&h=400&fit=crop' },
-    { title: 'Arcane Tales', tagLeft: 'VIP', tagRight: '16+', badgeRight: 'Audiobook', image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=400&fit=crop' },
-    { title: 'Ocean Breath', tagLeft: 'Top', tagRight: 'All', badgeRight: 'Wellness', image: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=400&fit=crop' },
-    { title: 'Case Files', tagLeft: 'HD', tagRight: '18+', badgeRight: 'Series', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=400&fit=crop' }
+    { title: 'Blinding Lights - The Weeknd', tagLeft: 'New', tagRight: '13+', badgeRight: 'Pop', image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop' },
+    { title: 'Watermelon Sugar - Harry Styles', tagLeft: 'VIP', tagRight: '16+', badgeRight: 'Pop', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=400&fit=crop' },
+    { title: 'Levitating - Dua Lipa', tagLeft: 'Top', tagRight: 'All', badgeRight: 'Dance', image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop' },
+    { title: 'Stay - The Kid Laroi & Justin Bieber', tagLeft: 'HD', tagRight: '18+', badgeRight: 'Hip Hop', image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop' }
   ];
 
-  halloweenFilms = [
-    { title: 'The Manor', tagLeft: 'VIP', tagRight: '18+', badgeRight: 'Hot', image: 'https://images.unsplash.com/photo-1509557965875-b88c97052f0e?w=600&h=800&fit=crop' },
-    { title: 'Pumpkin Road', tagLeft: 'New', tagRight: '16+', badgeRight: '4.6', image: 'https://images.unsplash.com/photo-1542460772-e2c0c8c31c3e?w=600&h=800&fit=crop' },
-    { title: 'Moonlit Coven', tagLeft: '4K', tagRight: '13+', badgeRight: 'Fantasy', image: 'https://images.unsplash.com/photo-1516589091380-5d8e87df6999?w=600&h=800&fit=crop' },
+  christmasVideos = [
+    { title: 'Navidad Mágica en Familia', tagLeft: 'VIP', tagRight: '18+', badgeRight: 'Festivo', image: 'https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=600&h=800&fit=crop' },
+    { title: 'Recetas Navideñas Tradicionales', tagLeft: 'New', tagRight: '16+', badgeRight: '4.8', image: 'https://images.unsplash.com/photo-1544441893-675973e31985?w=600&h=800&fit=crop' },
+    { title: 'Decoraciones de Navidad DIY', tagLeft: '4K', tagRight: '13+', badgeRight: 'Tutorial', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=800&fit=crop' },
   ];
 
   // Beneficios estadísticos
@@ -138,7 +138,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     { selector: '.stats-section', property: 'isStatsVisible' as const },
     { selector: '.content-grid-section', property: 'isAudiosVisible' as const },
     { selector: '.vip-section', property: 'isVipVisible' as const },
-    { selector: '.showcase-section', property: 'isHalloweenVisible' as const },
+    { selector: '.showcase-section', property: 'isChristmasVisible' as const },
     { selector: '.features-section', property: 'isFeaturesVisible' as const },
     { selector: '.testimonials-section', property: 'isTestimonialsVisible' as const }
   ];
@@ -148,10 +148,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     duration: 2000,
     frames: 60,
     finalStats: {
-      esiPrice: 9.99,
+      esiPrice: '¡GRATIS!',
       esiContent: 15,
       esiQuality: '4K',
-      esiScreens: 5
+      esiScreens: 'ILIMITADAS'
     }
   };
 
@@ -205,9 +205,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
    * Actualiza los valores de estadísticas animadas según el progreso
    */
   private updateAnimatedStats(progress: number): void {
-    this.animatedStats.esiPrice = Math.round(9.99 * progress * 100) / 100;
+    // Para el precio, mostrar "¡GRATIS!" desde el principio
+    this.animatedStats.esiPrice = progress > 0.1 ? '¡GRATIS!' : '0';
     this.animatedStats.esiContent = Math.round(15 * progress);
-    this.animatedStats.esiScreens = Math.round(5 * progress);
+    this.animatedStats.esiScreens = progress > 0.8 ? 'ILIMITADAS' : Math.round(5 * progress);
     this.animatedStats.esiQuality = progress > 0.5 ? '4K' : '';
   }
 
