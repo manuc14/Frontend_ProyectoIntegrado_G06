@@ -35,40 +35,11 @@ export class UserDropdownMenuComponent implements OnInit {
   isDropdownOpen = false;
   menuOptions: MenuOption[] = [];
 
-  // Mapeo directo de rutas por rol - simplificado
+  // Mapeo directo de rutas por rol
   private readonly roleRoutes: Record<UserRole, { home: string; profile: string }> = {
-    user: {home: '/catalog', profile: '/my-lists'},
-    creator: {home: '/content-creator', profile: '/profile'},
-    admin: {home: '/ad-users', profile: '/profile'}
-  }
-
-  private readonly roleMenuConfigs: Record<UserRole, RoleMenuConfig> = {
-    user: {
-      homeRoute: '/catalog',
-      profileRoute: '/user-consultprofile',
-      additionalOptions: []
-    },
-    creator: {
-      homeRoute: '/content-creator',
-      profileRoute: '/content-creator-consultprofile',
-      additionalOptions: [
-        {
-          iconSvg: 'upload',
-          label: 'Subir contenido',
-          action: () => this.navigate('/upload-content')
-        },
-        {
-          iconSvg: 'list',
-          label: 'Crear lista',
-          action: () => this.navigate('/create-list')
-        }
-      ]
-    },
-    admin: {
-      homeRoute: '/ad-users',
-      profileRoute: '/ad-consultprofile',
-      additionalOptions: []
-    }
+    user: { home: '/catalog', profile: '/user-consultprofile' },
+    creator: { home: '/content-creator', profile: '/content-creator-consultprofile' },
+    admin: { home: '/ad-users', profile: '/ad-consultprofile' }
   };
 
   constructor(private router: Router, private authService: AuthService) {}
@@ -78,7 +49,8 @@ export class UserDropdownMenuComponent implements OnInit {
   }
 
   private buildMenuOptions(): MenuOption[] {
-    const role = this.currentUser?.rol ?? 'user';
+    // Obtener el rol normalizado desde AuthService para asegurar que sea correcto
+    const role = this.authService.getCurrentRole() ?? 'user';
     const routes = this.roleRoutes[role];
 
     // Opciones base (comunes para todos)

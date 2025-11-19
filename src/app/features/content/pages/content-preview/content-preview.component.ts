@@ -135,7 +135,7 @@ export class ContentPreviewComponent implements OnInit {
 
   onUpgradeToVip(): void {
     this.showVipModal = false;
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/user-consultprofile']);
   }
 
   onContinueWithoutVip(): void {

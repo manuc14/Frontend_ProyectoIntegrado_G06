@@ -105,6 +105,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       sessionStorage.setItem('twoFactorSessionToken', body.twoFactorSessionToken);
       sessionStorage.setItem('loginEmail', body.user?.email || this.form.get('email')?.value);
       sessionStorage.setItem('twoFactorType', body.twoFactorType || 'VERIFY');
+      // Limpiar valores de factores adicionales de sesiones anteriores
+      sessionStorage.removeItem('verificationToken');
+      sessionStorage.removeItem('nextFactor');
       this.router.navigate(['/auth/2fa']);
       return;
     }
@@ -130,6 +133,8 @@ export class LoginComponent implements OnInit, OnDestroy {
       sessionStorage.removeItem('twoFactorSessionToken');
       sessionStorage.removeItem('twoFactorType');
       sessionStorage.removeItem('loginEmail');
+      sessionStorage.removeItem('verificationToken');
+      sessionStorage.removeItem('nextFactor');
       this.authService.emitSessionExpired('session-timeout', 'Tu sesión de verificación ha expirado. Por favor, inicia sesión nuevamente.');
       return;
     }

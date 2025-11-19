@@ -1,0 +1,339 @@
+<app-header></app-header>
+
+<div class="profile-layout" [@fadeIn]>
+  <!-- Sidebar de navegación -->
+  <app-user-sidebar [collapsed]="false"></app-user-sidebar>
+
+  <main class="background">
+    <div class="container">
+      
+      <!-- Título de la página -->
+      <div class="container2">
+      <div class="container3">
+        <div class="text">Tu perfil</div>
+      </div>
+    </div>
+
+    <!-- Mensaje de éxito -->
+    <div class="success-message" *ngIf="showSuccessMessage">
+      <div class="success-content">
+        <img src="assets/icons/check-circle.svg" alt="Éxito" class="success-icon" />
+        {{ successMessage }}
+      </div>
+    </div>
+
+    <!-- Contenedor principal con fondo blanco -->
+    <div class="background-border-shadow">
+      
+      <!-- Columna izquierda - Selector de Avatar -->
+      <div class="container4" [class.avatar-disabled]="!isEditMode">
+        <div class="avatar-section">
+          <app-avatar-selector
+            [availableAvatars]="availableAvatars"
+            [selectedAvatar]="selectedAvatar"
+            [nombre]="profileForm.get('firstName')?.value || 'Usuario'"
+            (avatarSelected)="onAvatarSelected($event)">
+          </app-avatar-selector>
+        </div>
+      </div>
+
+      <!-- Columna derecha - Información del usuario -->
+      <div class="container9">
+        
+        <!-- Sección de Información Personal -->
+        <div class="margin">
+          <div class="container5">
+            <div class="text4">Información personal</div>
+            <!-- Botón de edición -->
+            <button 
+              type="button"
+              class="edit-button-top-right"
+              [class.active]="isEditMode"
+              (click)="toggleEditMode()"
+              [title]="isEditMode ? 'Salir del modo edición' : 'Editar perfil'">
+              <img class="edit-icon" src="assets/icons/edit-pencil.svg" alt="Editar" />
+            </button>
+          </div>
+        </div>
+        
+        <form [formGroup]="profileForm" class="profile-form-clean">
+          <!-- Primera fila: Nombre y Apellidos -->
+          <div class="form-row">
+            <div class="field-container">
+              <app-form-input
+                label="Nombre"
+                type="text"
+                [maxlength]="maxNombre"
+                placeholder="Escribe aquí tu nombre"
+                [required]="true"
+                formControlName="firstName"
+                [errors]="firstNameControl?.errors ?? null"
+                [touched]="firstNameControl?.touched || false"
+                [disabled]="!isEditMode"
+                class="clean-input">
+              </app-form-input>
+            </div>
+            
+            <div class="field-container">
+              <app-form-input
+                label="Apellidos"
+                type="text"
+                [maxlength]="maxApellidos"
+                placeholder="Escribe aquí tus apellidos"
+                [required]="true"
+                formControlName="lastName"
+                [errors]="lastNameControl?.errors ?? null"
+                [touched]="lastNameControl?.touched || false"
+                [disabled]="!isEditMode"
+                class="clean-input">
+              </app-form-input>
+            </div>
+          </div>
+          
+          <!-- Segunda fila: Fecha de nacimiento y Alias -->
+          <div class="form-row">
+            <div class="field-container fecha-container">
+              <app-form-date
+                label="Fecha de nacimiento"
+                placeholder="DD/MM/AAAA"
+                [required]="false"
+                formControlName="birthDate"
+                [errors]="f['birthDate'].errors ?? null"
+                [touched]="f['birthDate'].touched || false"
+                [disabled]="!isEditMode"
+                class="clean-input">
+              </app-form-date>
+            </div>
+            
+            <div class="field-container">
+              <app-form-input
+                label="Alias"
+                type="text"
+                [maxlength]="20"
+                placeholder="Tu alias único"
+                [required]="false"
+                formControlName="alias"
+                [disabled]="!isEditMode"
+                class="clean-input">
+              </app-form-input>
+            </div>
+          </div>
+          
+          <!-- Tercera fila: Email -->
+          <div class="form-row email-field">
+            <div class="field-container full-width">
+              <app-form-input
+                label="Email"
+                type="email"
+                [maxlength]="maxEmail"
+                placeholder="usuario@email.com"
+                [required]="false"
+                formControlName="email"
+                [disabled]="true"
+                class="clean-input">
+              </app-form-input>
+            </div>
+          </div>
+        </form>
+
+        <!-- Sección de Gestión de Suscripción VIP -->
+        <div class="vip-section">
+          <div class="background-border">
+            <div class="container">
+              <div class="text">Gestión de suscripción</div>
+            </div>
+            <div class="container2">
+              <div class="container3">
+                <div class="text2">Última actualización de estado: {{ vipRegistrationDate }}</div>
+              </div>
+              <div class="container4">
+                <button class="background-border2" 
+                     [class.vip-cancel]="isVipUser"
+                     [class.vip-upgrade]="!isVipUser"
+                     [disabled]="!isEditMode"
+                     (click)="isVipUser ? onCancelVipSubscription() : onUpgradeToVip()"
+                     type="button">
+                  <img *ngIf="!isVipUser" src="assets/icons/crown.svg" alt="VIP" class="button-icon" />
+                  <div class="text3">{{ isVipUser ? 'Dejar de ser VIP' : 'Pásate a VIP' }}</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de Autenticación de Dos Factores -->
+        <div class="two-factor-section">
+          <div class="two-factor-container">
+            <button 
+              type="button"
+              class="two-factor-info-icon"
+              (click)="toggleThirdFactorInfo()"
+              [attr.aria-label]="'Información sobre el tercer factor'"
+              [attr.aria-expanded]="showThirdFactorInfo">
+              ?
+              <div class="info-tooltip" role="tooltip" *ngIf="showThirdFactorInfo">
+                <p>Si habilitas el tercer factor, se te redirigirá al login para activarlo.</p>
+              </div>
+            </button>
+            <div class="two-factor-content">
+              <div class="two-factor-text">Quiero habilitar el tercer factor de autenticación para futuras ocasiones</div>
+              <input type="checkbox" 
+                     class="two-factor-checkbox"
+                     [checked]="twoFactorEnabled"
+                     [disabled]="!isEditMode"
+                     (change)="onTwoFactorChange($event)">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="margin2" *ngIf="isEditMode">
+        <div class="container17">
+          <button 
+            type="button" 
+            class="delete-account-button"
+            (click)="onDeleteAccount()">
+            <span>Eliminar cuenta</span>
+          </button>
+          
+          <button 
+            type="button" 
+            class="border"
+            [disabled]="!hasUnsavedChanges"
+            (click)="onCancelChanges()">
+            <div class="text17">Cancelar</div>
+          </button>
+          
+          <button 
+            type="button" 
+            class="background-border14"
+            [disabled]="!hasUnsavedChanges"
+            (click)="onSaveChanges()">
+            <div class="text18">Guardar cambios</div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+    </div>
+  </main>
+
+  <!-- Modal de confirmación para eliminar cuenta -->
+  <div class="delete-modal-overlay" 
+       *ngIf="showDeleteModal" 
+       (click)="cancelDeleteAccount()"
+       (keydown.escape)="cancelDeleteAccount()"
+       tabindex="-1">
+    <div class="delete-modal-container" 
+         (click)="$event.stopPropagation()"
+         (keydown)="$event.stopPropagation()">
+      <div class="delete-modal-header">
+        <h2 class="delete-modal-title">Eliminar cuenta</h2>
+      </div>
+      
+      <div class="delete-modal-body">
+        <p class="delete-modal-text">
+          Confirma tu contraseña para eliminar la cuenta.<br>
+          Esta acción no se puede deshacer.
+        </p>
+
+        <!-- Campo de contraseña -->
+        <div class="delete-modal-password-group">
+          <label for="delete-password" class="delete-modal-label">Contraseña</label>
+          <div class="delete-modal-input-wrapper">
+            <input 
+              id="delete-password"
+              [type]="showDeletePassword ? 'text' : 'password'"
+              [(ngModel)]="deleteAccountPassword"
+              class="delete-modal-password-input"
+              placeholder="Ingresa tu contraseña"
+              [disabled]="deletePasswordValid"
+              (keyup.enter)="validateDeletePassword()">
+            <button 
+              type="button"
+              class="delete-modal-eye-button"
+              (click)="toggleDeletePasswordVisibility()"
+              [disabled]="deletePasswordValid"
+              [attr.aria-label]="showDeletePassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              <img [src]="showDeletePassword ? 'assets/icons/eye-off-svgrepo-com.svg' : 'assets/icons/eye-svgrepo-com.svg'"
+                   [alt]="showDeletePassword ? 'Ocultar' : 'Mostrar'" />
+            </button>
+          </div>
+
+          <!-- Mensaje de error -->
+          <div class="delete-modal-error" *ngIf="deletePasswordError">
+            <small class="delete-modal-error-text">⚠️ {{ deletePasswordError }}</small>
+          </div>
+        </div>
+      </div>
+      
+      <div class="delete-modal-footer">
+        <button 
+          type="button" 
+          class="delete-modal-btn delete-modal-btn-cancel"
+          (click)="cancelDeleteAccount()">
+          Cancelar
+        </button>
+
+        <button 
+          type="button" 
+          class="delete-modal-btn delete-modal-btn-delete"
+          [disabled]="!deletePasswordValid"
+          (click)="confirmDeleteAccount()">
+          Eliminar cuenta
+        </button>
+
+        <button 
+          type="button" 
+          class="delete-modal-btn delete-modal-btn-accept"
+          [disabled]="deletePasswordValid || isCheckingPassword"
+          (click)="validateDeletePassword()">
+          <span *ngIf="!isCheckingPassword">Aceptar</span>
+          <span *ngIf="isCheckingPassword">Verificando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación para cancelar VIP -->
+  <div class="cancel-vip-modal-overlay" 
+       *ngIf="showCancelVipModal" 
+       (click)="cancelVipCancellation()"
+       (keydown.escape)="cancelVipCancellation()"
+       tabindex="-1">
+    <div class="cancel-vip-modal-container" 
+         (click)="$event.stopPropagation()"
+         (keydown)="$event.stopPropagation()">
+      <div class="cancel-vip-modal-header">
+        <h2 class="cancel-vip-modal-title">¿Dejar de ser VIP?</h2>
+      </div>
+      
+      <div class="cancel-vip-modal-body">
+        <p class="cancel-vip-modal-text">
+          ¿Estás seguro de que quieres cambiar al plan estándar?<br><br>
+          Perderás los siguientes privilegios VIP:
+        </p>
+        <ul class="cancel-vip-modal-list">
+          <li>Acceso a contenido exclusivo premium</li>
+          <li>Reproducción en calidad 4K</li>
+          <li>Prioridad en nuevos lanzamientos</li>
+        </ul>
+      </div>
+      
+      <div class="cancel-vip-modal-footer">
+        <button 
+          type="button" 
+          class="cancel-vip-modal-btn cancel-vip-modal-btn-cancel"
+          (click)="cancelVipCancellation()">
+          Cancelar
+        </button>
+
+        <button 
+          type="button" 
+          class="cancel-vip-modal-btn cancel-vip-modal-btn-confirm"
+          (click)="confirmVipCancellation()">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

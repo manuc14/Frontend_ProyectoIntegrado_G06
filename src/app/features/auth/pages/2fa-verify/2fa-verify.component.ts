@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, Output, EventEmitter, Input, ViewChildren, QueryList, ElementRef, inject } from '@angular/core';
+import { Component, signal, Output, EventEmitter, Input, ViewChildren, QueryList, ElementRef, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { CodeInputBase } from '../../../../core/base/code-input.base';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -16,7 +16,7 @@ import { ActionButtonComponent } from '../../../../shared/components/action-butt
   styleUrl: './2fa-verify.component.scss',
   animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
 })
-export class TwoFactorVerifyComponent extends CodeInputBase {
+export class TwoFactorVerifyComponent extends CodeInputBase implements OnChanges {
   @Input() sessionToken = '';
   @Input() email = '';
   @Input() verificationToken = '';
@@ -36,6 +36,27 @@ export class TwoFactorVerifyComponent extends CodeInputBase {
 
   @ViewChildren('codeInput') declare inputs: QueryList<ElementRef<HTMLInputElement>>;
   @ViewChildren('backupInput') backupInputsElements!: QueryList<ElementRef<HTMLInputElement>>;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Solo limpiar cuando hay un cambio REAL de factor (no en la inicialización)
+    if (changes['nextFactor'] && !changes['nextFactor'].firstChange && 
+        changes['nextFactor'].previousValue !== changes['nextFactor'].currentValue) {
+      console.log('🔄 [2FA-Verify] Detectado cambio de factor:', {
+        previousFactor: changes['nextFactor'].previousValue,
+        currentFactor: changes['nextFactor'].currentValue,
+        verificationToken: this.verificationToken
+      });
+      
+      // Limpiar todos los estados
+      setTimeout(() => {
+        this.clearCodeInputs();
+        this.hasError.set(false);
+        this.errorMessage.set('');
+        this.useBackupCode.set(false);
+        this.backupCodeInput.set('');
+      }, 0);
+    }
+  }
 
   override triggerShakeError(): void {
     this.shakeForm = true;
@@ -65,6 +86,7 @@ export class TwoFactorVerifyComponent extends CodeInputBase {
       factorType = 'TOTP';
     }
 
+  
     this.mfaService.verifyFactor(this.sessionToken, factorType, code, this.nextFactor === 'EMAIL_CODE' ? this.verificationToken : null).subscribe({
       next: (res) => {
         this.isVerifying.set(false);

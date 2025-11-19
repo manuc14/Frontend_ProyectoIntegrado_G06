@@ -1,0 +1,431 @@
+// Importar estilos base compartidos
+@import '../../../../shared/base-profile/base-profile.component.scss';
+
+// ========= ESTILOS ESPECÍFICOS DE ADMIN CONSULTPROFILE =========
+// Los estilos base se importan desde base-profile.component.scss
+
+.container5 {
+  display: flex;
+  flex-direction: row; // Cambiar a row para que el botón esté al lado
+  gap: 0px;
+  align-items: center; // Centrar verticalmente
+  justify-content: space-between; // Separar título y botón
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+}
+
+// Estilo para el label del departamento
+.field-label {
+  color: #374151;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  margin-bottom: 8px;
+  display: block;
+}
+
+// Hacer que los campos full-width ocupen todo el ancho en admin
+.field-container.full-width {
+  grid-column: 1 / -1; // Ocupa todas las columnas del grid
+  width: 100%;
+}
+
+.text2 {
+  color: #111827;
+  text-align: left;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// ========= GRID ESPECÍFICO DE ADMIN =========
+.container10 {
+  align-self: stretch;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  position: relative;
+  margin-bottom: 16px;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.container11,
+.container12,
+.container13,
+.container14 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; // Estandarizar a 8px para consistencia
+  align-items: flex-start;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.text5,
+.text7,
+.text9,
+.text11,
+.text13,
+.text15 {
+  color: #9ca3af;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// ========= ESTILOS ESPECÍFICOS DE SELECT PARA ADMIN =========
+// Estilos específicos para el select de departamento sin marco
+.department-select {
+  width: 100%;
+  
+  ::ng-deep {
+    .select-container {
+      background: #ffffff !important;
+      border-radius: 15px !important;
+      border: 1px solid #e6e9ee !important;
+      padding: 13px !important;
+      min-height: auto !important;
+      height: auto !important;
+      transition: all 0.3s ease !important; // Transiciones para animaciones
+      
+      &.disabled {
+        background-color: #f8fafc !important;
+        border-color: #d1d5db !important;
+        cursor: not-allowed !important;
+      }
+      
+      // Animaciones para select editable
+      &:not(.disabled) {
+        cursor: pointer; // Cursor pointer para select editable
+        
+        &:hover {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+          transform: translateY(-1px) !important;
+        }
+        
+        &:focus-within, &.focused {
+          border-color: #2563eb !important;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important;
+          transform: translateY(-1px) !important;
+          background-color: #fafbff !important;
+        }
+        
+        &:active {
+          transform: translateY(0) !important;
+          box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3) !important;
+        }
+      }
+    }
+    
+    .select-trigger,
+    .select-display {
+      height: auto !important;
+      min-height: auto !important;
+      padding: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      color: #1f2937 !important;
+      font-family: "Inter", sans-serif !important;
+      font-size: 14px !important;
+      font-weight: 400 !important;
+      
+      &:disabled {
+        color: #9ca3af !important;
+        cursor: not-allowed !important;
+      }
+    }
+    
+    .select-placeholder {
+      color: #9ca3af !important;
+      font-style: italic !important;
+    }
+    
+    .select-arrow {
+      color: #6b7280 !important;
+    }
+    
+    .select-dropdown {
+      border: 1px solid #e6e9ee !important;
+      border-radius: 8px !important;
+      background: #ffffff !important;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .select-option {
+      padding: 10px 13px !important;
+      color: #1f2937 !important;
+      font-family: "Inter", sans-serif !important;
+      font-size: 14px !important;
+      
+      &:hover {
+        background: #f3f4f6 !important;
+      }
+      
+      &.selected {
+        background: #007bff !important;
+        color: #ffffff !important;
+      }
+    }
+  }
+}
+
+.text6,
+.text8,
+.text10,
+.text12,
+.text14,
+.text16 {
+  color: #1f2937;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.container15 {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: center;
+  align-self: stretch;
+  flex-shrink: 0;
+  position: relative;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.container16 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex: 1;
+  position: relative;
+}
+
+// Los estilos de botones ya están en base-profile.component.scss
+
+.svg3 {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  position: relative;
+}
+
+.group2 {
+  width: 75%;
+  height: 75%;
+  position: absolute;
+  right: 12.5%;
+  left: 12.5%;
+  bottom: 12.5%;
+  top: 12.5%;
+  overflow: visible;
+}
+
+// Los estilos responsive ya están en base-profile.component.scss
+
+// Los mensajes de éxito ya están en base-profile.component.scss
+
+// Estilos para campos deshabilitados (modo no-edición)
+app-form-input .background-border9,
+:host ::ng-deep app-form-input .background-border9.readonly,
+:host ::ng-deep app-form-input[disabled] .background-border9 {
+  background-color: transparent !important;
+  border: 1px solid #9ca3af !important;
+  
+  .input-field {
+    color: #9ca3af !important; // Texto más gris
+    background-color: transparent !important;
+    cursor: not-allowed !important;
+    
+    &::placeholder {
+      color: #d1d5db !important; // Placeholder aún más claro
+    }
+  }
+  
+  &:focus-within {
+    border-color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+
+// Prevenir movimiento de campos cuando aparecen errores
+:host ::ng-deep app-form-input {
+  .container8 {
+    min-height: 76px; // Altura mínima fija para evitar movimiento
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  
+  .error-message {
+    position: absolute;
+    bottom: -22px; // Posicionar mensaje de error fuera del contenedor
+    left: 0;
+    right: 0;
+    height: 20px; // Altura fija para el mensaje de error
+    overflow: hidden;
+  }
+
+  // Quitar el marco azul oscuro cuando hay error
+  .background-border9.error {
+    &:focus-within {
+      box-shadow: none !important; // Quitar la sombra azul
+      border-color: var(--destructive) !important; // Mantener solo el borde rojo de error
+    }
+  }
+}
+
+// Contenedor de campos con espacio para errores
+.field-container {
+  position: relative;
+  margin-bottom: 10px; // Espacio adicional para mensajes de error
+}
+
+// Ajustar espaciado del campo fecha para que coincida con otros campos
+:host ::ng-deep app-form-date {
+  label {
+    margin-bottom: 0.5rem !important; // Reducir el margin para que coincida
+    
+    span {
+      margin-bottom: 6px; // Espaciado consistente con form-input
+      display: block;
+    }
+  }
+}
+
+// Estilos para select deshabilitado
+:host ::ng-deep app-select-field select[disabled],
+:host ::ng-deep app-select-field[disabled] select {
+  background-color: transparent !important;
+  border: none !important; // Sin borde para el select
+  color: #9ca3af !important; // Texto más gris
+  cursor: not-allowed !important;
+  
+  &:hover {
+    border: none !important; // Sin borde en hover
+    color: #9ca3af !important; // Mantener texto gris en hover
+  }
+  
+  &:focus {
+    border: none !important; // Sin borde en focus
+    box-shadow: none !important;
+    outline: none !important;
+  }
+}
+
+// Estilos para select habilitado (solo cuando se puede editar)
+:host ::ng-deep app-select-field select:not([disabled]) {
+  &:hover {
+    border-color: var(--primary, #3b82f6) !important; // Azul solo cuando está habilitado
+  }
+  
+  &:focus {
+    border-color: var(--primary, #3b82f6) !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+}
+
+// Estilos para campo de fecha deshabilitado
+:host ::ng-deep app-form-date label input,
+:host ::ng-deep app-form-date[disabled] label input,
+app-form-date label input[disabled] {
+  background-color: transparent !important;
+  border: 1px solid #9ca3af !important;
+  color: #9ca3af !important; // Texto más gris
+  cursor: not-allowed !important;
+  
+  &:hover {
+    border-color: #000000 !important;
+  }
+  
+  &:focus {
+    border-color: #000000 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  
+  &::placeholder {
+    color: #d1d5db !important;
+  }
+}
+
+// Estilos para deshabilitar el selector de avatar
+.avatar-disabled {
+  :host ::ng-deep app-avatar-selector {
+    pointer-events: none;
+    
+    // Aplicar filtro grisáceo a todo el componente
+    .background-border,
+    .container12 {
+      filter: grayscale(60%) brightness(0.9) !important;
+      opacity: 0.7 !important;
+    }
+    
+    .background-border {
+      border: 1px solid #000000 !important; // Borde negro para consistencia
+      background-color: transparent !important;
+      
+      button {
+        cursor: not-allowed !important;
+        border: 1px solid #000000 !important;
+        background-color: transparent !important;
+        
+        &:hover {
+          transform: none !important;
+          background-color: transparent !important;
+          border-color: #000000 !important;
+        }
+      }
+      
+      .text3, .text4 {
+        color: #9ca3af !important; // Texto gris
+      }
+      
+      // Avatar principal también con borde negro
+      .background-border2 {
+        border: 1px solid #000000 !important;
+      }
+      
+      // Asegurar que todas las imágenes se vean grises
+      img {
+        filter: grayscale(70%) brightness(0.8) !important;
+      }
+    }
+    
+    // Aplicar también al título superior
+    .container12 .text16 {
+      color: #9ca3af !important;
+    }
+  }
+}

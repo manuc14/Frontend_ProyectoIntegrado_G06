@@ -15,10 +15,11 @@ import { getRefreshInProgress } from './token-refresh.interceptor';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   
-  // No interceptar errores para login y verify, dejar que los servicios/componentes lo manejen
-  if (req.url.includes('/auth/login') || 
+  // No interceptar errores para login, verify y verify-password, dejar que los servicios/componentes lo manejen
+  if (req.url.includes('/auth/login') ||
       req.url.includes('/auth/verify') ||
-      req.url.includes('/auth/refresh')) {
+      req.url.includes('/auth/refresh') ||
+      req.url.includes('/users/verify-password')) {
     return next(req);
   }
 

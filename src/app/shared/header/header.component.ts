@@ -24,7 +24,6 @@ import { UserDropdownMenuComponent } from '../components/user-dropdown-menu/user
   animations: [navActiveState, navHover, fadeIn]
 })
 export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDestroy, OnInit {
-  hasScrolled = false;
   protected override router = inject(Router);
   private elementRef = inject(ElementRef);
   private renderer = inject(Renderer2);
@@ -35,6 +34,7 @@ export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDest
   isMenuOpen = false;
   isHomePage = false; // Para detectar si estamos en home
   isLoggedIn = false;
+  hasScrolled = false; // Controlar si hemos hecho scroll
 
   constructor() {
     super();
