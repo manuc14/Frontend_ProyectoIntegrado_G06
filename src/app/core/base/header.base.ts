@@ -22,8 +22,8 @@ export abstract class HeaderBase {
   }
 
   getAvatarUrl(): string {
-    if (this.currentUser?.foto) {
-      return this.imageSelectorService.getFullImageUrl(this.currentUser.foto, 'avatar');
+    if (this.currentUser?.avatar) {
+      return this.imageSelectorService.getFullImageUrl(this.currentUser.avatar, 'avatar');
     }
     return 'assets/admin/admin_default.png';
   }

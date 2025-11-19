@@ -58,17 +58,17 @@
                         [class.selected]="selectedThumbnail === thumbnail"
                         (click)="selectThumbnail(thumbnail)"
                         [attr.aria-pressed]="selectedThumbnail === thumbnail">
-                  <img [src]="thumbnail" [alt]="'Miniatura ' + (i + 1)" />
+                  <img [src]="formBaseService.getFullImageUrl(thumbnail, 'thumbnail')" [alt]="'Miniatura ' + (i + 1)" />
                   <span class="check" *ngIf="selectedThumbnail === thumbnail">✓</span>
                 </button>
 
                 <!-- custom upload slot -->
-                <label class="thumbnail-slot upload custom-upload" [class.has-preview]="localThumbnailUrl">
+                <label class="thumbnail-slot upload custom-upload" [class.has-preview]="localThumbnailUrl || existingThumbnailUrl">
                   <input type="file" accept="image/*" (change)="onThumbnailSelected($event)" />
                   
-                  <!-- Preview de miniatura local -->
-                  <div *ngIf="localThumbnailUrl" class="thumbnail-preview">
-                    <img [src]="localThumbnailUrl" alt="Vista previa de miniatura" />
+                  <!-- Preview de miniatura -->
+                  <div *ngIf="localThumbnailUrl || existingThumbnailUrl" class="thumbnail-preview">
+                    <img [src]="localThumbnailUrl || existingThumbnailUrl" alt="Vista previa de miniatura" />
                     <div class="preview-overlay">
                       <span class="preview-text">Vista previa</span>
                       <button type="button" class="remove-preview" (click)="clearLocalThumbnail(); $event.stopPropagation()">×</button>
@@ -76,7 +76,7 @@
                   </div>
                   
                   <!-- Estado por defecto -->
-                  <div *ngIf="!localThumbnailUrl" class="upload-content">
+                  <div *ngIf="!localThumbnailUrl && !existingThumbnailUrl" class="upload-content">
                     <div class="plus">+</div>
                     <div class="upload-text">Subir miniatura</div>
                   </div>

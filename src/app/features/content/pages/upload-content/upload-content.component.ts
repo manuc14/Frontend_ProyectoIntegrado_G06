@@ -51,7 +51,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private fb: FormBuilder,
-    private formBaseService: FormBaseService,
+    public formBaseService: FormBaseService,
     public imageSelectorService: ImageSelectorService,
     private uploadService: UploadService,
     private catalogoService: CatalogoService,
@@ -83,6 +83,8 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   file: File | null = null;
   localThumbnailFile: File | null = null;
   localThumbnailUrl: string | null = null;
+  existingThumbnailUrl: string | null = null;
+  contentMiniaturaUrl: string | null = null;
 
   // Validación
   audioFileValidationError: string | null = null;
@@ -112,7 +114,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
   }
 
   // Getters simplificados
-  get thumbnails() { return this.currentFormState?.imageState?.images || []; }
+  get thumbnails() { return this.currentFormState?.imageState?.images?.filter((t: string) => !t.startsWith('/api/files/')) || []; }
   get selectedThumbnail() { return this.currentFormState?.imageState?.selectedImage || ''; }
   get loadingThumbnails() { return this.currentFormState?.imageState?.loading || false; }
   get thumbnailLoadError() { return this.currentFormState?.imageState?.error || false; }
@@ -145,11 +147,13 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     this.imageSelectorService.selectImage(thumbnailPath, 'thumbnail');
     this.localThumbnailUrl = null;
     this.localThumbnailFile = null;
+    this.existingThumbnailUrl = null;
   }
 
   clearLocalThumbnail(): void {
     this.localThumbnailUrl = null;
     this.localThumbnailFile = null;
+    this.existingThumbnailUrl = null;
     this.thumbnailValidationError = null;
   }
 
@@ -278,7 +282,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
       descripcion: formValue.description,
       tipoArchivo: isVideo ? 'Video' : 'Audio',
       urlContenido: isVideo ? formValue.url : (uploadResult.audioUrl ?? formValue.audioUrl ?? null),
-      urlMiniatura: uploadResult.thumbnailUrl ?? this.localThumbnailUrl ?? this.selectedThumbnailUrl,
+      urlMiniatura: uploadResult.thumbnailUrl ?? this.localThumbnailUrl ?? this.selectedThumbnailUrl ?? this.existingThumbnailUrl,
       estado: formValue.estado,
       esUsuarioVip: formValue.vip === 'si',
       tags: this.selectedTags,
@@ -466,7 +470,16 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   private handleThumbnail(content: any): void {
     if (content.miniaturaUrl) {
-      this.imageSelectorService.selectImage(content.miniaturaUrl, 'thumbnail');
+      this.contentMiniaturaUrl = content.miniaturaUrl;
+      if (content.miniaturaUrl.includes('/resources/thumbnails/')) {
+        // Predefined thumbnail
+        const relativePath = content.miniaturaUrl.replace('https://backend-proyectointegrado-g06.onrender.com', '');
+        this.imageSelectorService.selectImage(relativePath, 'thumbnail');
+      } else {
+        // Custom uploaded thumbnail
+        this.existingThumbnailUrl = this.api.getFullThumbnailUrl(content.miniaturaUrl);
+        this.imageSelectorService.selectLocalImage(this.existingThumbnailUrl);
+      }
     }
   }
 

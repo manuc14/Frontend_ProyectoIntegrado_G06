@@ -217,11 +217,21 @@ export class ImageSelectorService {
    * ```
    */
   selectImage(imagePath: string, type: ImageType): void {
-    const fullUrl = this.getFullImageUrl(imagePath, type);
-    this.updateState({
-      selectedImage: imagePath,
-      selectedImageUrl: fullUrl
-    });
+    const currentState = this.getCurrentState();
+    // Only select if the imagePath is in the available images list
+    if (currentState.images.includes(imagePath)) {
+      const fullUrl = this.getFullImageUrl(imagePath, type);
+      this.updateState({
+        selectedImage: imagePath,
+        selectedImageUrl: fullUrl
+      });
+    } else {
+      // If not in list, clear selection
+      this.updateState({
+        selectedImage: '',
+        selectedImageUrl: null
+      });
+    }
   }
 
   /**

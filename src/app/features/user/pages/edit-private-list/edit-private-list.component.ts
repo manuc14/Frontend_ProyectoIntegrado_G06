@@ -9,6 +9,7 @@ import { TextAreaFieldComponent } from '../../../../shared/textarea-field/textar
 import { ErrorContainerComponent } from '../../../../shared/error-container/error-container.component';
 import { PublicListService, ListaPublicaResponse } from '../../../../core/services/public-list.service';
 import { ContentSelectorComponent, SuggestedContent } from '../../../../shared/content-selector/content-selector.component';
+import { ApiService } from '../../../../core/services/api.service';
 import { handleListSubmit } from '../../../../shared/utils/list-init.util';
 import { checkAuthenticationOrRedirect, executeObservableOperation, navigateWithUnsavedCheck } from '../../../../core/utils/observable.helpers';
 
@@ -36,6 +37,7 @@ export class EditPrivateListComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly formBaseService = inject(FormBaseService);
   private readonly publicListService = inject(PublicListService);
+  private readonly apiService = inject(ApiService);
   
   listForm!: FormGroup;
   formId: string = 'edit-private-list';

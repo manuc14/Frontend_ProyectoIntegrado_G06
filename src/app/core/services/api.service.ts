@@ -16,9 +16,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, throwError, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { AvatarsResponseDto, SectionDto } from '../models/media.models';
+import {Observable, of, throwError} from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import {AvatarsResponseDto, SectionDto} from '../models/media.models';
 import { isAbsoluteUrl, hasElements } from '../utils/validation.helpers';
 
 /**
@@ -119,7 +119,7 @@ export interface BackendUser {
  * Interfaz para la respuesta de login exitoso.
  * Incluye usuario autenticado, token de sesión y mensaje de confirmación.
  * Soporta autenticación en dos pasos (2FA) con twoFactorSessionToken y requiresTwoFactor.
- *
+ * 
  * @interface LoginResponse
  */
 export interface LoginResponse {
@@ -390,12 +390,12 @@ export class ApiService {
 
   /**
    * Construye URLs completas para recursos estáticos.
-   *
+   * 
    * Maneja diferentes tipos de rutas:
    * - URLs absolutas: se devuelven tal cual
    * - Rutas /resources/*: se convierten según el entorno
    * - Rutas /api/files/*: se convierten a URLs completas
-   *
+   * 
    * @param relativePath - Ruta relativa del recurso
    * @returns URL completa del recurso
    * @private
@@ -433,7 +433,7 @@ export class ApiService {
 
   /**
    * Obtiene la URL completa para cualquier recurso (avatar, miniatura, etc.)
-   *
+   * 
    * Convierte rutas relativas del backend en URLs completas que funcionan
    * tanto en desarrollo como en producción.
    *
@@ -836,40 +836,6 @@ export class ApiService {
       catchError(this.handleError('desactivar VIP', 'No se pudo desactivar la suscripción VIP'))
     );
   }
-
-  /**
-   * Obtiene las secciones de contenido para la página principal.
-   *
-   * Recupera todas las secciones disponibles con su contenido multimedia
-   * (audios, videos, álbumes). Se usa principalmente en la página de inicio
-   * para mostrar el contenido destacado.
-   *
-   * @returns {Observable<SectionDto[]>} Observable con array de secciones
-   *
-   * @example
-   * ```typescript
-   * this.apiService.getSections().subscribe({
-   *   next: (sections) => {
-   *     sections.forEach(section => {
-   *       console.log(section.titulo, section.contenidos.length);
-   *     });
-   *   },
-   *   error: (error) => console.error('Error al cargar secciones:', error)
-   * });
-   * ```
-   */
-  getHomeSections(): Observable<SectionDto[]> {
-    return this.http.get<SectionDto[]>(`${this.base}/home/sections`).pipe(
-      catchError((err) => {
-        if (environment.useMocks) {
-          const fallback: SectionDto[] = [];
-          return of(fallback);
-        }
-        throw err;
-      })
-    );
-  }
-
   // ==================== AUTENTICACIÓN ====================
 
   /**
@@ -1454,6 +1420,35 @@ export class ApiService {
    */
   getFullThumbnailUrl(relativePath: string): string {
     return this.buildFullResourceUrl(relativePath);
+  }
+
+  /**
+   * Carga una miniatura autenticada y devuelve una URL de blob para uso en <img>.
+   *
+   * Este método realiza una solicitud HTTP autenticada (el interceptor agrega automáticamente
+   * el header Authorization) para obtener la imagen como blob, luego crea una URL de objeto
+   * que puede usarse directamente en el atributo src de una etiqueta <img>.
+   *
+   * @param {string} relativePath - Ruta relativa de la miniatura
+   * @returns {Observable<string>} Observable con la URL del blob de la imagen
+   *
+   * @example
+   * ```typescript
+   * this.apiService.loadAuthenticatedThumbnailUrl('/api/files/thumbnails/thumb1.jpg')
+   *   .subscribe({
+   *     next: (blobUrl) => {
+   *       this.thumbnailUrl = blobUrl; // Asignar a propiedad para template
+   *     },
+   *     error: (error) => console.error('Error cargando thumbnail:', error)
+   *   });
+   * ```
+   */
+  loadAuthenticatedThumbnailUrl(relativePath: string): Observable<string> {
+    const fullUrl = this.buildFullResourceUrl(relativePath);
+    return this.http.get(fullUrl, { responseType: 'blob' }).pipe(
+      map((blob: Blob) => URL.createObjectURL(blob)),
+      catchError(this.handleError('cargar miniatura autenticada', 'No se pudo cargar la miniatura'))
+    );
   }
 }
 
