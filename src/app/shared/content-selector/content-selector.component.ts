@@ -17,7 +17,7 @@ export interface SuggestedContent {
   added: boolean;
   tipo?: string;
   ficheroUrl?: string;
-  autorId?: string;
+  autorAlias?: string;
   descripcion?: string;
 }
 
@@ -216,9 +216,9 @@ export class ContentSelectorComponent implements OnInit {
   }
 
   private mapContenidoToSuggestedContent(contenido: any): SuggestedContent {
-    const { id, titulo, descripcion, ficheroUrl, miniaturaUrl, duracion, tipo, creador } = contenido;
+    const { id, titulo, descripcion, ficheroUrl, miniaturaUrl, duracion, tipo, creador, autorAlias } = contenido;
     const contentId = id || contenido._id;
-    const channel = creador?.nombre || 'Desconocido';
+    const channel = creador?.nombre || autorAlias || 'Desconocido';
 
     return {
       id: contentId,
@@ -229,7 +229,7 @@ export class ContentSelectorComponent implements OnInit {
       added: this.preselectedIds.includes(contentId),
       tipo: contenido.tipoArchivo || tipo,
       ficheroUrl,
-      autorId: channel,
+      autorAlias: channel,
       descripcion
     };
   }

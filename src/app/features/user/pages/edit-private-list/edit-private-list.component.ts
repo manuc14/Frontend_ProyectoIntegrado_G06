@@ -119,7 +119,7 @@ export class EditPrivateListComponent implements OnInit, OnDestroy {
       added: true, // Los contenidos de la lista ya están seleccionados
       tipo: tipoArchivo,
       ficheroUrl,
-      autorId: channel,
+      autorAlias: channel,
       descripcion
     };
   }

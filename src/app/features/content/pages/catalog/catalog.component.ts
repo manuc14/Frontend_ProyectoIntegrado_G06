@@ -9,6 +9,7 @@ import { ContentCardComponent } from '../../../../shared/components/content-card
 import { ListActionButtonsComponent } from '../../../../shared/components/list-action-buttons/list-action-buttons.component';
 import { PublicListService, ListaPublicaResponse } from '../../../../core/services/public-list.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ImageSelectorService } from '../../../../core/services/image-selector.service';
 import { Contenido, ResolucionVideo } from '../../../../core/models/contenido.models';
 import { allConditionsTrue } from '../../../../core/utils/validation.helpers';
 import { PREDEFINED_TAGS } from '../../../../core/constants/form-limits';
@@ -50,6 +51,7 @@ export class CatalogComponent implements OnInit {
   constructor(
     private publicListService: PublicListService,
     private authService: AuthService,
+    private imageSelectorService: ImageSelectorService,
     private router: Router
   ) {}
 
@@ -206,5 +208,11 @@ export class CatalogComponent implements OnInit {
       },
       error: () => alert('Error al eliminar la lista. Por favor, intenta de nuevo.')
     });
+  }
+
+  get contenidoDestacadoMiniaturaUrl(): string {
+    return this.contenidoDestacado 
+      ? this.imageSelectorService.getFullImageUrl(this.contenidoDestacado.miniaturaUrl || this.contenidoDestacado.foto, 'thumbnail')
+      : '';
   }
 }

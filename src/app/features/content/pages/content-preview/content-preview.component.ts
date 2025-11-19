@@ -8,6 +8,7 @@ import { VipPromoModalComponent } from '../../../../shared/vip-promo-modal/vip-p
 import { CatalogoService } from '../../../../core/services/catalogo.service';
 import { Contenido } from '../../../../core/models/contenido.models';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ImageSelectorService } from '../../../../core/services/image-selector.service';
 import { ContentPreviewService, InfoContenidoResponse } from '../../../../core/services/content-preview.service';
 
 @Component({
@@ -28,6 +29,7 @@ export class ContentPreviewComponent implements OnInit {
   private router = inject(Router);
   private catalogoService = inject(CatalogoService);
   private authService = inject(AuthService);
+  private imageSelectorService = inject(ImageSelectorService);
   private contentPreviewService = inject(ContentPreviewService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -223,6 +225,12 @@ export class ContentPreviewComponent implements OnInit {
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
     img.src = 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?w=1920&h=1080&fit=crop';
+  }
+
+  get contenidoMiniaturaUrl(): string {
+    return this.contenido 
+      ? this.imageSelectorService.getFullImageUrl(this.contenido.miniaturaUrl || this.contenido.foto, 'thumbnail')
+      : 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?w=1920&h=1080&fit=crop';
   }
 
   navigateBack(): void {

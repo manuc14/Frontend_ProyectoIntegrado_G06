@@ -130,7 +130,7 @@
     <!-- Contenido destacado -->
     <section class="catalog__hero" *ngIf="contenidoDestacado; else noHero">
       <div class="catalog__hero-card">
-        <img [src]="contenidoDestacado.miniaturaUrl" [alt]="contenidoDestacado.titulo" class="catalog__hero-img">
+        <img [src]="contenidoDestacadoMiniaturaUrl" [alt]="contenidoDestacado.titulo" class="catalog__hero-img">
         <div class="catalog__hero-overlay">
           <div class="catalog__hero-content">
             <h2 class="catalog__hero-title">Destacado: {{ contenidoDestacado.titulo }}</h2>

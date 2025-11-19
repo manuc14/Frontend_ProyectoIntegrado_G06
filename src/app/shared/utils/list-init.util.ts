@@ -68,7 +68,7 @@ export function handleListSubmit(
       miniaturaUrl: c.thumbnail,
       ficheroUrl: c.ficheroUrl ?? '',
       tipo: c.tipo ?? selectedContentType,
-      autorId: c.autorId ?? '',
+      autorAlias: c.autorAlias ?? '',
       duracion: parseDuration(c.duration)
     }))
   };

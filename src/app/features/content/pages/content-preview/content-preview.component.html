@@ -2,7 +2,7 @@
   <!-- Imagen de fondo (miniatura del video) -->
   <div class="background-image-container">
     <img
-      [src]="contenido?.miniaturaUrl || contenido?.foto || 'https://images.unsplash.com/photo-1579033461380-adb47c3eb938?w=1920&h=1080&fit=crop'"
+      [src]="contenidoMiniaturaUrl"
       [alt]="contenido?.titulo || 'Vista previa del contenido'"
       class="background-image"
       (error)="onImageError($event)" />

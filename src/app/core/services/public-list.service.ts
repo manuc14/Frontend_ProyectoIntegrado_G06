@@ -210,7 +210,7 @@ export class PublicListService {
   }
 
   private normalizeCreador(backend: any): { nombre: string; avatar: string } | undefined {
-    const nombreCreador = backend.creador?.nombre || backend.autorId;
+    const nombreCreador = backend.creador?.nombre || backend.autorAlias;
     return nombreCreador ? {
       nombre: nombreCreador,
       avatar: backend.creador?.avatar || DEFAULT_VALUES.EMPTY_STRING

@@ -14,10 +14,26 @@ export class CatalogoService {
   private readonly logPrefix = '[CATALOGO SERVICE]';
 
   private mapContenido = (raw: any): Contenido => {
-    if (!raw) throw new Error('Contenido vac�o');
+    if (!raw) throw new Error('Contenido vacío');
     const { id: backendId, tipoArchivo, ...rest } = raw;
-    return { ...rest, _id: backendId ?? rest._id, tipo: tipoArchivo || rest.tipo } as Contenido;
+    return {
+      ...rest,
+      _id: backendId ?? rest._id,
+      tipo: tipoArchivo || rest.tipo,
+      foto: rest.miniaturaUrl,
+      fechaEstado: new Date(rest.fechaEstado),
+      disponibleHasta: rest.disponibleHasta ? new Date(rest.disponibleHasta) : null,
+      creador: this.normalizeCreador(raw)
+    } as Contenido;
   };
+
+  private normalizeCreador(backend: any): { nombre: string; avatar: string } | undefined {
+    const nombreCreador = backend.creador?.nombre || backend.autorAlias;
+    return nombreCreador ? {
+      nombre: nombreCreador,
+      avatar: backend.creador?.avatar || ''
+    } : undefined;
+  }
 
   private mapContenidos = (arr: any[]): Contenido[] => (arr || []).map(this.mapContenido);
 
