@@ -2,7 +2,7 @@
 // Importa estilos base compartidos y añade personalizaciones específicas
 
 // ========= IMPORTAR ESTILOS BASE COMPARTIDOS =========
-@import '../../../../shared/base-profile/base-profile.component.scss';
+@use '../../../../shared/base-profile/base-profile.component.scss';
 
 // ========= PERSONALIZACIONES ESPECÍFICAS DEL CREADOR =========
 // ========= ESTILOS PARA FORMBASESERVICE =========

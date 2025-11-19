@@ -23,7 +23,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Rutas que SÍ necesitan autenticación (incluso si están en publicUrls)
   const authenticatedUrls = [
-    '/api/files/thumbnails/' // Thumbnails requieren autenticación
+    '/api/files/thumbnails/', // Thumbnails requieren autenticación
+    '/api/files/audio/' // Archivos de audio requieren autenticación
   ];
 
   // Verificar si la petición es a una ruta pública

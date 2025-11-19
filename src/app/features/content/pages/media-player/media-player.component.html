@@ -21,8 +21,11 @@
     <audio 
       #audioElement
       [src]="audioUrl"
+      preload="metadata"
       (timeupdate)="onTimeUpdate()"
       (loadedmetadata)="onLoadedMetadata()"
+      (durationchange)="onDurationChange()"
+      (canplay)="onCanPlay()"
       (play)="isPlaying = true"
       (pause)="isPlaying = false"
       (ended)="isPlaying = false">
@@ -30,7 +33,7 @@
     </audio>
 
     <!-- Fondo con imagen -->
-    <div class="audio-background" [style.background-image]="'url(' + contenido.miniaturaUrl + ')'"></div>
+    <div class="audio-background" [style.background-image]="'url(' + miniaturaUrl + ')'"></div>
 
     <!-- Botón Volver (arriba a la izquierda) -->
     <app-back-button 
@@ -41,7 +44,7 @@
     <!-- Controles de audio -->
     <div class="audio-controls">
       <div class="audio-info">
-        <img [src]="contenido.miniaturaUrl" [alt]="contenido.titulo" class="audio-cover">
+        <img [src]="miniaturaUrl" [alt]="contenido.titulo" class="audio-cover">
         <h2 class="audio-title">{{ contenido.titulo }}</h2>
       </div>
 

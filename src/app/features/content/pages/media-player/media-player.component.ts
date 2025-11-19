@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CatalogoService } from '../../../../core/services/catalogo.service';
+import { ApiService } from '../../../../core/services/api.service';
+import { ImageSelectorService } from '../../../../core/services/image-selector.service';
 import { Contenido } from '../../../../core/models/contenido.models';
 import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
 
@@ -20,6 +22,8 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
 
   private router = inject(Router);
   private catalogoService = inject(CatalogoService);
+  private apiService = inject(ApiService);
+  private imageSelectorService = inject(ImageSelectorService);
   private http = inject(HttpClient);
   private sanitizer = inject(DomSanitizer);
 
@@ -63,7 +67,8 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
    * Carga el archivo de audio a través de HttpClient para que pase por los interceptores (autenticación)
    */
   private loadAudioFile(fileUrl: string): void {
-    this.http.get(fileUrl, { responseType: 'blob' }).subscribe({
+    const fullUrl = this.apiService.getFullResourceUrl(fileUrl);
+    this.http.get(fullUrl, { responseType: 'blob' }).subscribe({
       next: (blob: Blob) => {
         // Crear una URL local (Object URL) que apunta al blob descargado
         this.audioUrl = URL.createObjectURL(blob);
@@ -127,6 +132,24 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
+  onDurationChange(): void {
+    if (this.audioElement) {
+      const newDuration = this.audioElement.nativeElement.duration;
+      if (newDuration && !isNaN(newDuration) && isFinite(newDuration)) {
+        this.duration = newDuration;
+      }
+    }
+  }
+
+  onCanPlay(): void {
+    if (this.audioElement && this.duration === 0) {
+      const audio = this.audioElement.nativeElement;
+      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+        this.duration = audio.duration;
+      }
+    }
+  }
+
   seekTo(event: Event): void {
     if (this.audioElement) {
       this.audioElement.nativeElement.currentTime = parseFloat((event.target as HTMLInputElement).value);
@@ -156,6 +179,12 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
   get isVideo(): boolean { return this.contenido?.tipo === 'VIDEO'; }
   get isAudio(): boolean { return this.contenido?.tipo === 'AUDIO'; }
   get progressPercentage(): number { return this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0; }
+
+  get miniaturaUrl(): string {
+    return this.contenido 
+      ? this.imageSelectorService.getFullImageUrl(this.contenido.miniaturaUrl || this.contenido.foto, 'thumbnail')
+      : '';
+  }
 
   ngOnDestroy(): void {
     // Limpiar URL de objeto para liberar memoria
