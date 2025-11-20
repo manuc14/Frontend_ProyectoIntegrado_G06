@@ -115,7 +115,7 @@ export class UploadContentComponent implements OnInit, OnDestroy {
 
   // Getters simplificados
   get thumbnails() { return this.currentFormState?.imageState?.images?.filter((t: string) => !t.startsWith('/api/files/')) || []; }
-  get selectedThumbnail() { return this.currentFormState?.imageState?.selectedImage || ''; }
+  get selectedThumbnail() { return this.currentFormState?.imageState?.selectedImageUrl || ''; }
   get loadingThumbnails() { return this.currentFormState?.imageState?.loading || false; }
   get thumbnailLoadError() { return this.currentFormState?.imageState?.error || false; }
   get selectedThumbnailUrl() { return this.currentFormState?.imageState?.selectedImageUrl || null; }
@@ -472,9 +472,12 @@ export class UploadContentComponent implements OnInit, OnDestroy {
     if (content.miniaturaUrl) {
       this.contentMiniaturaUrl = content.miniaturaUrl;
       if (content.miniaturaUrl.includes('/resources/thumbnails/')) {
-        // Predefined thumbnail
-        const relativePath = content.miniaturaUrl.replace('https://backend-proyectointegrado-g06.onrender.com', '');
-        this.imageSelectorService.selectImage(relativePath, 'thumbnail');
+        // Predefined thumbnail - find the full URL in available thumbnails
+        const availableThumbnails = this.currentFormState?.imageState?.images || [];
+        const matchingThumbnail = availableThumbnails.find((t: string) => t.includes(content.miniaturaUrl.split('/').pop()));
+        if (matchingThumbnail) {
+          this.imageSelectorService.selectImage(matchingThumbnail, 'thumbnail');
+        }
       } else {
         // Custom uploaded thumbnail
         this.existingThumbnailUrl = this.api.getFullThumbnailUrl(content.miniaturaUrl);

@@ -125,8 +125,19 @@ export class EditPrivateListComponent implements OnInit, OnDestroy {
   }
 
   private formatDuration(duracion: number): string {
-    const minutos = Math.floor(duracion / 60).toString().padStart(2, '0');
-    const segundos = (duracion % 60).toString().padStart(2, '0');
+    // Si duracion es menor a 60, asumir que son minutos
+    // Si es mayor o igual a 60, asumir que son segundos
+    let totalSeconds: number;
+    if (duracion < 60) {
+      // Tratar como minutos
+      totalSeconds = duracion * 60;
+    } else {
+      // Tratar como segundos
+      totalSeconds = duracion;
+    }
+
+    const minutos = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const segundos = (totalSeconds % 60).toString().padStart(2, '0');
     return `${minutos}:${segundos}`;
   }
 
