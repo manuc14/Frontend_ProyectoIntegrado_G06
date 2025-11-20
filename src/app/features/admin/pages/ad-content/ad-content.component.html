@@ -1,0 +1,279 @@
+<div class="background" [@fadeIn]>
+
+  <app-admin-header [sidebarVisible]="sidebarVisible" (toggleSidebar)="toggleSidebar()"></app-admin-header>
+
+  <div class="container3">
+    <app-admin-sidebar [visible]="sidebarVisible" (navigate)="handleNav($event)"></app-admin-sidebar>
+
+    <div class="background4" (click)="cerrarDropdowns()" (keydown)="$event.key === 'Escape' && cerrarDropdowns()">
+      <!-- Título -->
+      <div class="margin">
+        <div class="container7">
+          <div class="container8">
+            <div class="text8">Contenido</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de filtros -->
+      <div class="filters-section" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+        <!-- Pills de tipo de contenido -->
+        <div class="content-types">
+          <app-filter-pill
+            label="Vídeo"
+            icon="assets/icons/video.svg"
+            [isActive]="selectedContentType === 'VIDEO'"
+            [isPrimary]="true"
+            (onClick)="cambiarTipoContenido('VIDEO')">
+          </app-filter-pill>
+          
+          <app-filter-pill
+            label="Audio"
+            icon="assets/icons/audio.svg"
+            [isActive]="selectedContentType === 'AUDIO'"
+            [isPrimary]="true"
+            (onClick)="cambiarTipoContenido('AUDIO')">
+          </app-filter-pill>
+        </div>
+
+        <!-- Filtros adicionales -->
+        <div class="filters-pills">
+          <!-- Filtro Premium -->
+          <app-filter-pill
+            label="Premium"
+            icon="assets/icons/star.svg"
+            [isActive]="filtroPremium"
+            (onClick)="toggleFiltroPremium()">
+          </app-filter-pill>
+
+          <!-- Filtro Calidad (solo para videos) -->
+          <div class="filter-dropdown" *ngIf="selectedContentType === 'VIDEO'" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonCalidad"
+              icon="assets/icons/quality.svg"
+              [isActive]="filtroCalidad !== null"
+              (onClick)="dropdownCalidadAbierto = !dropdownCalidadAbierto; dropdownCategoriaAbierto = false">
+            </app-filter-pill>
+            
+            <div class="dropdown-menu" *ngIf="dropdownCalidadAbierto">
+              <button
+                *ngFor="let calidad of opcionesCalidad"
+                class="dropdown-item"
+                [class.active]="filtroCalidad === calidad"
+                (click)="toggleFiltro('calidad', calidad)">
+                {{ calidad }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro Categoría -->
+          <div class="filter-dropdown" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonCategoria"
+              icon="assets/icons/specialty.svg"
+              [isActive]="filtroCategoria !== null"
+              (onClick)="dropdownCategoriaAbierto = !dropdownCategoriaAbierto; dropdownCalidadAbierto = false">
+            </app-filter-pill>
+            
+            <div class="dropdown-menu" *ngIf="dropdownCategoriaAbierto">
+              <button
+                *ngFor="let categoria of opcionesCategorias"
+                class="dropdown-item"
+                [class.active]="filtroCategoria === categoria"
+                (click)="toggleFiltro('categoria', categoria)">
+                {{ categoria }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro Etiquetas (sin funcionalidad) -->
+          <app-filter-pill
+            label="Etiquetas"
+            icon="assets/icons/tags.svg"
+            [isActive]="false">
+          </app-filter-pill>
+
+          <!-- Filtro Edad (cíclico 0 -> 7 -> 13 -> 18 -> limpiar) -->
+          <div class="filter-dropdown" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonEdad"
+              icon="assets/icons/age.svg"
+              [isActive]="filtroEdad !== null"
+              (onClick)="dropdownEdadAbierto = !dropdownEdadAbierto; dropdownCalidadAbierto = false; dropdownCategoriaAbierto = false">
+            </app-filter-pill>
+
+            <div class="dropdown-menu" *ngIf="dropdownEdadAbierto">
+              <button
+                *ngFor="let edad of opcionesEdad"
+                class="dropdown-item"
+                [class.active]="filtroEdad === edad"
+                (click)="toggleFiltro('edad', edad)">
+                {{ edad }}+
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de búsqueda y ordenamiento -->
+      <div class="margin" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+        <div class="search-section">
+          <app-search-bar 
+            [searchTerm]="searchTerm"
+            placeholder="Buscar por título, creador, categoría…"
+            ariaLabel="Campo de búsqueda de contenidos"
+            (search)="onSearch($event)"
+            (clear)="onClearSearch()">
+          </app-search-bar>
+          
+          <app-sort-dropdown
+            [sortOptions]="sortOptions"
+            [selectedSort]="selectedSort"
+            (sortChange)="onSortChange($event)">
+          </app-sort-dropdown>
+        </div>
+      </div>
+
+      <!-- Mostrar resultados -->
+      <div class="margin">
+        <div class="results-info">
+          <div class="text-results">Mostrando {{ filteredItems.length }} {{ selectedContentType === 'VIDEO' ? 'vídeos' : 'audios' }}</div>
+        </div>
+      </div>
+
+      <!-- Tabla de contenidos -->
+      <div class="container11" [@shakeError]>
+        <div class="background-border2">
+          <!-- Encabezado de tabla -->
+          <div class="background5">
+            <div class="container2"><div class="table-header-text">Miniatura</div></div>
+            <div class="container2"><div class="table-header-text">Título</div></div>
+            <div class="container2"><div class="table-header-text">Descripción</div></div>
+            <div class="container2"><div class="table-header-text">Duración</div></div>
+            <div class="container2"><div class="table-header-text">Creador</div></div>
+            <div class="container2"><div class="table-header-text"></div></div>
+            <div class="container2"><div class="table-header-text">Valoración</div></div>
+            <div class="container2"><div class="table-header-text">Premium</div></div>
+            <div class="container2"><div class="table-header-text">Calidad</div></div>
+            <div class="container2"><div class="table-header-text">Etiquetas</div></div>
+            <div class="container2"><div class="table-header-text">Edad</div></div>
+            <div class="container2"><div class="table-header-text">Visible</div></div>
+            <div class="container2"><div class="table-header-text">Expira</div></div>
+          </div>
+
+          <!-- Contenedor de filas con scroll -->
+          <div class="container12">
+            <!-- Mostrar mensaje si no hay resultados -->
+            <div *ngIf="filteredItems.length === 0" class="no-results">
+              <div class="no-results-content">
+                <p>{{ getNoResultsMessage() }}</p>
+                <button *ngIf="getClearButtonText()" type="button" (click)="error ? loadData() : clearSearchAndFilters()" class="clear-search-btn">
+                  {{ getClearButtonText() }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de contenidos -->
+            <div
+              *ngFor="let content of itemsPaginados; let i = index; trackBy: trackByItemId"
+              class="horizontal-border"
+              [class.horizontal-border2]="i > 0">
+              
+              <!-- Miniatura -->
+              <div class="container2 centered-cell">
+                <div class="thumbnail-container">
+                  <img 
+                    [src]="content.thumbnail" 
+                    [alt]="'Miniatura de ' + content.title"
+                    class="thumbnail"
+                    (error)="$any($event.target).src='assets/brand/placeholder.png'">
+                </div>
+              </div>
+
+              <!-- Título -->
+              <div class="container2">
+                <div class="content-title">{{ content.title }}</div>
+              </div>
+
+              <!-- Descripción -->
+              <div class="container2">
+                <div class="table-cell-text description-text">{{ content.description }}</div>
+              </div>
+
+              <!-- Duración -->
+              <div class="container2 centered-cell">
+                <div class="table-cell-text">{{ content.duration }} min</div>
+              </div>
+
+              <!-- Creador -->
+              <div class="container2">
+                <div class="table-cell-text">{{ content.creator }}</div>
+              </div>
+
+              <!-- Espacio vacío (donde estaba Categoría) -->
+              <div class="container2">
+                <div class="table-cell-text"></div>
+              </div>
+
+              <!-- Valoración -->
+              <div class="container2 centered-cell">
+                <div class="rating-badge">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </svg>
+                  <span class="rating-text">{{ content.rating }}</span>
+                </div>
+              </div>
+
+              <!-- Premium -->
+              <div class="container2 centered-cell">
+                <div class="premium-badge" *ngIf="content.isPremium">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" fill="#7c3aed"/>
+                    <path d="M12 5L10 8H8L9 10L7 12L9 11L10 13L12 11L14 13L15 11L17 12L15 10L16 8H14L12 5Z" 
+                          fill="#fbbf24"/>
+                    <ellipse cx="12" cy="16" rx="3" ry="1.5" fill="#fbbf24"/>
+                  </svg>
+                </div>
+                <div class="no-premium" *ngIf="!content.isPremium">—</div>
+              </div>
+
+              <!-- Calidad -->
+              <div class="container2 centered-cell">
+                <div class="quality-badge">{{ content.quality }}</div>
+              </div>
+
+              <!-- Etiquetas -->
+              <div class="container2 tags-cell">
+                <div class="tag-pill" *ngFor="let tag of content.tags.slice(0, 3)">{{ tag }}</div>
+              </div>
+
+              <!-- Restricción de edad -->
+              <div class="container2 centered-cell">
+                <div class="age-badge">{{ content.ageRestriction }}+</div>
+              </div>
+
+              <!-- Disponibilidad -->
+              <div class="container2 centered-cell">
+                <div class="availability-badge" [class.available]="content.isAvailable" [class.unavailable]="!content.isAvailable">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10" [attr.fill]="content.isAvailable ? '#10b981' : '#ef4444'" opacity="0.2"/>
+                    <path [attr.d]="content.isAvailable ? 'M9 12l2 2 4-4' : 'M8 8l8 8M16 8l-8 8'" 
+                          [attr.stroke]="content.isAvailable ? '#10b981' : '#ef4444'" 
+                          stroke-width="2" fill="none" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Fecha de expiración -->
+              <div class="container2 centered-cell">
+                <div class="table-cell-text expiry-text">{{ formatExpiryDate(content.disponibleHasta) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

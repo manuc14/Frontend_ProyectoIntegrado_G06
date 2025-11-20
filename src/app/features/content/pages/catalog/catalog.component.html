@@ -1,0 +1,205 @@
+<!-- Header (solo en vista de usuario) -->
+<app-header *ngIf="!isCreatorView"></app-header>
+
+<div class="catalog" (click)="cerrarDropdowns()" (keydown)="$event.key === 'Escape' && cerrarDropdowns()">
+  
+  <div class="catalog__main-container">
+    <!-- Filtros de contenido y búsqueda -->
+    <section class="catalog__filters-section">
+      <div class="catalog__filters-container">
+        <!-- Pills de tipo de contenido -->
+        <div class="catalog__content-types">
+          <app-filter-pill
+            label="Vídeo"
+            icon="assets/icons/video.svg"
+            [isActive]="seccionActiva === 'VIDEO'"
+            [isPrimary]="true"
+            (onClick)="cambiarSeccion('VIDEO')">
+          </app-filter-pill>
+          
+          <app-filter-pill
+            label="Audio"
+            icon="assets/icons/audio.svg"
+            [isActive]="seccionActiva === 'AUDIO'"
+            [isPrimary]="true"
+            (onClick)="cambiarSeccion('AUDIO')">
+          </app-filter-pill>
+        </div>
+
+        <!-- Filtros -->
+        <div class="catalog__filters">
+          <!-- Filtro Premium -->
+          <app-filter-pill
+            label="Premium"
+            icon="assets/icons/star.svg"
+            [isActive]="filtroPremium"
+            (onClick)="toggleFiltroPremium()">
+          </app-filter-pill>
+
+          <!-- Filtro Edad -->
+          <div class="catalog__filter-dropdown" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonEdad"
+              icon="assets/icons/age.svg"
+              [isActive]="filtroEdad !== null"
+              (onClick)="dropdownEdadAbierto = !dropdownEdadAbierto; dropdownCalidadAbierto = false; dropdownEtiquetasAbierto = false; dropdownEspecialidadAbierto = false">
+            </app-filter-pill>
+            
+            <div class="catalog__dropdown" *ngIf="dropdownEdadAbierto">
+              <button
+                *ngFor="let edad of opcionesEdad"
+                class="catalog__dropdown-item"
+                [class.active]="filtroEdad === edad"
+                (click)="seleccionarEdad(edad)">
+                {{ edad }}+
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro Calidad (solo para videos) -->
+          <div class="catalog__filter-dropdown" *ngIf="seccionActiva === 'VIDEO'" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonCalidad"
+              icon="assets/icons/quality.svg"
+              [isActive]="filtroCalidad !== null"
+              (onClick)="dropdownCalidadAbierto = !dropdownCalidadAbierto; dropdownEdadAbierto = false; dropdownEtiquetasAbierto = false; dropdownEspecialidadAbierto = false">
+            </app-filter-pill>
+            
+            <div class="catalog__dropdown" *ngIf="dropdownCalidadAbierto">
+              <button
+                *ngFor="let calidad of opcionesCalidad"
+                class="catalog__dropdown-item"
+                [class.active]="filtroCalidad === calidad"
+                (click)="seleccionarCalidad(calidad)">
+                {{ calidad }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro Especialidad -->
+          <div class="catalog__filter-dropdown" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonEspecialidad"
+              icon="assets/icons/specialty.svg"
+              [isActive]="filtroEspecialidad !== null"
+              (onClick)="dropdownEspecialidadAbierto = !dropdownEspecialidadAbierto; dropdownEdadAbierto = false; dropdownCalidadAbierto = false; dropdownEtiquetasAbierto = false">
+            </app-filter-pill>
+            
+            <div class="catalog__dropdown" *ngIf="dropdownEspecialidadAbierto">
+              <button
+                *ngFor="let especialidad of opcionesEspecialidad"
+                class="catalog__dropdown-item"
+                [class.active]="filtroEspecialidad === especialidad"
+                (click)="seleccionarEspecialidad(especialidad)">
+                {{ especialidad }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro Etiquetas -->
+          <div class="catalog__filter-dropdown" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <app-filter-pill
+              [label]="textoBotonEtiquetas"
+              icon="assets/icons/tags.svg"
+              [isActive]="filtroEtiquetas.length > 0"
+              (onClick)="dropdownEtiquetasAbierto = !dropdownEtiquetasAbierto; dropdownEdadAbierto = false; dropdownCalidadAbierto = false; dropdownEspecialidadAbierto = false">
+            </app-filter-pill>
+            
+            <div class="catalog__dropdown" *ngIf="dropdownEtiquetasAbierto">
+              <button
+                *ngFor="let etiqueta of opcionesEtiquetas"
+                class="catalog__dropdown-item"
+                [class.active]="isEtiquetaSeleccionada(etiqueta)"
+                (click)="toggleEtiqueta(etiqueta)">
+                {{ etiqueta }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón de búsqueda -->
+          <button class="catalog__search-btn" (click)="irABusqueda()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" 
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contenido destacado -->
+    <section class="catalog__hero" *ngIf="contenidoDestacado; else noHero">
+      <div class="catalog__hero-card">
+        <img [src]="contenidoDestacadoMiniaturaUrl" [alt]="contenidoDestacado.titulo" class="catalog__hero-img">
+        <div class="catalog__hero-overlay">
+          <div class="catalog__hero-content">
+            <h2 class="catalog__hero-title">Destacado: {{ contenidoDestacado.titulo }}</h2>
+            <div class="catalog__hero-meta">
+              <span *ngIf="contenidoDestacado.tipo === 'VIDEO' && contenidoDestacado.resolucion">{{ contenidoDestacado.resolucion }}</span>
+              <span *ngIf="contenidoDestacado.tipo === 'VIDEO' && contenidoDestacado.resolucion">•</span>
+              <span>{{ contenidoDestacado.duracion }} min</span>
+              <span *ngIf="contenidoDestacado.categoria">•</span>
+              <span *ngIf="contenidoDestacado.categoria">{{ contenidoDestacado.categoria }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <ng-template #noHero>
+      <div style="height: 200px;"></div>
+    </ng-template>
+
+    <!-- Listas de contenido -->
+    <main class="catalog__content">
+    
+    <!-- Mensaje de error si no se pueden cargar listas -->
+    <div class="catalog__error" *ngIf="errorCarga && listasFiltradas.length === 0">
+      <p>{{ errorCarga }}</p>
+    </div>
+    
+    <!-- Listas dinámicas desde la base de datos -->
+    <section class="catalog__section" *ngFor="let lista of listasFiltradas; let i = index">
+      <div class="catalog__section-header">
+        <h2 class="catalog__section-title">
+          {{ lista.nombre }}
+          <span *ngIf="isCreatorView && !lista.visible" class="catalog__hidden-badge" title="No visible para usuarios">🔒</span>
+        </h2>
+        <app-list-action-buttons 
+          *ngIf="isCreatorView"
+          [section]="lista.id"
+          (editList)="onEditList($event)"
+          (deleteList)="onDeleteList($event)">
+        </app-list-action-buttons>
+      </div>
+      
+      <!-- Usar carrusel para la primera lista, grid para el resto -->
+      <div 
+        *ngIf="i === 0"
+        #carouselContainer
+        class="catalog__carousel">
+        <app-content-card
+          *ngFor="let contenido of lista.items"
+          [contenido]="contenido"
+          [isCreatorView]="isCreatorView">
+        </app-content-card>
+      </div>
+      
+      <div *ngIf="i !== 0" class="catalog__grid">
+        <app-content-card
+          *ngFor="let contenido of lista.items"
+          [contenido]="contenido"
+          [isCreatorView]="isCreatorView">
+        </app-content-card>
+      </div>
+    </section>
+
+    <!-- Mensaje si no hay contenido -->
+    <div class="catalog__empty" *ngIf="listasFiltradas.length === 0">
+      <p>No se encontró contenido con los filtros seleccionados.</p>
+    </div>
+  </main>
+  </div>
+</div>
+
+<!-- Footer (solo en vista de usuario) -->
+<app-footer *ngIf="!isCreatorView"></app-footer>

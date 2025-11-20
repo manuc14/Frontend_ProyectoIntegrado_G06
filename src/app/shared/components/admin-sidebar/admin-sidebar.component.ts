@@ -17,8 +17,8 @@ export class AdminSidebarComponent implements OnInit {
   @Input() visible = false;
   @Output() navigate = new EventEmitter<string>();
   @Input() activeRoute: string | null = null;
-  // clave normalizada usada por la plantilla: 'users' | 'admins' | 'creators'
-  activeKey: 'users' | 'admins' | 'creators' | null = null;
+  // clave normalizada usada por la plantilla: 'users' | 'admins' | 'creators' | 'content'
+  activeKey: 'users' | 'admins' | 'creators' | 'content' | null = null;
 
   constructor(private router: Router) {}
 
@@ -41,29 +41,25 @@ export class AdminSidebarComponent implements OnInit {
   }
 
   // Mapea el primer segmento de la URL a una clave manejable por la plantilla
-  private mapRouteToKey(segment: string): 'users' | 'admins' | 'creators' | null {
+  private mapRouteToKey(segment: string): 'users' | 'admins' | 'creators' | 'content' | null {
     if (!segment) return 'users';
     const s = segment.toLowerCase();
-    if (s === 'ad-users' || s === 'users') return 'users';
-    if (s === 'ad-admin' || s === 'admins' || s === 'ad-admins') return 'admins';
-    if (s === 'ad-creators' || s === 'creators') return 'creators';
+    if (s.includes('user')) return 'users';
+    if (s.includes('admin')) return 'admins';
+    if (s.includes('creator')) return 'creators';
+    if (s.includes('content')) return 'content';
     return null;
   }
 
   goTo(route: string) {
-    switch (route) {
-      case 'users':
-        this.router.navigate(['/ad-users']);
-        break;
-      case 'admins':
-        this.router.navigate(['/ad-admin']);
-        break;
-      case 'creators':
-        this.router.navigate(['/ad-creators']);
-        break;
-      default:
-        break;
+    const routes: Record<string, string> = {
+      users: '/ad-users',
+      admins: '/ad-admin',
+      creators: '/ad-creators',
+      content: '/ad-content'
+    };
+    if (routes[route]) {
+      this.router.navigate([routes[route]]);
     }
   }
-
 }

@@ -1,164 +1,69 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AdminEntityService, BackendErrorResponse, AdminEV, UserEV, CreatorEC } from '../../core/services/admin-entity.service';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { AdminEntityService, BackendErrorResponse } from '../../core/services/admin-entity.service';
 import { ApiService } from '../../core/services/api.service';
+import { FormBaseService, FormState } from '../../core/services/form-base.service';
 import { fadeIn } from '../../core/animations/animations';
 import { ModalHeaderComponent } from '../modal-header/modal-header.component';
 import { ErrorContainerComponent } from '../error-container/error-container.component';
 import { AvatarSelectorComponent } from '../avatar-selector/avatar-selector.component';
-import { InputFieldComponent } from '../input-field/input-field.component';
-import { PasswordFieldComponent } from '../password-field/password-field.component';
-import { ConfirmPasswordFieldComponent } from '../confirm-password-field/confirm-password-field.component';
 import { TextAreaFieldComponent } from '../textarea-field/textarea-field.component';
 import { SelectFieldComponent } from '../select-field/select-field.component';
 import { ToggleBlockButtonComponent } from '../toggle-block-button/toggle-block-button.component';
 import { FormActionsComponent } from '../form-actions/form-actions.component';
-import { DateFieldComponent } from '../date-field/date-field.component';
-import { BaseEditService } from '../base-edit/base-edit.service';
-import { PasswordValidators } from '../../core/validators/form.validators';
-
-export type EntityType = 'admin' | 'creator' | 'user';
-
-interface BaseEntityData {
-  nombre: string;
-  apellidos: string;
-  alias: string;
-  foto?: string;
-  activo: boolean;
-}
-
-interface AdminEntityData extends BaseEntityData {
-  correo: string;
-  departamento: string;
-  contrasena: string;
-  confirmarContrasena: string;
-}
-
-interface CreatorEntityData extends BaseEntityData {
-  correo: string;
-  descripcion: string;
-  especialidad: string;
-  contrasena: string;
-  confirmarContrasena: string;
-  tipoContenido: string;
-}
-
-interface UserEntityData extends BaseEntityData {
-  fechaNacimiento: string;
-}
-
-type EntityData = AdminEntityData | CreatorEntityData | UserEntityData;
+import { FormDateComponent } from '../form-components/form-date/form-date.component';
+import { FormInputComponent } from '../form-components/form-input/form-input.component';
+import { EntityType, EntityData } from './entity-types';
+import { ENTITY_CONFIGS } from './entity-configs';
 
 @Component({
   selector: 'app-admin-entity-edit-form',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     ModalHeaderComponent,
     ErrorContainerComponent,
     AvatarSelectorComponent,
-    InputFieldComponent,
-    PasswordFieldComponent,
-    ConfirmPasswordFieldComponent,
     TextAreaFieldComponent,
     SelectFieldComponent,
     ToggleBlockButtonComponent,
     FormActionsComponent,
-    DateFieldComponent
+    FormDateComponent,
+    FormInputComponent
   ],
   templateUrl: './admin-entity-edit-form.component.html',
   styleUrl: './admin-entity-edit-form.component.scss',
   animations: [fadeIn]
 })
-export class AdminEntityEditFormComponent implements OnInit {
+export class AdminEntityEditFormComponent implements OnInit, OnDestroy {
   @Input() entityType: EntityType = 'admin';
   @Input() entityId: string = '';
+  @Input() titulo: string = 'Editar entidad';
 
-  entityData: EntityData = {} as EntityData;
-  originalData: EntityData = {} as EntityData;
-
-  availableAvatars: string[] = [];
-  isLoadingAvatars: boolean = false;
-  avatarLoadError: boolean = false;
-  selectedAvatar: string = '';
-  defaultAvatar: string = 'assets/admin/usuarios_negro.png';
-
-  showPassword: boolean = false;
-  showConfirmPassword: boolean = false;
-  isSaving: boolean = false;
-  isLoading: boolean = true;
-  error: string | null = null;
-  passwordMismatch: boolean = false;
-  nombreTooLong: boolean = false;
-  apellidosTooLong: boolean = false;
-  aliasTooLong: boolean = false;
-  descripcionTooLong: boolean = false;
-  fechaInvalid: boolean = false;
-  edadInvalid: boolean = false;
-
-  passwordStrength = {
-    hasMinLength: false,
-    hasUpperCase: false,
-    hasLowerCase: false,
-    hasNumber: false,
-    hasSpecialChar: false
-  };
-
-  get passwordRequirements(): string[] {
-    const requirements: string[] = [];
-    if (!this.passwordStrength.hasMinLength) requirements.push('Mínimo 8 caracteres');
-    if (!this.passwordStrength.hasUpperCase) requirements.push('Al menos una mayúscula');
-    if (!this.passwordStrength.hasLowerCase) requirements.push('Al menos una minúscula');
-    if (!this.passwordStrength.hasNumber) requirements.push('Al menos un dígito');
-    if (!this.passwordStrength.hasSpecialChar) requirements.push('Al menos un carácter especial');
-    return requirements;
-  }
-
-  // Opciones específicas
-  departamentos = [
-    'Operaciones','Seguridad','Marketing','Soporte','Recursos Humanos','Finanzas','Desarrollo','Legal'
-  ];
-
-  especialidades = [
-    'Música','Educación','Tecnología','Cocina','Deportes','Arte','Ciencia','Viajes'
-  ];
-
-  // Type guards
-  isAdmin(data: EntityData): data is AdminEntityData {
-    return 'departamento' in data;
-  }
-
-  isCreator(data: EntityData): data is CreatorEntityData {
-    return 'descripcion' in data;
-  }
-
-  isUser(data: EntityData): data is UserEntityData {
-    return 'fechaNacimiento' in data;
-  }
-
-  // Getters for type-safe access
-  get adminData(): AdminEntityData {
-    return this.entityData as AdminEntityData;
-  }
-
-  get creatorData(): CreatorEntityData {
-    return this.entityData as CreatorEntityData;
-  }
-
-  get userData(): UserEntityData {
-    return this.entityData as UserEntityData;
-  }
+  // Estado centralizado del formulario
+  formState$!: BehaviorSubject<FormState<EntityData>>;
+  form!: FormGroup;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private adminEntityService: AdminEntityService,
-    private baseEditService: BaseEditService,
-    private api: ApiService
+    public api: ApiService,
+    private formBaseService: FormBaseService
   ) {}
+
+  /* Helpers para el template */
+  getAvailableAvatars(state: FormState<EntityData> | null): string[] {
+    return state?.imageState.images?.map(img => this.api.getFullResourceUrl(img)) || [];
+  }
+
+  getEntityField(state: FormState<EntityData> | null, field: string): any {
+    return (state?.data as any)?.[field] || '';
+  }
 
   ngOnInit(): void {
     // Verificar que haya token en sessionStorage
@@ -167,8 +72,23 @@ export class AdminEntityEditFormComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    // Continuar con la inicialización
+
+    // Inicializar estado del formulario
+    this.formState$ = this.formBaseService.createFormState<EntityData>(`edit-${this.entityType}`, {} as EntityData);
+
+    // Crear formulario basado en el tipo de entidad
+    this.createForm();
     this.initializeEntity();
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar estado del formulario
+    this.formBaseService.destroyFormState(`edit-${this.entityType}`);
+  }
+
+  private createForm(): void {
+    const config = ENTITY_CONFIGS[this.entityType];
+    this.form = this.formBaseService.createFormGroup<EntityData>(config.formConfig, [], `edit-${this.entityType}`);
   }
 
   private initializeEntity(): void {
@@ -180,335 +100,167 @@ export class AdminEntityEditFormComponent implements OnInit {
         return;
       }
     }
-    this.initializeData();
-    this.loadAvatars();
-    this.loadEntityData();
-  }
 
-  private initializeData() {
-    switch (this.entityType) {
-      case 'admin':
-        this.entityData = {
-          nombre: '',
-          apellidos: '',
-          alias: '',
-          correo: '',
-          departamento: '',
-          contrasena: '',
-          confirmarContrasena: '',
-          foto: '',
-          activo: true
-        } as AdminEntityData;
-        this.originalData = { ...this.entityData };
-        break;
-      case 'creator':
-        this.entityData = {
-          nombre: '',
-          apellidos: '',
-          correo: '',
-          alias: '',
-          descripcion: '',
-          especialidad: '',
-          contrasena: '',
-          confirmarContrasena: '',
-          foto: '',
-          activo: true,
-          tipoContenido: 'VIDEO'
-        } as CreatorEntityData;
-        this.originalData = { ...this.entityData };
-        break;
-      case 'user':
-        this.entityData = {
-          nombre: '',
-          apellidos: '',
-          alias: '',
-          fechaNacimiento: '',
-          foto: '',
-          activo: true
-        } as UserEntityData;
-        this.originalData = { ...this.entityData };
-        break;
+    // Cargar imágenes primero y esperar a que se complete
+    this.formBaseService.loadImages('avatar');
+
+    // Suscribirse al estado de las imágenes para saber cuándo se han cargado
+    const formState = this.formBaseService.getFormState(`edit-${this.entityType}`);
+    if (formState) {
+      const imageStateSubscription = formState.subscribe(state => {
+        // Si las imágenes ya se cargaron (no está loading), cargar datos de entidad
+        if (!state.imageState.loading) {
+          imageStateSubscription.unsubscribe();
+          this.loadEntityData();
+        }
+      });
+    } else {
+      // Si no hay estado, cargar datos directamente
+      this.loadEntityData();
     }
   }
 
   private navigateBack() {
-    switch (this.entityType) {
-      case 'admin':
-        this.router.navigate(['/ad-admin']);
-        break;
-      case 'creator':
-        this.router.navigate(['/ad-creators']);
-        break;
-      case 'user':
-        this.router.navigate(['/ad-users']);
-        break;
-    }
+    const routes: Record<EntityType, string> = {
+      admin: '/ad-admin',
+      creator: '/ad-creators',
+      user: '/ad-users'
+    };
+    this.router.navigate([routes[this.entityType]]).then(() => {
+      window.location.reload();
+    });
   }
 
-  loadAvatars(): void {
-    this.isLoadingAvatars = true;
-    this.avatarLoadError = false;
-    this.api.getAvatars().subscribe({
-      next: (resp: any) => {
-        this.availableAvatars = resp.avatars || [];
-        if (resp.defaultAvatar) this.defaultAvatar = resp.defaultAvatar;
+  private loadEntity(listObservable: Observable<any[]>, errorMessage: string): void {
+    listObservable.subscribe({
+      next: (entities: any[]) => {
+        const entity = entities.find(e => e.id === this.entityId);
+        if (!entity) {
+          this.formBaseService.updateFormState(`edit-${this.entityType}`, {
+            error: errorMessage,
+            isLoading: false
+          });
+          this.navigateBack();
+          return;
+        }
+
+        const config = ENTITY_CONFIGS[this.entityType];
+        const entityData = config.mapEntityToData(entity);
+
+        this.form.patchValue(entityData);
+        this.formBaseService.updateFormState(`edit-${this.entityType}`, {
+          data: entityData,
+          originalData: { ...entityData },
+          isLoading: false
+        });
+
+        // Seleccionar avatar actual
+        const avatarPath = entityData.foto ?? '';
+        let fullAvatarUrl = avatarPath;
+        if (avatarPath && !avatarPath.includes('/') && !avatarPath.includes('http')) {
+          fullAvatarUrl = this.api.getFullResourceUrl(`/resources/avatars/${avatarPath}`);
+        } else if (avatarPath && !avatarPath.includes('http')) {
+          fullAvatarUrl = this.api.getFullResourceUrl(avatarPath);
+        }
+        this.formBaseService.selectImage(fullAvatarUrl, 'avatar');
       },
       error: (err: any) => {
-        console.error('Error loading avatars:', err);
-        this.avatarLoadError = true;
-        this.availableAvatars = [];
-      },
-      complete: () => {
-        this.isLoadingAvatars = false;
+        this.formBaseService.updateFormState(`edit-${this.entityType}`, {
+          error: err?.message || 'Error loading entity',
+          isLoading: false
+        });
       }
     });
   }
 
-  loadEntityData(): void {
-    this.isLoading = true;
-    switch (this.entityType) {
-      case 'admin':
-        this.adminEntityService.listarAdministradores().subscribe({
-          next: (admins: AdminEV[]) => {
-            const admin = admins.find(a => a.id === this.entityId);
-            if (!admin) {
-              this.error = 'Administrador no encontrado';
-              this.navigateBack();
-              return;
-            }
-            this.entityData = {
-              nombre: admin.nombre ?? '',
-              apellidos: admin.apellidos ?? '',
-              alias: admin.alias ?? '',
-              correo: admin.correo ?? '',
-              departamento: admin.departamento ?? '',
-              contrasena: '',
-              confirmarContrasena: '',
-              foto: admin.foto ?? '',
-              activo: admin.activo ?? true
-            } as AdminEntityData;
-            this.originalData = { ...this.entityData };
-            this.selectedAvatar = this.entityData.foto || '';
-            this.isLoading = false;
-          },
-          error: (err: any) => {
-            console.error('Error loading admin:', err);
-            this.error = this.baseEditService.handleError(err);
-            this.isLoading = false;
-          }
-        });
-        break;
-      case 'creator':
-        this.adminEntityService.listarCreadores().subscribe({
-          next: (creators: CreatorEC[]) => {
-            const creator = creators.find(c => c.id === this.entityId);
-            if (!creator) {
-              this.error = 'Creador no encontrado';
-              this.navigateBack();
-              return;
-            }
-            this.entityData = {
-              nombre: creator.nombre ?? '',
-              apellidos: creator.apellidos ?? '',
-              correo: creator.correo ?? '',
-              alias: creator.alias ?? '',
-              descripcion: creator.descripcion ?? '',
-              especialidad: creator.especialidad ?? '',
-              contrasena: '',
-              confirmarContrasena: '',
-              foto: creator.foto ?? '',
-              activo: creator.activo ?? true,
-              tipoContenido: creator.tipoContenido ?? 'VIDEO'
-            } as CreatorEntityData;
-            this.originalData = { ...this.entityData };
-            this.selectedAvatar = this.entityData.foto || '';
-            this.isLoading = false;
-          },
-          error: (err: any) => {
-            console.error('Error loading creator:', err);
-            this.error = this.baseEditService.handleError(err);
-            this.isLoading = false;
-          }
-        });
-        break;
-      case 'user':
-        this.adminEntityService.listarUsuarios().subscribe({
-          next: (users: UserEV[]) => {
-            const user = users.find(u => u.id === this.entityId);
-            if (!user) {
-              this.error = 'Usuario no encontrado';
-              this.navigateBack();
-              return;
-            }
-            this.entityData = {
-              nombre: user.nombre ?? '',
-              apellidos: user.apellidos ?? '',
-              alias: user.alias ?? '',
-              fechaNacimiento: user.fechaNacimiento ?? '',
-              foto: user.foto ?? '',
-              activo: user.activo ?? true
-            } as UserEntityData;
-            this.originalData = { ...this.entityData };
-            this.selectedAvatar = this.entityData.foto || '';
-            this.isLoading = false;
-          },
-          error: (err: any) => {
-            console.error('Error loading user:', err);
-            this.error = this.baseEditService.handleError(err);
-            this.isLoading = false;
-          }
-        });
-        break;
+  private loadEntityData(): void {
+    this.formBaseService.updateFormState(`edit-${this.entityType}`, { isLoading: true });
+
+    const config = ENTITY_CONFIGS[this.entityType];
+    const errorMessage = `${this.entityType.charAt(0).toUpperCase() + this.entityType.slice(1)} no encontrado`;
+
+    this.loadEntity(config.listMethod(this.adminEntityService), errorMessage);
+  }
+
+  onAvatarSelected(avatarUrl: string): void {
+    this.formBaseService.selectImage(avatarUrl, 'avatar');
+    const currentData = this.formState$.value?.data;
+    if (currentData) {
+      // Extraer el nombre del archivo para guardar en los datos
+      currentData.foto = this.extractRelativePath(avatarUrl);
+      this.formBaseService.updateFormState(`edit-${this.entityType}`, { data: currentData });
     }
   }
 
-  onAvatarSelected(avatar: string): void {
-    this.selectedAvatar = avatar;
-    this.entityData.foto = avatar;
-  }
-
-  onTipoContenidoChanged(tipo: string): void {
-    if (this.entityType === 'creator') {
-      (this.entityData as CreatorEntityData).tipoContenido = tipo;
+  private extractRelativePath(fullUrl: string): string {
+    // Si la URL contiene '/resources/avatars/', extraer el nombre del archivo
+    if (fullUrl.includes('/resources/avatars/')) {
+      return fullUrl.split('/resources/avatars/')[1];
     }
-  }
-
-  validateForm(): boolean {
-    this.nombreTooLong = this.entityData.nombre.length > 50;
-    this.apellidosTooLong = this.entityData.apellidos.length > 50;
-    this.aliasTooLong = this.entityData.alias.length > 20;
-    if (this.entityType === 'creator') {
-      this.descripcionTooLong = (this.entityData as CreatorEntityData).descripcion.length > 500;
-    }
-    if (this.entityType === 'user') {
-      this.fechaInvalid = !this.isValidDate((this.entityData as UserEntityData).fechaNacimiento);
-      this.edadInvalid = !this.isValidAge((this.entityData as UserEntityData).fechaNacimiento);
-    }
-    if (this.entityType === 'admin' || this.entityType === 'creator') {
-      this.passwordMismatch = (this.entityData as AdminEntityData | CreatorEntityData).contrasena !== (this.entityData as AdminEntityData | CreatorEntityData).confirmarContrasena;
-    }
-
-    return !this.nombreTooLong && !this.apellidosTooLong && !this.aliasTooLong &&
-           !(this.entityType === 'creator' && this.descripcionTooLong) &&
-           !(this.entityType === 'user' && (this.fechaInvalid || this.edadInvalid)) &&
-           !( (this.entityType === 'admin' || this.entityType === 'creator') && this.passwordMismatch );
-  }
-
-  private isValidDate(dateString: string): boolean {
-    const date = new Date(dateString);
-    return !isNaN(date.getTime());
-  }
-
-  private isValidAge(dateString: string): boolean {
-    const birthDate = new Date(dateString);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    return age >= 13 && age <= 120;
-  }
-
-  checkPasswordStrength(): void {
-    if (this.entityType === 'admin' || this.entityType === 'creator') {
-      const password = (this.entityData as AdminEntityData | CreatorEntityData).contrasena;
-      this.passwordStrength.hasMinLength = password.length >= 8;
-      this.passwordStrength.hasUpperCase = PasswordValidators.hasUpperCase({ value: password } as any) === null;
-      this.passwordStrength.hasLowerCase = PasswordValidators.hasLowerCase({ value: password } as any) === null;
-      this.passwordStrength.hasNumber = PasswordValidators.hasNumber({ value: password } as any) === null;
-      this.passwordStrength.hasSpecialChar = PasswordValidators.hasSpecialChar({ value: password } as any) === null;
-    }
+    // Si es solo el nombre del archivo o para otros casos, extraer la última parte
+    return fullUrl.includes('/') ? (fullUrl.split('/').pop() ?? '') : fullUrl;
   }
 
   saveChanges(): void {
-    if (!this.validateForm()) {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
 
-    this.isSaving = true;
-    this.error = null;
+    const currentState = this.formState$.value;
+    if (!currentState) return;
 
-    const changes = this.getChanges();
+    this.formBaseService.updateFormState(`edit-${this.entityType}`, { isSubmitting: true, error: null });
 
-    switch (this.entityType) {
-      case 'admin':
-        this.adminEntityService.editarAdministrador(this.entityId, changes).subscribe({
-          next: () => {
-            this.originalData = { ...this.entityData };
-            this.isSaving = false;
-            this.navigateBack();
-          },
-          error: (err: BackendErrorResponse) => {
-            this.error = this.baseEditService.handleError(err);
-            this.isSaving = false;
-          }
-        });
-        break;
-      case 'creator':
-        this.adminEntityService.editarCreador(this.entityId, changes).subscribe({
-          next: () => {
-            this.originalData = { ...this.entityData };
-            this.isSaving = false;
-            this.navigateBack();
-          },
-          error: (err: BackendErrorResponse) => {
-            this.error = this.baseEditService.handleError(err);
-            this.isSaving = false;
-          }
-        });
-        break;
-      case 'user':
-        this.adminEntityService.editarUsuario(this.entityId, changes).subscribe({
-          next: () => {
-            this.originalData = { ...this.entityData };
-            this.isSaving = false;
-            this.navigateBack();
-          },
-          error: (err: BackendErrorResponse) => {
-            this.error = this.baseEditService.handleError(err);
-            this.isSaving = false;
-          }
-        });
-        break;
-    }
+    const changes = this.prepareChanges(this.form.value, currentState.originalData, currentState.data.foto, currentState.data.activo);
+    const config = ENTITY_CONFIGS[this.entityType];
+    
+    config.editMethod(this.adminEntityService)(this.entityId, changes).subscribe({
+      next: () => this.handleSaveSuccess(),
+      error: (err: BackendErrorResponse) => this.handleSaveError(err)
+    });
   }
 
-  private getChanges(): any {
+  private handleSaveSuccess(): void {
+    const currentState = this.formState$.value;
+    if (currentState) {
+      this.formBaseService.updateFormState(`edit-${this.entityType}`, {
+        isSubmitting: false,
+        data: { ...currentState.data },
+        originalData: { ...currentState.data }
+      });
+    }
+    this.navigateBack();
+  }
+
+  private handleSaveError(err: BackendErrorResponse): void {
+    this.formBaseService.handleBackendError(`edit-${this.entityType}`, this.form, err);
+    this.formBaseService.updateFormState(`edit-${this.entityType}`, { isSubmitting: false });
+  }
+
+  private prepareChanges(currentData: any, originalData: any, currentFoto?: string, currentActivo?: boolean): any {
+    const config = ENTITY_CONFIGS[this.entityType];
+    const nonEditableFields = ['correo', 'tipoContenido'];
+
     const changes: any = {};
 
-    // Incluir siempre los campos obligatorios para cada tipo de entidad
-    switch (this.entityType) {
-      case 'admin':
-        changes.nombre = this.entityData.nombre;
-        changes.apellidos = this.entityData.apellidos;
-        changes.departamento = (this.entityData as AdminEntityData).departamento;
-        changes.activo = this.entityData.activo;
-        break;
-      case 'creator':
-        changes.nombre = this.entityData.nombre;
-        changes.apellidos = this.entityData.apellidos;
-        changes.descripcion = (this.entityData as CreatorEntityData).descripcion;
-        changes.especialidad = (this.entityData as CreatorEntityData).especialidad;
-        changes.alias = this.entityData.alias;
-        changes.activo = this.entityData.activo;
-        break;
-      case 'user':
-        changes.nombre = this.entityData.nombre;
-        changes.apellidos = this.entityData.apellidos;
-        changes.fechaNacimiento = (this.entityData as UserEntityData).fechaNacimiento;
-        changes.activo = this.entityData.activo;
-        break;
-    }
+    // Incluir campos obligatorios
+    config.requiredFields.forEach(field => {
+      changes[field] = currentData[field];
+    });
 
-    // Agregar campos adicionales que han cambiado
-    for (const key in this.entityData) {
-      if (key !== 'foto' && (this.entityData as any)[key] !== (this.originalData as any)[key]) {
-        changes[key] = (this.entityData as any)[key];
-      }
-    }
+    // Incluir activo del estado actual
+    changes.activo = currentActivo ?? originalData.activo;
 
-    // Siempre incluir foto: si cambió, el nuevo valor; si no, el original para no modificar
-    changes.foto = this.originalData.foto;
-    if (this.entityData.foto !== this.originalData.foto) {
-      changes.foto = this.entityData.foto;
-    }
+    // Agregar campos que han cambiado (excluyendo no editables y foto)
+    Object.keys(currentData)
+      .filter(key => !nonEditableFields.includes(key) && key !== 'foto' && currentData[key] !== originalData[key])
+      .forEach(key => {
+        changes[key] = currentData[key];
+      });
+
+    // Manejar foto
+    changes.foto = this.formBaseService.extractImageFileName(currentFoto ?? originalData.foto);
 
     return changes;
   }
@@ -518,53 +270,15 @@ export class AdminEntityEditFormComponent implements OnInit {
   }
 
   hasChanges(): boolean {
-    return JSON.stringify(this.entityData) !== JSON.stringify(this.originalData);
+    const state = this.formState$.value;
+    return state ? this.formBaseService.hasChanges(state.data, state.originalData) : false;
   }
 
-  isPasswordStrong(): boolean {
-    return this.passwordStrength.hasMinLength &&
-      this.passwordStrength.hasUpperCase &&
-      this.passwordStrength.hasLowerCase &&
-      this.passwordStrength.hasNumber &&
-      this.passwordStrength.hasSpecialChar;
-  }
-
-  get contrasena(): string {
-    if (this.isAdmin(this.entityData) || this.isCreator(this.entityData)) {
-      return this.entityData.contrasena;
+  toggleActive(): void {
+    const currentState = this.formState$.value;
+    if (currentState?.data) {
+      const updatedData = { ...currentState.data, activo: !currentState.data.activo };
+      this.formBaseService.updateFormState(`edit-${this.entityType}`, { data: updatedData });
     }
-    return '';
-  }
-
-  set contrasena(value: string) {
-    if (this.isAdmin(this.entityData) || this.isCreator(this.entityData)) {
-      this.entityData.contrasena = value;
-    }
-  }
-
-  get confirmarContrasena(): string {
-    if (this.isAdmin(this.entityData) || this.isCreator(this.entityData)) {
-      return this.entityData.confirmarContrasena;
-    }
-    return '';
-  }
-
-  set confirmarContrasena(value: string) {
-    if (this.isAdmin(this.entityData) || this.isCreator(this.entityData)) {
-      this.entityData.confirmarContrasena = value;
-    }
-  }
-
-  getTitle(): string {
-    switch (this.entityType) {
-      case 'admin': return 'Editar administrador';
-      case 'creator': return 'Editar creador de contenido';
-      case 'user': return 'Editar usuario';
-      default: return 'Editar entidad';
-    }
-  }
-
-  onCerrar(): void {
-    this.cancel();
   }
 }

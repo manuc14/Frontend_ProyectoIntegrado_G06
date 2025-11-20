@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.user-sidebar {
+  background: #f7f8fc;
+  border-right: 1px solid #dbe0ea;
+  width: 240px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    left: 0;
+    top: 80px;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    
+    &:not(.user-sidebar--collapsed) {
+      transform: translateX(0);
+    }
+  }
+
+  &--collapsed {
+    width: 80px;
+    
+    .user-sidebar__label {
+      display: none;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 8px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+
+    &:hover {
+      background: #e6eeff;
+      transform: translateX(2px);
+    }
+
+    &--active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 60%;
+        background: #ffffff;
+        border-radius: 0 4px 4px 0;
+      }
+    }
+  }
+
+  &__icon {
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+      color: #64748b;
+      transition: color 0.2s ease;
+    }
+  }
+
+  &__item--active &__icon svg {
+    color: #ffffff;
+  }
+
+  &__label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-sidebar {
+    width: 240px;
+
+    &__label {
+      display: block;
+    }
+  }
+}

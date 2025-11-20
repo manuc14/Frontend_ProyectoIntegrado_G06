@@ -1,0 +1,28 @@
+<aside class="user-sidebar" [class.user-sidebar--collapsed]="collapsed">
+  <nav class="user-sidebar__nav">
+    <a
+      routerLink="/user-consultprofile"
+      class="user-sidebar__item"
+      routerLinkActive="user-sidebar__item--active"
+    >
+      <span class="user-sidebar__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+        </svg>
+      </span>
+      <span class="user-sidebar__label" *ngIf="!collapsed">Mi perfil</span>
+    </a>
+    <a
+      routerLink="/my-lists"
+      class="user-sidebar__item"
+      routerLinkActive="user-sidebar__item--active"
+    >
+      <span class="user-sidebar__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z"/>
+        </svg>
+      </span>
+      <span class="user-sidebar__label" *ngIf="!collapsed">Mis listas</span>
+    </a>
+  </nav>
+</aside>

@@ -1,7 +1,7 @@
-:host { display: block; }
+@use '../../admin-mixins.scss' as *;
+@use '../../admin-shared.scss' as *;
 
-@import '../../admin-mixins.scss';
-@import '../../admin-shared.scss';
+:host { display: block; }
 
 /* Active state for sidebar items when used as a standalone component */
 .background-vertical-border .background3.active,

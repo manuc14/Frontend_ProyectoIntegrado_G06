@@ -43,3 +43,16 @@
   background-position: right 12px center;
   padding-right: 36px;
 }
+
+.error-message {
+  @include mixins.text-base(#8B0000, 12px, 500);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: '⚠';
+    font-size: 14px;
+  }
+}

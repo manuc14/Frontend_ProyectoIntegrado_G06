@@ -1,0 +1,146 @@
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  cursor: pointer;
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  svg {
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover:not(:disabled) {
+    transform: scale(1.05);
+
+    svg {
+      transform: scale(1.1);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+// Variant: Primary (Botón reproducir)
+.action-button.primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: 1px solid #2563eb;
+  border-radius: 12px;
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+}
+
+// Variant: Secondary (Botones de acción)
+.action-button.secondary {
+  background: #e6eeff;
+  border: 1px solid #dbe0ea;
+  border-radius: 24px;
+  color: #1e293b;
+
+  &:hover:not(:disabled) {
+    background: #d0deff;
+  }
+}
+
+// Variant: Icon Only (Favoritos, Lista)
+.action-button.icon-only {
+  background: #e6eeff;
+  border: 1px solid #dbe0ea;
+  border-radius: 24px;
+  width: 2.125rem;
+  height: 2.125rem;
+  justify-content: center;
+  padding: 0;
+
+  svg {
+    color: #1e293b;
+  }
+
+  &:hover:not(:disabled) {
+    background: #d0deff;
+  }
+}
+
+// Size: Small
+.action-button.small {
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+
+  &.icon-only {
+    width: 1.75rem;
+    height: 1.75rem;
+    
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+// Size: Medium (default)
+.action-button.medium {
+  padding: 0.6875rem 1.0625rem;
+  font-size: 0.875rem;
+
+  &.icon-only {
+    width: 2.125rem;
+    height: 2.125rem;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &.primary {
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// Size: Large
+.action-button.large {
+  padding: 1rem 1.5rem;
+  font-size: 1.0625rem;
+
+  &.icon-only {
+    width: 2.5rem;
+    height: 2.5rem;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &.primary {
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.button-label {
+  white-space: nowrap;
+}

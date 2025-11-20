@@ -1,17 +1,43 @@
-/*
- * Validadores compartidos para formularios (autenticación y perfil).
- * - matchPasswordsValidator: asegura que dos controles de un FormGroup coincidan (p. ej., password/repeatPassword)
- * - minAgeValidator: valida una edad mínima a partir de una fecha de nacimiento
- * - maxAgeValidator: valida que una fecha no sea anterior al año mínimo permitido
- * - passwordPolicyValidator (opcional): política de ejemplo que exige longitud, mayúscula (no en primera posición), carácter especial y número
- * - PasswordValidators: clase con validadores específicos para contraseñas
+/**
+ * @fileoverview Validadores personalizados para formularios de la aplicación.
+ * 
+ * Este módulo contiene validadores reutilizables para diferentes tipos de campos:
+ * - Validación de contraseñas y políticas de seguridad
+ * - Validación de edades y fechas
+ * - Validación de URLs
+ * - Validación de coincidencia de campos
+ * 
+ * @module FormValidators
+ * @requires @angular/forms
  */
+
 import { AbstractControl, ValidationErrors, ValidatorFn, FormGroup } from '@angular/forms';
 
-/** Año mínimo permitido para fechas de nacimiento */
+/** 
+ * Año mínimo permitido para fechas de nacimiento.
+ * Protege contra errores de entrada y datos históricos irreales.
+ */
 export const MIN_BIRTH_YEAR = 1900;
 
-/** Asegura que dos controles del mismo grupo tengan valores idénticos. */
+/**
+ * Valida que dos controles del mismo FormGroup tengan valores idénticos.
+ * 
+ * Comúnmente usado para confirmar contraseñas o emails repetidos.
+ * 
+ * @param {string} aKey - Clave del primer control
+ * @param {string} bKey - Clave del segundo control
+ * @returns {ValidatorFn} Función validadora
+ * 
+ * @example
+ * ```typescript
+ * const form = this.fb.group({
+ *   password: [''],
+ *   confirmPassword: ['']
+ * }, {
+ *   validators: matchPasswordsValidator('password', 'confirmPassword')
+ * });
+ * ```
+ */
 export function matchPasswordsValidator(aKey: string, bKey: string): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const group = control as FormGroup;
@@ -21,25 +47,52 @@ export function matchPasswordsValidator(aKey: string, bKey: string): ValidatorFn
   };
 }
 
-/** Valida que una fecha corresponda al menos a `minYears` años de edad. */
+/**
+ * Valida que una fecha de nacimiento corresponda a una edad mínima.
+ * 
+ * Calcula la edad exacta considerando mes y día, no solo el año.
+ * Rechaza fechas futuras y fechas inválidas.
+ * 
+ * @param {number} minYears - Edad mínima requerida en años
+ * @returns {ValidatorFn} Función validadora
+ * 
+ * @example
+ * ```typescript
+ * birthDate: ['', minAgeValidator(18)] // Usuario debe tener al menos 18 años
+ * ```
+ */
 export function minAgeValidator(minYears: number): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const v = control.value as string | Date | null;
     if (!v) return null;
+    
     const dob = new Date(v);
     const now = new Date();
+    
     if (isNaN(dob.getTime())) return { invalidDate: true };
     if (dob > now) return { futureDate: true };
-    const age = now.getFullYear() - dob.getFullYear() - (now < new Date(now.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+    
+    // Calcular edad exacta considerando mes y día
+    const age = now.getFullYear() - dob.getFullYear() - 
+                (now < new Date(now.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+    
     return age < minYears ? { minAge: { required: minYears, actual: age } } : null;
   };
 }
 
-/** Valida que una fecha no sea anterior al año mínimo permitido (ej: 1900). */
+/**
+ * Valida que una fecha no sea anterior al año mínimo permitido.
+ * 
+ * Protege contra errores de entrada históricos o datos incorrectos.
+ * 
+ * @param {number} [minYear=MIN_BIRTH_YEAR] - Año mínimo permitido (por defecto 1900)
+ * @returns {ValidatorFn} Función validadora
+ */
 export function maxAgeValidator(minYear: number = MIN_BIRTH_YEAR): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const v = control.value as string | Date | null;
     if (!v) return null;
+    
     const dob = new Date(v);
     if (isNaN(dob.getTime())) return { invalidDate: true };
     if (dob.getFullYear() < minYear) {
@@ -50,73 +103,186 @@ export function maxAgeValidator(minYear: number = MIN_BIRTH_YEAR): ValidatorFn {
 }
 
 /**
- * Política de contraseña opcional: 8+ caracteres, una mayúscula que no esté en primera posición,
- * un carácter especial y un número.
- * No se aplica por defecto para no cambiar el comportamiento; impórtala y úsala en los componentes si la necesitas.
+ * Valida que una contraseña cumpla con la política de seguridad de la aplicación.
+ * 
+ * Requisitos de la política:
+ * - Mínimo 8 caracteres
+ * - Al menos una letra mayúscula
+ * - Al menos un carácter especial
+ * - Al menos un número
+ * 
+ * @returns {ValidatorFn} Función validadora que retorna errores detallados por requisito
+ * 
+ * @example
+ * ```typescript
+ * password: ['', [Validators.required, passwordPolicyValidator()]]
+ * ```
  */
 export function passwordPolicyValidator(): ValidatorFn {
-  const specialRe = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
-  const numberRe = /\d/;
   return (control: AbstractControl): ValidationErrors | null => {
-    const value = (control.value || '') as string;
-    if (!value) return null; // let required handle empties
+    const value = control.value || '';
+    if (!value) return null;
+    
     const errors: Record<string, any> = {};
-    if (value.length < 8) {
-      errors['minLengthPolicy'] = true;
-    }
-    const upperIdx = value.search(/[A-Z]/);
-    if (upperIdx === -1 || upperIdx === 0) {
-      errors['uppercasePolicy'] = true; // must exist and not be first
-    }
-    if (!specialRe.test(value)) {
-      errors['specialPolicy'] = true;
-    }
-    if (!numberRe.test(value)) {
-      errors['numberPolicy'] = true;
-    }
+    
+    // Validar longitud mínima
+    if (value.length < 8) errors['minLengthPolicy'] = true;
+    
+    // Validar mayúscula
+    if (!/[A-Z]/.test(value)) errors['uppercasePolicy'] = true;
+    
+    // Validar carácter especial
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value)) errors['specialPolicy'] = true;
+    
+    // Validar número
+    if (!/\d/.test(value)) errors['numberPolicy'] = true;
+    
     return Object.keys(errors).length ? { passwordPolicy: errors } : null;
   };
 }
 
 /**
- * Clase con validadores específicos para contraseñas en el sistema de restablecimiento
+ * Clase utilitaria con validadores específicos para contraseñas.
+ * 
+ * Proporciona validadores granulares que pueden componerse según necesidades.
+ * Cada validador puede usarse independientemente o en combinación.
+ * 
+ * @class PasswordValidators
  */
 export class PasswordValidators {
-  /** Valida que tenga al menos una mayúscula */
+  /** Patrones regex para validación de requisitos de contraseña */
+  private static readonly PATTERNS = {
+    upper: /[A-Z]/,
+    lower: /[a-z]/,
+    number: /\d/,
+    special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/
+  };
+
+  /**
+   * Método helper privado para validar contra un patrón.
+   * @private
+   */
+  private static validate(control: AbstractControl, pattern: RegExp, errorKey: string): ValidationErrors | null {
+    return control.value && !pattern.test(control.value) ? { [errorKey]: true } : null;
+  }
+
+  /**
+   * Valida que la contraseña contenga al menos una letra mayúscula.
+   */
   static hasUpperCase(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value) return null;
-    return /[A-Z]/.test(value) ? null : { missingUpperCase: true };
+    return this.validate(control, this.PATTERNS.upper, 'missingUpperCase');
   }
 
-  /** Valida que tenga al menos una minúscula */
+  /**
+   * Valida que la contraseña contenga al menos una letra minúscula.
+   */
   static hasLowerCase(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value) return null;
-    return /[a-z]/.test(value) ? null : { missingLowerCase: true };
+    return this.validate(control, this.PATTERNS.lower, 'missingLowerCase');
   }
 
-  /** Valida que tenga al menos un número */
+  /**
+   * Valida que la contraseña contenga al menos un número.
+   */
   static hasNumber(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value) return null;
-    return /\d/.test(value) ? null : { missingNumber: true };
+    return this.validate(control, this.PATTERNS.number, 'missingNumber');
   }
 
-  /** Valida que tenga al menos un carácter especial */
+  /**
+   * Valida que la contraseña contenga al menos un carácter especial.
+   */
   static hasSpecialChar(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value) return null;
-    return /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value) ? null : { missingSpecialChar: true };
+    return this.validate(control, this.PATTERNS.special, 'missingSpecialChar');
   }
 
-  /** Valida que las contraseñas coincidan */
+  /**
+   * Valida que dos campos de contraseña coincidan.
+   * 
+   * Debe aplicarse a nivel de FormGroup.
+   * 
+   * @param {AbstractControl} control - FormGroup que contiene los campos password y confirmPassword
+   * @returns {ValidationErrors | null} Error si no coinciden, null si son iguales
+   */
   static passwordsMatch(control: AbstractControl): ValidationErrors | null {
     const group = control as FormGroup;
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
-    
-    if (!password || !confirmPassword) return null;
-    return password === confirmPassword ? null : { passwordsMismatch: true };
+    return password && confirmPassword && password !== confirmPassword ? { passwordsMismatch: true } : null;
   }
+}
+
+/**
+ * Valida que una fecha no sea anterior a hoy.
+ * 
+ * Útil para fechas de expiración o fechas de eventos futuros.
+ * Compara solo la fecha (sin hora) para evitar problemas de zona horaria.
+ * 
+ * @returns {ValidatorFn} Función validadora
+ * 
+ * @example
+ * ```typescript
+ * expirationDate: ['', minDateValidator()] // Fecha debe ser hoy o posterior
+ * ```
+ */
+export function minDateValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
+    
+    const selectedDate = new Date(control.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalizar a medianoche para comparar solo fechas
+    
+    return selectedDate < today ? { minDate: { required: today.toISOString().split('T')[0], actual: control.value } } : null;
+  };
+}
+
+/**
+ * Valida que una URL tenga formato válido para videos.
+ * 
+ * Verifica:
+ * - Que la URL no esté vacía (es requerida)
+ * - Que comience con http:// o https://
+ * - Que sea de una plataforma soportada (YouTube, Vimeo, Dailymotion)
+ * 
+ * @returns {ValidatorFn} Función validadora
+ * 
+ * @example
+ * ```typescript
+ * videoUrl: ['', videoUrlValidator()] // Debe ser una URL válida de plataforma soportada
+ * ```
+ */
+export function videoUrlValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    // Si no hay valor, no validar
+    if (!control.value) {
+      return null;
+    }
+    
+    // Asegurar que es string antes de hacer trim
+    const url = typeof control.value === 'string' ? control.value.trim() : String(control.value).trim();
+    
+    if (!url) {
+      return { required: true };
+    }
+    
+    // Validar formato básico de URL
+    if (!/^https?:\/\/.+/i.test(url)) {
+      return { invalidUrl: true };
+    }
+    
+    // Patrones para plataformas soportadas
+    const supportedPatterns = {
+      youtube: /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{11})/i,
+      vimeo: /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/\d+/i,
+      dailymotion: /(?:https?:\/\/)?(?:www\.)?(?:dailymotion\.com\/video\/|dai\.ly\/)([\w-]+)/i
+    };
+    
+    // Verificar que la URL corresponda a una plataforma soportada
+    const isSupportedPlatform = Object.values(supportedPatterns).some(pattern => pattern.test(url));
+    
+    if (!isSupportedPlatform) {
+      return { unsupportedVideoUrl: true };
+    }
+    
+    return null;
+  };
 }

@@ -1,66 +1,55 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
-import { extractErrorMessage } from '../utils/error-utils';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { getRefreshInProgress } from './token-refresh.interceptor';
 
 /**
  * Interceptor global para manejo de errores HTTP
- * Convierte errores técnicos en mensajes amigables para el usuario
+ * Maneja errores de autenticación (401) redirigiendo al login
+ * Propaga otros errores para que sean manejados por los servicios específicos
+ * 
+ * NOTA: Los errores 401 son manejados PRIMERO por el token-refresh interceptor
+ * Este interceptor solo redirige si la renovación falló
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  // No interceptar errores para login, dejar que api.service lo maneje
-  if (req.url.includes('/auth/login')) {
+  const router = inject(Router);
+  
+  // No interceptar errores para login, verify y verify-password, dejar que los servicios/componentes lo manejen
+  if (req.url.includes('/auth/login') ||
+      req.url.includes('/auth/verify') ||
+      req.url.includes('/auth/refresh') ||
+      req.url.includes('/users/verify-password')) {
     return next(req);
   }
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      let userMessage = 'Ha ocurrido un error inesperado';
-
-      // Si backend provee mensaje estructurado, usarlo
-      const e = extractErrorMessage(error);
-      if (e) {
-        userMessage = e;
-      } else {
-        // Mensajes amigables basados en códigos de estado HTTP
-        switch (error.status) {
-          case 400:
-            userMessage = 'Los datos enviados no son válidos. Por favor, verifica la información.';
-            break;
-          case 401:
-            userMessage = 'No tienes autorización para realizar esta acción.';
-            break;
-          case 403:
-            userMessage = 'No tienes permisos para acceder a este recurso.';
-            break;
-          case 404:
-            userMessage = 'El servicio solicitado no está disponible en este momento.';
-            break;
-          case 409:
-            userMessage = 'Ya existe un registro con esta información.';
-            break;
-          case 422:
-            userMessage = 'Los datos proporcionados no son válidos.';
-            break;
-          case 500:
-            userMessage = 'Error interno del servidor. Por favor, intenta más tarde.';
-            break;
-          case 503:
-            userMessage = 'El servicio no está disponible temporalmente.';
-            break;
-          default:
-            if (error.status === 0) {
-              userMessage = 'No se puede conectar con el servidor. Verifica tu conexión a internet.';
-            }
+      console.log('🔍 [ErrorInterceptor] Error recibido:', error.status, error.url);
+      
+      // Manejar errores de autenticación (401) solo si llegaron aquí
+      // (significa que el token-refresh interceptor no pudo renovar)
+      if (error.status === 401) {
+        console.log('🔍 [ErrorInterceptor] Error 401 detectado, verificando refresh en progreso...');
+        console.log('   getRefreshInProgress():', getRefreshInProgress());
+        
+        // ⚠️ NO redirigir si hay un refresh en progreso
+        // El token-refresh interceptor se encargará de reintentar
+        if (getRefreshInProgress()) {
+          console.log('⏳ [ErrorInterceptor] Refresh en progreso - no redirigir al login');
+          return throwError(() => error);
         }
+        
+        console.log('❌ [ErrorInterceptor] 401 sin refresh en progreso - redirigir al login');
+        // Limpiar token expirado
+        sessionStorage.removeItem('authToken');
+        // Redirigir al login
+        router.navigate(['/login']);
       }
 
-      console.error('Error HTTP interceptado:', error);
-      
-      // Crear un nuevo error con el mensaje amigable
-      const friendlyError = new Error(userMessage);
-      (friendlyError as any).originalError = error;
-      
-      return throwError(() => friendlyError);
+      // Para errores de autenticación, ya redirigimos al login arriba
+      // Para otros errores, simplemente propagar el error original
+      return throwError(() => error);
     })
   );
 };

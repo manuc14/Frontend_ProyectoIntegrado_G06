@@ -1,0 +1,579 @@
+/* ==========================================================================
+   ESTILOS DEL COMPONENTE 2FA SETUP
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DISEÑO DE PÁGINA
+   -------------------------------------------------------------------------- */
+
+.two-factor-setup-page {
+  max-width: 600px;
+  margin: 32px auto 56px auto;
+  padding-top: 32px;
+  padding-bottom: 120px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.page-title {
+  margin: 0 0 8px 0;
+  color: var(--foreground);
+  text-align: center;
+}
+
+.hint {
+  color: var(--muted-foreground);
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR DE TARJETA
+   -------------------------------------------------------------------------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* --------------------------------------------------------------------------
+   STEP HEADER
+   -------------------------------------------------------------------------- */
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.step-header h2 {
+  font-size: 1.25rem;
+  color: var(--foreground);
+  margin: 0;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   SECCIONES COMUNES
+   -------------------------------------------------------------------------- */
+
+.setup-step {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-description {
+  color: var(--muted-foreground);
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+h3 {
+  font-size: 1rem;
+  color: var(--foreground);
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  color: var(--foreground);
+  margin: 0 0 12px 0;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+/* --------------------------------------------------------------------------
+   QR SECTION
+   -------------------------------------------------------------------------- */
+
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+.qr-container {
+  text-align: center;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+
+  app-action-button {
+    max-width: fit-content;
+    margin: 0 auto;
+  }
+}
+
+.loading-placeholder {
+  background: var(--muted);
+  width: 250px;
+  height: 250px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.qr-code {
+  max-width: 250px;
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: var(--card);
+}
+
+.secret-code-section {
+  background: var(--muted);
+  border-left: 4px solid var(--primary);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+
+  p {
+    margin: 0 0 0.5rem 0;
+    color: var(--foreground);
+  }
+
+  .secret-code {
+    display: block;
+    background: var(--card);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    word-break: break-all;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 1px solid var(--border);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   BACKUP SECTION
+   -------------------------------------------------------------------------- */
+
+.backup-section {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+  
+  app-action-button {
+    flex: 0 1 auto;
+    
+    &:first-child {
+      flex: 0 1 auto;
+    }
+    
+    &:last-child {
+      flex: 0 1 auto;
+      margin-left: auto;
+    }
+  }
+}
+
+.backup-codes {
+  background: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.backup-code-item {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--foreground);
+  padding: 0.75rem;
+  background: var(--card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  text-align: center;
+  word-break: break-all;
+}
+
+/* --------------------------------------------------------------------------
+   TOTP SECTION - Ahora compatible con paso 2 mejorado
+   -------------------------------------------------------------------------- */
+
+.verify-section {
+  margin-bottom: 1.5rem;
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.code-input-wrapper {
+  margin-bottom: 1rem;
+}
+
+.code-input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.5rem;
+  letter-spacing: 10px;
+  text-align: center;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  background: var(--card);
+  color: var(--foreground);
+  font-weight: 600;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+
+  &:disabled {
+    background: var(--muted);
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.5;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   CÓDIGO DE VERIFICACIÓN - INPUTS INDIVIDUALES (estilo verify-code)
+   -------------------------------------------------------------------------- */
+
+.verify-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.code-inputs-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 24px 0;
+
+  input {
+    width: 52px;
+    height: 58px;
+    text-align: center;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 24px;
+    font-weight: 600;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: var(--ring);
+      box-shadow: 0 0 0 2px var(--ring);
+    }
+
+    &:hover {
+      border-color: var(--accent);
+    }
+
+    &:disabled {
+      background: var(--muted);
+      color: var(--muted-foreground);
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &::placeholder {
+      color: var(--muted-foreground);
+      opacity: 0.3;
+    }
+  }
+}
+
+.backup-code-inputs {
+  input {
+    width: 48px;
+    height: 54px;
+    font-size: 22px;
+  }
+}
+
+.backup-code-hint {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.verify-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin: 24px 0 16px 0;
+
+  app-action-button {
+    flex: 0 1 auto;
+  }
+
+  // Sobrescribir el efecto glass del BackButton para usar estilo secondary
+  app-back-button ::ng-deep .back-button {
+    background: #e6eeff;
+    border: 1px solid #dbe0ea;
+    color: #1e293b;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0.75rem 1.25rem;
+    height: 44px;
+
+    &:hover {
+      background: #d0deff;
+      box-shadow: none;
+      transform: none;
+    }
+
+    svg {
+      color: #1e293b;
+    }
+  }
+}
+
+.toggle-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+.toggle-link-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.toggle-text {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.toggle-link {
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+  }
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   STEP FOOTER & BUTTON GROUP
+   -------------------------------------------------------------------------- */
+
+.step-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   SPINNER (para botones de carga)
+   -------------------------------------------------------------------------- */
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   ERROR MESSAGE
+   -------------------------------------------------------------------------- */
+
+.error-message {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--destructive-foreground);
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+/* --------------------------------------------------------------------------
+   BACKUP INFO NOTE
+   -------------------------------------------------------------------------- */
+
+.backup-info-note {
+  background: color-mix(in srgb, var(--primary) 10%, var(--muted));
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+
+  .info-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    line-height: 1.6;
+
+    strong {
+      color: var(--primary);
+      font-weight: 600;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   HELP SECTION
+   -------------------------------------------------------------------------- */
+
+.help-section {
+  background: var(--muted);
+  border-left: 4px solid var(--primary);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+
+  .help-text {
+    margin: 0 0 0.5rem 0;
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: var(--muted-foreground);
+
+    li {
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+  .two-factor-setup-page {
+    margin: 16px auto 40px auto;
+    padding-top: 16px;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  .backup-codes {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .step-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    h2 {
+      font-size: 1.2rem;
+    }
+  }
+
+  .code-digits-display {
+    gap: 0.5rem;
+
+    .digit {
+      width: 40px;
+      height: 45px;
+      font-size: 1.1rem;
+    }
+  }
+}
+

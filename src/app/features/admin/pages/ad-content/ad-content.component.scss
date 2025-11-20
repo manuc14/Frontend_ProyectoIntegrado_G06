@@ -1,0 +1,326 @@
+@use '../../../../shared/admin-mixins.scss' as *;
+@use '../../../../shared/admin-shared.scss' as *;
+
+// ========================================
+// SOBRESCRITURAS ESPECÍFICAS PARA AD-CONTENT
+// ========================================
+
+// Variables específicas para la tabla de contenidos (13 columnas)
+// Miniatura | Título | Descripción | Duración | Creador | Categoría | Valoración | Premium | Calidad | Etiquetas | Edad | Disp. | Expira
+$table-grid-columns-content: minmax(120px, 1fr) minmax(160px, 1.8fr) minmax(180px, 2fr) minmax(80px, 0.9fr) minmax(120px, 1.3fr) minmax(110px, 1.2fr) minmax(90px, 1fr) minmax(80px, 0.9fr) minmax(80px, 0.9fr) minmax(140px, 1.5fr) minmax(60px, 0.7fr) minmax(60px, 0.7fr) minmax(90px, 1fr);
+
+// Aplicar las columnas específicas a los elementos de tabla
+.background5,
+.horizontal-border,
+.horizontal-border2 {
+  grid-template-columns: $table-grid-columns-content !important;
+}
+
+// ========================================
+// ESTILOS PARA FILTROS TIPO CATÁLOGO
+// ========================================
+
+.filters-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 0 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.content-types {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.filters-pills {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: #ffffff;
+  border: 1px solid #dbe0ea;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 140px;
+  z-index: 1000;
+  padding: 4px;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  text-align: left;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 13px;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #e6eeff;
+  }
+
+  &.active {
+    background: #2563eb;
+    color: #ffffff;
+  }
+}
+
+.results-info {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.text-results {
+  color: #637189;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+// ========================================
+// ESTILOS PARA CELDAS DE CONTENIDO
+// ========================================
+
+// Sobrescribir altura de filas para contenido (más alto para miniaturas)
+.horizontal-border,
+.horizontal-border2 {
+  min-height: 80px !important; // Aumentar altura para acomodar thumbnails
+}
+
+// Centrar celdas específicas con clase .centered-cell
+// .container2 es un flex container con flex-direction: column y align-items: flex-start
+// Para centrar, necesitamos sobrescribir estos valores
+.centered-cell {
+  flex-direction: row !important;        // Cambiar de column (heredado) a row
+  align-items: center !important;        // Centrar verticalmente
+  justify-content: center !important;    // Centrar horizontalmente
+  text-align: center;
+  
+  .table-cell-text {
+    text-align: center;
+    width: 100%;
+  }
+}
+
+// Centrar headers de columnas específicas
+// Columnas: Duración (4), Valoración (7), Premium (8), Calidad (9), Edad (11), Disp. (12), Expira (13)
+.background5 {
+  .container2:nth-child(4),
+  .container2:nth-child(7),
+  .container2:nth-child(8),
+  .container2:nth-child(9),
+  .container2:nth-child(11),
+  .container2:nth-child(12),
+  .container2:nth-child(13) {
+    display: flex;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center;
+    
+    .table-header-text {
+      text-align: center;
+    }
+  }
+}
+
+.thumbnail-container {
+  flex-shrink: 0;
+  width: 96px;
+  height: 54px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e9edf5;
+  border: 1px solid #dbe0ea;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.content-title {
+  flex: 1;
+  color: #0f172a;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.description-text {
+  flex: 1;
+  color: #637189;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+// Estilos de badges y pills
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e6eeff;
+  border-radius: 12px;
+  padding: 4px 10px;
+}
+
+.rating-text {
+  color: #1e293b;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.premium-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-premium {
+  color: #637189;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.quality-badge {
+  background: #e6eeff;
+  border-radius: 12px;
+  padding: 4px 10px;
+  color: #1e293b;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.tags-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tag-pill {
+  background: #e6eeff;
+  border-radius: 12px;
+  padding: 3px 8px;
+  color: #1e293b;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.age-badge {
+  background: #fff4e6;
+  border: 1px solid #ffb74d;
+  border-radius: 12px;
+  padding: 4px 10px;
+  color: #1e293b;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.availability-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  
+  &.available {
+    background: #e6eeff;
+  }
+  
+  &.unavailable {
+    background: #ffe4e2;
+  }
+}
+
+.category-text {
+  color: #637189;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.expiry-text {
+  color: #637189;
+  font-family: "Inter-Bold", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  width: 100%;
+}
+
+// Media queries específicas para ad-content
+@media (max-width: 1400px) {
+  $table-grid-columns-content-medium: minmax(100px, 0.9fr) minmax(140px, 1.6fr) minmax(160px, 1.8fr) minmax(70px, 0.8fr) minmax(110px, 1.2fr) minmax(100px, 1.1fr) minmax(80px, 0.9fr) minmax(70px, 0.8fr) minmax(70px, 0.8fr) minmax(130px, 1.4fr) minmax(50px, 0.6fr) minmax(50px, 0.6fr) minmax(80px, 0.9fr);
+
+  .background5,
+  .horizontal-border,
+  .horizontal-border2 {
+    grid-template-columns: $table-grid-columns-content-medium !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .thumbnail-container {
+    width: 80px;
+    height: 45px;
+  }
+  
+  .content-title {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

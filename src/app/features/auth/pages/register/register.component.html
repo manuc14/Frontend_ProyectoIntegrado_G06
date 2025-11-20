@@ -1,0 +1,64 @@
+<app-header />
+
+<main class="register-page" [@fadeIn]>
+  <h1 class="page-title">Crear tu cuenta</h1>
+  <p class="hint">Los campos con * son obligatorios.</p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="card" [@shakeError]="shakeForm ? 'shake' : ''">
+    <div *ngIf="bannerKind" class="banner" [class.success]="bannerKind==='success'" [class.error]="bannerKind==='error'">
+      {{ bannerText }}
+    </div>
+    <div class="grid">
+      <app-form-input label="Nombre" [formControl]="nombreControl" [maxlength]="maxNombre" [errors]="f['nombre'].errors" [touched]="f['nombre'].touched" customClass="register-input"></app-form-input>
+      <app-form-input label="Apellidos" [formControl]="apellidosControl" [maxlength]="maxApellidos" [errors]="f['apellidos'].errors" [touched]="f['apellidos'].touched" customClass="register-input"></app-form-input>
+      <app-form-input label="Email" [formControl]="emailControl" [maxlength]="maxEmail" [errors]="f['email'].errors" [touched]="f['email'].touched" customClass="span-2 register-input"></app-form-input>
+      <app-form-input label="Alias (opcional, máx {{maxAlias}})" [formControl]="aliasControl" [maxlength]="maxAlias" [errors]="f['alias'].errors" [touched]="f['alias'].touched" subhint="Es tu nombre público." customClass="register-input"></app-form-input>
+      <app-form-password label="Contraseña" [formControl]="passwordControl" [showTooltip]="showPasswordTooltip" [errors]="f['password'].errors" [touched]="f['password'].touched" (toggleTooltip)="togglePasswordTooltip()" customClass="with-help register-input"></app-form-password>
+      <app-form-password label="Repetir contraseña" [formControl]="repeatPasswordControl" [showTooltip]="false" [showHelpButton]="false" [errors]="repeatPasswordErrors" [touched]="f['repeatPassword'].touched" customClass="register-input align-bottom"></app-form-password>
+      <app-form-date label="Fecha de nacimiento" [formControl]="fechaNacimientoControl" [errors]="f['fechaNacimiento'].errors" [touched]="f['fechaNacimiento'].touched" customClass="register-input"></app-form-date>
+      <app-form-toggle label="Elige plan" [formControl]="vipControl" [options]="[{value: false, label: 'Estándar'}, {value: true, label: 'VIP'}]" hint="Puedes cambiarlo más tarde. VIP incluye ventajas extra." customClass="span-2" [name]="'vip'" [touched]="f['vip'].touched"></app-form-toggle>
+      <fieldset class="span-2" *ngIf="avatars.length > 0 || loadingAvatars || avatarLoadError">
+        <legend>Elige tu avatar</legend>
+        <div class="avatar-section">
+          <div *ngIf="loadingAvatars" class="loading-avatars">
+            <div class="spinner"></div>
+            <span>Cargando avatares...</span>
+          </div>
+          <div *ngIf="avatarLoadError" class="avatar-error">
+            <div class="error-icon">⚠️</div>
+            <div class="error-message">
+              <strong>No se han podido cargar los avatares.</strong>
+              <p>Se le asignará el predeterminado y posteriormente podrá modificarlo en su perfil.</p>
+            </div>
+          </div>
+          <div *ngIf="!loadingAvatars && !avatarLoadError && avatars.length > 0" class="avatar-grid">
+            <button type="button" 
+                    *ngFor="let avatar of avatars; let i = index" 
+                    class="avatar-option"
+                    [class.selected]="avatar === selectedAvatar"
+                    (click)="selectAvatar(avatar)"
+                    [@buttonHover]
+                    [attr.aria-pressed]="avatar === selectedAvatar"
+                    [attr.aria-label]="'Seleccionar avatar ' + (i + 1)">
+              <img [src]="formBaseService.getFullImageUrl(avatar, 'avatar')" 
+                   [alt]="'Avatar ' + (i + 1)"
+                   loading="lazy"
+                   draggable="false" />
+              <div class="check-mark" *ngIf="avatar === selectedAvatar">✓</div>
+            </button>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <app-form-submit [text]="'Crear cuenta'" [loadingText]="'Enviando…'" [loading]="loading" [disabled]="form.invalid" cancelLink="/" cancelText="Cancelar" customClass="right-aligned"></app-form-submit>
+  </form>
+</main>
+
+<!-- VIP promotional modal (shared) -->
+<app-vip-promo-modal *ngIf="showVipPromo"
+  (upgrade)="upgradeToVip()"
+  (continue)="continueAsStandard()"
+  (close)="continueAsStandard()"
+></app-vip-promo-modal>
+
+<app-footer />

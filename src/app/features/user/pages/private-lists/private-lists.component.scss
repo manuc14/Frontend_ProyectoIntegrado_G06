@@ -1,0 +1,16 @@
+.user-layout {
+  display: flex;
+  min-height: calc(100vh - 160px);
+  background: #eef1f6;
+
+  &__main {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-layout {
+    flex-direction: column;
+  }
+}

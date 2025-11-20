@@ -1,0 +1,241 @@
+<!-- Header del creador -->
+<app-content-creator-header></app-content-creator-header>
+
+<div class="creator-layout"
+     (click)="cerrarDropdowns()"
+     (keydown.enter)="cerrarDropdowns()">
+  <!-- Sidebar Navigation Compartido -->
+  <app-creator-sidebar></app-creator-sidebar>
+
+  <!-- Main Content -->
+  <main class="creator-layout__main">
+    <div class="stats-dashboard">
+      <!-- Header con filtros -->
+      <div class="stats-dashboard__header">
+        <div class="stats-dashboard__header-left">
+          <h1 class="stats-dashboard__title">Panel del Creador</h1>
+          <p class="stats-dashboard__subtitle">Resumen de tu actividad y estadísticas principales</p>
+        </div>
+
+        <div class="stats-dashboard__filters">
+          <!-- Filtro TOP -->
+          <div class="stats-dashboard__filter-dropdown"
+               (click)="$event.stopPropagation()"
+               (keydown.enter)="$event.stopPropagation()">
+            <button
+              class="stats-dashboard__filter-btn"
+              [class.active]="dropdownTopAbierto"
+              (click)="dropdownTopAbierto = !dropdownTopAbierto">
+              <span class="stats-dashboard__filter-label">TOP</span>
+              <span class="stats-dashboard__filter-value">{{ textoBotonTop }}</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="stats-dashboard__filter-icon">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <div class="stats-dashboard__dropdown" *ngIf="dropdownTopAbierto">
+              <button
+                *ngFor="let top of topOptions"
+                class="stats-dashboard__dropdown-item"
+                [class.active]="selectedTop === top"
+                (click)="seleccionarTop(top)">
+                {{ top }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Overview (primero) -->
+      <div class="stats-overview">
+        <div class="stat-box">
+          <div class="stat-box__icon stat-box__icon--blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 17V19H2V17S2 13 9 13 16 17 16 17M12.5 7.5A3.5 3.5 0 1 0 9 11A3.5 3.5 0 0 0 12.5 7.5M15.94 13A5.32 5.32 0 0 1 18 17V19H22V17S22 13.37 15.94 13M15 4A3.39 3.39 0 0 0 13.07 4.59A5 5 0 0 1 13.07 10.41A3.39 3.39 0 0 0 15 11A3.5 3.5 0 0 0 15 4Z"/>
+            </svg>
+          </div>
+          <div class="stat-box__content">
+            <div class="stat-box__label">Usuarios registrados</div>
+            <div class="stat-box__value">{{ statsData.usuariosTotales | number }}</div>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-box__icon stat-box__icon--purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z"/>
+            </svg>
+          </div>
+          <div class="stat-box__content">
+            <div class="stat-box__label">Usuarios VIP registrados</div>
+            <div class="stat-box__value">{{ statsData.usuariosVip | number }}</div>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-box__icon stat-box__icon--green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+            </svg>
+          </div>
+          <div class="stat-box__content">
+            <div class="stat-box__label">Total de reproducciones</div>
+            <div class="stat-box__value">{{ statsData.reproduccionesTotales | number }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top 5 Cards -->
+      <div class="top-cards-section">
+        <!-- TOP 5 Reproducciones -->
+        <div class="top-card">
+          <div class="top-card__header">
+            <h2 class="top-card__title">TOP {{ selectedTop }} Reproducciones</h2>
+          </div>
+          <div class="top-card__content">
+            @for (item of topReproductions.slice(0, selectedTop); track item.rank) {
+              <div class="top-item">
+                <div class="top-item__rank">{{ item.rank }}</div>
+                <div class="top-item__thumbnail-wrapper">
+                  <img [src]="item.thumbnail" [alt]="item.title" class="top-item__thumbnail">
+                </div>
+                <div class="top-item__info">
+                  <div class="top-item__title">{{ item.title }}</div>
+                </div>
+                <div class="top-item__badge">{{ item.views }}</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- TOP 5 Valoración -->
+        <div class="top-card">
+          <div class="top-card__header">
+            <h2 class="top-card__title">TOP {{ selectedTop }} Valoración media</h2>
+          </div>
+          <div class="top-card__content">
+            @for (item of topRatings.slice(0, selectedTop); track item.rank) {
+              <div class="top-item">
+                <div class="top-item__rank">{{ item.rank }}</div>
+                <div class="top-item__thumbnail-wrapper">
+                  <img [src]="item.thumbnail" [alt]="item.title" class="top-item__thumbnail">
+                </div>
+                <div class="top-item__info">
+                  <div class="top-item__title">{{ item.title }}</div>
+                </div>
+                <div class="top-item__badge">{{ item.rating }}</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- TOP 5 Especialidades -->
+        <div class="top-card">
+          <div class="top-card__header">
+            <h2 class="top-card__title">TOP {{ selectedTop }} Especialidades</h2>
+          </div>
+          <div class="top-card__content">
+            @for (item of topSpecialties.slice(0, selectedTop); track item.rank) {
+              <div class="top-item">
+                <div class="top-item__rank">{{ item.rank }}</div>
+                <div class="top-item__info">
+                  <div class="top-item__title">{{ item.title }}</div>
+                </div>
+                <div class="top-item__badge">{{ item.engagement }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="chart-section">
+        <!-- Gráfico de barras - Reproducciones semanales -->
+        <div class="chart-card">
+          <div class="chart-card__header">
+            <h2>Reproducciones semanales</h2>
+          </div>
+          <div class="chart-card__content">
+            <div class="bar-chart">
+              @for (data of weeklyData; track data.day; let i = $index) {
+                <div class="bar-chart__item">
+                  <div class="bar-chart__bar-container">
+                    <div
+                      class="bar-chart__bar"
+                      [style.height.%]="(data.views / maxValue) * 100"
+                      style="background: #3b82f6;">
+                    </div>
+                    <span class="bar-chart__value">
+                {{ data.views >= 1000 ? (data.views / 1000).toFixed(1) + 'k' : data.views }}
+              </span>
+                  </div>
+                  <span class="bar-chart__label">{{ data.day }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico de curva - Reproducciones semanales -->
+        <div class="chart-card">
+          <div class="chart-card__header">
+            <h2>Curva de reproducciones</h2>
+          </div>
+          <div class="chart-card__content">
+            <div class="curve-chart">
+              @for (data of weeklyData; track data.day; let i = $index) {
+                <div class="curve-chart__item">
+                  <span class="curve-chart__label">{{ data.day }}</span>
+                </div>
+              }
+              <svg class="curve-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path [attr.d]="getCurvePathSimple()" fill="none" stroke="#2563eb" stroke-width="3" vector-effect="non-scaling-stroke"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions Section -->
+      <div class="quick-actions">
+        <div class="action-card action-card--primary" (click)="navigateToCreatorCatalog()" (keydown.enter)="navigateToCreatorCatalog()">
+          <div class="action-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z"/>
+            </svg>
+          </div>
+          <div class="action-card__content">
+            <h3 class="action-card__title">Acceso a contenidos</h3>
+            <p class="action-card__description">Gestiona todos tus vídeos, audios y listas de reproducción</p>
+          </div>
+          <div class="action-card__arrow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="action-card action-card--secondary" (click)="navigateToUploadContent()" (keydown.enter)="navigateToUploadContent()">
+          <div class="action-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/>
+            </svg>
+          </div>
+          <div class="action-card__content">
+            <h3 class="action-card__title">Subir contenido</h3>
+            <p class="action-card__description">Sube nuevos vídeos, audios y crea contenido para tu audiencia</p>
+          </div>
+          <div class="action-card__arrow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Footer -->
+<app-footer></app-footer>

@@ -1,0 +1,145 @@
+import { CommonModule } from '@angular/common';
+import { Component, signal, OnInit, OnDestroy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HeaderComponent } from '../../../../shared/header/header.component';
+import { FooterComponent } from '../../../../shared/footer/footer.component';
+import { ApiService } from '../../../../core/services/api.service';
+import { CodeInputBase } from '../../../../core/base/code-input.base';
+import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../../core/animations/animations';
+@Component({
+  selector: 'app-verify-code',
+  standalone: true,
+  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
+  templateUrl: './verify-code.page.html',
+  styleUrl: './verify-code.page.scss',
+  animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
+})
+export class VerifyCodePage extends CodeInputBase implements OnInit, OnDestroy {
+  readonly token = signal<string>('');
+  isLoading = false;
+  errorMessage = '';
+  resendDisabled = false;
+  resendCountdown = 0;
+  private resendTimer: any;
+  isVerifying = false;
+  isResending = false;
+  successMessage = '';
+  hasError = false;
+
+  constructor(private route: ActivatedRoute, private router: Router, private api: ApiService) {
+    super();
+  }
+
+  ngOnInit() {
+    const token = sessionStorage.getItem('verificationToken');
+    this.token.set(token ?? '');
+    
+    if (!this.token()) {
+      this.router.navigate(['/signup']);
+      return;
+    }
+
+    // Validate token and session
+    this.api.validateVerificationToken(this.token()).subscribe({
+      next: (response) => {
+        if (!response.exists) {
+          this.router.navigate(['/signup']);
+        }
+      },
+      error: () => {
+        this.router.navigate(['/signup']);
+      }
+    });
+  }
+
+  /* Envía el código para verificación usando el token */
+  onVerify() {
+    // Early return if cannot verify or already verifying
+    if (!this.canVerify || this.isVerifying) {
+      if (!this.canVerify) this.triggerShakeError();
+      return;
+    }
+
+    this.isVerifying = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.hasError = false;
+    this.buttonState = 'pressed';
+
+    this.api.verifyUserWithToken(this.token(), this.code).subscribe({
+      next: () => {
+        // Limpiar sessionStorage después de verificación exitosa
+        sessionStorage.removeItem('pendingVerificationEmail');
+        sessionStorage.removeItem('verificationToken');
+        this.router.navigate(['/login']);
+      },
+      error: (error: any) => {
+        this.errorMessage = error?.error?.message || error?.message || 'Código de verificación incorrecto';
+        this.hasError = true;
+        this.isVerifying = false;
+        this.buttonState = 'normal';
+        this.triggerShakeError();
+        this.clearCodeInputs();
+      },
+      complete: () => {
+        this.isVerifying = false;
+        this.buttonState = 'normal';
+      }
+    });
+  }
+
+  /* Reenvía un nuevo código de verificación usando el token actual */
+  onResendCode() {
+    // Early return if already resending or disabled
+    if (this.isResending || this.resendDisabled) return;
+
+    this.isResending = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.hasError = false;
+
+    this.api.resendVerificationCode(this.token()).subscribe({
+      next: (response: any) => {
+        this.successMessage = response.message || 'Nuevo código enviado a tu email';
+        this.hasError = false;
+        this.clearCodeInputs();
+        this.startResendCountdown();
+      },
+      error: (error: any) => {
+        this.errorMessage = error?.error?.message || error?.message || 'Error al reenviar el código';
+        this.hasError = true;
+        this.isResending = false;
+      },
+      complete: () => {
+        this.isResending = false;
+      }
+    });
+  }
+
+  private startResendCountdown(): void {
+    this.resendDisabled = true;
+    this.resendCountdown = 60;
+    this.resendTimer = setInterval(() => {
+      this.resendCountdown--;
+      if (this.resendCountdown <= 0) {
+        this.resendDisabled = false;
+        if (this.resendTimer) {
+          clearInterval(this.resendTimer);
+          this.resendTimer = null;
+        }
+      }
+    }, 1000);
+  }
+
+  triggerShakeError(): void {
+    this.shakeForm = !this.shakeForm;
+  }
+
+  ngOnDestroy(): void {
+    if (this.resendTimer) {
+      clearInterval(this.resendTimer);
+      this.resendTimer = null;
+    }
+  }
+}

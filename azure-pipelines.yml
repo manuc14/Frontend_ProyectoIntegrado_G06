@@ -1,0 +1,159 @@
+trigger:
+  branches:
+    include:
+      #- Develop
+      - main
+  paths:
+    exclude:
+      - README.md
+      - .gitignore
+
+variables:
+  - name: DIST_PATH
+    value: 'dist/frontend_g06/browser'     # Ya no se usa con framework integration
+  # (Sonar ya NO usa variables de grupo: va por Service Connection)
+
+stages:
+  # --- PREPARATION -----------------------------------------------------------
+  - stage: Preparation
+    displayName: 'Preparation and Validation'
+    jobs:
+      - job: PreparationJob
+        displayName: 'Validate Environment'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - script: |
+              echo "Repo: $(Build.Repository.Name)"
+              echo "Branch: $(Build.SourceBranch)"
+              echo "Build ID: $(Build.BuildId)"
+              docker version
+              docker info | sed -n '1,25p'
+            displayName: 'Show agent & Docker info'
+
+  # --- BUILD (inside Docker) -------------------------------------------------
+  - stage: Build
+    displayName: 'Build Angular (Docker)'
+    dependsOn: Preparation
+    condition: succeeded()
+    jobs:
+      - job: BuildJob
+        displayName: 'Dockerized Build'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - script: |
+              docker run --rm \
+                -v "$(System.DefaultWorkingDirectory)":/app \
+                -w /app node:20 \
+                bash -lc "node -v && npm -v && npm ci && npm run build"
+            displayName: 'npm ci + build inside Docker (node:20)'
+
+          - script: |
+              echo "Contenido de $(DIST_PATH):"
+              ls -la "$(System.DefaultWorkingDirectory)/$(DIST_PATH)" || \
+                { echo "Revisa DIST_PATH y el output del build"; exit 1; }
+            displayName: 'Inspect dist output'
+
+  # --- SONAR (self-hosted + extensión oficial) ------------------------------
+  - stage: Sonarqube
+    displayName: 'SonarQube (UCLM/VPN, CLI sin ramas)'
+    dependsOn: Build
+    condition: succeeded()
+    variables:
+      - group: sonarqube-secrets
+    jobs:
+    - job: SonarCLI
+      pool: { name: 'UCLM-VPN' }
+      steps:
+        - checkout: self
+
+        # (Opcional) nombre seguro por rama si quieres "proyecto por rama" en Community
+        - powershell: |
+            $b = "$(Build.SourceBranchName)"
+            $safe = $b -replace '[^A-Za-z0-9._-]','_'
+            Write-Host "##vso[task.setvariable variable=SafeBranchName]$safe"
+          displayName: 'Sanitize branch name'
+
+        # Descarga y ejecuta el scanner CLI
+        - powershell: |
+            $ErrorActionPreference = "Stop"
+            $ver  = '5.0.1.3006'
+            $zip  = "sonar-scanner-cli-$ver-windows.zip"
+            $url  = "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/$zip"
+            $dest = "$(Agent.TempDirectory)\scanner.zip"
+            Invoke-WebRequest $url -OutFile $dest
+            Expand-Archive $dest -DestinationPath "$(Agent.TempDirectory)\scanner" -Force
+            $scanner = Get-ChildItem "$(Agent.TempDirectory)\scanner" -Directory | Select-Object -First 1
+            $exe = Join-Path $scanner.FullName 'bin\sonar-scanner.bat'
+
+            # --- Opción 1: un único proyecto (sin branch analysis) ---
+            & $exe `
+              -D"sonar.host.url=$(SONAR_HOST_URL)" `
+              -D"sonar.login=$(SONAR_TOKEN)" `
+              -D"sonar.projectKey=2025-g06-frontend" `
+              -D"sonar.projectName=2025-g06-frontend" `
+              -D"sonar.sources=src" `
+              -D"sonar.exclusions=**/shared/**" `
+              -D"sonar.sourceEncoding=UTF-8"
+
+            # --- Opción 2 (comentada): proyecto por rama en Community ---
+            # & $exe `
+            #   -D"sonar.host.url=$(SONAR_HOST_URL)" `
+            #   -D"sonar.login=$(SONAR_TOKEN)" `
+            #   -D"sonar.projectKey=2025-g06-frontend-$(SafeBranchName)" `
+            #   -D"sonar.projectName=2025-g06-frontend-$(SafeBranchName)" `
+            #   -D"sonar.sources=src" `
+            #   -D"sonar.exclusions=**/node_modules/**,**/dist/**,**/*.spec.ts" `
+            #   -D"sonar.sourceEncoding=UTF-8"
+          displayName: 'Run SonarScanner CLI (no branch props)'
+
+  # --- DEPLOY -----------------------------------------------------------------
+  - stage: Deploy
+    displayName: 'Deploy to Firebase'
+    dependsOn: Sonarqube
+    condition: succeeded()
+    variables:
+      - group: firebase-secrets
+    jobs:
+      - job: DeployJob
+        displayName: 'Firebase Deploy'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+            fetchDepth: 1  # Solo la última commit para velocidad
+
+          - script: |
+              mkdir -p dist/frontend_g06/browser
+            displayName: 'Create Firebase public directory'
+
+          - script: |
+              npm ci
+            displayName: 'Install dependencies'
+
+          - script: |
+              npx ng build --configuration production
+            displayName: 'Build Angular app'
+
+          - script: |
+              ls -la dist/frontend_g06/browser/
+              if [ ! -f dist/frontend_g06/browser/index.html ]; then
+                echo "ERROR: index.html not found in public directory"
+                exit 1
+              fi
+            displayName: 'Verify build output'
+
+          - script: |
+              npm install -g firebase-tools
+            displayName: 'Install Firebase CLI'
+
+          - script: |
+              firebase deploy --only hosting --token "$(FIREBASE_TOKEN)" --project frontend-g06
+            displayName: 'Deploy to Firebase Hosting'
+            env:
+              FIREBASE_TOKEN: $(FIREBASE_TOKEN)

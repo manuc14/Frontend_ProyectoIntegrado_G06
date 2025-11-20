@@ -1,64 +1,66 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
-import { BackendUser, ApiService } from '../../../core/services/api.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ApiService } from '../../../core/services/api.service';
+import { ImageSelectorService } from '../../../core/services/image-selector.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { HeaderBase } from '../../../core/base/header.base';
+import { UserDropdownMenuComponent } from '../user-dropdown-menu/user-dropdown-menu.component';
 
 @Component({
   selector: 'app-content-creator-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UserDropdownMenuComponent],
   templateUrl: './content-creator-header.component.html',
-  styleUrls: ['./content-creator-header.component.scss']
+  styleUrls: ['./content-creator-header.component.scss'],
+  host: {
+    '(document:click)': 'onClickOutside($event)'
+  }
 })
-export class ContentCreatorHeaderComponent implements OnInit {
+export class ContentCreatorHeaderComponent extends HeaderBase implements OnInit {
+  isCreateDropdownOpen = false;
 
-  currentUser: BackendUser | null = null;
-  isOnUploadPage = false;
-
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, private apiService: ApiService) {}
+  constructor(
+    router: Router,
+    activatedRoute: ActivatedRoute,
+    apiService: ApiService,
+    imageSelectorService: ImageSelectorService,
+    authService: AuthService
+  ) {
+    super();
+    this.router = router;
+    this.apiService = apiService;
+    this.imageSelectorService = imageSelectorService;
+    this.authService = authService;
+  }
 
   ngOnInit() {
     this.loadCurrentUser();
-    this.checkCurrentRoute();
-    
-    // Suscribirse a cambios de ruta
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.checkCurrentRoute();
-    });
   }
 
-  private checkCurrentRoute() {
-    this.isOnUploadPage = this.router.url === '/upload-content';
+  override logout() {
+    this.authService.logout(true);
   }
 
-  private loadCurrentUser() {
-    const userData = sessionStorage.getItem('currentUser');
-    if (userData) {
-      try {
-        this.currentUser = JSON.parse(userData);
-      } catch (error) {
-        console.error('Error parsing current user data:', error);
-      }
+  toggleCreateDropdown() {
+    this.isCreateDropdownOpen = !this.isCreateDropdownOpen;
+  }
+
+  onClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const isInsideDropdown = target.closest('.create-dropdown-container');
+    if (!isInsideDropdown) {
+      this.isCreateDropdownOpen = false;
     }
   }
 
-  getAvatarUrl(): string {
-      if (this.currentUser?.foto) {
-        return this.apiService.getAvatarUrl(this.currentUser?.foto);
-      }
-      return 'assets/admin/admin_default.png';
-  }
-
-  navigateToUpload() {
+  navigateToUploadContent() {
+    this.isCreateDropdownOpen = false;
     this.router.navigate(['/upload-content']);
   }
 
-  logout() {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('currentUser');
-    this.router.navigate(['/login']);
+  navigateToCreateList() {
+    this.isCreateDropdownOpen = false;
+    this.router.navigate(['/create-list']);
   }
 }

@@ -12,4 +12,13 @@
   flex-shrink: 0;
   position: relative;
   transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+  }
+
+  &:focus-within {
+    outline: none;
+    border-color: var(--primary);
+  }
 }

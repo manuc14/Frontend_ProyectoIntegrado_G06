@@ -1,9 +1,13 @@
-import { Component, inject, HostListener, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit } from '@angular/core';
+import {Component, inject, ElementRef, AfterViewInit, Renderer2, OnDestroy, OnInit, HostListener} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { navActiveState, navHover, fadeIn } from '../../core/animations/animations';
-import { BackendUser, ApiService } from '../../core/services/api.service';
+import { ApiService } from '../../core/services/api.service';
+import { ImageSelectorService } from '../../core/services/image-selector.service';
+import { AuthService } from '../../core/services/auth.service';
+import { HeaderBase } from '../../core/base/header.base';
+import { UserDropdownMenuComponent } from '../components/user-dropdown-menu/user-dropdown-menu.component';
 
 /*
  * HeaderComponent
@@ -14,29 +18,36 @@ import { BackendUser, ApiService } from '../../core/services/api.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, UserDropdownMenuComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   animations: [navActiveState, navHover, fadeIn]
 })
-export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
-  private router = inject(Router);
+export class HeaderComponent extends HeaderBase implements AfterViewInit, OnDestroy, OnInit {
+  protected override router = inject(Router);
   private elementRef = inject(ElementRef);
   private renderer = inject(Renderer2);
-  private apiService = inject(ApiService);
+  protected override apiService = inject(ApiService);
+  protected override imageSelectorService = inject(ImageSelectorService);
+  protected override authService = inject(AuthService);
   currentRoute = '';
   isMenuOpen = false;
-  hasScrolled = false; // Una vez que se hace scroll, se mantiene true
   isHomePage = false; // Para detectar si estamos en home
   isLoggedIn = false;
-  currentUser: BackendUser | null = null;
+  hasScrolled = false; // Controlar si hemos hecho scroll
 
   constructor() {
+    super();
+    this.router = inject(Router);
+    this.apiService = inject(ApiService);
+    this.imageSelectorService = inject(ImageSelectorService);
+    this.authService = inject(AuthService);
+
     // Obtener la ruta inicial
     this.currentRoute = this.router.url;
     this.checkIfHomePage();
     this.updateBodyClass();
-    
+
     // Escuchar cambios de ruta
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -45,6 +56,8 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
         this.checkIfHomePage();
         this.updateLogoVisibility();
         this.updateBodyClass();
+        // Revalidar sesión en cada cambio de ruta
+        this.checkSession();
       });
   }
 
@@ -66,45 +79,42 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   /**
-   * Verifica si hay una sesión activa
+   * Verifica si hay una sesión activa usando AuthService
    */
   private checkSession() {
-    const token = sessionStorage.getItem('authToken');
-    const userData = sessionStorage.getItem('currentUser');
-    this.isLoggedIn = !!(token && userData);
-    if (this.isLoggedIn && userData) {
-      try {
-        this.currentUser = JSON.parse(userData);
-      } catch (error) {
-        console.error('Error parsing current user data:', error);
-        this.isLoggedIn = false;
-        this.currentUser = null;
-      }
-    } else {
+    this.isLoggedIn = this.authService.isAuthenticated();
+
+    // Early return if not authenticated
+    if (!this.isLoggedIn) {
       this.currentUser = null;
+      return;
     }
+
+    // Always update current user from auth service to ensure we have the latest data
+    this.currentUser = this.authService.getCurrentUser();
   }
 
-  /**
-   * Obtiene la URL del avatar del usuario
-   */
-  getAvatarUrl(): string {
-    if (this.currentUser?.foto) {
-      return this.apiService.getAvatarUrl(this.currentUser?.foto);
+  override getAvatarUrl(): string {
+    // Always get the current user from auth service to ensure we have the latest data
+    const currentUser = this.authService.getCurrentUser();
+    const fotoUrl = currentUser?.foto;
+
+    // If foto is just a filename (like "avatar2.png"), convert to full path
+    let fullPath = fotoUrl;
+    if (fotoUrl && !fotoUrl.includes('/') && !fotoUrl.includes('http')) {
+      fullPath = `/resources/avatars/${fotoUrl}`;
     }
-    return 'assets/admin/admin_default.png';
+
+    // Return full URL using ApiService
+    return this.apiService.getFullResourceUrl(fullPath || '');
   }
-
-
   /**
-   * Cierra la sesión del usuario
+   * Cierra la sesión del usuario usando AuthService
    */
-  logout() {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('currentUser');
+  override logout() {
+    this.authService.logout(true);
     this.isLoggedIn = false;
     this.currentUser = null;
-    this.router.navigate(['/login']);
   }
 
   /**
@@ -112,11 +122,11 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
    */
   private updateBodyClass() {
     const body = document.body;
-    
+
     // Remover clases existentes
     this.renderer.removeClass(body, 'home-page');
     this.renderer.removeClass(body, 'other-page');
-    
+
     // Agregar clase apropiada
     if (this.isHomePage) {
       this.renderer.addClass(body, 'home-page');
@@ -129,13 +139,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
    * Verifica si estamos en la página home
    */
   private checkIfHomePage() {
-    const wasHomePage = this.isHomePage;
     this.isHomePage = this.currentRoute === '/' || this.currentRoute === '';
-    
-    // Si acabamos de llegar a home desde otra página, resetear estado
-    if (this.isHomePage && !wasHomePage) {
-      this.hasScrolled = false;
-    }
   }
 
   /**
@@ -144,7 +148,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
   private updateLogoVisibility() {
     const logoLarge = this.elementRef.nativeElement.querySelector('.desktop-logo');
     const logoSmall = this.elementRef.nativeElement.querySelector('.desktop-logo-small');
-    
+
     if (logoLarge && logoSmall) {
       if (this.isHomePage && !this.hasScrolled) {
         // En home sin scroll: mostrar logo grande
@@ -163,13 +167,13 @@ export class HeaderComponent implements AfterViewInit, OnDestroy, OnInit {
   /**
    * Detecta el primer scroll para cambiar el logo permanentemente (solo en home)
    */
-  @HostListener('window:scroll', ['$event'])
+  @HostListener('window:scroll')
   onWindowScroll() {
     // Solo aplicar lógica de scroll en la página home
     if (!this.isHomePage) return;
-    
+
     const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    
+
     // Solo cambiar una vez cuando se hace el primer scroll en home
     if (scrollTop > 50 && !this.hasScrolled) {
       this.hasScrolled = true;

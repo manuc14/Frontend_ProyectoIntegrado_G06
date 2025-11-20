@@ -1,22 +1,82 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
-import { buttonHover, buttonPress, fadeIn, inputFocus, shakeError } from '../../../core/animations/animations';
-import { ApiService } from '../../../core/services/api.service';
-import { AvatarsResponseDto } from '../../../core/models/media.models';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { buttonHover, buttonPress, fadeIn } from '../../../core/animations/animations';
+import { FormBaseService } from '../../../core/services/form-base.service';
+import { FormInputComponent } from '../../form-components/form-input/form-input.component';
+import { FormPasswordComponent } from '../../form-components/form-password/form-password.component';
+import { TextAreaFieldComponent } from '../../textarea-field/textarea-field.component';
+import { SelectFieldComponent } from '../../select-field/select-field.component';
+import { AvatarSelectorComponent } from '../../avatar-selector/avatar-selector.component';
+import { ErrorContainerComponent } from '../../error-container/error-container.component';
+import { FormActionsComponent } from '../../form-actions/form-actions.component';
 
 export type EntityType = 'admin' | 'creator';
+
+// Configuración por tipo de entidad
+const ENTITY_CONFIGS = {
+  admin: {
+    submitButtonText: (isSubmitting: boolean) => isSubmitting ? 'Creando...' : 'Crear administrador',
+    emailPlaceholder: 'email@empresa.com',
+    selectOptions: ['Operaciones', 'Marketing', 'Finanzas', 'Recursos Humanos', 'Soporte'],
+    selectFieldName: 'departamento',
+    selectLabel: 'Departamento *',
+    defaultSelectValue: 'Operaciones',
+    sendFoto: false
+  },
+  creator: {
+    submitButtonText: (isSubmitting: boolean) => isSubmitting ? 'Creando...' : 'Crear creador',
+    emailPlaceholder: 'email@plataforma.com',
+    selectOptions: ['Música', 'Educación', 'Tecnología', 'Cocina', 'Deportes', 'Arte', 'Ciencia', 'Viajes'],
+    selectFieldName: 'especialidad',
+    selectLabel: 'Especialidad *',
+    defaultSelectValue: 'Música',
+    sendFoto: true
+  }
+};
+
+// Interfaces tipadas para formularios
+export interface AdminForm {
+  nombre: string;
+  apellidos: string;
+  email: string;
+  password: string;
+  repetirPassword: string;
+  departamento: string;
+}
+
+export interface CreatorForm {
+  nombre: string;
+  apellidos: string;
+  email: string;
+  alias: string;
+  password: string;
+  repetirPassword: string;
+  especialidad: string;
+  tipoContenido: string;
+  descripcion: string;
+}
 
 @Component({
   selector: 'app-admin-entity-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormInputComponent,
+    FormPasswordComponent,
+    TextAreaFieldComponent,
+    SelectFieldComponent,
+    AvatarSelectorComponent,
+    ErrorContainerComponent,
+    FormActionsComponent
+  ],
   templateUrl: './admin-entity-form.component.html',
   styleUrl: './admin-entity-form.component.scss',
-  animations: [buttonHover, buttonPress, fadeIn, inputFocus, shakeError]
+  animations: [buttonHover, buttonPress, fadeIn]
 })
-export class AdminEntityFormComponent implements OnInit {
+export class AdminEntityFormComponent implements OnInit, OnDestroy {
   @Input() entityType: EntityType = 'admin';
   @Input() service: any; // AdminService or CreatorService
   @Input() title: string = '';
@@ -24,193 +84,89 @@ export class AdminEntityFormComponent implements OnInit {
   @Input() successRoute: string = '';
 
   entityForm!: FormGroup;
-  selectedAvatar: string | null = null;
-  previewUrl: string = 'assets/admin/foto_upload.svg';
-  isDefaultIcon: boolean = true;
+  formId: string = '';
 
-  // Configuración específica por tipo
-  get isPhotoRequired(): boolean {
-    return this.entityType === 'creator';
-  }
+  // Estado centralizado gestionado por FormBaseService
+  currentFormState: any = {};
 
-  get photoLabel(): string {
-    return this.isPhotoRequired ? 'Avatar *' : 'Avatar (opcional)';
-  }
-
-  get submitButtonText(): string {
-    const entityName = this.entityType === 'admin' ? 'administrador' : 'creador';
-    return this.isSubmitting ? 'Creando...' : `Crear ${entityName}`;
-  }
-
-  get aliasPlaceholder(): string {
-    return this.entityType === 'creator' ? '@alias_unico' : '';
-  }
-
-  get aliasHelpText(): string {
-    return this.entityType === 'creator' ? '(no repetible)' : '';
-  }
-
-  get emailPlaceholder(): string {
-    return this.entityType === 'creator' ? 'email@plataforma.com' : 'email@empresa.com';
-  }
-
-  // Opciones específicas
-  get selectOptions(): string[] {
-    if (this.entityType === 'admin') {
-      return [
-        'Operaciones',
-        'Marketing',
-        'Finanzas',
-        'Recursos Humanos',
-        'Soporte'
-      ];
-    } else {
-      return [
-        'Música',
-        'Educación',
-        'Tecnología',
-        'Cocina',
-        'Deportes',
-        'Arte',
-        'Ciencia',
-        'Viajes'
-      ];
-    }
-  }
-
-  get selectFieldName(): string {
-    return this.entityType === 'admin' ? 'departamento' : 'especialidad';
-  }
-
-  get selectLabel(): string {
-    return this.entityType === 'admin' ? 'Departamento *' : 'Especialidad *';
-  }
-
+  showTooltipPassword = false;
   showAvatarModal = false;
-  availableAvatars: string[] = [];
-  isLoadingAvatars = false;
-  avatarLoadError = false;
-  isSubmitting = false;
-  errorMessage: string | null = null;
-  formSubmitted = false;
 
-  // Validaciones de contraseña en tiempo real
-  passwordStrength = {
-    hasMinLength: false,
-    hasUpperCase: false,
-    hasLowerCase: false,
-    hasNumber: false,
-    hasSpecialChar: false
-  };
+  get config() {
+    return ENTITY_CONFIGS[this.entityType];
+  }
 
   constructor(
-    private fb: FormBuilder,
     private router: Router,
-    private route: ActivatedRoute,
-    public apiService: ApiService
+    private formBaseService: FormBaseService
   ) {
     // Form will be created in ngOnInit after inputs are set
   }
 
   private createForm(): void {
-    // Crear form con campos comunes
-    const controls: any = {
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      apellidos: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      repetirPassword: ['', [Validators.required]],
-      // Campos específicos
-      departamento: [this.entityType === 'admin' ? 'Operaciones' : null],
-      especialidad: [this.entityType === 'creator' ? 'Música' : null],
-      tipoContenido: [this.entityType === 'creator' ? '' : null, this.entityType === 'creator' ? Validators.required : null],
-      descripcion: ['']
-    };
-
-    // Campo alias solo para creators
-    if (this.entityType === 'creator') {
-      controls['alias'] = ['', [Validators.required, Validators.minLength(2), Validators.maxLength(12)]];
+    if (this.entityType === 'admin') {
+      this.entityForm = this.formBaseService.createFormGroup<AdminForm>({
+        nombre: '',
+        apellidos: '',
+        email: '',
+        password: '',
+        repetirPassword: '',
+        departamento: this.config.defaultSelectValue
+      }, [FormBaseService.passwordMatchValidator('password', 'repetirPassword')], 'admin');
+    } else {
+      this.entityForm = this.formBaseService.createFormGroup<CreatorForm>({
+        nombre: '',
+        apellidos: '',
+        email: '',
+        alias: '',
+        password: '',
+        repetirPassword: '',
+        especialidad: this.config.defaultSelectValue,
+        tipoContenido: '',
+        descripcion: ''
+      }, [FormBaseService.passwordMatchValidator('password', 'repetirPassword')], 'creator');
     }
-
-    this.entityForm = this.fb.group(controls);
-    this.entityForm.setValidators(this.passwordMatchValidator);
   }
 
   ngOnInit(): void {
-    // Verificar que haya token en sessionStorage
     const storedToken = sessionStorage.getItem('authToken');
+
+    // Early return if no auth token
     if (!storedToken) {
       this.router.navigate(['/login']);
       return;
     }
+
+    // Crear ID único para el formulario
+    this.formId = `create-${this.entityType}`;
+
+    // Crear estado del formulario
+    this.formBaseService.createFormState(this.formId, {});
+
+    // Suscribirse al estado del formulario
+    this.formBaseService.getFormState(this.formId)?.subscribe(state => {
+      this.currentFormState = state;
+    });
+
     // Crear form con campos comunes
     this.createForm();
-    // Continuar con la inicialización
-    this.initializeForm();
+    // Cargar avatares
+    this.formBaseService.loadImages('avatar');
   }
 
-  private initializeForm(): void {
-    this.cargarAvatares();
-
-    // Escuchar cambios en el campo de contraseña
-    this.entityForm.get('password')?.valueChanges.subscribe(password => {
-      this.checkPasswordStrength(password || '');
-    });
-  }
-
-  checkPasswordStrength(password: string): void {
-    // Default to empty string if password is null or undefined
-    const safePassword = password || '';
-
-    this.passwordStrength = {
-      hasMinLength: safePassword.length >= 8,
-      hasUpperCase: /[A-Z]/.test(safePassword),
-      hasLowerCase: /[a-z]/.test(safePassword),
-      hasNumber: /\d/.test(safePassword),
-      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(safePassword)
-    };
-  }
-
-  get isPasswordValid(): boolean {
-    return Object.values(this.passwordStrength).every(v => v);
-  }
-
-  get passwordRequirements(): string[] {
-    const requirements: string[] = [];
-    if (!this.passwordStrength.hasMinLength) requirements.push('Mínimo 8 caracteres');
-    if (!this.passwordStrength.hasUpperCase) requirements.push('Al menos una mayúscula');
-    if (!this.passwordStrength.hasLowerCase) requirements.push('Al menos una minúscula');
-    if (!this.passwordStrength.hasNumber) requirements.push('Al menos un dígito');
-    if (!this.passwordStrength.hasSpecialChar) requirements.push('Al menos un carácter especial');
-    return requirements;
-  }
-
-  passwordMatchValidator(control: AbstractControl) {
-    const form = control as FormGroup;
-    const password = form.get('password');
-    const repetirPassword = form.get('repetirPassword');
-
-    if (password && repetirPassword && password.value !== repetirPassword.value) {
-      repetirPassword.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
+  ngOnDestroy(): void {
+    if (this.formId) {
+      this.formBaseService.destroyFormState(this.formId);
     }
-    return null;
   }
 
-  cargarAvatares(): void {
-    this.isLoadingAvatars = true;
-    this.avatarLoadError = false;
-    this.apiService.getAvatars().subscribe({
-      next: (response: AvatarsResponseDto) => {
-        this.availableAvatars = response.avatars || [];
-        this.isLoadingAvatars = false;
-      },
-      error: (err) => {
-        console.error('Error al cargar avatares:', err);
-        this.isLoadingAvatars = false;
-        this.avatarLoadError = true;
-      }
-    });
+  onAvatarSelected(avatar: string): void {
+    this.formBaseService.selectImage(avatar, 'avatar');
+    this.closeAvatarModal();
+  }
+
+  onToggleTooltipPassword(): void {
+    this.showTooltipPassword = !this.showTooltipPassword;
   }
 
   openAvatarModal(): void {
@@ -221,129 +177,93 @@ export class AdminEntityFormComponent implements OnInit {
     this.showAvatarModal = false;
   }
 
-  selectPredefinedAvatar(avatar: string): void {
-    this.selectedAvatar = avatar;
-    this.previewUrl = avatar;
-    this.isDefaultIcon = false;
-    this.closeAvatarModal();
-  }
-
-  shouldShowError(fieldName: string): boolean {
-    const field = this.entityForm.get(fieldName);
-    return !!field && this.formSubmitted && field.invalid;
-  }
-
-  setTipoContenido(tipo: string): void {
-    this.entityForm.patchValue({ tipoContenido: tipo });
+  onModalKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.closeAvatarModal();
+    }
   }
 
   onSubmit(): void {
-    this.formSubmitted = true;
-    this.errorMessage = null;
+    this.formBaseService.updateFormState(this.formId, { error: null });
 
-    if (!this.validatePhoto()) return;
-    if (!this.validatePassword()) return;
-    if (!this.validateForm()) return;
+    // Early return if form is invalid
+    if (this.entityForm.invalid) {
+      this.formBaseService.updateFormState(this.formId, {
+        error: 'Por favor revisa los campos que son obligatorios.'
+      });
+      return;
+    }
 
-    this.isSubmitting = true;
+    this.formBaseService.updateFormState(this.formId, { isSubmitting: true });
     const entityData = this.prepareEntityData();
 
-    const createMethod = this.entityType === 'admin' ? 'crearAdministrador' : 'crearCreador';
-
-    this.service[createMethod](entityData).subscribe({
+    this.service.crearEntidad(this.entityType, entityData).subscribe({
       next: (response: any) => this.handleSuccess(response),
       error: (error: any) => this.handleError(error)
     });
   }
 
-  private validatePhoto(): boolean {
-    if (this.isPhotoRequired) {
-      // Para creadores, se requiere seleccionar un avatar predefinido
-      const hasAvatar = this.selectedAvatar !== null && this.selectedAvatar !== '';
-
-      if (!hasAvatar) {
-        this.errorMessage = 'Debe seleccionar un avatar predefinido para los creadores de contenido.';
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private validatePassword(): boolean {
-    if (!this.isPasswordValid) {
-      this.errorMessage = 'Valores incorrectos. Revisa los campos para continuar.';
-      return false;
-    }
-    return true;
-  }
-
-  private validateForm(): boolean {
-    if (this.entityForm.invalid) {
-      this.errorMessage = 'Valores incorrectos. Revisa los campos para continuar.';
-      return false;
-    }
-    return true;
-  }
-
   private prepareEntityData(): any {
-    // UNIFICADO: Todos los tipos SOLO usan avatares predefinidos
-    // Se envía el nombre del avatar en JSON (igual que registro)
-    let fotoNombre = '';
-    if (this.selectedAvatar) {
-      fotoNombre = this.selectedAvatar.split('/').pop() ?? '';
-    }
+    const getValue = (field: string, trim: boolean = false): string => {
+      const value = this.entityForm.get(field)?.value || '';
+      return trim ? value.trim() : value;
+    };
 
-    let entityData: any;
+    const data: any = {
+      nombre: getValue('nombre', true),
+      apellidos: getValue('apellidos', true),
+      correo: getValue('email', true),
+      contrasena: getValue('password'),
+      confirmarContrasena: getValue('repetirPassword')
+    };
 
     if (this.entityType === 'admin') {
-      entityData = {
-        nombre: this.entityForm.get('nombre')?.value.trim(),
-        apellidos: this.entityForm.get('apellidos')?.value.trim(),
-        correo: this.entityForm.get('email')?.value.trim(),
-        contrasena: this.entityForm.get('password')?.value,
-        confirmarContrasena: this.entityForm.get('repetirPassword')?.value,
-        departamento: this.entityForm.get('departamento')?.value,
-        foto: fotoNombre // Nombre del avatar predefinido (igual que registro)
-      };
+      data.departamento = getValue('departamento');
     } else {
-      // Para creadores, igual que registro: nombre del avatar en JSON
-      entityData = {
-        nombre: this.entityForm.get('nombre')?.value.trim(),
-        apellidos: this.entityForm.get('apellidos')?.value.trim(),
-        correo: this.entityForm.get('email')?.value.trim(),
-        alias: this.entityForm.get('alias')?.value.trim(),
-        contrasena: this.entityForm.get('password')?.value,
-        confirmarContrasena: this.entityForm.get('repetirPassword')?.value,
-        especialidad: this.entityForm.get('especialidad')?.value,
-        tipoContenido: this.entityForm.get('tipoContenido')?.value,
-        descripcion: this.entityForm.get('descripcion')?.value?.trim() || '',
-        foto: fotoNombre // Nombre del avatar predefinido (igual que registro)
-      };
+      data.alias = getValue('alias', true);
+      data.especialidad = getValue('especialidad');
+      data.tipoContenido = getValue('tipoContenido');
+      data.descripcion = getValue('descripcion', true);
     }
 
-    return entityData;
+    const fotoNombre = this.formBaseService.extractImageFileName(this.currentFormState?.imageState?.selectedImage);
+    if (this.config.sendFoto && fotoNombre) {
+      data.foto = fotoNombre;
+    }
+
+    return data;
   }
 
   private handleSuccess(response: any): void {
     console.log(`${this.entityType} creado exitosamente:`, response);
+    
+    const getValue = (field: string, trim: boolean = true): string => {
+      const value = this.entityForm.get(field)?.value;
+      return trim ? (value?.trim() || '') : (value || '');
+    };
+
+    const foto = response.foto || this.getAvatarPath() || 
+      (this.entityType === 'admin' ? 'assets/admin/default.png' : 'assets/admin/admin_default.png');
+
+    const commonData = {
+      nombre: getValue('nombre'),
+      apellidos: getValue('apellidos'),
+      correo: getValue('email'),
+      foto
+    };
+
     const stateData = this.entityType === 'admin' ? {
       adminData: {
-        nombre: this.entityForm.get('nombre')?.value.trim(),
-        apellidos: this.entityForm.get('apellidos')?.value.trim(),
-        correo: this.entityForm.get('email')?.value.trim(),
-        departamento: this.entityForm.get('departamento')?.value,
-        foto: response.foto || this.getAvatarPath() || 'assets/admin/default.png'
+        ...commonData,
+        departamento: getValue('departamento', false)
       }
     } : {
       creatorData: {
-        nombre: this.entityForm.get('nombre')?.value.trim(),
-        apellidos: this.entityForm.get('apellidos')?.value.trim(),
-        correo: this.entityForm.get('email')?.value.trim(),
-        alias: this.entityForm.get('alias')?.value.trim(),
-        especialidad: this.entityForm.get('especialidad')?.value,
-        tipoContenido: this.entityForm.get('tipoContenido')?.value,
-        descripcion: this.entityForm.get('descripcion')?.value?.trim() || '',
-        foto: response.foto || this.getAvatarPath() || 'assets/admin/admin_default.png'
+        ...commonData,
+        alias: getValue('alias'),
+        especialidad: getValue('especialidad', false),
+        tipoContenido: getValue('tipoContenido', false),
+        descripcion: getValue('descripcion')
       }
     };
 
@@ -352,69 +272,35 @@ export class AdminEntityFormComponent implements OnInit {
 
   private handleError(error: any): void {
     console.error(`Error al crear ${this.entityType}:`, error);
-    this.errorMessage = error.message || `Error al crear el ${this.entityType}. Por favor, intenta nuevamente.`;
-    this.isSubmitting = false;
+
+    // Early return if 401 (interceptor already redirected)
+    if (error.status === 401) return;
+
+    // For other errors, delegate to FormBaseService
+    this.formBaseService.handleBackendError(this.formId, this.entityForm, error);
+    this.formBaseService.updateFormState(this.formId, { isSubmitting: false });
   }
 
   private getAvatarPath(): string | null {
-    if (this.selectedAvatar) {
-      if (this.entityType === 'creator') {
-        return this.selectedAvatar.startsWith('avatars/')
-          ? this.selectedAvatar
-          : 'avatars/' + this.selectedAvatar.split('/').pop();
-      } else {
-        return this.selectedAvatar || null;
-      }
-    }
-    return null;
+    const selectedAvatar = this.currentFormState?.imageState?.selectedImage;
+    if (!selectedAvatar) return null;
+
+    return selectedAvatar.startsWith('avatars/')
+      ? selectedAvatar
+      : 'avatars/' + selectedAvatar.split('/').pop();
   }
 
   goBack(): void {
-    if (this.entityForm.dirty) {
-      const confirmLeave = confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.');
-      if (confirmLeave) {
-        this.router.navigate([this.backRoute]);
-      }
-    } else {
+    // Early return if form is pristine
+    if (!this.entityForm.dirty) {
+      this.router.navigate([this.backRoute]);
+      return;
+    }
+
+    // Confirm before leaving with unsaved changes
+    const confirmLeave = confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.');
+    if (confirmLeave) {
       this.router.navigate([this.backRoute]);
     }
-  }
-
-  // Métodos para accesibilidad (de creators)
-  handleKeyDown(event: KeyboardEvent, action: () => void) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      action();
-    }
-  }
-
-  handleKeyUp(event: KeyboardEvent) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-    }
-  }
-
-  onCloseAvatarModalKeyDown(event: KeyboardEvent) {
-    this.handleKeyDown(event, () => this.closeAvatarModal());
-  }
-
-  onCloseAvatarModalKeyUp(event: KeyboardEvent) {
-    this.handleKeyUp(event);
-  }
-
-  onInnerModalKeyDown(event: KeyboardEvent) {
-    this.handleKeyDown(event, () => event.stopPropagation());
-  }
-
-  onInnerModalKeyUp(event: KeyboardEvent) {
-    this.handleKeyUp(event);
-  }
-
-  onSelectAvatarKeyDown(event: KeyboardEvent, avatar: string) {
-    this.handleKeyDown(event, () => this.selectPredefinedAvatar(avatar));
-  }
-
-  onSelectAvatarKeyUp(event: KeyboardEvent) {
-    this.handleKeyUp(event);
   }
 }

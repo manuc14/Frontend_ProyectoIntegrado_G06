@@ -1,0 +1,94 @@
+<app-header></app-header>
+
+<main class="background">
+  <div class="container">
+    
+    <!-- Título dinámico -->
+    <div class="container2">
+      <div class="container3">
+        <div class="text">{{ title }}</div>
+      </div>
+    </div>
+
+    <!-- Mensaje de éxito -->
+    <div class="success-message" *ngIf="showSuccessMessage">
+      <div class="success-content">
+        <img src="assets/icons/check-circle.svg" alt="Éxito" class="success-icon" />
+        {{ successMessage }}
+      </div>
+    </div>
+
+    <!-- Estado de carga y errores (opcional con ng-content) -->
+    <ng-content select="[form-status]"></ng-content>
+
+    <!-- Contenedor principal con fondo blanco -->
+    <div class="background-border-shadow">
+      
+      <!-- Columna izquierda - Selector de Avatar -->
+      <div class="container4" [class.avatar-disabled]="!isEditMode">
+        <app-avatar-selector
+          [availableAvatars]="availableAvatars"
+          [selectedAvatar]="selectedAvatar"
+          [nombre]="profileForm.get('firstName')?.value || 'Usuario'"
+          (avatarSelected)="onAvatarSelected($event)">
+        </app-avatar-selector>
+      </div>
+
+      <!-- Columna derecha - Información principal -->
+      <div class="container9">
+        <div class="margin">
+          <div class="container5">
+            <div class="text4">{{ sectionTitle || 'Información personal' }}</div>
+            
+            <!-- Botón de edición -->
+            <button 
+              type="button"
+              class="edit-button-top-right"
+              [class.active]="isEditMode"
+              (click)="toggleEditMode()"
+              [title]="isEditMode ? 'Salir del modo edición' : 'Editar perfil'">
+              <img class="edit-icon" src="assets/icons/edit-pencil.svg" alt="Editar" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulario principal -->
+        <form [formGroup]="profileForm">
+          
+          <!-- Bloque proyectado: campos del perfil específicos de cada componente -->
+          <ng-content select="[profile-fields]"></ng-content>
+
+        </form>
+      </div>
+
+      <!-- Botones de acción (solo en modo edición) -->
+      <div class="margin2" *ngIf="isEditMode">
+        <div class="container17">
+          <button 
+            type="button" 
+            class="border"
+            [disabled]="!hasUnsavedChanges || (isSubmitting$ | async)"
+            (click)="onCancelChanges()">
+            <div class="text17">{{ cancelButtonText || 'Cancelar' }}</div>
+          </button>
+          
+          <button 
+            type="button" 
+            class="background-border14"
+            [disabled]="!hasUnsavedChanges || (isSubmitting$ | async)"
+            (click)="onSaveChanges()">
+            <div class="text18">
+              <ng-container *ngIf="(isSubmitting$ | async); else normalSave">
+                {{ savingButtonText || 'Guardando...' }}
+              </ng-container>
+              <ng-template #normalSave>
+                {{ saveButtonText || 'Guardar cambios' }}
+              </ng-template>
+            </div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
