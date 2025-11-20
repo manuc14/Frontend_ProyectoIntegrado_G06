@@ -34,10 +34,7 @@ export class AdminHeaderComponent extends HeaderBase implements OnInit {
   }
 
   ngOnInit() {
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      this.currentUser = user as any;
-    }
+    this.loadCurrentUser();
   }
 
   onToggle() {

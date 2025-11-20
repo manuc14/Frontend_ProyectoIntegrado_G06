@@ -57,7 +57,8 @@ export class CatalogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.edadUsuario = this.authService.getUserAge();
+    const age = this.authService.getUserAge();
+    this.edadUsuario = age > 0 ? age : 18;
     this.cargarListasPublicas();
   }
 
@@ -94,6 +95,9 @@ export class CatalogComponent implements OnInit {
   }
 
   private cumpleFiltros(item: Contenido): boolean {
+    if (this.isCreatorView) {
+      return item.tipo === this.seccionActiva;
+    }
     return allConditionsTrue([
       item.tipo === this.seccionActiva,
       item.restriccionEdad <= this.edadUsuario,
@@ -107,8 +111,9 @@ export class CatalogComponent implements OnInit {
 
   private seleccionarContenidoDestacado(): void {
     const todosLosContenidos = this.listasOriginales.flatMap(lista => lista.items);
-    this.contenidoDestacado = todosLosContenidos.length > 0 
-      ? todosLosContenidos[Math.floor(Math.random() * todosLosContenidos.length)]
+    const contenidosFiltrados = todosLosContenidos.filter(item => item.tipo === this.seccionActiva);
+    this.contenidoDestacado = contenidosFiltrados.length > 0 
+      ? contenidosFiltrados[Math.floor(Math.random() * contenidosFiltrados.length)]
       : null;
   }
 
