@@ -31,6 +31,7 @@ export class ContentCardComponent implements OnInit {
     return this.apiService.getFullResourceUrl(this.contenido.miniaturaUrl);
   }
   showIncompatibleModal = false;
+  incompatibleMessage = '';
 
   /**
    * Verifica si el contenido es privado
@@ -42,21 +43,12 @@ export class ContentCardComponent implements OnInit {
   /**
    * Maneja el click en la tarjeta de contenido
    * - Usuario normal: navega al preview
-   * - Creador: valida tipo de contenido y navega a edición
+   * - Creador: valida tipo de contenido y navega a edición o muestra modal
    */
   handleCardClick(event: Event): void {
     event.preventDefault();
-    // Guardar información del creador en localStorage
-    localStorage.setItem('currentContentCreatorAlias', this.contenido.creadorAlias || '');
-    localStorage.setItem('currentContentCreatorSpecialty', this.contenido.creadorEspecialidad || '');
-    // Guardar ID en localStorage
-    localStorage.setItem('currentContentId', this.contenido._id);
-    // Navegar con query parameter para el origen
-    this.router.navigate(['/content/preview'], {
-      queryParams: { origin: this.navigationOrigin }
-    });
     
-    if (this.isCreatorView) {
+    if (this.authService.isCreator()) {
       this.handleCreatorClick();
     } else {
       this.navigateToPreview();
@@ -79,6 +71,7 @@ export class ContentCardComponent implements OnInit {
       this.router.navigate(['/edit-content']);
     } else {
       // Mostrar modal indicando incompatibilidad
+      this.incompatibleMessage = `Eres un creador de ${creatorType?.toLowerCase() || 'contenido'} y este es un contenido de tipo ${contentType?.toLowerCase() || this.contenido.tipo}. Solo puedes editar contenido de tu mismo tipo.`;
       this.showIncompatibleModal = true;
     }
   }
@@ -99,16 +92,7 @@ export class ContentCardComponent implements OnInit {
     this.showIncompatibleModal = false;
   }
 
-  /**
-   * Obtiene el mensaje del modal según el tipo de contenido
-   */
-  get incompatibleModalMessage(): string {
-    const user = this.authService.getCurrentUser();
-    const creatorType = user?.tipoContenido || 'contenido';
-    const contentTypeName = this.contenido.tipo === 'VIDEO' ? 'video' : 'audio';
-    
-    return `Eres un creador de ${creatorType.toLowerCase()} y este es un contenido de tipo ${contentTypeName}. Solo puedes editar contenido de tu mismo tipo.`;
-  }
+
 
   /**
    * Convierte la duración en minutos a formato HH:MM

@@ -30,6 +30,7 @@ export class CatalogComponent implements OnInit {
   @Output() deleteList = new EventEmitter<string>();
 
   listasPublicas: ListaPublicaResponse[] = [];
+  listasOriginales: ListaPublicaResponse[] = [];
   errorCarga: string | null = null;
   seccionActiva: SeccionActiva = 'VIDEO';
   contenidoDestacado: Contenido | null = null;
@@ -67,6 +68,8 @@ export class CatalogComponent implements OnInit {
 
     observable.subscribe({
       next: (listas) => {
+        this.listasOriginales = listas; // Guardar listas originales para seleccionar destacado
+        
         // En vista de creador, filtrar solo listas públicas
         const listasFiltradas = this.isCreatorView 
           ? listas.filter(lista => lista.publica)
@@ -93,7 +96,7 @@ export class CatalogComponent implements OnInit {
   private cumpleFiltros(item: Contenido): boolean {
     return allConditionsTrue([
       item.tipo === this.seccionActiva,
-      this.isCreatorView || item.restriccionEdad <= this.edadUsuario,
+      item.restriccionEdad <= this.edadUsuario,
       this.filtroEdad === null || item.restriccionEdad === this.filtroEdad,
       !this.filtroPremium || item.contenidoVip,
       this.seccionActiva !== 'VIDEO' || !this.filtroCalidad || item.resolucion === this.filtroCalidad,
@@ -103,7 +106,7 @@ export class CatalogComponent implements OnInit {
   }
 
   private seleccionarContenidoDestacado(): void {
-    const todosLosContenidos = this.listasPublicas.flatMap(lista => lista.items);
+    const todosLosContenidos = this.listasOriginales.flatMap(lista => lista.items);
     this.contenidoDestacado = todosLosContenidos.length > 0 
       ? todosLosContenidos[Math.floor(Math.random() * todosLosContenidos.length)]
       : null;

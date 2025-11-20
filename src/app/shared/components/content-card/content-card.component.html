@@ -61,13 +61,13 @@
       </span>
     </div>
   </div>
-</a>
+  </a>
 
 <!-- Modal de contenido incompatible -->
 <app-info-modal
   [isVisible]="showIncompatibleModal"
   [title]="'Contenido Incompatible'"
-  [message]="incompatibleModalMessage"
+  [message]="incompatibleMessage"
   [iconType]="'warning'"
   [buttonText]="'Entendido'"
   (closed)="closeIncompatibleModal()">
